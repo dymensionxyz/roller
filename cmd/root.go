@@ -1,7 +1,3 @@
-/*
-Copyright © 2023 Dymension itay@dymension.xyz
-
-*/
 package cmd
 
 import (
