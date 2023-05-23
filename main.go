@@ -1,8 +1,11 @@
-// create a project entry point that prints hello world
+/*
+Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
-import "fmt"
+import "github.com/itaylevyofficial/roller/cmd"
 
 func main() {
-	fmt.Println("Hello World!")
+	cmd.Execute()
 }
