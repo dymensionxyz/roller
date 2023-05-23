@@ -1,6 +1,6 @@
 package main
 
-import "github.com/itaylevyofficial/roller/cmd"
+import "github.com/dymensionxyz/roller/cmd"
 
 func main() {
 	cmd.Execute()

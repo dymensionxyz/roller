@@ -1,4 +1,4 @@
-module github.com/itaylevyofficial/roller
+module github.com/dymensionxyz/roller
 
 go 1.20
 
