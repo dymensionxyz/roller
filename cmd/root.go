@@ -30,7 +30,7 @@ Available Commands:
 	completion  Generate the autocompletion script for the specified shell
 
 Flags:
-	-h, --help   help for ignite
+	-h, --help   help for roller
 
 Use "roller [command] --help" for more information about a command.
 	`,
