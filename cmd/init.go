@@ -12,6 +12,11 @@ import (
 
 const hubRPC string = "https://rpc-hub-35c.dymension.xyz:443"
 const lightNodeEndpointFlag = "light-node-endpoint"
+const evmCoinType uint32 = 60
+const rollappConfigDir string = ".rollapp"
+const relayerConfigDir string = ".relayer"
+const hubChainId  string = "internal-devnet"
+const relayerKeysDirName string = "keys"
 
 func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
 	if len(coinType) == 0 {
@@ -44,11 +49,6 @@ var initCmd = &cobra.Command{
 	Use:   "init <chain-id>",
 	Short: "Initialize a rollapp configuration on your local machine",
 	Run: func(cmd *cobra.Command, args []string) {
-		const evmCoinType uint32 = 60
-		rollappConfigDir := ".rollapp"
-		relayerConfigDir := ".relayer"
-		hubChainId := "internal-devnet"
-		relayerKeysDirName := "keys"
 		createKey(rollappConfigDir, "hub_sequencer")
 		createKey(rollappConfigDir, "rollapp_sequencer", evmCoinType)
 		relayerRollappDir := path.Join(relayerConfigDir, relayerKeysDirName, args[0])
