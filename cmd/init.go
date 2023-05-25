@@ -15,13 +15,14 @@ const lightNodeEndpointFlag = "light-node-endpoint"
 const evmCoinType uint32 = 60
 const rollappConfigDir string = ".rollapp"
 const relayerConfigDir string = ".relayer"
-const hubChainId  string = "internal-devnet"
+const hubChainId string = "internal-devnet"
 const relayerKeysDirName string = "keys"
 
 func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
-	if len(coinType) == 0 {
-		const cosmosDefaultCointype uint32 = 118
-		coinType = []uint32{cosmosDefaultCointype}
+	const cosmosDefaultCointype uint32 = 118
+	var coinTypeVal = cosmosDefaultCointype
+	if len(coinType) != 0 {
+		coinTypeVal = coinType[0]
 	}
 	rollappAppName := "rollapp"
 	kr, err := keyring.New(
@@ -33,7 +34,7 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 	if err != nil {
 		return nil, err
 	}
-	bip44Params := hd.NewFundraiserParams(0, coinType[0], 0)
+	bip44Params := hd.NewFundraiserParams(0, coinTypeVal, 0)
 	info, _, err := kr.NewMnemonic(keyId, keyring.English, bip44Params.String(), "", hd.Secp256k1)
 	if err != nil {
 		return nil, err
