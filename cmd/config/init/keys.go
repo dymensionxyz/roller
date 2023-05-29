@@ -22,7 +22,6 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 		nil,
 	)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	bip44Params := hd.NewFundraiserParams(0, coinTypeVal, 0)
