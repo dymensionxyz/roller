@@ -43,3 +43,4 @@ const evmCoinType uint32 = 60
 const hubChainId = "35-C"
 const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
+const celestia_executable_path = "/Users/itaylevy/go/bin/celestia"
