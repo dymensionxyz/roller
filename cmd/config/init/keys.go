@@ -22,6 +22,7 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 		nil,
 	)
 	if err != nil {
+		panic(err)
 		return nil, err
 	}
 	bip44Params := hd.NewFundraiserParams(0, coinTypeVal, 0)
@@ -33,13 +34,13 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 }
 
 func generateKeys(createLightNode bool, chainId string) {
-	createKey(rollappConfigDir, keyNames.HubSequencer)
-	createKey(rollappConfigDir, keyNames.RollappSequencer, evmCoinType)
-	relayerRollappDir := path.Join(relayerConfigDir, relayerKeysDirName, chainId)
-	relayerHubDir := path.Join(relayerConfigDir, relayerKeysDirName, hubChainId)
+	createKey(configDirName.Rollapp, keyNames.HubSequencer)
+	createKey(configDirName.Rollapp, keyNames.RollappSequencer, evmCoinType)
+	relayerRollappDir := path.Join(configDirName.Relayer, relayerKeysDirName, chainId)
+	relayerHubDir := path.Join(configDirName.Relayer, relayerKeysDirName, hubChainId)
 	createKey(relayerHubDir, "relayer-hub-key")
 	createKey(relayerRollappDir, keyNames.RollappRelayer, evmCoinType)
 	if createLightNode {
-		createKey(".light_node", "my-celes-key")
+		createKey(path.Join(configDirName.LightNode, "keys"), "my-celes-key")
 	}
 }
