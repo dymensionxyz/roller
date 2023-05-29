@@ -29,12 +29,12 @@ const lightNodeEndpointFlag = "light-node-endpoint"
 const hubSequencerKeyName = "hub_sequencer"
 
 const evmCoinType uint32 = 60
-const rollappConfigDir string = ".rollapp"
-const relayerConfigDir string = ".relayer"
-const hubChainId string = "internal-devnet"
-const relayerKeysDirName string = "keys"
+const rollappConfigDir = ".rollapp"
+const relayerConfigDir = ".relayer"
+const hubChainId = "35-C"
+const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
-const sequencerKeyName string = "rollapp_sequencer"
+const sequencerKeyName = "rollapp_sequencer"
 
 func getDenom(denom string, chainId string) string {
 	if denom == "" {

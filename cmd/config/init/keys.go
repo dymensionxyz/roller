@@ -33,7 +33,6 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 }
 
 func generateKeys(createLightNode bool, chainId string) {
-	const evmCoinType uint32 = 60
 	createKey(rollappConfigDir, hubSequencerKeyName)
 	createKey(rollappConfigDir, sequencerKeyName, evmCoinType)
 	relayerRollappDir := path.Join(relayerConfigDir, relayerKeysDirName, chainId)
