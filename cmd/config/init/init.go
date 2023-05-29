@@ -24,7 +24,6 @@ var flagNames = struct {
 	HubRPC:            "hub-rpc",
 }
 
-const denomFlagName = "denom"
 const hubRPC = "https://rpc-hub-35c.dymension.xyz:443"
 const lightNodeEndpointFlag = "light-node-endpoint"
 const hubSequencerKeyName = "hub_sequencer"
@@ -39,7 +38,7 @@ const sequencerKeyName string = "rollapp_sequencer"
 
 func getDenom(denom string, chainId string) string {
 	if denom == "" {
-		return "u" + chainId[:3]
+		return "a" + chainId[:3]
 	}
 	return denom
 }
@@ -58,7 +57,6 @@ func initializeRollappConfig(rollappExecutablePath string, chainId string, denom
 		panic(err)
 	}
 	setRollappAppConfig(filepath.Join(os.Getenv("HOME"), rollappConfigDir, "config/app.toml"), denom)
-	setRollappTendermintConfig(filepath.Join(os.Getenv("HOME"), rollappConfigDir, "config/config.toml"))
 }
 
 func InitCmd() *cobra.Command {
