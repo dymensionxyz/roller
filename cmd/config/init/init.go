@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	toml "github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 )
 
@@ -36,29 +37,6 @@ const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
 const sequencerKeyName = "rollapp_sequencer"
 
-func getDenom(denom string, chainId string) string {
-	if denom == "" {
-		return "a" + chainId[:3]
-	}
-	return denom
-}
-
-func getRollappBinaryPath(rollappBinaryPath string) string {
-	if rollappBinaryPath == "" {
-		rollappBinaryPath = "/usr/local/bin/rollapp_evm"
-	}
-	return rollappBinaryPath
-}
-
-func initializeRollappConfig(rollappExecutablePath string, chainId string, denom string) {
-	initRollappCmd := exec.Command(rollappExecutablePath, "init", hubSequencerKeyName, "--chain-id", chainId, "--home", filepath.Join(os.Getenv("HOME"), rollappConfigDir))
-	err := initRollappCmd.Run()
-	if err != nil {
-		panic(err)
-	}
-	setRollappAppConfig(filepath.Join(os.Getenv("HOME"), rollappConfigDir, "config/app.toml"), denom)
-}
-
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <chain-id>",
@@ -79,4 +57,38 @@ func InitCmd() *cobra.Command {
 	cmd.Flags().StringP("rollapp-binary", "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
 	cmd.Flags().Int64P("decimals", "", 18, "The number of decimal places a rollapp token supports.")
 	return cmd
+}
+
+func getDenom(denom string, chainId string) string {
+	if denom == "" {
+		return "a" + chainId[:3]
+	}
+	return denom
+}
+
+func getRollappBinaryPath(rollappBinaryPath string) string {
+	if rollappBinaryPath == "" {
+		rollappBinaryPath = "/usr/local/bin/rollapp_evm"
+	}
+	return rollappBinaryPath
+}
+
+func setRollappAppConfig(appConfigFilePath string, denom string) {
+	config, _ := toml.LoadFile(appConfigFilePath)
+	config.Set("minimum-gas-prices", "0"+denom)
+	config.Set("api.enable", "true")
+	config.Set("grpc.address", "0.0.0.0:8080")
+	config.Set("grpc-web.address", "0.0.0.0:8081")
+	file, _ := os.Create(appConfigFilePath)
+	file.WriteString(config.String())
+	file.Close()
+}
+
+func initializeRollappConfig(rollappExecutablePath string, chainId string, denom string) {
+	initRollappCmd := exec.Command(rollappExecutablePath, "init", hubSequencerKeyName, "--chain-id", chainId, "--home", filepath.Join(os.Getenv("HOME"), rollappConfigDir))
+	err := initRollappCmd.Run()
+	if err != nil {
+		panic(err)
+	}
+	setRollappAppConfig(filepath.Join(os.Getenv("HOME"), rollappConfigDir, "config/app.toml"), denom)
 }
