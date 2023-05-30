@@ -20,10 +20,12 @@ var keyNames = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string
+	lightNode        string
 }{
 	HubSequencer:     "hub_sequencer",
 	RollappSequencer: "rollapp_sequencer",
 	RollappRelayer:   "relayer-rollapp-key",
+	lightNode:        "my-celes-key",
 }
 
 var configDirName = struct {

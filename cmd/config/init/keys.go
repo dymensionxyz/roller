@@ -9,15 +9,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
-func generateNeccasaryKeys(rollappId string, hubId string, createDALightNode bool) error {
+func generateKeys(rollappId string, hubId string, excludeKeys ...string) error {
 	keys := getDefaultKeys(rollappId, hubId)
-	if createDALightNode {
-		keys = append(keys, getDALightNodeKey())
+	excludeKeysMap := make(map[string]struct{})
+	for _, key := range excludeKeys {
+		excludeKeysMap[key] = struct{}{}
 	}
+
 	for _, key := range keys {
-		_, err := createKey(rollappId, key.dir, key.keyId, key.coinType)
-		if err != nil {
-			return err
+		if _, exists := excludeKeysMap[key.keyId]; !exists {
+			_, err := createKey(rollappId, key.dir, key.keyId, key.coinType)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -30,11 +34,7 @@ type keyConfig struct {
 }
 
 func getDALightNodeKey() keyConfig {
-	return keyConfig{
-		dir:      configDirName.DALightNode,
-		keyId:    "my-celes-key",
-		coinType: cosmosDefaultCointype,
-	}
+	return keyConfig{}
 }
 
 func createKey(rollappId string, relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
@@ -80,6 +80,11 @@ func getDefaultKeys(rollappId string, hubId string) []keyConfig {
 			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, hubId),
 			keyId:    keyNames.RollappRelayer,
 			coinType: evmCoinType,
+		}, {
+
+			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
+			keyId:    keyNames.lightNode,
+			coinType: cosmosDefaultCointype,
 		},
 	}
 }

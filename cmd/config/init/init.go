@@ -12,8 +12,10 @@ func InitCmd() *cobra.Command {
 			rollappId := args[0]
 			denom := args[1]
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
-			if err := generateNeccasaryKeys(rollappId, defaultHubId, createLightNode); err != nil {
-				panic(err)
+			if createLightNode {
+				generateKeys(rollappId, defaultHubId)
+			} else {
+				generateKeys(rollappId, defaultHubId, keyNames.lightNode)
 			}
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
