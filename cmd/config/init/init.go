@@ -20,7 +20,7 @@ func InitCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			if !cmd.Flags().Changed(lightNodeEndpointFlag) {
+			if createLightNode {
 				if err = initializeLightNodeConfig(); err != nil {
 					panic(err)
 				}
