@@ -43,5 +43,5 @@ const evmCoinType uint32 = 60
 const defaultHubId = "35-C"
 const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
-const celestia_executable_path = "/Users/itaylevy/go/bin/celestia"
-const defaultRollappBinaryPath = "/usr/local/bin/rollapp_evm"
+const celestiaExecutablePath = "/usr/local/bin/roller/lib/celestia"
+const defaultRollappBinaryPath = "/usr/local/bin/roller/lib/rollapp_evm"
