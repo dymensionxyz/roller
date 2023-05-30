@@ -25,18 +25,9 @@ var flagNames = struct {
 	HubRPC:            "hub-rpc",
 }
 
-var keyNames = struct {
-	HubSequencer     string
-	RollappSequencer string
-	RollappRelayer   string
-}{
-	HubSequencer:     "hub_sequencer",
-	RollappSequencer: "rollapp_sequencer",
-	RollappRelayer:   "relayer-rollapp-key",
-}
-
 const hubRPC = "https://rpc-hub-35c.dymension.xyz:443"
 const lightNodeEndpointFlag = "light-node-endpoint"
+const hubSequencerKeyName = "hub_sequencer"
 
 const evmCoinType uint32 = 60
 const rollappConfigDir = ".rollapp"
@@ -44,6 +35,7 @@ const relayerConfigDir = ".relayer"
 const hubChainId = "35-C"
 const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
+const sequencerKeyName = "rollapp_sequencer"
 
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -53,16 +45,8 @@ func InitCmd() *cobra.Command {
 			chainId := args[0]
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			denom := getDenom(cmd.Flag(flagNames.Denom).Value.String(), chainId)
-			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
-			if err != nil {
-				panic(err)
-			}
 			generateKeys(cmd.Flags().Changed(lightNodeEndpointFlag), chainId)
 			initializeRollappConfig(rollappBinaryPath, chainId, denom)
-			err = initializeRollappGenesis(rollappBinaryPath, decimals, denom)
-			if err != nil {
-				panic(err)
-			}
 		},
 		Args: cobra.ExactArgs(1),
 	}
@@ -71,7 +55,7 @@ func InitCmd() *cobra.Command {
 	cmd.Flags().StringP("denom", "", "", "The rollapp token smallest denominator, for example `wei` in Ethereum.")
 	cmd.Flags().StringP("key-prefix", "", "", "The `bech32` prefix of the rollapp keys.")
 	cmd.Flags().StringP("rollapp-binary", "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
-	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports.")
+	cmd.Flags().Int64P("decimals", "", 18, "The number of decimal places a rollapp token supports.")
 	return cmd
 }
 
@@ -101,7 +85,7 @@ func setRollappAppConfig(appConfigFilePath string, denom string) {
 }
 
 func initializeRollappConfig(rollappExecutablePath string, chainId string, denom string) {
-	initRollappCmd := exec.Command(rollappExecutablePath, "init", keyNames.HubSequencer, "--chain-id", chainId, "--home", filepath.Join(os.Getenv("HOME"), rollappConfigDir))
+	initRollappCmd := exec.Command(rollappExecutablePath, "init", hubSequencerKeyName, "--chain-id", chainId, "--home", filepath.Join(os.Getenv("HOME"), rollappConfigDir))
 	err := initRollappCmd.Run()
 	if err != nil {
 		panic(err)

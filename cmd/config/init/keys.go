@@ -33,12 +33,12 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 }
 
 func generateKeys(createLightNode bool, chainId string) {
-	createKey(rollappConfigDir, keyNames.HubSequencer)
-	createKey(rollappConfigDir, keyNames.RollappSequencer, evmCoinType)
+	createKey(rollappConfigDir, hubSequencerKeyName)
+	createKey(rollappConfigDir, sequencerKeyName, evmCoinType)
 	relayerRollappDir := path.Join(relayerConfigDir, relayerKeysDirName, chainId)
 	relayerHubDir := path.Join(relayerConfigDir, relayerKeysDirName, hubChainId)
 	createKey(relayerHubDir, "relayer-hub-key")
-	createKey(relayerRollappDir, keyNames.RollappRelayer, evmCoinType)
+	createKey(relayerRollappDir, "relayer-rollapp-key", evmCoinType)
 	if createLightNode {
 		createKey(".light_node", "my-celes-key")
 	}
