@@ -27,20 +27,21 @@ var keyNames = struct {
 }
 
 var configDirName = struct {
-	Rollapp   string
-	Relayer   string
-	LightNode string
+	Rollapp     string
+	Relayer     string
+	DALightNode string
 }{
-	Rollapp:   ".rollapp",
-	Relayer:   ".relayer",
-	LightNode: ".light-node",
+	Rollapp:     ".rollapp",
+	Relayer:     ".relayer",
+	DALightNode: ".light-node",
 }
 
 const hubRPC = "https://rpc-hub-35c.dymension.xyz:443"
 const lightNodeEndpointFlag = "light-node-endpoint"
 
 const evmCoinType uint32 = 60
-const hubChainId = "35-C"
+const defaultHubId = "35-C"
 const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
 const celestia_executable_path = "/Users/itaylevy/go/bin/celestia"
+const defaultRollappBinaryPath = "/usr/local/bin/rollapp_evm"

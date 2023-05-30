@@ -9,20 +9,23 @@ func InitCmd() *cobra.Command {
 		Use:   "init <chain-id>",
 		Short: "Initialize a rollapp configuration on your local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			chainId := args[0]
+			rollappId := args[0]
 			denom := args[1]
+			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
+			if err := generateNeccasaryKeys(rollappId, defaultHubId, createLightNode); err != nil {
+				panic(err)
+			}
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
 			if err != nil {
 				panic(err)
 			}
-			generateKeys(!cmd.Flags().Changed(lightNodeEndpointFlag), chainId)
 			if !cmd.Flags().Changed(lightNodeEndpointFlag) {
 				if err = initializeLightNodeConfig(); err != nil {
 					panic(err)
 				}
 			}
-			initializeRollappConfig(rollappBinaryPath, chainId, denom)
+			initializeRollappConfig(rollappBinaryPath, rollappId, denom)
 			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
 				panic(err)
 			}
@@ -39,7 +42,7 @@ func InitCmd() *cobra.Command {
 
 func getRollappBinaryPath(rollappBinaryPath string) string {
 	if rollappBinaryPath == "" {
-		rollappBinaryPath = "/usr/local/bin/rollapp_evm"
+		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
 }
