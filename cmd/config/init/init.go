@@ -39,31 +39,23 @@ const sequencerKeyName = "rollapp_sequencer"
 
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init <chain-id>",
+		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a rollapp configuration on your local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			chainId := args[0]
+			denom := args[1]
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
-			denom := getDenom(cmd.Flag(flagNames.Denom).Value.String(), chainId)
 			generateKeys(cmd.Flags().Changed(lightNodeEndpointFlag), chainId)
 			initializeRollappConfig(rollappBinaryPath, chainId, denom)
 		},
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 	}
 	cmd.Flags().StringP(flagNames.HubRPC, "", hubRPC, "Dymension Hub rpc endpoint")
 	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided.")
-	cmd.Flags().StringP("denom", "", "", "The rollapp token smallest denominator, for example `wei` in Ethereum.")
 	cmd.Flags().StringP("key-prefix", "", "", "The `bech32` prefix of the rollapp keys.")
 	cmd.Flags().StringP("rollapp-binary", "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
 	cmd.Flags().Int64P("decimals", "", 18, "The number of decimal places a rollapp token supports.")
 	return cmd
-}
-
-func getDenom(denom string, chainId string) string {
-	if denom == "" {
-		return "a" + chainId[:3]
-	}
-	return denom
 }
 
 func getRollappBinaryPath(rollappBinaryPath string) string {
