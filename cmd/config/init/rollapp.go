@@ -22,6 +22,9 @@ func setRollappAppConfig(appConfigFilePath string, denom string) {
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
 	file, _ := os.Create(appConfigFilePath)
-	file.WriteString(config.String())
+	_, err := file.WriteString(config.String())
+	if err != nil {
+		panic(err)
+	}
 	file.Close()
 }

@@ -7,15 +7,19 @@ import (
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <chain-id>",
-		Short: "Initialize a rollapp configuration on your local machine",
+		Short: "Initialize a rollapp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
 			if createLightNode {
-				generateKeys(rollappId, defaultHubId)
+				if err := generateKeys(rollappId, defaultHubId); err != nil {
+					panic(err)
+				}
 			} else {
-				generateKeys(rollappId, defaultHubId, keyNames.DALightNode)
+				if err := generateKeys(rollappId, defaultHubId, keyNames.DALightNode); err != nil {
+					panic(err)
+				}
 			}
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
@@ -55,13 +59,6 @@ func InitCmd() *cobra.Command {
 	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
 	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports.")
 	return cmd
-}
-
-func getDenom(denom string, chainId string) string {
-	if denom == "" {
-		return "a" + chainId[:3]
-	}
-	return denom
 }
 
 func getRollappBinaryPath(rollappBinaryPath string) string {

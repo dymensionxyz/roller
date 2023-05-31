@@ -32,10 +32,6 @@ type keyConfig struct {
 	coinType uint32
 }
 
-func getDALightNodeKey() keyConfig {
-	return keyConfig{}
-}
-
 func createKey(rollappId string, relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
 	var coinTypeVal = cosmosDefaultCointype
 	if len(coinType) != 0 {
