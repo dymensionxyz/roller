@@ -1,7 +1,6 @@
 package init
 
 import (
-	"os"
 	"path"
 	"path/filepath"
 
@@ -45,7 +44,7 @@ func createKey(rollappId string, relativePath string, keyId string, coinType ...
 	kr, err := keyring.New(
 		rollappId,
 		keyring.BackendTest,
-		filepath.Join(os.Getenv("HOME"), relativePath),
+		filepath.Join(getRollerRootDir(), relativePath),
 		nil,
 	)
 	if err != nil {
@@ -73,7 +72,7 @@ func getDefaultKeys(rollappId string, hubId string) []keyConfig {
 		},
 		{
 			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, rollappId),
-			keyId:    "relayer-hub-key",
+			keyId:    keyNames.HubRelayer,
 			coinType: cosmosDefaultCointype,
 		},
 		{
@@ -83,7 +82,7 @@ func getDefaultKeys(rollappId string, hubId string) []keyConfig {
 		}, {
 
 			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
-			keyId:    keyNames.lightNode,
+			keyId:    keyNames.DALightNode,
 			coinType: cosmosDefaultCointype,
 		},
 	}

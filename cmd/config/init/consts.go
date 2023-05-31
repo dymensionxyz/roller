@@ -20,12 +20,14 @@ var keyNames = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string
-	lightNode        string
+	DALightNode      string
+	HubRelayer       string
 }{
 	HubSequencer:     "hub_sequencer",
 	RollappSequencer: "rollapp_sequencer",
 	RollappRelayer:   "relayer-rollapp-key",
-	lightNode:        "my-celes-key",
+	DALightNode:      "my-celes-key",
+	HubRelayer:       "relayer-hub-key",
 }
 
 var configDirName = struct {
@@ -34,11 +36,12 @@ var configDirName = struct {
 	DALightNode string
 }{
 	Rollapp:     ".rollapp",
-	Relayer:     ".relayer",
+	Relayer:     "relayer",
 	DALightNode: ".light-node",
 }
 
-const hubRPC = "https://rpc-hub-35c.dymension.xyz:443"
+const defaultHubRPC = "https://rpc-hub-35c.dymension.xyz:443"
+const defaultRollappRPC = "http://localhost:26657"
 const lightNodeEndpointFlag = "light-node-endpoint"
 
 const evmCoinType uint32 = 60
@@ -47,3 +50,4 @@ const relayerKeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
 const celestiaExecutablePath = "/usr/local/bin/roller/lib/celestia"
 const defaultRollappBinaryPath = "/usr/local/bin/roller/lib/rollapp_evm"
+const relayerExecutablePath = "/usr/local/bin/roller/lib/rly"
