@@ -38,7 +38,7 @@ func InitCmd() *cobra.Command {
 
 			addresses := initializeKeys(initConfig)
 			if createLightNode {
-				if err := initializeLightNodeConfig(); err != nil {
+				if err := initializeLightNodeConfig(initConfig); err != nil {
 					panic(err)
 				}
 			}
@@ -57,7 +57,7 @@ func InitCmd() *cobra.Command {
 				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
 				Denom:     "udym",
 				KeyPrefix: keyPrefixes.Hub,
-			}); err != nil {
+			}, initConfig); err != nil {
 				panic(err)
 			}
 			celestiaAddress := addresses[keyNames.DALightNode]

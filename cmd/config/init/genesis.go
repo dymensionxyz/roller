@@ -13,7 +13,7 @@ import (
 func initializeRollappGenesis(initConfig InitConfig) error {
 	zeros := initConfig.Decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
-	rollappConfigDirPath := filepath.Join(getRollerRootDir(), configDirName.Rollapp)
+	rollappConfigDirPath := filepath.Join(initConfig.Home, configDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {
