@@ -30,6 +30,14 @@ var keyNames = struct {
 	HubRelayer:       "relayer-hub-key",
 }
 
+var keyPrefixes = struct {
+	Hub    string
+	DA    string
+}{
+	Hub:    "dym",
+	DA:    "celestia",
+}
+
 var configDirName = struct {
 	Rollapp     string
 	Relayer     string

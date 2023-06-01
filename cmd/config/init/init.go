@@ -11,13 +11,18 @@ func InitCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
+			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
+			var addresses map[string]string
+			var err error
 			if createLightNode {
-				if err := generateKeys(rollappId, defaultHubId); err != nil {
+				addresses, err = generateKeys(rollappId, defaultHubId, rollappKeyPrefix)
+				if err != nil {
 					panic(err)
 				}
 			} else {
-				if err := generateKeys(rollappId, defaultHubId, keyNames.DALightNode); err != nil {
+				addresses, err = generateKeys(rollappId, defaultHubId, rollappKeyPrefix, keyNames.DALightNode)
+				if err != nil {
 					panic(err)
 				}
 			}
@@ -36,7 +41,6 @@ func InitCmd() *cobra.Command {
 				panic(err)
 			}
 
-			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
 			if err := initializeRelayerConfig(ChainConfig{
 				ID:        rollappId,
 				RPC:       defaultRollappRPC,
@@ -50,6 +54,14 @@ func InitCmd() *cobra.Command {
 			}); err != nil {
 				panic(err)
 			}
+			celestiaAddress := addresses[keyNames.DALightNode]
+			rollappHubAddress := addresses[keyNames.HubSequencer]
+			relayerHubAddress := addresses[keyNames.HubRelayer]
+			printInitOutput(AddressesToFund{
+				DA:           celestiaAddress,
+				HubSequencer: rollappHubAddress,
+				HubRelayer:   relayerHubAddress,
+			}, rollappId)
 		},
 		Args: cobra.ExactArgs(2),
 	}
