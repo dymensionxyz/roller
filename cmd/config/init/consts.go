@@ -1,6 +1,7 @@
 package init
 
 var flagNames = struct {
+	Home              string
 	LightNodeEndpoint string
 	Denom             string
 	KeyPrefix         string
@@ -8,6 +9,7 @@ var flagNames = struct {
 	RollappBinary     string
 	HubRPC            string
 }{
+	Home:              "home",
 	LightNodeEndpoint: "light-node-endpoint",
 	Denom:             "denom",
 	KeyPrefix:         "key-prefix",
@@ -31,11 +33,11 @@ var keyNames = struct {
 }
 
 var keyPrefixes = struct {
-	Hub    string
-	DA    string
+	Hub string
+	DA  string
 }{
-	Hub:    "dym",
-	DA:    "celestia",
+	Hub: "dym",
+	DA:  "celestia",
 }
 
 var configDirName = struct {
