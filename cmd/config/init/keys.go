@@ -27,7 +27,7 @@ func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]stri
 	addresses := make(map[string]string)
 	for _, key := range keys {
 		if _, exists := excludeKeysMap[key.keyId]; !exists {
-			keyInfo, err := createKey(key)
+			keyInfo, err := createKey(key, initConfig.Home)
 			if err != nil {
 				return nil, err
 			}
@@ -48,11 +48,11 @@ type KeyConfig struct {
 	prefix   string
 }
 
-func createKey(keyConfig KeyConfig) (keyring.Info, error) {
+func createKey(keyConfig KeyConfig, home string) (keyring.Info, error) {
 	kr, err := keyring.New(
 		"",
 		keyring.BackendTest,
-		filepath.Join(getRollerRootDir(), keyConfig.dir),
+		filepath.Join(home, keyConfig.dir),
 		nil,
 	)
 	if err != nil {
