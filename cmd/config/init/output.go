@@ -18,9 +18,9 @@ func printInitOutput(addresses AddressesToFund, rollappId string) {
 	color.New(color.FgGreen, color.Bold).Printf("🔑 Key Details:\n\n")
 
 	data := [][]string{
-		{"- Celestia's Light Node:", addresses.DA},
-		{"- Rollapp Hub Sequencer:", addresses.HubSequencer},
-		{"- Rollapp Relayer:", addresses.HubRelayer},
+		{"Celestia Light Node", addresses.DA},
+		{"Rollapp Hub Sequencer", addresses.HubSequencer},
+		{"Rollapp Relayer", addresses.HubRelayer},
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
