@@ -9,12 +9,12 @@ import (
 )
 
 func initializeRollappConfig(initConfig InitConfig) {
-	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", keyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(getRollerRootDir(), configDirName.Rollapp))
+	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", keyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, configDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {
 		panic(err)
 	}
-	setRollappAppConfig(filepath.Join(getRollerRootDir(), configDirName.Rollapp, "config/app.toml"), initConfig.Denom)
+	setRollappAppConfig(filepath.Join(initConfig.Home, configDirName.Rollapp, "config/app.toml"), initConfig.Denom)
 }
 
 func setRollappAppConfig(appConfigFilePath string, denom string) {
