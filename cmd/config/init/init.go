@@ -50,7 +50,7 @@ func InitCmd() *cobra.Command {
 				ID:        defaultHubId,
 				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
 				Denom:     "udym",
-				KeyPrefix: "dym",
+				KeyPrefix: keyPrefixes.Hub,
 			}); err != nil {
 				panic(err)
 			}
