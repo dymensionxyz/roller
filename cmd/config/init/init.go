@@ -8,7 +8,6 @@ type InitConfig struct {
 	Home            string
 	RollappID       string
 	RollappBinary   string
-	RollappPrefix   string
 	createLightNode bool
 	Denom           string
 	HubID           string
@@ -31,7 +30,6 @@ func InitCmd() *cobra.Command {
 				Home:            home,
 				RollappID:       rollappId,
 				RollappBinary:   rollappBinaryPath,
-				RollappPrefix:   rollappKeyPrefix,
 				createLightNode: createLightNode,
 				Denom:           denom,
 				HubID:           defaultHubId,

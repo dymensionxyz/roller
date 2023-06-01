@@ -34,8 +34,10 @@ var keyNames = struct {
 
 var keyPrefixes = struct {
 	Hub string
+	Rollapp string
 	DA  string
 }{
+	Rollapp: "rol",
 	Hub: "dym",
 	DA:  "celestia",
 }

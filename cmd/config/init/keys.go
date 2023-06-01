@@ -78,7 +78,7 @@ func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
 			dir:      configDirName.Rollapp,
 			keyId:    keyNames.RollappSequencer,
 			coinType: evmCoinType,
-			prefix:   initConfig.RollappPrefix,
+			prefix:   keyPrefixes.Rollapp,
 		},
 		{
 			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.RollappID),
@@ -90,7 +90,7 @@ func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
 			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.HubID),
 			keyId:    keyNames.RollappRelayer,
 			coinType: evmCoinType,
-			prefix:   initConfig.RollappPrefix,
+			prefix:   keyPrefixes.Rollapp,
 		}, {
 
 			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
