@@ -12,6 +12,7 @@ type InitConfig struct {
 	createLightNode bool
 	Denom           string
 	HubID           string
+	Decimals        uint64
 }
 
 func InitCmd() *cobra.Command {
@@ -22,9 +23,10 @@ func InitCmd() *cobra.Command {
 			rollappId := args[0]
 			denom := args[1]
 			home := cmd.Flag(flagNames.Home).Value.String()
-			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
+			rollappKeyPrefix := getKeyPrefix(cmd, rollappId)
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
-			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
+			rollappBinaryPath := getRollappBinaryPath(cmd)
+			decimals := getDecimals(cmd)
 			initConfig := InitConfig{
 				Home:            home,
 				RollappID:       rollappId,
@@ -33,20 +35,17 @@ func InitCmd() *cobra.Command {
 				createLightNode: createLightNode,
 				Denom:           denom,
 				HubID:           defaultHubId,
+				Decimals:        decimals,
 			}
 
 			addresses := initializeKeys(initConfig)
-			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
-			if err != nil {
-				panic(err)
-			}
 			if createLightNode {
-				if err = initializeLightNodeConfig(); err != nil {
+				if err := initializeLightNodeConfig(); err != nil {
 					panic(err)
 				}
 			}
 			initializeRollappConfig(initConfig)
-			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
+			if err := initializeRollappGenesis(initConfig); err != nil {
 				panic(err)
 			}
 
@@ -88,6 +87,14 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(flagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
 }
 
+func getDecimals(cmd *cobra.Command) uint64 {
+	decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
+	if err != nil {
+		panic(err)
+	}
+	return decimals
+}
+
 func initializeKeys(initConfig InitConfig) map[string]string {
 	if initConfig.createLightNode {
 		addresses, err := generateKeys(initConfig.RollappID, initConfig.HubID, initConfig.RollappPrefix, initConfig.Home)
@@ -104,16 +111,18 @@ func initializeKeys(initConfig InitConfig) map[string]string {
 	}
 }
 
-func getRollappBinaryPath(rollappBinaryPath string) string {
+func getRollappBinaryPath(cmd *cobra.Command) string {
+	rollappBinaryPath := cmd.Flag(flagNames.RollappBinary).Value.String()
 	if rollappBinaryPath == "" {
 		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
 }
 
-func getKeyPrefix(keyPrefix string, chainId string) string {
+func getKeyPrefix(cmd *cobra.Command, rollappID string) string {
+	keyPrefix := cmd.Flag(flagNames.KeyPrefix).Value.String()
 	if keyPrefix == "" {
-		return chainId[:3]
+		return rollappID[:3]
 	}
 	return keyPrefix
 }
