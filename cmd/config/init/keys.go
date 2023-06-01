@@ -27,7 +27,7 @@ func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]stri
 	addresses := make(map[string]string)
 	for _, key := range keys {
 		if _, exists := excludeKeysMap[key.keyId]; !exists {
-			keyInfo, err := createKey(key.dir, key.keyId, key.coinType)
+			keyInfo, err := createKey(key)
 			if err != nil {
 				return nil, err
 			}
