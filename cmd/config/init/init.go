@@ -4,6 +4,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type InitConfig struct {
+	Home            string
+	RollappID       string
+	RollappBinary   string
+	RollappPrefix   string
+	createLightNode bool
+	Denom           string
+	HubID           string
+}
+
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <chain-id>",
@@ -11,10 +21,21 @@ func InitCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
+			home := cmd.Flag(flagNames.Home).Value.String()
 			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
-			addresses := initializeKeys(rollappId, defaultHubId, rollappKeyPrefix, createLightNode)
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
+			initConfig := InitConfig{
+				Home:            home,
+				RollappID:       rollappId,
+				RollappBinary:   rollappBinaryPath,
+				RollappPrefix:   rollappKeyPrefix,
+				createLightNode: createLightNode,
+				Denom:           denom,
+				HubID:           defaultHubId,
+			}
+
+			addresses := initializeKeys(initConfig)
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
 			if err != nil {
 				panic(err)
@@ -67,15 +88,15 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(flagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
 }
 
-func initializeKeys(rollappId, hubId, rollappPrefix string, createLightNode bool) map[string]string {
-	if createLightNode {
-		addresses, err := generateKeys(rollappId, defaultHubId, rollappPrefix)
+func initializeKeys(initConfig InitConfig) map[string]string {
+	if initConfig.createLightNode {
+		addresses, err := generateKeys(initConfig.RollappID, initConfig.HubID, initConfig.RollappPrefix, initConfig.Home)
 		if err != nil {
 			panic(err)
 		}
 		return addresses
 	} else {
-		addresses, err := generateKeys(rollappId, defaultHubId, rollappPrefix, keyNames.DALightNode)
+		addresses, err := generateKeys(initConfig.RollappID, initConfig.HubID, initConfig.RollappPrefix, initConfig.Home, keyNames.DALightNode)
 		if err != nil {
 			panic(err)
 		}
