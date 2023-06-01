@@ -8,13 +8,13 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-func initializeRollappConfig(rollappExecutablePath string, chainId string, denom string) {
-	initRollappCmd := exec.Command(rollappExecutablePath, "init", keyNames.HubSequencer, "--chain-id", chainId, "--home", filepath.Join(getRollerRootDir(), configDirName.Rollapp))
+func initializeRollappConfig(initConfig InitConfig) {
+	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", keyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(getRollerRootDir(), configDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {
 		panic(err)
 	}
-	setRollappAppConfig(filepath.Join(getRollerRootDir(), configDirName.Rollapp, "config/app.toml"), denom)
+	setRollappAppConfig(filepath.Join(getRollerRootDir(), configDirName.Rollapp, "config/app.toml"), initConfig.Denom)
 }
 
 func setRollappAppConfig(appConfigFilePath string, denom string) {

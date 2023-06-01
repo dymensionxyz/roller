@@ -45,7 +45,7 @@ func InitCmd() *cobra.Command {
 					panic(err)
 				}
 			}
-			initializeRollappConfig(rollappBinaryPath, rollappId, denom)
+			initializeRollappConfig(initConfig)
 			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
 				panic(err)
 			}
