@@ -18,8 +18,8 @@ func keyInfoToBech32Address(info keyring.Info, prefix string) (string, error) {
 	return bech32Address, nil
 }
 
-func generateKeys(rollappId string, hubId string, rollappKeyPrefix string, excludeKeys ...string) (map[string]string, error) {
-	keys := getDefaultKeysConfig(rollappId, hubId, rollappKeyPrefix)
+func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]string, error) {
+	keys := getDefaultKeysConfig(initConfig)
 	excludeKeysMap := make(map[string]struct{})
 	for _, key := range excludeKeys {
 		excludeKeysMap[key] = struct{}{}
@@ -27,7 +27,7 @@ func generateKeys(rollappId string, hubId string, rollappKeyPrefix string, exclu
 	addresses := make(map[string]string)
 	for _, key := range keys {
 		if _, exists := excludeKeysMap[key.keyId]; !exists {
-			keyInfo, err := createKey(rollappId, key.dir, key.keyId, key.coinType)
+			keyInfo, err := createKey(initConfig.RollappID, key.dir, key.keyId, key.coinType)
 			if err != nil {
 				return nil, err
 			}
@@ -70,7 +70,7 @@ func createKey(rollappId string, relativePath string, keyId string, coinType ...
 	return info, nil
 }
 
-func getDefaultKeysConfig(rollappId string, hubId string, rollappKeyPrefix string) []keyConfig {
+func getDefaultKeysConfig(initConfig InitConfig) []keyConfig {
 	return []keyConfig{
 		{
 			dir:      configDirName.Rollapp,
@@ -82,19 +82,19 @@ func getDefaultKeysConfig(rollappId string, hubId string, rollappKeyPrefix strin
 			dir:      configDirName.Rollapp,
 			keyId:    keyNames.RollappSequencer,
 			coinType: evmCoinType,
-			prefix:   rollappKeyPrefix,
+			prefix:   initConfig.RollappPrefix,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, rollappId),
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.RollappID),
 			keyId:    keyNames.HubRelayer,
 			coinType: cosmosDefaultCointype,
 			prefix:   keyPrefixes.Hub,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, hubId),
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.HubID),
 			keyId:    keyNames.RollappRelayer,
 			coinType: evmCoinType,
-			prefix:   rollappKeyPrefix,
+			prefix:   initConfig.RollappPrefix,
 		}, {
 
 			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),

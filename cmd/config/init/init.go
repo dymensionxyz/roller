@@ -97,13 +97,13 @@ func getDecimals(cmd *cobra.Command) uint64 {
 
 func initializeKeys(initConfig InitConfig) map[string]string {
 	if initConfig.createLightNode {
-		addresses, err := generateKeys(initConfig.RollappID, initConfig.HubID, initConfig.RollappPrefix, initConfig.Home)
+		addresses, err := generateKeys(initConfig)
 		if err != nil {
 			panic(err)
 		}
 		return addresses
 	} else {
-		addresses, err := generateKeys(initConfig.RollappID, initConfig.HubID, initConfig.RollappPrefix, initConfig.Home, keyNames.DALightNode)
+		addresses, err := generateKeys(initConfig, keyNames.DALightNode)
 		if err != nil {
 			panic(err)
 		}
