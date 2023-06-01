@@ -47,9 +47,9 @@ var configDirName = struct {
 	Relayer     string
 	DALightNode string
 }{
-	Rollapp:     ".rollapp",
+	Rollapp:     "rollapp",
 	Relayer:     "relayer",
-	DALightNode: ".light-node",
+	DALightNode: "light-node",
 }
 
 const defaultHubRPC = "https://rpc-hub-35c.dymension.xyz:443"
