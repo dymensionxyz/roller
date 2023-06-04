@@ -28,10 +28,10 @@ type RelayerFileChainConfigValue struct {
 }
 
 type ChainConfig struct {
-	ID        string
-	RPC       string
-	Denom     string
-	KeyPrefix string
+	ID            string
+	RPC           string
+	Denom         string
+	AddressPrefix string
 }
 
 type RelayerChainConfig struct {
@@ -60,7 +60,7 @@ func getRelayerFileChainConfig(relayerChainConfig RelayerChainConfig) RelayerFil
 			Key:            relayerChainConfig.KeyName,
 			ChainID:        relayerChainConfig.ChainConfig.ID,
 			RpcAddr:        relayerChainConfig.ChainConfig.RPC,
-			AccountPrefix:  relayerChainConfig.ChainConfig.KeyPrefix,
+			AccountPrefix:  relayerChainConfig.ChainConfig.AddressPrefix,
 			KeyringBackend: "test",
 			GasAdjustment:  1.2,
 			GasPrices:      relayerChainConfig.GasPrices,
