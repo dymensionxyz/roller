@@ -1,0 +1,129 @@
+package keys
+
+import (
+	"errors"
+	"io/ioutil"
+
+	"os"
+
+	"path/filepath"
+	"regexp"
+
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+)
+
+const innerKeysDirName = "keyring-test"
+const addressPattern = `.*\.address`
+
+func VerifyAllKeys(root string, rollappID string, hubID string) error {
+	if err := verifyLightNodeKeys(root); err != nil {
+		return err
+	}
+	if err := VerifyRollappKeys(root); err != nil {
+		return err
+	}
+	if err := VerifyRelayerKeys(root, rollappID, hubID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ClearKeys(root string) error {
+	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root)}
+	for _, dir := range keyDirs {
+		if err := os.RemoveAll(dir); err != nil {
+			return err
+		}
+	}
+	privValKeyPath := getPrivValKeyPath(root)
+	if err := os.Remove(privValKeyPath); err != nil {
+		return err
+	}
+	nodeKeyPath := getNodeKeyPath(root)
+	if err := os.Remove(nodeKeyPath); err != nil {
+		return err
+	}
+	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func verifyFileExists(path string) error {
+	_, err := os.Stat(path)
+	if err != nil {
+		return errors.New("File " + path + " does not exist")
+	}
+	return nil
+}
+
+func FileWithPatternPath(dir, pattern string) (string, error) {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+
+	r, err := regexp.Compile(pattern)
+	if err != nil {
+		return "", err
+	}
+
+	for _, file := range files {
+		if r.MatchString(file.Name()) {
+			return filepath.Join(dir, file.Name()), nil
+		}
+	}
+
+	return "", nil
+}
+
+func verifyAndRemoveFilePattern(pattern string, dir string) error {
+	filePath, err := FileWithPatternPath(dir, pattern)
+	if err != nil {
+		return err
+	}
+	if filePath == "" {
+		return errors.New("Couldn't find file with pattern " + pattern + " in directory " + dir)
+	} else {
+		if err := os.Remove(filePath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getLightNodeKeysDir(root string) string {
+	return filepath.Join(root, initconfig.ConfigDirName.DALightNode, initconfig.KeysDirName)
+}
+
+func verifyLightNodeKeys(root string) error {
+	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
+	infoFilePath := filepath.Join(lightNodeKeysDir, initconfig.KeyNames.DALightNode+".info")
+	err := verifyFileExists(infoFilePath)
+	if err != nil {
+		return err
+	}
+	return verifyAndRemoveFilePattern(addressPattern, lightNodeKeysDir)
+}
+
+func getRelayerKeysDir(root string) string {
+	return filepath.Join(root, initconfig.ConfigDirName.Relayer, initconfig.KeysDirName)
+}
+
+func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
+	relayerKeysDir := getRelayerKeysDir(root)
+	rollappKeysDir := filepath.Join(relayerKeysDir, rollappID, innerKeysDirName)
+	rollappKeyInfoPath := filepath.Join(rollappKeysDir, initconfig.KeyNames.RollappRelayer+".info")
+	if err := verifyFileExists(rollappKeyInfoPath); err != nil {
+		return err
+	}
+	if err := verifyAndRemoveFilePattern(addressPattern, rollappKeysDir); err != nil {
+		return err
+	}
+	hubKeysDir := filepath.Join(relayerKeysDir, hubID, innerKeysDirName)
+	hubKeyInfoPath := filepath.Join(hubKeysDir, initconfig.KeyNames.HubRelayer+".info")
+	if err := verifyFileExists(hubKeyInfoPath); err != nil {
+		return err
+	}
+	return verifyAndRemoveFilePattern(addressPattern, hubKeysDir)
+}

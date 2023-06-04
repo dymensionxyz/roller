@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"github.com/spf13/cobra"
@@ -21,7 +21,7 @@ func InitCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
-			home := cmd.Flag(flagNames.Home).Value.String()
+			home := cmd.Flag(FlagNames.Home).Value.String()
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
 			rollappBinaryPath := getRollappBinaryPath(cmd)
 			decimals := getDecimals(cmd)
@@ -31,7 +31,7 @@ func InitCmd() *cobra.Command {
 				RollappBinary:     rollappBinaryPath,
 				CreateDALightNode: createLightNode,
 				Denom:             denom,
-				HubID:             defaultHubId,
+				HubID:             DefaultHubID,
 				Decimals:          decimals,
 			}
 
@@ -52,16 +52,16 @@ func InitCmd() *cobra.Command {
 				Denom:         denom,
 				AddressPrefix: addressPrefixes.Rollapp,
 			}, ChainConfig{
-				ID:            defaultHubId,
-				RPC:           cmd.Flag(flagNames.HubRPC).Value.String(),
+				ID:            DefaultHubID,
+				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
 				Denom:         "udym",
 				AddressPrefix: addressPrefixes.Hub,
 			}, initConfig); err != nil {
 				panic(err)
 			}
-			celestiaAddress := addresses[keyNames.DALightNode]
-			rollappHubAddress := addresses[keyNames.HubSequencer]
-			relayerHubAddress := addresses[keyNames.HubRelayer]
+			celestiaAddress := addresses[KeyNames.DALightNode]
+			rollappHubAddress := addresses[KeyNames.HubSequencer]
+			relayerHubAddress := addresses[KeyNames.HubRelayer]
 			printInitOutput(AddressesToFund{
 				DA:           celestiaAddress,
 				HubSequencer: rollappHubAddress,
@@ -76,15 +76,15 @@ func InitCmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(flagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
-	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
-	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
-	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
-	cmd.Flags().StringP(flagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
+	cmd.Flags().StringP(FlagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
+	cmd.Flags().StringP(FlagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
+	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
+	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
+	cmd.Flags().StringP(FlagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
 }
 
 func getDecimals(cmd *cobra.Command) uint64 {
-	decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
+	decimals, err := cmd.Flags().GetUint64(FlagNames.Decimals)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +99,7 @@ func initializeKeys(initConfig InitConfig) map[string]string {
 		}
 		return addresses
 	} else {
-		addresses, err := generateKeys(initConfig, keyNames.DALightNode)
+		addresses, err := generateKeys(initConfig, KeyNames.DALightNode)
 		if err != nil {
 			panic(err)
 		}
@@ -108,7 +108,7 @@ func initializeKeys(initConfig InitConfig) map[string]string {
 }
 
 func getRollappBinaryPath(cmd *cobra.Command) string {
-	rollappBinaryPath := cmd.Flag(flagNames.RollappBinary).Value.String()
+	rollappBinaryPath := cmd.Flag(FlagNames.RollappBinary).Value.String()
 	if rollappBinaryPath == "" {
 		return defaultRollappBinaryPath
 	}

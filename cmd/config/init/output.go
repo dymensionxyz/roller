@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"os"
@@ -14,7 +14,7 @@ type AddressesToFund struct {
 }
 
 func printInitOutput(addresses AddressesToFund, rollappId string) {
-	color.New(color.FgCyan, color.Bold).Printf("🚀 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
+	color.New(color.FgCyan, color.Bold).Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
 	color.New(color.FgGreen, color.Bold).Printf("🔑 Key Details:\n\n")
 
 	data := [][]string{
