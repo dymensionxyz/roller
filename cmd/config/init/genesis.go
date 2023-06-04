@@ -2,7 +2,6 @@ package init
 
 import (
 	"io/ioutil"
-	"os"
 
 	"fmt"
 	"os/exec"
@@ -14,7 +13,7 @@ import (
 func initializeRollappGenesis(rollappExecutablePath string, decimals uint64, denom string) error {
 	zeros := decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + denom
-	rollappConfigDirPath := filepath.Join(os.Getenv("HOME"), configDirName.Rollapp)
+	rollappConfigDirPath := filepath.Join(getRollerRootDir(), configDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(rollappExecutablePath, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {
@@ -49,21 +48,26 @@ func getDefaultGenesisParams(denom string) []pathValue {
 	}
 }
 
-func updateGenesisParams(genesisFilePath string, denom string) error {
-	genesisFileContent, err := ioutil.ReadFile(genesisFilePath)
+func updateJSONParams(jsonFilePath string, params []pathValue) error {
+	jsonFileContent, err := ioutil.ReadFile(jsonFilePath)
 	if err != nil {
 		return err
 	}
-	genesisFileContentString := string(genesisFileContent)
-	for _, param := range getDefaultGenesisParams(denom) {
-		genesisFileContentString, err = sjson.Set(genesisFileContentString, param.Path, param.Value)
+	jsonFileContentString := string(jsonFileContent)
+	for _, param := range params {
+		jsonFileContentString, err = sjson.Set(jsonFileContentString, param.Path, param.Value)
 		if err != nil {
 			return err
 		}
 	}
-	err = ioutil.WriteFile(genesisFilePath, []byte(genesisFileContentString), 0644)
+	err = ioutil.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0644)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func updateGenesisParams(genesisFilePath string, denom string) error {
+	params := getDefaultGenesisParams(denom)
+	return updateJSONParams(genesisFilePath, params)
 }

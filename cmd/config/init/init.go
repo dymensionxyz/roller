@@ -15,7 +15,7 @@ func InitCmd() *cobra.Command {
 			if createLightNode {
 				generateKeys(rollappId, defaultHubId)
 			} else {
-				generateKeys(rollappId, defaultHubId, keyNames.lightNode)
+				generateKeys(rollappId, defaultHubId, keyNames.DALightNode)
 			}
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
@@ -31,15 +31,37 @@ func InitCmd() *cobra.Command {
 			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
 				panic(err)
 			}
+
+			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
+			if err := initializeRelayerConfig(ChainConfig{
+				ID:        rollappId,
+				RPC:       defaultRollappRPC,
+				Denom:     denom,
+				KeyPrefix: rollappKeyPrefix,
+			}, ChainConfig{
+				ID:        defaultHubId,
+				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
+				Denom:     "udym",
+				KeyPrefix: "dym",
+			}); err != nil {
+				panic(err)
+			}
 		},
 		Args: cobra.ExactArgs(2),
 	}
-	cmd.Flags().StringP(flagNames.HubRPC, "", hubRPC, "Dymension Hub rpc endpoint")
+	cmd.Flags().StringP(flagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
 	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided.")
-	cmd.Flags().StringP("key-prefix", "", "", "The `bech32` prefix of the rollapp keys.")
-	cmd.Flags().StringP("rollapp-binary", "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
+	cmd.Flags().StringP(flagNames.KeyPrefix, "", "", "The `bech32` prefix of the rollapp keys. Defaults to the first three characters of the chain-id.")
+	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
 	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports.")
 	return cmd
+}
+
+func getDenom(denom string, chainId string) string {
+	if denom == "" {
+		return "a" + chainId[:3]
+	}
+	return denom
 }
 
 func getRollappBinaryPath(rollappBinaryPath string) string {
@@ -47,4 +69,11 @@ func getRollappBinaryPath(rollappBinaryPath string) string {
 		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
+}
+
+func getKeyPrefix(keyPrefix string, chainId string) string {
+	if keyPrefix == "" {
+		return chainId[:3]
+	}
+	return keyPrefix
 }
