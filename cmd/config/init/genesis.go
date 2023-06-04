@@ -14,7 +14,7 @@ import (
 func initializeRollappGenesis(rollappExecutablePath string, decimals uint64, denom string) error {
 	zeros := decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + denom
-	rollappConfigDirPath := filepath.Join(os.Getenv("HOME"), rollappConfigDir)
+	rollappConfigDirPath := filepath.Join(os.Getenv("HOME"), configDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(rollappExecutablePath, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {

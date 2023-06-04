@@ -9,14 +9,41 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
-func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
+func generateKeys(rollappId string, hubId string, excludeKeys ...string) error {
+	keys := getDefaultKeys(rollappId, hubId)
+	excludeKeysMap := make(map[string]struct{})
+	for _, key := range excludeKeys {
+		excludeKeysMap[key] = struct{}{}
+	}
+
+	for _, key := range keys {
+		if _, exists := excludeKeysMap[key.keyId]; !exists {
+			_, err := createKey(rollappId, key.dir, key.keyId, key.coinType)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+type keyConfig struct {
+	dir      string
+	keyId    string
+	coinType uint32
+}
+
+func getDALightNodeKey() keyConfig {
+	return keyConfig{}
+}
+
+func createKey(rollappId string, relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
 	var coinTypeVal = cosmosDefaultCointype
 	if len(coinType) != 0 {
 		coinTypeVal = coinType[0]
 	}
-	rollappAppName := "rollapp"
 	kr, err := keyring.New(
-		rollappAppName,
+		rollappId,
 		keyring.BackendTest,
 		filepath.Join(os.Getenv("HOME"), relativePath),
 		nil,
@@ -32,14 +59,32 @@ func createKey(relativePath string, keyId string, coinType ...uint32) (keyring.I
 	return info, nil
 }
 
-func generateKeys(createLightNode bool, chainId string) {
-	createKey(rollappConfigDir, keyNames.HubSequencer)
-	createKey(rollappConfigDir, keyNames.RollappSequencer, evmCoinType)
-	relayerRollappDir := path.Join(relayerConfigDir, relayerKeysDirName, chainId)
-	relayerHubDir := path.Join(relayerConfigDir, relayerKeysDirName, hubChainId)
-	createKey(relayerHubDir, "relayer-hub-key")
-	createKey(relayerRollappDir, keyNames.RollappRelayer, evmCoinType)
-	if createLightNode {
-		createKey(".light_node", "my-celes-key")
+func getDefaultKeys(rollappId string, hubId string) []keyConfig {
+	return []keyConfig{
+		{
+			dir:      configDirName.Rollapp,
+			keyId:    keyNames.HubSequencer,
+			coinType: cosmosDefaultCointype,
+		},
+		{
+			dir:      configDirName.Rollapp,
+			keyId:    keyNames.RollappSequencer,
+			coinType: evmCoinType,
+		},
+		{
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, rollappId),
+			keyId:    "relayer-hub-key",
+			coinType: cosmosDefaultCointype,
+		},
+		{
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, hubId),
+			keyId:    keyNames.RollappRelayer,
+			coinType: evmCoinType,
+		}, {
+
+			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
+			keyId:    keyNames.lightNode,
+			coinType: cosmosDefaultCointype,
+		},
 	}
 }

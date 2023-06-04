@@ -1,66 +1,34 @@
 package init
 
 import (
-	"os"
-	"os/exec"
-	"path/filepath"
-
-	toml "github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 )
 
-var flagNames = struct {
-	LightNodeEndpoint string
-	Denom             string
-	KeyPrefix         string
-	Decimals          string
-	RollappBinary     string
-	HubRPC            string
-}{
-	LightNodeEndpoint: "light-node-endpoint",
-	Denom:             "denom",
-	KeyPrefix:         "key-prefix",
-	Decimals:          "decimals",
-	RollappBinary:     "rollapp-binary",
-	HubRPC:            "hub-rpc",
-}
-
-var keyNames = struct {
-	HubSequencer     string
-	RollappSequencer string
-	RollappRelayer   string
-}{
-	HubSequencer:     "hub_sequencer",
-	RollappSequencer: "rollapp_sequencer",
-	RollappRelayer:   "relayer-rollapp-key",
-}
-
-const hubRPC = "https://rpc-hub-35c.dymension.xyz:443"
-const lightNodeEndpointFlag = "light-node-endpoint"
-
-const evmCoinType uint32 = 60
-const rollappConfigDir = ".rollapp"
-const relayerConfigDir = ".relayer"
-const hubChainId = "35-C"
-const relayerKeysDirName = "keys"
-const cosmosDefaultCointype uint32 = 118
-
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init <chain-id> <denom>",
+		Use:   "init <chain-id>",
 		Short: "Initialize a rollapp configuration on your local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			chainId := args[0]
+			rollappId := args[0]
 			denom := args[1]
+			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
+			if createLightNode {
+				generateKeys(rollappId, defaultHubId)
+			} else {
+				generateKeys(rollappId, defaultHubId, keyNames.lightNode)
+			}
 			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
 			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
 			if err != nil {
 				panic(err)
 			}
-			generateKeys(cmd.Flags().Changed(lightNodeEndpointFlag), chainId)
-			initializeRollappConfig(rollappBinaryPath, chainId, denom)
-			err = initializeRollappGenesis(rollappBinaryPath, decimals, denom)
-			if err != nil {
+			if createLightNode {
+				if err = initializeLightNodeConfig(); err != nil {
+					panic(err)
+				}
+			}
+			initializeRollappConfig(rollappBinaryPath, rollappId, denom)
+			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
 				panic(err)
 			}
 		},
@@ -76,27 +44,7 @@ func InitCmd() *cobra.Command {
 
 func getRollappBinaryPath(rollappBinaryPath string) string {
 	if rollappBinaryPath == "" {
-		rollappBinaryPath = "/usr/local/bin/rollapp_evm"
+		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
-}
-
-func setRollappAppConfig(appConfigFilePath string, denom string) {
-	config, _ := toml.LoadFile(appConfigFilePath)
-	config.Set("minimum-gas-prices", "0"+denom)
-	config.Set("api.enable", "true")
-	config.Set("grpc.address", "0.0.0.0:8080")
-	config.Set("grpc-web.address", "0.0.0.0:8081")
-	file, _ := os.Create(appConfigFilePath)
-	file.WriteString(config.String())
-	file.Close()
-}
-
-func initializeRollappConfig(rollappExecutablePath string, chainId string, denom string) {
-	initRollappCmd := exec.Command(rollappExecutablePath, "init", keyNames.HubSequencer, "--chain-id", chainId, "--home", filepath.Join(os.Getenv("HOME"), rollappConfigDir))
-	err := initRollappCmd.Run()
-	if err != nil {
-		panic(err)
-	}
-	setRollappAppConfig(filepath.Join(os.Getenv("HOME"), rollappConfigDir, "config/app.toml"), denom)
 }
