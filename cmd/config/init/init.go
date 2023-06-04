@@ -8,7 +8,7 @@ type InitConfig struct {
 	Home            string
 	RollappID       string
 	RollappBinary   string
-	createLightNode bool
+	CreateDALightNode bool
 	Denom           string
 	HubID           string
 	Decimals        uint64
@@ -30,7 +30,7 @@ func InitCmd() *cobra.Command {
 				Home:            home,
 				RollappID:       rollappId,
 				RollappBinary:   rollappBinaryPath,
-				createLightNode: createLightNode,
+				CreateDALightNode: createLightNode,
 				Denom:           denom,
 				HubID:           defaultHubId,
 				Decimals:        decimals,
@@ -94,7 +94,7 @@ func getDecimals(cmd *cobra.Command) uint64 {
 }
 
 func initializeKeys(initConfig InitConfig) map[string]string {
-	if initConfig.createLightNode {
+	if initConfig.CreateDALightNode {
 		addresses, err := generateKeys(initConfig)
 		if err != nil {
 			panic(err)
