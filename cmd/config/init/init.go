@@ -4,6 +4,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type InitConfig struct {
+	Home            string
+	RollappID       string
+	RollappBinary   string
+	createLightNode bool
+	Denom           string
+	HubID           string
+	Decimals        uint64
+}
+
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <chain-id>",
@@ -11,33 +21,29 @@ func InitCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
-			rollappKeyPrefix := getKeyPrefix(cmd.Flag(flagNames.KeyPrefix).Value.String(), rollappId)
+			home := cmd.Flag(flagNames.Home).Value.String()
+			rollappKeyPrefix := getKeyPrefix(cmd, rollappId)
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
-			var addresses map[string]string
-			var err error
+			rollappBinaryPath := getRollappBinaryPath(cmd)
+			decimals := getDecimals(cmd)
+			initConfig := InitConfig{
+				Home:            home,
+				RollappID:       rollappId,
+				RollappBinary:   rollappBinaryPath,
+				createLightNode: createLightNode,
+				Denom:           denom,
+				HubID:           defaultHubId,
+				Decimals:        decimals,
+			}
+
+			addresses := initializeKeys(initConfig)
 			if createLightNode {
-				addresses, err = generateKeys(rollappId, defaultHubId, rollappKeyPrefix)
-				if err != nil {
-					panic(err)
-				}
-			} else {
-				addresses, err = generateKeys(rollappId, defaultHubId, rollappKeyPrefix, keyNames.DALightNode)
-				if err != nil {
+				if err := initializeLightNodeConfig(initConfig); err != nil {
 					panic(err)
 				}
 			}
-			rollappBinaryPath := getRollappBinaryPath(cmd.Flag(flagNames.RollappBinary).Value.String())
-			decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
-			if err != nil {
-				panic(err)
-			}
-			if createLightNode {
-				if err = initializeLightNodeConfig(); err != nil {
-					panic(err)
-				}
-			}
-			initializeRollappConfig(rollappBinaryPath, rollappId, denom)
-			if err = initializeRollappGenesis(rollappBinaryPath, decimals, denom); err != nil {
+			initializeRollappConfig(initConfig)
+			if err := initializeRollappGenesis(initConfig); err != nil {
 				panic(err)
 			}
 
@@ -51,7 +57,7 @@ func InitCmd() *cobra.Command {
 				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
 				Denom:     "udym",
 				KeyPrefix: keyPrefixes.Hub,
-			}); err != nil {
+			}, initConfig); err != nil {
 				panic(err)
 			}
 			celestiaAddress := addresses[keyNames.DALightNode]
@@ -65,24 +71,56 @@ func InitCmd() *cobra.Command {
 		},
 		Args: cobra.ExactArgs(2),
 	}
-	cmd.Flags().StringP(flagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
-	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided.")
-	cmd.Flags().StringP(flagNames.KeyPrefix, "", "", "The `bech32` prefix of the rollapp keys. Defaults to the first three characters of the chain-id.")
-	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp.")
-	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports.")
+
+	addFlags(cmd)
 	return cmd
 }
 
-func getRollappBinaryPath(rollappBinaryPath string) string {
+func addFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP(flagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
+	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
+	cmd.Flags().StringP(flagNames.KeyPrefix, "", "", "The `bech32` prefix of the rollapp keys. Defaults to the first three characters of the chain-id")
+	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
+	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
+	cmd.Flags().StringP(flagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
+}
+
+func getDecimals(cmd *cobra.Command) uint64 {
+	decimals, err := cmd.Flags().GetUint64(flagNames.Decimals)
+	if err != nil {
+		panic(err)
+	}
+	return decimals
+}
+
+func initializeKeys(initConfig InitConfig) map[string]string {
+	if initConfig.createLightNode {
+		addresses, err := generateKeys(initConfig)
+		if err != nil {
+			panic(err)
+		}
+		return addresses
+	} else {
+		addresses, err := generateKeys(initConfig, keyNames.DALightNode)
+		if err != nil {
+			panic(err)
+		}
+		return addresses
+	}
+}
+
+func getRollappBinaryPath(cmd *cobra.Command) string {
+	rollappBinaryPath := cmd.Flag(flagNames.RollappBinary).Value.String()
 	if rollappBinaryPath == "" {
 		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
 }
 
-func getKeyPrefix(keyPrefix string, chainId string) string {
+func getKeyPrefix(cmd *cobra.Command, rollappID string) string {
+	keyPrefix := cmd.Flag(flagNames.KeyPrefix).Value.String()
 	if keyPrefix == "" {
-		return chainId[:3]
+		return rollappID[:3]
 	}
 	return keyPrefix
 }

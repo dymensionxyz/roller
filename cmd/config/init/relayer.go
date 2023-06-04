@@ -127,8 +127,8 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 	return nil
 }
 
-func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig) error {
-	relayerHome := filepath.Join(getRollerRootDir(), configDirName.Relayer)
+func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig InitConfig) error {
+	relayerHome := filepath.Join(initConfig.Home, configDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err
 	}
