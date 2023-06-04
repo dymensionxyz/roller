@@ -47,15 +47,15 @@ func InitCmd() *cobra.Command {
 			}
 
 			if err := initializeRelayerConfig(ChainConfig{
-				ID:        rollappId,
-				RPC:       defaultRollappRPC,
-				Denom:     denom,
-				KeyPrefix: addressPrefixes.Rollapp,
+				ID:            rollappId,
+				RPC:           defaultRollappRPC,
+				Denom:         denom,
+				AddressPrefix: addressPrefixes.Rollapp,
 			}, ChainConfig{
-				ID:        defaultHubId,
-				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
-				Denom:     "udym",
-				KeyPrefix: addressPrefixes.Hub,
+				ID:            defaultHubId,
+				RPC:           cmd.Flag(flagNames.HubRPC).Value.String(),
+				Denom:         "udym",
+				AddressPrefix: addressPrefixes.Hub,
 			}, initConfig); err != nil {
 				panic(err)
 			}
