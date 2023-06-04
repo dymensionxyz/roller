@@ -7,7 +7,7 @@ import (
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init <chain-id>",
-		Short: "Initialize a rollapp configuration on your local machine.",
+		Short: "Initialize a rollapp configuration on your local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			rollappId := args[0]
 			denom := args[1]
