@@ -10,16 +10,16 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-func initializeRollappGenesis(rollappExecutablePath string, decimals uint64, denom string) error {
-	zeros := decimals + 9
-	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + denom
-	rollappConfigDirPath := filepath.Join(getRollerRootDir(), configDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(rollappExecutablePath, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+func initializeRollappGenesis(initConfig InitConfig) error {
+	zeros := initConfig.Decimals + 9
+	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
+	rollappConfigDirPath := filepath.Join(initConfig.Home, configDirName.Rollapp)
+	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {
 		return err
 	}
-	err = updateGenesisParams(filepath.Join(rollappConfigDirPath, "config", "genesis.json"), denom)
+	err = updateGenesisParams(filepath.Join(rollappConfigDirPath, "config", "genesis.json"), initConfig.Denom)
 	if err != nil {
 		return err
 	}

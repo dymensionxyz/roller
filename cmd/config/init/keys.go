@@ -18,8 +18,8 @@ func keyInfoToBech32Address(info keyring.Info, prefix string) (string, error) {
 	return bech32Address, nil
 }
 
-func generateKeys(rollappId string, hubId string, rollappKeyPrefix string, excludeKeys ...string) (map[string]string, error) {
-	keys := getDefaultKeysConfig(rollappId, hubId, rollappKeyPrefix)
+func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]string, error) {
+	keys := getDefaultKeysConfig(initConfig)
 	excludeKeysMap := make(map[string]struct{})
 	for _, key := range excludeKeys {
 		excludeKeysMap[key] = struct{}{}
@@ -27,7 +27,7 @@ func generateKeys(rollappId string, hubId string, rollappKeyPrefix string, exclu
 	addresses := make(map[string]string)
 	for _, key := range keys {
 		if _, exists := excludeKeysMap[key.keyId]; !exists {
-			keyInfo, err := createKey(rollappId, key.dir, key.keyId, key.coinType)
+			keyInfo, err := createKey(key, initConfig.Home)
 			if err != nil {
 				return nil, err
 			}
@@ -41,37 +41,33 @@ func generateKeys(rollappId string, hubId string, rollappKeyPrefix string, exclu
 	return addresses, nil
 }
 
-type keyConfig struct {
+type KeyConfig struct {
 	dir      string
 	keyId    string
 	coinType uint32
 	prefix   string
 }
 
-func createKey(rollappId string, relativePath string, keyId string, coinType ...uint32) (keyring.Info, error) {
-	var coinTypeVal = cosmosDefaultCointype
-	if len(coinType) != 0 {
-		coinTypeVal = coinType[0]
-	}
+func createKey(keyConfig KeyConfig, home string) (keyring.Info, error) {
 	kr, err := keyring.New(
-		rollappId,
+		"",
 		keyring.BackendTest,
-		filepath.Join(getRollerRootDir(), relativePath),
+		filepath.Join(home, keyConfig.dir),
 		nil,
 	)
 	if err != nil {
 		return nil, err
 	}
-	bip44Params := hd.NewFundraiserParams(0, coinTypeVal, 0)
-	info, _, err := kr.NewMnemonic(keyId, keyring.English, bip44Params.String(), "", hd.Secp256k1)
+	bip44Params := hd.NewFundraiserParams(0, keyConfig.coinType, 0)
+	info, _, err := kr.NewMnemonic(keyConfig.keyId, keyring.English, bip44Params.String(), "", hd.Secp256k1)
 	if err != nil {
 		return nil, err
 	}
 	return info, nil
 }
 
-func getDefaultKeysConfig(rollappId string, hubId string, rollappKeyPrefix string) []keyConfig {
-	return []keyConfig{
+func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
+	return []KeyConfig{
 		{
 			dir:      configDirName.Rollapp,
 			keyId:    keyNames.HubSequencer,
@@ -82,19 +78,19 @@ func getDefaultKeysConfig(rollappId string, hubId string, rollappKeyPrefix strin
 			dir:      configDirName.Rollapp,
 			keyId:    keyNames.RollappSequencer,
 			coinType: evmCoinType,
-			prefix:   rollappKeyPrefix,
+			prefix:   keyPrefixes.Rollapp,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, rollappId),
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.RollappID),
 			keyId:    keyNames.HubRelayer,
 			coinType: cosmosDefaultCointype,
 			prefix:   keyPrefixes.Hub,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, hubId),
+			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.HubID),
 			keyId:    keyNames.RollappRelayer,
 			coinType: evmCoinType,
-			prefix:   rollappKeyPrefix,
+			prefix:   keyPrefixes.Rollapp,
 		}, {
 
 			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
