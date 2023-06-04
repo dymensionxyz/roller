@@ -4,7 +4,6 @@ var flagNames = struct {
 	Home              string
 	LightNodeEndpoint string
 	Denom             string
-	KeyPrefix         string
 	Decimals          string
 	RollappBinary     string
 	HubRPC            string
@@ -12,7 +11,6 @@ var flagNames = struct {
 	Home:              "home",
 	LightNodeEndpoint: "light-node-endpoint",
 	Denom:             "denom",
-	KeyPrefix:         "key-prefix",
 	Decimals:          "decimals",
 	RollappBinary:     "rollapp-binary",
 	HubRPC:            "hub-rpc",
@@ -32,14 +30,14 @@ var keyNames = struct {
 	HubRelayer:       "relayer-hub-key",
 }
 
-var keyPrefixes = struct {
-	Hub string
+var addressPrefixes = struct {
+	Hub     string
 	Rollapp string
-	DA  string
+	DA      string
 }{
 	Rollapp: "rol",
-	Hub: "dym",
-	DA:  "celestia",
+	Hub:     "dym",
+	DA:      "celestia",
 }
 
 var configDirName = struct {

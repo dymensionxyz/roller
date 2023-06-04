@@ -5,13 +5,13 @@ import (
 )
 
 type InitConfig struct {
-	Home            string
-	RollappID       string
-	RollappBinary   string
+	Home              string
+	RollappID         string
+	RollappBinary     string
 	CreateDALightNode bool
-	Denom           string
-	HubID           string
-	Decimals        uint64
+	Denom             string
+	HubID             string
+	Decimals          uint64
 }
 
 func InitCmd() *cobra.Command {
@@ -22,18 +22,17 @@ func InitCmd() *cobra.Command {
 			rollappId := args[0]
 			denom := args[1]
 			home := cmd.Flag(flagNames.Home).Value.String()
-			rollappKeyPrefix := getKeyPrefix(cmd, rollappId)
 			createLightNode := !cmd.Flags().Changed(lightNodeEndpointFlag)
 			rollappBinaryPath := getRollappBinaryPath(cmd)
 			decimals := getDecimals(cmd)
 			initConfig := InitConfig{
-				Home:            home,
-				RollappID:       rollappId,
-				RollappBinary:   rollappBinaryPath,
+				Home:              home,
+				RollappID:         rollappId,
+				RollappBinary:     rollappBinaryPath,
 				CreateDALightNode: createLightNode,
-				Denom:           denom,
-				HubID:           defaultHubId,
-				Decimals:        decimals,
+				Denom:             denom,
+				HubID:             defaultHubId,
+				Decimals:          decimals,
 			}
 
 			addresses := initializeKeys(initConfig)
@@ -51,12 +50,12 @@ func InitCmd() *cobra.Command {
 				ID:        rollappId,
 				RPC:       defaultRollappRPC,
 				Denom:     denom,
-				KeyPrefix: rollappKeyPrefix,
+				KeyPrefix: addressPrefixes.Rollapp,
 			}, ChainConfig{
 				ID:        defaultHubId,
 				RPC:       cmd.Flag(flagNames.HubRPC).Value.String(),
 				Denom:     "udym",
-				KeyPrefix: keyPrefixes.Hub,
+				KeyPrefix: addressPrefixes.Hub,
 			}, initConfig); err != nil {
 				panic(err)
 			}
@@ -79,7 +78,6 @@ func InitCmd() *cobra.Command {
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(flagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
 	cmd.Flags().StringP(flagNames.LightNodeEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
-	cmd.Flags().StringP(flagNames.KeyPrefix, "", "", "The `bech32` prefix of the rollapp keys. Defaults to the first three characters of the chain-id")
 	cmd.Flags().StringP(flagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().Uint64P(flagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
 	cmd.Flags().StringP(flagNames.Home, "", getRollerRootDir(), "The directory of the roller config files")
@@ -115,12 +113,4 @@ func getRollappBinaryPath(cmd *cobra.Command) string {
 		return defaultRollappBinaryPath
 	}
 	return rollappBinaryPath
-}
-
-func getKeyPrefix(cmd *cobra.Command, rollappID string) string {
-	keyPrefix := cmd.Flag(flagNames.KeyPrefix).Value.String()
-	if keyPrefix == "" {
-		return rollappID[:3]
-	}
-	return keyPrefix
 }
