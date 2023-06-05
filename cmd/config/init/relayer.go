@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"encoding/json"
@@ -95,14 +95,14 @@ func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHo
 		ChainConfig: rollappConfig,
 		GasPrices:   "0.0" + rollappConfig.Denom,
 		ClientType:  "01-dymint",
-		KeyName:     keyNames.RollappRelayer,
+		KeyName:     KeyNames.RollappRelayer,
 	})
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
 		GasPrices:   "0.25" + hubConfig.Denom,
 		ClientType:  "07-tendermint",
-		KeyName:     keyNames.HubRelayer,
+		KeyName:     KeyNames.HubRelayer,
 	})
 
 	if err := addChainToRelayer(relayerRollappConfig, relayerHome); err != nil {
@@ -128,7 +128,7 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 }
 
 func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig InitConfig) error {
-	relayerHome := filepath.Join(initConfig.Home, configDirName.Relayer)
+	relayerHome := filepath.Join(initConfig.Home, ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err
 	}

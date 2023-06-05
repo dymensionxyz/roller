@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"io/ioutil"
@@ -13,26 +13,30 @@ import (
 func initializeRollappGenesis(initConfig InitConfig) error {
 	zeros := initConfig.Decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
-	rollappConfigDirPath := filepath.Join(initConfig.Home, configDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", keyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	rollappConfigDirPath := filepath.Join(initConfig.Home, ConfigDirName.Rollapp)
+	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", KeyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {
 		return err
 	}
-	err = updateGenesisParams(filepath.Join(rollappConfigDirPath, "config", "genesis.json"), initConfig.Denom)
+	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-type pathValue struct {
+func GetGenesisFilePath(root string) string {
+	return filepath.Join(RollappConfigDir(root), "genesis.json")
+}
+
+type PathValue struct {
 	Path  string
 	Value interface{}
 }
 
-func getDefaultGenesisParams(denom string) []pathValue {
-	return []pathValue{
+func getDefaultGenesisParams(denom string) []PathValue {
+	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
 		{"app_state.crisis.constant_fee.denom", denom},
@@ -48,7 +52,7 @@ func getDefaultGenesisParams(denom string) []pathValue {
 	}
 }
 
-func updateJSONParams(jsonFilePath string, params []pathValue) error {
+func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	jsonFileContent, err := ioutil.ReadFile(jsonFilePath)
 	if err != nil {
 		return err
@@ -69,5 +73,5 @@ func updateJSONParams(jsonFilePath string, params []pathValue) error {
 
 func updateGenesisParams(genesisFilePath string, denom string) error {
 	params := getDefaultGenesisParams(denom)
-	return updateJSONParams(genesisFilePath, params)
+	return UpdateJSONParams(genesisFilePath, params)
 }

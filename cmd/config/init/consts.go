@@ -1,22 +1,20 @@
-package init
+package initconfig
 
-var flagNames = struct {
+var FlagNames = struct {
 	Home              string
 	LightNodeEndpoint string
-	Denom             string
 	Decimals          string
 	RollappBinary     string
 	HubRPC            string
 }{
 	Home:              "home",
 	LightNodeEndpoint: "light-node-endpoint",
-	Denom:             "denom",
 	Decimals:          "decimals",
 	RollappBinary:     "rollapp-binary",
 	HubRPC:            "hub-rpc",
 }
 
-var keyNames = struct {
+var KeyNames = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string
@@ -40,7 +38,7 @@ var addressPrefixes = struct {
 	DA:      "celestia",
 }
 
-var configDirName = struct {
+var ConfigDirName = struct {
 	Rollapp     string
 	Relayer     string
 	DALightNode string
@@ -55,8 +53,8 @@ const defaultRollappRPC = "http://localhost:26657"
 const lightNodeEndpointFlag = "light-node-endpoint"
 
 const evmCoinType uint32 = 60
-const defaultHubId = "35-C"
-const relayerKeysDirName = "keys"
+const DefaultHubID = "35-C"
+const KeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
 const celestiaExecutablePath = "/usr/local/bin/roller/lib/celestia"
 const defaultRollappBinaryPath = "/usr/local/bin/roller/lib/rollapp_evm"

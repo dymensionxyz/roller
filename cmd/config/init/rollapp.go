@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"os"
@@ -9,12 +9,12 @@ import (
 )
 
 func initializeRollappConfig(initConfig InitConfig) {
-	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", keyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, configDirName.Rollapp))
+	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", KeyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, ConfigDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {
 		panic(err)
 	}
-	setRollappAppConfig(filepath.Join(initConfig.Home, configDirName.Rollapp, "config/app.toml"), initConfig.Denom)
+	setRollappAppConfig(filepath.Join(initConfig.Home, ConfigDirName.Rollapp, "config/app.toml"), initConfig.Denom)
 }
 
 func setRollappAppConfig(appConfigFilePath string, denom string) {
@@ -27,4 +27,8 @@ func setRollappAppConfig(appConfigFilePath string, denom string) {
 		panic(err)
 	}
 	file.Close()
+}
+
+func RollappConfigDir(root string) string {
+	return filepath.Join(root, ConfigDirName.Rollapp, "config")
 }

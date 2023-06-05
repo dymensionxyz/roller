@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"path"
@@ -69,32 +69,32 @@ func createKey(keyConfig KeyConfig, home string) (keyring.Info, error) {
 func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
 	return []KeyConfig{
 		{
-			dir:      configDirName.Rollapp,
-			keyId:    keyNames.HubSequencer,
+			dir:      ConfigDirName.Rollapp,
+			keyId:    KeyNames.HubSequencer,
 			coinType: cosmosDefaultCointype,
 			prefix:   addressPrefixes.Hub,
 		},
 		{
-			dir:      configDirName.Rollapp,
-			keyId:    keyNames.RollappSequencer,
+			dir:      ConfigDirName.Rollapp,
+			keyId:    KeyNames.RollappSequencer,
 			coinType: evmCoinType,
 			prefix:   addressPrefixes.Rollapp,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.RollappID),
-			keyId:    keyNames.HubRelayer,
+			dir:      path.Join(ConfigDirName.Relayer, KeysDirName, initConfig.HubID),
+			keyId:    KeyNames.HubRelayer,
 			coinType: cosmosDefaultCointype,
 			prefix:   addressPrefixes.Hub,
 		},
 		{
-			dir:      path.Join(configDirName.Relayer, relayerKeysDirName, initConfig.HubID),
-			keyId:    keyNames.RollappRelayer,
+			dir:      path.Join(ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
+			keyId:    KeyNames.RollappRelayer,
 			coinType: evmCoinType,
 			prefix:   addressPrefixes.Rollapp,
 		}, {
 
-			dir:      path.Join(configDirName.DALightNode, relayerKeysDirName),
-			keyId:    keyNames.DALightNode,
+			dir:      path.Join(ConfigDirName.DALightNode, KeysDirName),
+			keyId:    KeyNames.DALightNode,
 			coinType: cosmosDefaultCointype,
 			prefix:   addressPrefixes.DA,
 		},

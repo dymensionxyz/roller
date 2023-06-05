@@ -1,4 +1,4 @@
-package init
+package initconfig
 
 import (
 	"os/exec"
@@ -6,7 +6,7 @@ import (
 )
 
 func initializeLightNodeConfig(initConfig InitConfig) error {
-	initLightNodeCmd := exec.Command(celestiaExecutablePath, "light", "init", "--p2p.network", "arabica", "--node.store", filepath.Join(initConfig.Home, configDirName.DALightNode))
+	initLightNodeCmd := exec.Command(celestiaExecutablePath, "light", "init", "--p2p.network", "arabica", "--node.store", filepath.Join(initConfig.Home, ConfigDirName.DALightNode))
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
