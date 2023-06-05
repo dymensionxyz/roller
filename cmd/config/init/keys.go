@@ -100,3 +100,19 @@ func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
 		},
 	}
 }
+
+func initializeKeys(initConfig InitConfig) map[string]string {
+	if initConfig.CreateDALightNode {
+		addresses, err := generateKeys(initConfig)
+		if err != nil {
+			panic(err)
+		}
+		return addresses
+	} else {
+		addresses, err := generateKeys(initConfig, KeyNames.DALightNode)
+		if err != nil {
+			panic(err)
+		}
+		return addresses
+	}
+}
