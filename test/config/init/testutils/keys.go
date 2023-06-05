@@ -1,4 +1,4 @@
-package keys
+package testutils
 
 import (
 	"errors"
@@ -14,19 +14,6 @@ import (
 
 const innerKeysDirName = "keyring-test"
 const addressPattern = `.*\.address`
-
-func VerifyAllKeys(root string, rollappID string, hubID string) error {
-	if err := verifyLightNodeKeys(root); err != nil {
-		return err
-	}
-	if err := VerifyRollappKeys(root); err != nil {
-		return err
-	}
-	if err := VerifyRelayerKeys(root, rollappID, hubID); err != nil {
-		return err
-	}
-	return nil
-}
 
 func ClearKeys(root string) error {
 	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root)}
@@ -96,7 +83,7 @@ func getLightNodeKeysDir(root string) string {
 	return filepath.Join(root, initconfig.ConfigDirName.DALightNode, initconfig.KeysDirName)
 }
 
-func verifyLightNodeKeys(root string) error {
+func VerifyLightNodeKeys(root string) error {
 	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
 	infoFilePath := filepath.Join(lightNodeKeysDir, initconfig.KeyNames.DALightNode+".info")
 	err := verifyFileExists(infoFilePath)

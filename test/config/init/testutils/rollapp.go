@@ -1,4 +1,4 @@
-package keys
+package testutils
 
 import (
 	"path/filepath"

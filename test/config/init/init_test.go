@@ -1,4 +1,4 @@
-package initconfig_testing
+package initconfig_test
 
 import (
 	"io/ioutil"
@@ -7,61 +7,56 @@ import (
 	"os"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	keys "github.com/dymensionxyz/roller/test/config/init/keys"
-	utils "github.com/dymensionxyz/roller/test/config/init/utils"
+	"github.com/dymensionxyz/roller/test/config/init/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitCmdWithoutParams(t *testing.T) {
-	assert := assert.New(t)
-	tempDir, err := ioutil.TempDir(os.TempDir(), "test")
-	assert.NoError(err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		assert.NoError(err)
-	}()
-	cmd := initconfig.InitCmd()
-	rollappID := "mars"
-	cmd.SetArgs([]string{
-		rollappID,
-		"udym",
-		"--" + initconfig.FlagNames.Home, tempDir,
-	})
-	assert.NoError(cmd.Execute())
-	assert.NoError(keys.VerifyAllKeys(tempDir, rollappID, initconfig.DefaultHubID))
-	assert.NoError(keys.ClearKeys(tempDir))
-	are_dirs_equal, err := utils.CompareDirs(tempDir, "./goldens/init_without_flags")
-	assert.NoError(err)
-	assert.True(are_dirs_equal)
-}
-
-func TestInitCmdWithParams(t *testing.T) {
-	assert := assert.New(t)
-	tempDir, err := ioutil.TempDir(os.TempDir(), "test")
-	assert.NoError(err)
-	defer func() {
-		err := os.RemoveAll(tempDir)
-		assert.NoError(err)
-	}()
-
-	cmd := initconfig.InitCmd()
-	rollappID := "mars"
-	lightNodeEndpoint := "http://localhost:26659"
-	denom := "udym"
-	decimals := "6"
-
-	cmd.SetArgs([]string{
-		rollappID,
-		denom,
-		"--" + initconfig.FlagNames.Home, tempDir,
-		"--" + initconfig.FlagNames.LightNodeEndpoint, lightNodeEndpoint,
-		"--" + initconfig.FlagNames.Decimals, decimals})
-	assert.NoError(cmd.Execute())
-
-	assert.NoError(keys.VerifyRollappKeys(tempDir))
-	assert.NoError(keys.VerifyRelayerKeys(tempDir, rollappID, initconfig.DefaultHubID))
-	assert.NoError(keys.ClearKeys(tempDir))
-	are_dirs_equal, err := utils.CompareDirs(tempDir, "./goldens/init_with_flags")
-	assert.NoError(err)
-	assert.True(are_dirs_equal)
+func TestInitCmd(t *testing.T) {
+	testCases := []struct {
+		name          string
+		goldenDirPath string
+		optionalFlags []string
+	}{
+		{
+			name:          "Roller config init with default values",
+			goldenDirPath: "./goldens/init_without_flags",
+			optionalFlags: []string{},
+		},
+		{
+			name:          "Roller config init with custom flags",
+			goldenDirPath: "./goldens/init_with_flags",
+			optionalFlags: []string{
+				"--" + initconfig.FlagNames.LightNodeEndpoint, "http://localhost:26659",
+				"--" + initconfig.FlagNames.Decimals, "6",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert := assert.New(t)
+			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
+			assert.NoError(err)
+			defer func() {
+				err := os.RemoveAll(tempDir)
+				assert.NoError(err)
+			}()
+			cmd := initconfig.InitCmd()
+			rollappID := "mars"
+			cmd.SetArgs(append([]string{
+				rollappID,
+				"udym",
+				"--" + initconfig.FlagNames.Home, tempDir,
+			}, tc.optionalFlags...))
+			assert.NoError(cmd.Execute())
+			assert.NoError(testutils.VerifyRollappKeys(tempDir))
+			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initconfig.DefaultHubID))
+			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.LightNodeEndpoint) {
+				assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
+			}
+			assert.NoError(testutils.ClearKeys(tempDir))
+			are_dirs_equal, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
+			assert.NoError(err)
+			assert.True(are_dirs_equal)
+		})
+	}
 }
