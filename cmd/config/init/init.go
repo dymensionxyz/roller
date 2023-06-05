@@ -16,8 +16,8 @@ type InitConfig struct {
 
 func InitCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init <chain-id>",
-		Short: "Initialize a rollapp configuration on your local machine.",
+		Use:   "init <chain-id> <denom>",
+		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := getInitConfig(cmd, args)
 			overwrite, err := prepareDirectory(initConfig.Home)
