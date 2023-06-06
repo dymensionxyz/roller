@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/config"
+	"github.com/dymensionxyz/roller/cmd/version"
 	"github.com/spf13/cobra"
 )
 
@@ -26,4 +27,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(config.ConfigCmd())
+	rootCmd.AddCommand(version.VersionCmd())
 }
