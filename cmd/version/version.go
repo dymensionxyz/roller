@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	BuildVersion = "v0.0.0"
-	BuildTime    = "2023-06-05T14:28:30Z"
-	BuildCommit  = "fac8ada6eef7d846971274efea1127ab00909b03"
+	BuildVersion = "<version>"
+	BuildTime    = "<build-time>"
+	BuildCommit  = "<build-commit>"
 )
 
 func VersionCmd() *cobra.Command {
