@@ -26,7 +26,7 @@ func TestInitCmd(t *testing.T) {
 			name:          "Roller config init with custom flags",
 			goldenDirPath: "./goldens/init_with_flags",
 			optionalFlags: []string{
-				"--" + initconfig.FlagNames.LightNodeEndpoint, "http://localhost:26659",
+				"--" + initconfig.FlagNames.DAEndpoint, "http://localhost:26659",
 				"--" + initconfig.FlagNames.Decimals, "6",
 			},
 		},
@@ -50,7 +50,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(cmd.Execute())
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initconfig.DefaultHubID))
-			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.LightNodeEndpoint) {
+			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.DAEndpoint) {
 				assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
 			}
 			assert.NoError(testutils.ClearKeys(tempDir))

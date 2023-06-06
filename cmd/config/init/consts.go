@@ -1,17 +1,17 @@
 package initconfig
 
 var FlagNames = struct {
-	Home              string
-	LightNodeEndpoint string
-	Decimals          string
-	RollappBinary     string
-	HubRPC            string
+	Home          string
+	DAEndpoint    string
+	Decimals      string
+	RollappBinary string
+	HubRPC        string
 }{
-	Home:              "home",
-	LightNodeEndpoint: "light-node-endpoint",
-	Decimals:          "decimals",
-	RollappBinary:     "rollapp-binary",
-	HubRPC:            "hub-rpc",
+	Home:          "home",
+	DAEndpoint:    "data-availability-endpoint",
+	Decimals:      "decimals",
+	RollappBinary: "rollapp-binary",
+	HubRPC:        "hub-rpc",
 }
 
 var KeyNames = struct {
@@ -50,12 +50,11 @@ var ConfigDirName = struct {
 
 const defaultHubRPC = "https://rpc-hub-35c.dymension.xyz:443"
 const defaultRollappRPC = "http://localhost:26657"
-const lightNodeEndpointFlag = "light-node-endpoint"
 
 const evmCoinType uint32 = 60
 const DefaultHubID = "35-C"
 const KeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
-const celestiaExecutablePath = "/usr/local/bin/roller/lib/celestia"
-const defaultRollappBinaryPath = "/usr/local/bin/roller/lib/rollapp_evm"
-const relayerExecutablePath = "/usr/local/bin/roller/lib/rly"
+const celestiaExecutablePath = "/usr/local/bin/roller_bins/celestia"
+const defaultRollappBinaryPath = "/usr/local/bin/roller_bins/rollapp_evm"
+const relayerExecutablePath = "/usr/local/bin/roller_bins/rly"
