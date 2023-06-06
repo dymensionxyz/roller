@@ -1,6 +1,8 @@
 package initconfig
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,28 +22,35 @@ func InitCmd() *cobra.Command {
 		Short: "Initialize a rollapp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := getInitConfig(cmd, args)
-			overwrite, err := cleanHomeDir(initConfig.Home)
+			isRootExist, err := dirNotEmpty(initConfig.Home)
 			OutputCleanError(err)
-			if overwrite {
-				addresses := initializeKeys(initConfig)
-				if initConfig.CreateDALightNode {
-					OutputCleanError(initializeLightNodeConfig(initConfig))
+			if isRootExist {
+				shouldOverwrite, err := promptOverwriteConfig(initConfig.Home)
+				OutputCleanError(err)
+				if shouldOverwrite {
+					OutputCleanError(os.RemoveAll(initConfig.Home))
+				} else {
+					os.Exit(0)
 				}
-				initializeRollappConfig(initConfig)
-				OutputCleanError(initializeRollappGenesis(initConfig))
-				OutputCleanError(initializeRelayerConfig(ChainConfig{
-					ID:            initConfig.RollappID,
-					RPC:           defaultRollappRPC,
-					Denom:         initConfig.Denom,
-					AddressPrefix: addressPrefixes.Rollapp,
-				}, ChainConfig{
-					ID:            DefaultHubID,
-					RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
-					Denom:         "udym",
-					AddressPrefix: addressPrefixes.Hub,
-				}, initConfig))
-				printInitOutput(addresses, initConfig.RollappID)
 			}
+			addresses := initializeKeys(initConfig)
+			if initConfig.CreateDALightNode {
+				OutputCleanError(initializeLightNodeConfig(initConfig))
+			}
+			initializeRollappConfig(initConfig)
+			OutputCleanError(initializeRollappGenesis(initConfig))
+			OutputCleanError(initializeRelayerConfig(ChainConfig{
+				ID:            initConfig.RollappID,
+				RPC:           defaultRollappRPC,
+				Denom:         initConfig.Denom,
+				AddressPrefix: addressPrefixes.Rollapp,
+			}, ChainConfig{
+				ID:            DefaultHubID,
+				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
+				Denom:         "udym",
+				AddressPrefix: addressPrefixes.Hub,
+			}, initConfig))
+			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),
 	}

@@ -17,27 +17,17 @@ func dirNotEmpty(path string) (bool, error) {
 	return len(files) > 0, err
 }
 
-func cleanHomeDir(home string) (bool, error) {
-	isNotEmpty, err := dirNotEmpty(home)
-	if err != nil {
-		return false, err
+func promptOverwriteConfig(home string) (bool, error) {
+	prompt := promptui.Prompt{
+		Label:     fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home),
+		IsConfirm: true,
 	}
-	if isNotEmpty {
-		prompt := promptui.Prompt{
-			Label:     fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home),
-			IsConfirm: true,
+	_, err := prompt.Run()
+	if err != nil {
+		if err == promptui.ErrAbort {
+			return false, nil
 		}
-		_, err = prompt.Run()
-		if err != nil {
-			if err == promptui.ErrAbort {
-				return false, nil
-			}
-			return false, err
-		}
-		err = os.RemoveAll(home)
-		if err != nil {
-			return false, err
-		}
+		return false, err
 	}
 	return true, nil
 }
