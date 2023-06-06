@@ -10,14 +10,12 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "roller",
-	Short: "A simple CLI tool to spin up a rollapp",
+	Short: "A simple CLI tool to spin up a RollApp",
 	Long: `
-Roller CLI is a tool for registering and running autonomous rollapps built with Dymension RDK. The Roller offers everything you need to scaffold, config, register, and run your rollapp.
+Roller CLI is a tool for registering and running autonomous RollApps built with Dymension RDK. Roller provides everything you need to scaffold, configure, register, and run your RollApp.
 	`,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
