@@ -20,16 +20,16 @@ func InitCmd() *cobra.Command {
 		Short: "Initialize a rollapp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := getInitConfig(cmd, args)
-			overwrite, err := prepareDirectory(initConfig.Home)
-			handleError(err)
+			overwrite, err := cleanHomeDir(initConfig.Home)
+			OutputCleanError(err)
 			if overwrite {
 				addresses := initializeKeys(initConfig)
 				if initConfig.CreateDALightNode {
-					handleError(initializeLightNodeConfig(initConfig))
+					OutputCleanError(initializeLightNodeConfig(initConfig))
 				}
 				initializeRollappConfig(initConfig)
-				handleError(initializeRollappGenesis(initConfig))
-				handleError(initializeRelayerConfig(ChainConfig{
+				OutputCleanError(initializeRollappGenesis(initConfig))
+				OutputCleanError(initializeRelayerConfig(ChainConfig{
 					ID:            initConfig.RollappID,
 					RPC:           defaultRollappRPC,
 					Denom:         initConfig.Denom,

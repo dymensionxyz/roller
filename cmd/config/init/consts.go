@@ -1,17 +1,17 @@
 package initconfig
 
 var FlagNames = struct {
-	Home              string
-	LightNodeEndpoint string
-	Decimals          string
-	RollappBinary     string
-	HubRPC            string
+	Home          string
+	DAEndpoint    string
+	Decimals      string
+	RollappBinary string
+	HubRPC        string
 }{
-	Home:              "home",
-	LightNodeEndpoint: "light-node-endpoint",
-	Decimals:          "decimals",
-	RollappBinary:     "rollapp-binary",
-	HubRPC:            "hub-rpc",
+	Home:          "home",
+	DAEndpoint:    "data-availability-endpoint",
+	Decimals:      "decimals",
+	RollappBinary: "rollapp-binary",
+	HubRPC:        "hub-rpc",
 }
 
 var KeyNames = struct {
@@ -50,7 +50,6 @@ var ConfigDirName = struct {
 
 const defaultHubRPC = "https://rpc-hub-35c.dymension.xyz:443"
 const defaultRollappRPC = "http://localhost:26657"
-const lightNodeEndpointFlag = "light-node-endpoint"
 
 const evmCoinType uint32 = 60
 const DefaultHubID = "35-C"
