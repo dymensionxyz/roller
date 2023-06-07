@@ -13,12 +13,6 @@ ROLLER_BIN_PATH="/usr/local/bin/roller"
 
 # Check if Roller binary already exists
 if [ -f "$ROLLER_BIN_PATH" ]; then
-    read -p "$EMOJI roller is already installed. Do you want to override it? (y/N) " answer
-    if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
-        echo "$EMOJI Installation cancelled."
-        exit 0
-    fi
-    # Delete old binaries if user chose to override
     sudo rm "$ROLLER_BIN_PATH"
     sudo rm -rf "$INTERNAL_DIR"
 fi

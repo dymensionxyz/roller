@@ -33,6 +33,7 @@ func InitCmd() *cobra.Command {
 					os.Exit(0)
 				}
 			}
+
 			addresses := initializeKeys(initConfig)
 			if initConfig.CreateDALightNode {
 				OutputCleanError(initializeLightNodeConfig(initConfig))
