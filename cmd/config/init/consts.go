@@ -53,8 +53,7 @@ var HubData = struct {
 	ID      string
 	RPC_URL string
 }{
-	API_URL: "http://127.0.0.1:1317",
-	// API_URL: "https://api-hub-35c.dymension.xyz",
+	API_URL: "https://rest-hub-35c.dymension.xyz",
 	ID:      "35-C",
 	RPC_URL: "https://rpc-hub-35c.dymension.xyz:443",
 }
