@@ -45,14 +45,3 @@ func registerRollapp(rollappConfig initconfig.InitConfig) error {
 	error := cmd.Run()
 	return error
 }
-
-type BalanceResponse struct {
-	Balances []struct {
-		Denom  string `json:"denom"`
-		Amount string `json:"amount"`
-	} `json:"balances"`
-	Pagination struct {
-		NextKey string `json:"next_key"`
-		Total   string `json:"total"`
-	} `json:"pagination"`
-}
