@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func isRollappIDUnique(rollappID string) (bool, error) {
+func IsRollappIDUnique(rollappID string) (bool, error) {
 	url := HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -29,4 +29,15 @@ func isRollappIDUnique(rollappID string) (bool, error) {
 	} else {
 		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
+}
+
+func VerifyUniqueRollappID(rollappID string) error {
+	isUniqueRollapp, err := IsRollappIDUnique(rollappID)
+	if err != nil {
+		return err
+	}
+	if !isUniqueRollapp {
+		return fmt.Errorf("Rollapp ID \"%s\" already exists on the hub. Please use a unique ID.", rollappID)
+	}
+	return nil
 }

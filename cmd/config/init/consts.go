@@ -28,7 +28,7 @@ var KeyNames = struct {
 	HubRelayer:       "relayer-hub-key",
 }
 
-var addressPrefixes = struct {
+var AddressPrefixes = struct {
 	Hub     string
 	Rollapp string
 	DA      string
@@ -58,9 +58,27 @@ var HubData = struct {
 	RPC_URL: "https://rpc-hub-35c.dymension.xyz:443",
 }
 
+var Executables = struct {
+	Celestia  string
+	Rollapp   string
+	Relayer   string
+	Dymension string
+}{
+	Celestia:  "/usr/local/bin/roller_bins/celestia",
+	Rollapp:   "/usr/local/bin/roller_bins/rollapp_evm",
+	Relayer:   "/usr/local/bin/roller_bins/rly",
+	Dymension: "/usr/local/bin/roller_bins/dymd",
+}
+
 const defaultRollappRPC = "http://localhost:26657"
 
-const evmCoinType uint32 = 60
+var CoinTypes = struct {
+	Cosmos uint32
+	EVM    uint32
+}{
+	Cosmos: 118,
+	EVM:    60,
+}
+
 const KeysDirName = "keys"
-const cosmosDefaultCointype uint32 = 118
 const RollerConfigFileName = "config.toml"
