@@ -2,6 +2,7 @@ package initconfig_test
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"os"
@@ -35,6 +36,7 @@ func TestInitCmd(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			assert := assert.New(t)
 			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
+			tempDir = filepath.Join(tempDir, ".roller")
 			assert.NoError(err)
 			defer func() {
 				err := os.RemoveAll(tempDir)
