@@ -1,0 +1,32 @@
+package initconfig
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func isRollappIDUnique(rollappID string) (bool, error) {
+	url := HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Set("accept", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 404 {
+		return true, nil
+	} else if resp.StatusCode == 200 {
+		return false, nil
+	} else {
+		return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+}

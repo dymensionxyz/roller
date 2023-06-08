@@ -1,6 +1,7 @@
 package initconfig
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -22,6 +23,11 @@ func InitCmd() *cobra.Command {
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := getInitConfig(cmd, args)
+			isUniqueRollapp, err := isRollappIDUnique(initConfig.RollappID)
+			OutputCleanError(err)
+			if !isUniqueRollapp {
+				OutputCleanError(fmt.Errorf("Rollapp ID %s already exists on the hub. Please use a unique ID.", initConfig.RollappID))
+			}
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			OutputCleanError(err)
 			if isRootExist {
@@ -46,7 +52,7 @@ func InitCmd() *cobra.Command {
 				Denom:         initConfig.Denom,
 				AddressPrefix: addressPrefixes.Rollapp,
 			}, ChainConfig{
-				ID:            DefaultHubID,
+				ID:            HubData.ID,
 				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
 				Denom:         "udym",
 				AddressPrefix: addressPrefixes.Hub,

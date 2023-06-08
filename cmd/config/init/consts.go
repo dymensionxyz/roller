@@ -48,11 +48,20 @@ var ConfigDirName = struct {
 	DALightNode: "light-node",
 }
 
-const defaultHubRPC = "https://rpc-hub-35c.dymension.xyz:443"
+var HubData = struct {
+	API_URL string
+	ID      string
+	RPC_URL string
+}{
+	API_URL: "http://127.0.0.1:1317",
+	// API_URL: "https://api-hub-35c.dymension.xyz",
+	ID:      "35-C",
+	RPC_URL: "https://rpc-hub-35c.dymension.xyz:443",
+}
+
 const defaultRollappRPC = "http://localhost:26657"
 
 const evmCoinType uint32 = 60
-const DefaultHubID = "35-C"
 const KeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
 const celestiaExecutablePath = "/usr/local/bin/roller_bins/celestia"

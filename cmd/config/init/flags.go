@@ -5,7 +5,7 @@ import (
 )
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(FlagNames.HubRPC, "", defaultHubRPC, "Dymension Hub rpc endpoint")
+	cmd.Flags().StringP(FlagNames.HubRPC, "", HubData.RPC_URL, "Dymension Hub rpc endpoint")
 	cmd.Flags().StringP(FlagNames.DAEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
@@ -41,7 +41,7 @@ func getInitConfig(cmd *cobra.Command, args []string) InitConfig {
 		RollappBinary:     rollappBinaryPath,
 		CreateDALightNode: createLightNode,
 		Denom:             denom,
-		HubID:             DefaultHubID,
+		HubID:             HubData.ID,
 		Decimals:          decimals,
 	}
 }
