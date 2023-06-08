@@ -1,6 +1,6 @@
 # Roller CLI
 
-![Roller CLI Logo]("images/readme.png")
+![Roller CLI Logo](images/readme.png)
 
 ## Introduction
 
