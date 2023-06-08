@@ -83,7 +83,7 @@ func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
 			Prefix:   AddressPrefixes.Rollapp,
 		},
 		{
-			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, HubData.ID),
+			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, initConfig.HubData.ID),
 			ID:       KeyNames.HubRelayer,
 			CoinType: CoinTypes.Cosmos,
 			Prefix:   AddressPrefixes.Hub,

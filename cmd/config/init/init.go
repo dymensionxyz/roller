@@ -13,7 +13,7 @@ type InitConfig struct {
 	CreateDALightNode bool
 	Denom             string
 	Decimals          uint64
-	HubID             string
+	HubData           HubData
 }
 
 func InitCmd() *cobra.Command {
@@ -22,7 +22,7 @@ func InitCmd() *cobra.Command {
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := GetInitConfig(cmd, args)
-			OutputCleanError(VerifyUniqueRollappID(initConfig.RollappID))
+			OutputCleanError(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			OutputCleanError(err)
 			if isRootExist {
@@ -47,8 +47,8 @@ func InitCmd() *cobra.Command {
 				Denom:         initConfig.Denom,
 				AddressPrefix: AddressPrefixes.Rollapp,
 			}, ChainConfig{
-				ID:            HubData.ID,
-				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
+				ID:            initConfig.HubData.ID,
+				RPC:           initConfig.HubData.RPC_URL,
 				Denom:         "udym",
 				AddressPrefix: AddressPrefixes.Hub,
 			}, initConfig))

@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-func IsRollappIDUnique(rollappID string) (bool, error) {
-	url := HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
+func IsRollappIDUnique(rollappID string, initConfig InitConfig) (bool, error) {
+	url := initConfig.HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -31,8 +31,8 @@ func IsRollappIDUnique(rollappID string) (bool, error) {
 	}
 }
 
-func VerifyUniqueRollappID(rollappID string) error {
-	isUniqueRollapp, err := IsRollappIDUnique(rollappID)
+func VerifyUniqueRollappID(rollappID string, initConfig InitConfig) error {
+	isUniqueRollapp, err := IsRollappIDUnique(rollappID, initConfig)
 	if err != nil {
 		return err
 	}
