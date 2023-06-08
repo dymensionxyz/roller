@@ -5,6 +5,6 @@ import (
 	"path/filepath"
 )
 
-func getRollerRootDir() string {
+func GetRollerRootDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".roller")
 }

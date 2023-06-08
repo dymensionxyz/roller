@@ -1,15 +1,16 @@
 package initconfig
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
 
 func printInitOutput(addresses map[string]string, rollappId string) {
-	color.New(color.FgCyan, color.Bold).Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
-	color.New(color.FgGreen, color.Bold).Printf("🔑 Key Details:\n\n")
+	fmt.Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
+
+	fmt.Printf("🔑 Addresses:\n\n")
 
 	data := [][]string{
 		{"Celestia", addresses[KeyNames.DALightNode]},
@@ -24,5 +25,5 @@ func printInitOutput(addresses map[string]string, rollappId string) {
 	table.AppendBulk(data)
 	table.Render()
 
-	color.New(color.FgYellow, color.Bold).Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
+	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
 }

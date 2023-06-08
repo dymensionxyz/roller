@@ -13,8 +13,8 @@ type InitConfig struct {
 	RollappBinary     string
 	CreateDALightNode bool
 	Denom             string
-	HubID             string
 	Decimals          uint64
+	HubID             string
 }
 
 func InitCmd() *cobra.Command {
@@ -22,7 +22,7 @@ func InitCmd() *cobra.Command {
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			initConfig := getInitConfig(cmd, args)
+			initConfig := GetInitConfig(cmd, args)
 			isUniqueRollapp, err := isRollappIDUnique(initConfig.RollappID)
 			OutputCleanError(err)
 			if !isUniqueRollapp {
@@ -57,6 +57,7 @@ func InitCmd() *cobra.Command {
 				Denom:         "udym",
 				AddressPrefix: addressPrefixes.Hub,
 			}, initConfig))
+			OutputCleanError(WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),
