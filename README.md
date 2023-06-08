@@ -15,8 +15,7 @@ more accessible.
 To install Roller CLI, simply run the following command:
 
 ```bash
-curl -L https://github.com/dymensionxyz/roller/releases/download/v0.0.0/install.sh
- | bash
+curl -L https://github.com/dymensionxyz/roller/releases/download/v0.0.0/install.sh | bash
 ```
 
 This will automatically fetch the latest version of Roller CLI and install it on
