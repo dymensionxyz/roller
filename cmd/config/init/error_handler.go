@@ -13,7 +13,7 @@ func OutputCleanError(err error) {
 				os.Exit(1)
 			}
 		}()
-		color.Red(err.Error())
+		color.New(color.FgRed, color.Bold).Printf("💈 %s\n", err.Error())
 		panic(err)
 	}
 }
