@@ -48,11 +48,11 @@ func registerRollapp(rollappConfig initconfig.InitConfig) error {
 	if err := handleStdErr(stderr, rollappConfig); err != nil {
 		return err
 	}
-	if err := handleStdOut(stdout, rollappConfig); err != nil {
-		return err
-	}
 	if cmdExecErr != nil {
 		return cmdExecErr
+	}
+	if err := handleStdOut(stdout, rollappConfig); err != nil {
+		return err
 	}
 	return nil
 }
