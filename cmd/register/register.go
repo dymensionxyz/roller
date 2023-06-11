@@ -3,7 +3,6 @@ package register
 import (
 	"bytes"
 	"errors"
-	"os/exec"
 	"path/filepath"
 
 	"fmt"
@@ -13,7 +12,7 @@ import (
 	"encoding/json"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -26,16 +25,17 @@ func RegisterCmd() *cobra.Command {
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			initconfig.OutputCleanError(err)
 			initconfig.OutputCleanError(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
-			initconfig.OutputCleanError(registerRollapp(rollappConfig))
+			err = registerRollapp(rollappConfig)
+			initconfig.OutputCleanError(err)
+			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
+			initconfig.OutputCleanError(err)
+			err = registerSequencerCmd.Run()
+			initconfig.OutputCleanError(err)
 			printRegisterOutput(rollappConfig)
 		},
 	}
-	addFlags(registerCmd)
+	utils.AddGlobalFlags(registerCmd)
 	return registerCmd
-}
-
-func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(initconfig.FlagNames.Home, "", initconfig.GetRollerRootDir(), "The directory of the roller config files")
 }
 
 func registerRollapp(rollappConfig initconfig.InitConfig) error {
@@ -96,17 +96,6 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 	}
 
 	return nil
-}
-
-func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
-	return exec.Command(
-		consts.Executables.Dymension, "tx", "rollapp", "create-rollapp",
-		"--from", initconfig.KeyNames.HubSequencer,
-		"--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
-		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
-		"--node", rollappConfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
-	)
 }
 
 func printRegisterOutput(rollappConfig initconfig.InitConfig) {

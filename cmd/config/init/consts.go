@@ -76,18 +76,6 @@ type HubData = struct {
 	RPC_URL string
 }
 
-var Executables = struct {
-	Celestia  string
-	Rollapp   string
-	Relayer   string
-	Dymension string
-}{
-	Celestia:  "/usr/local/bin/roller_bins/celestia",
-	Rollapp:   "/usr/local/bin/roller_bins/rollapp_evm",
-	Relayer:   "/usr/local/bin/roller_bins/rly",
-	Dymension: "/usr/local/bin/roller_bins/dymd",
-}
-
 const defaultRollappRPC = "http://localhost:26657"
 
 var CoinTypes = struct {
