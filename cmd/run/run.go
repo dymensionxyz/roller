@@ -22,14 +22,14 @@ func RunCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
-			initconfig.OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			startRollappCmd := getStartRollapCmd(rollappConfig)
 			var stderr bytes.Buffer
 			startRollappCmd.Stderr = &stderr
 			err = startRollappCmd.Start()
 			if err != nil {
 				errMsg := parseError(stderr.String())
-				initconfig.OutputCleanError(errors.New(errMsg))
+				utils.PrettifyErrorIfExists(errors.New(errMsg))
 			}
 			fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
@@ -38,7 +38,7 @@ func RunCmd() *cobra.Command {
 			err = startRollappCmd.Wait()
 			if err != nil {
 				errMsg := parseError(stderr.String())
-				initconfig.OutputCleanError(errors.New(errMsg))
+				utils.PrettifyErrorIfExists(errors.New(errMsg))
 			}
 		},
 	}

@@ -7,8 +7,8 @@ import (
 
 	"os"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/test/config/init/testutils"
 	"github.com/stretchr/testify/assert"
 )

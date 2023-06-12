@@ -23,14 +23,14 @@ func RegisterCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
-			initconfig.OutputCleanError(err)
-			initconfig.OutputCleanError(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			err = registerRollapp(rollappConfig)
-			initconfig.OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
-			initconfig.OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			err = registerSequencerCmd.Run()
-			initconfig.OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			printRegisterOutput(rollappConfig)
 		},
 	}
