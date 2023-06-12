@@ -19,8 +19,13 @@ func RunCmd() *cobra.Command {
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			initconfig.OutputCleanError(err)
 			startRollappCmd := getStartRollapCmd(rollappConfig)
-			startRollappErr := startRollappCmd.Run()
-			initconfig.OutputCleanError(startRollappErr)
+			err = startRollappCmd.Start()
+			initconfig.OutputCleanError(err)
+			fmt.Println("💈 RollApp node: http://0.0.0.0:26657")
+			fmt.Println("💈 RollApp EVM RPC: http://0.0.0.0:8545")
+			fmt.Println("💈 Rollapp API: http://0.0.0.0:1317")
+			err = startRollappCmd.Wait()
+			initconfig.OutputCleanError(err)
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
