@@ -1,4 +1,4 @@
-package initconfig
+package utils
 
 import (
 	"os"

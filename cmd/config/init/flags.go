@@ -3,6 +3,8 @@ package initconfig
 import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 func addFlags(cmd *cobra.Command) {
@@ -10,7 +12,7 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.DAEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
-	cmd.Flags().StringP(FlagNames.Home, "", GetRollerRootDir(), "The directory of the roller config files")
+	cmd.Flags().StringP(FlagNames.Home, "", utils.GetRollerRootDir(), "The directory of the roller config files")
 }
 
 func getDecimals(cmd *cobra.Command) uint64 {

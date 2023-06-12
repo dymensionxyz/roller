@@ -7,6 +7,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,8 +18,8 @@ func RegisterCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
-			initconfig.OutputCleanError(err)
-			initconfig.OutputCleanError(registerRollapp(rollappConfig))
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 		},
 	}
 	addFlags(registerCmd)
@@ -26,7 +27,7 @@ func RegisterCmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(initconfig.FlagNames.Home, "", initconfig.GetRollerRootDir(), "The directory of the roller config files")
+	cmd.Flags().StringP(initconfig.FlagNames.Home, "", utils.GetRollerRootDir(), "The directory of the roller config files")
 }
 
 func registerRollapp(rollappConfig initconfig.InitConfig) error {
