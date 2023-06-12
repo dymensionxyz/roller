@@ -5,6 +5,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/config"
 	"github.com/dymensionxyz/roller/cmd/register"
+	"github.com/dymensionxyz/roller/cmd/run"
 	"github.com/dymensionxyz/roller/cmd/version"
 	"github.com/spf13/cobra"
 )
@@ -28,4 +29,5 @@ func init() {
 	rootCmd.AddCommand(config.ConfigCmd())
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(register.RegisterCmd())
+	rootCmd.AddCommand(run.RunCmd())
 }
