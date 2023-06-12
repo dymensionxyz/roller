@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 type InitConfig struct {
@@ -13,8 +14,8 @@ type InitConfig struct {
 	RollappBinary     string
 	CreateDALightNode bool
 	Denom             string
-	HubID             string
 	Decimals          uint64
+	HubID             string
 }
 
 func InitCmd() *cobra.Command {
@@ -22,19 +23,19 @@ func InitCmd() *cobra.Command {
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			initConfig := getInitConfig(cmd, args)
+			initConfig := GetInitConfig(cmd, args)
 			isUniqueRollapp, err := isRollappIDUnique(initConfig.RollappID)
-			OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			if !isUniqueRollapp {
-				OutputCleanError(fmt.Errorf("Rollapp ID %s already exists on the hub. Please use a unique ID.", initConfig.RollappID))
+				utils.PrettifyErrorIfExists(fmt.Errorf("Rollapp ID %s already exists on the hub. Please use a unique ID.", initConfig.RollappID))
 			}
 			isRootExist, err := dirNotEmpty(initConfig.Home)
-			OutputCleanError(err)
+			utils.PrettifyErrorIfExists(err)
 			if isRootExist {
 				shouldOverwrite, err := promptOverwriteConfig(initConfig.Home)
-				OutputCleanError(err)
+				utils.PrettifyErrorIfExists(err)
 				if shouldOverwrite {
-					OutputCleanError(os.RemoveAll(initConfig.Home))
+					utils.PrettifyErrorIfExists(os.RemoveAll(initConfig.Home))
 				} else {
 					os.Exit(0)
 				}
@@ -42,11 +43,11 @@ func InitCmd() *cobra.Command {
 
 			addresses := initializeKeys(initConfig)
 			if initConfig.CreateDALightNode {
-				OutputCleanError(initializeLightNodeConfig(initConfig))
+				utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			}
 			initializeRollappConfig(initConfig)
-			OutputCleanError(initializeRollappGenesis(initConfig))
-			OutputCleanError(initializeRelayerConfig(ChainConfig{
+			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
+			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
 				RPC:           defaultRollappRPC,
 				Denom:         initConfig.Denom,
@@ -57,6 +58,7 @@ func InitCmd() *cobra.Command {
 				Denom:         "udym",
 				AddressPrefix: addressPrefixes.Hub,
 			}, initConfig))
+			utils.PrettifyErrorIfExists(WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),

@@ -1,10 +1,10 @@
-package initconfig
+package utils
 
 import (
 	"os"
 	"path/filepath"
 )
 
-func getRollerRootDir() string {
+func GetRollerRootDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".roller")
 }

@@ -63,6 +63,4 @@ const defaultRollappRPC = "http://localhost:26657"
 const evmCoinType uint32 = 60
 const KeysDirName = "keys"
 const cosmosDefaultCointype uint32 = 118
-const celestiaExecutablePath = "/usr/local/bin/roller_bins/celestia"
-const defaultRollappBinaryPath = "/usr/local/bin/roller_bins/rollapp_evm"
-const relayerExecutablePath = "/usr/local/bin/roller_bins/rly"
+const RollerConfigFileName = "config.toml"

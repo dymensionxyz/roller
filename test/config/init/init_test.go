@@ -13,6 +13,8 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
+	DAEndpoint := "http://localhost:26659"
+	decimals := "6"
 	testCases := []struct {
 		name          string
 		goldenDirPath string
@@ -27,8 +29,8 @@ func TestInitCmd(t *testing.T) {
 			name:          "Roller config init with custom flags",
 			goldenDirPath: "./goldens/init_with_flags",
 			optionalFlags: []string{
-				"--" + initconfig.FlagNames.DAEndpoint, "http://localhost:26659",
-				"--" + initconfig.FlagNames.Decimals, "6",
+				"--" + initconfig.FlagNames.DAEndpoint, DAEndpoint,
+				"--" + initconfig.FlagNames.Decimals, decimals,
 			},
 		},
 	}
@@ -43,13 +45,17 @@ func TestInitCmd(t *testing.T) {
 				assert.NoError(err)
 			}()
 			cmd := initconfig.InitCmd()
+			denom := "udym"
 			rollappID := "mars"
 			cmd.SetArgs(append([]string{
 				rollappID,
-				"udym",
+				denom,
 				"--" + initconfig.FlagNames.Home, tempDir,
 			}, tc.optionalFlags...))
 			assert.NoError(cmd.Execute())
+			initConfig := initconfig.GetInitConfig(cmd, []string{rollappID, denom})
+			assert.NoError(testutils.VerifyRollerConfig(initConfig))
+			assert.NoError(os.Remove(filepath.Join(tempDir, initconfig.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initconfig.HubData.ID))
 			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.DAEndpoint) {

@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 type RelayerFileChainConfig struct {
@@ -78,7 +80,7 @@ func addChainToRelayer(fileChainConfig RelayerFileChainConfig, relayerHome strin
 	if err != nil {
 		return err
 	}
-	addChainCmd := exec.Command(relayerExecutablePath, "chains", "add", fileChainConfig.Value.ChainID, "--home", relayerHome, "--file", chainFilePath)
+	addChainCmd := exec.Command(consts.Executables.Relayer, "chains", "add", fileChainConfig.Value.ChainID, "--home", relayerHome, "--file", chainFilePath)
 	if err := addChainCmd.Run(); err != nil {
 		return err
 	}
@@ -86,7 +88,7 @@ func addChainToRelayer(fileChainConfig RelayerFileChainConfig, relayerHome strin
 }
 
 func initRelayer(relayerHome string) error {
-	initRelayerConfigCmd := exec.Command(relayerExecutablePath, "config", "init", "--home", relayerHome)
+	initRelayerConfigCmd := exec.Command(consts.Executables.Relayer, "config", "init", "--home", relayerHome)
 	return initRelayerConfigCmd.Run()
 }
 
@@ -115,12 +117,12 @@ func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHo
 }
 
 func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome string) error {
-	setSettlementCmd := exec.Command(relayerExecutablePath, "chains", "set-settlement", hubConfig.ID, "--home", relayerHome)
+	setSettlementCmd := exec.Command(consts.Executables.Relayer, "chains", "set-settlement", hubConfig.ID, "--home", relayerHome)
 	if err := setSettlementCmd.Run(); err != nil {
 		return err
 	}
 	relayerPath := "hub-rollapp"
-	newPathCmd := exec.Command(relayerExecutablePath, "paths", "new", rollappConfig.ID, hubConfig.ID, relayerPath, "--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1", "--home", relayerHome)
+	newPathCmd := exec.Command(consts.Executables.Relayer, "paths", "new", rollappConfig.ID, hubConfig.ID, relayerPath, "--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1", "--home", relayerHome)
 	if err := newPathCmd.Run(); err != nil {
 		return err
 	}
