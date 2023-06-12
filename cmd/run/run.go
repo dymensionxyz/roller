@@ -21,9 +21,9 @@ func RunCmd() *cobra.Command {
 			startRollappCmd := getStartRollapCmd(rollappConfig)
 			err = startRollappCmd.Start()
 			initconfig.OutputCleanError(err)
-			fmt.Println("💈 RollApp node: http://0.0.0.0:26657")
-			fmt.Println("💈 RollApp EVM RPC: http://0.0.0.0:8545")
-			fmt.Println("💈 Rollapp API: http://0.0.0.0:1317")
+			fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
+			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
+			fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 			err = startRollappCmd.Wait()
 			initconfig.OutputCleanError(err)
 		},
