@@ -1,9 +1,14 @@
 package run
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
+
+	"bytes"
+
+	"strings"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -19,18 +24,34 @@ func RunCmd() *cobra.Command {
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			initconfig.OutputCleanError(err)
 			startRollappCmd := getStartRollapCmd(rollappConfig)
+			var stderr bytes.Buffer
+			startRollappCmd.Stderr = &stderr
 			err = startRollappCmd.Start()
-			initconfig.OutputCleanError(err)
+			if err != nil {
+				errMsg := parseError(stderr.String())
+				initconfig.OutputCleanError(errors.New(errMsg))
+			}
 			fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 			fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 			fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 			err = startRollappCmd.Wait()
-			initconfig.OutputCleanError(err)
+			if err != nil {
+				errMsg := parseError(stderr.String())
+				initconfig.OutputCleanError(errors.New(errMsg))
+			}
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
 	return runCmd
+}
+
+func parseError(errMsg string) string {
+	lines := strings.Split(errMsg, "\n")
+	if len(lines) > 0 && lines[0] == "Error: failed to initialize database: resource temporarily unavailable" {
+		return "The Rollapp sequencer is already running. Only one sequencer can run on the machine at any given time."
+	}
+	return errMsg
 }
 
 func getStartRollapCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
