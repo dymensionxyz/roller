@@ -14,7 +14,6 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
-	DAEndpoint := "http://localhost:26659"
 	decimals := "6"
 	testCases := []struct {
 		name          string
@@ -30,7 +29,6 @@ func TestInitCmd(t *testing.T) {
 			name:          "Roller config init with custom flags",
 			goldenDirPath: "./goldens/init_with_flags",
 			optionalFlags: []string{
-				"--" + initconfig.FlagNames.DAEndpoint, DAEndpoint,
 				"--" + initconfig.FlagNames.Decimals, decimals,
 			},
 		},
@@ -59,9 +57,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(os.Remove(filepath.Join(tempDir, initconfig.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
-			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.DAEndpoint) {
-				assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
-			}
+			assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
 			assert.NoError(testutils.ClearKeys(tempDir))
 			are_dirs_equal, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
 			assert.NoError(err)

@@ -10,7 +10,6 @@ import (
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", TestnetHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
-	cmd.Flags().StringP(FlagNames.DAEndpoint, "", "http://localhost:26659", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
 
@@ -46,7 +45,6 @@ func GetInitConfig(initCmd *cobra.Command, args []string) InitConfig {
 	rollappId := args[0]
 	denom := args[1]
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
-	createLightNode := !initCmd.Flags().Changed(FlagNames.DAEndpoint)
 	rollappBinaryPath := getRollappBinaryPath(initCmd)
 	decimals := getDecimals(initCmd)
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
@@ -54,11 +52,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) InitConfig {
 		Home:              home,
 		RollappID:         rollappId,
 		RollappBinary:     rollappBinaryPath,
-		CreateDALightNode: createLightNode,
 		Denom:             denom,
 		Decimals:          decimals,
 		HubData:           Hubs[hubID],
-		LightNodeEndpoint: initCmd.Flag(FlagNames.DAEndpoint).Value.String(),
 	}
 }
 

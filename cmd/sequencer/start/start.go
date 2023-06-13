@@ -1,12 +1,9 @@
-package run
+package sequnecer_start
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
-
-	"bytes"
 
 	"strings"
 
@@ -15,35 +12,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunCmd() *cobra.Command {
+func StartCmd() *cobra.Command {
 	runCmd := &cobra.Command{
-		Use:   "run",
+		Use:   "start",
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			startRollappCmd := getStartRollapCmd(rollappConfig)
-			var stderr bytes.Buffer
-			startRollappCmd.Stderr = &stderr
-			err = startRollappCmd.Start()
-			if err != nil {
-				errMsg := parseError(stderr.String())
-				utils.PrettifyErrorIfExists(errors.New(errMsg))
-			}
-			fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
-			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
-			fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
-			fmt.Println("💈 Rest API: http://0.0.0.0:1317")
-			err = startRollappCmd.Wait()
-			if err != nil {
-				errMsg := parseError(stderr.String())
-				utils.PrettifyErrorIfExists(errors.New(errMsg))
-			}
+			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
+			startRollappCmd := getStartRollapCmd(rollappConfig, LightNodeEndpoint)
+			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
+	runCmd.Flags().StringP(FlagNames.DAEndpoint, "", "http://localhost:26659", "The data availability light node endpoint.")
 	return runCmd
+}
+
+var FlagNames = struct {
+	DAEndpoint string
+}{
+	DAEndpoint: "da-endpoint",
+}
+
+func printOutput() {
+	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
+	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
+	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 }
 
 func parseError(errMsg string) string {
@@ -54,10 +51,13 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getStartRollapCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
-	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`, rollappConfig.LightNodeEndpoint)
+func getStartRollapCmd(rollappConfig initconfig.InitConfig, lightNodeEndpoint string) *exec.Cmd {
+	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
+		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp)
-	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "2000000udym"}`, rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, initconfig.
+
+	// TODO: Update the gas_fees to 2000000udym before 35-c launch.
+	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`, rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, initconfig.
 		KeyNames.HubSequencer, rollappConfigDir)
 
 	return exec.Command(

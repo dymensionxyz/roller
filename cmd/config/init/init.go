@@ -3,19 +3,19 @@ package initconfig
 import (
 	"os"
 
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
 type InitConfig struct {
-	Home              string
-	RollappID         string
-	RollappBinary     string
-	CreateDALightNode bool
-	Denom             string
-	Decimals          uint64
-	HubData           HubData
-	LightNodeEndpoint string
+	Home          string
+	RollappID     string
+	RollappBinary string
+	Denom         string
+	Decimals      uint64
+	HubData       HubData
 }
 
 func InitCmd() *cobra.Command {
@@ -36,11 +36,9 @@ func InitCmd() *cobra.Command {
 					os.Exit(0)
 				}
 			}
-
-			addresses := initializeKeys(initConfig)
-			if initConfig.CreateDALightNode {
-				utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
-			}
+			addresses, err := generateKeys(initConfig)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			initializeRollappConfig(initConfig)
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
@@ -55,6 +53,9 @@ func InitCmd() *cobra.Command {
 				AddressPrefix: AddressPrefixes.Hub,
 			}, initConfig))
 			utils.PrettifyErrorIfExists(WriteConfigToTOML(initConfig))
+			daLightNodeAddress, err := utils.GetCelestiaAddress(filepath.Join(initConfig.Home, ConfigDirName.DALightNode, KeysDirName))
+			utils.PrettifyErrorIfExists(err)
+			addresses[KeyNames.DALightNode] = daLightNodeAddress
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),
