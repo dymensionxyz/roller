@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -54,11 +55,10 @@ func parseError(errMsg string) string {
 func getStartRollapCmd(rollappConfig initconfig.InitConfig, lightNodeEndpoint string) *exec.Cmd {
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
 		lightNodeEndpoint)
-	rollappConfigDir := filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp)
+	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
 	// TODO: Update the gas_fees to 2000000udym before 35-c launch.
-	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`, rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, initconfig.
-		KeyNames.HubSequencer, rollappConfigDir)
+	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`, rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, consts.KeyNames.HubSequencer, rollappConfigDir)
 
 	return exec.Command(
 		rollappConfig.RollappBinary, "start",

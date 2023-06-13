@@ -33,3 +33,31 @@ var KeyNames = struct {
 	DALightNode:      "my_celes_key",
 	HubRelayer:       "relayer-hub-key",
 }
+
+var AddressPrefixes = struct {
+	Hub     string
+	Rollapp string
+	DA      string
+}{
+	Rollapp: "rol",
+	Hub:     "dym",
+	DA:      "celestia",
+}
+
+var ConfigDirName = struct {
+	Rollapp     string
+	Relayer     string
+	DALightNode string
+}{
+	Rollapp:     "rollapp",
+	Relayer:     "relayer",
+	DALightNode: "da-light-node",
+}
+
+var CoinTypes = struct {
+	Cosmos uint32
+	EVM    uint32
+}{
+	Cosmos: 118,
+	EVM:    60,
+}

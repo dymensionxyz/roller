@@ -28,7 +28,7 @@ func showSequencerPubKey(rollappConfig initconfig.InitConfig) (string, error) {
 		"dymint",
 		"show-sequencer",
 		"--home",
-		filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
+		filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 	)
 	out, err := cmd.Output()
 	if err != nil {
@@ -43,7 +43,7 @@ func getRegisterSequencerCmd(rollappConfig initconfig.InitConfig) (*exec.Cmd, er
 		return nil, err
 	}
 	description := fmt.Sprintf(`{"Moniker":"%s","Identity":"","Website":"","SecurityContact":"","Details":""}`,
-		initconfig.KeyNames.HubSequencer)
+		consts.KeyNames.HubSequencer)
 	cmdArgs := []string{
 		"tx", "sequencer", "create-sequencer",
 		seqPubKey,
@@ -56,9 +56,9 @@ func getRegisterSequencerCmd(rollappConfig initconfig.InitConfig) (*exec.Cmd, er
 
 func GetCommonFlags(rollappConfig initconfig.InitConfig) []string {
 	return []string{
-		"--from", initconfig.KeyNames.HubSequencer,
+		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
+		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 		"--node", rollappConfig.HubData.RPC_URL, "--output", "json",
 		"--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
 	}

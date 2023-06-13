@@ -6,19 +6,20 @@ import (
 	"errors"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func getRollappKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.Rollapp, innerKeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, innerKeysDirName)
 }
 
 func VerifyRollappKeys(root string) error {
 	rollappKeysDir := getRollappKeysDir(root)
-	sequencerKeyInfoPath := filepath.Join(rollappKeysDir, initconfig.KeyNames.RollappSequencer+".info")
+	sequencerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.RollappSequencer+".info")
 	if err := verifyFileExists(sequencerKeyInfoPath); err != nil {
 		return err
 	}
-	relayerKeyInfoPath := filepath.Join(rollappKeysDir, initconfig.KeyNames.HubSequencer+".info")
+	relayerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.HubSequencer+".info")
 	if err := verifyFileExists(relayerKeyInfoPath); err != nil {
 		return err
 	}

@@ -14,40 +14,6 @@ var FlagNames = struct {
 	HubID:         "hub",
 }
 
-var KeyNames = struct {
-	HubSequencer     string
-	RollappSequencer string
-	RollappRelayer   string
-	DALightNode      string
-	HubRelayer       string
-}{
-	HubSequencer:     "hub_sequencer",
-	RollappSequencer: "rollapp_sequencer",
-	RollappRelayer:   "relayer-rollapp-key",
-	DALightNode:      "my_celes_key",
-	HubRelayer:       "relayer-hub-key",
-}
-
-var AddressPrefixes = struct {
-	Hub     string
-	Rollapp string
-	DA      string
-}{
-	Rollapp: "rol",
-	Hub:     "dym",
-	DA:      "celestia",
-}
-
-var ConfigDirName = struct {
-	Rollapp     string
-	Relayer     string
-	DALightNode string
-}{
-	Rollapp:     "rollapp",
-	Relayer:     "relayer",
-	DALightNode: "da-light-node",
-}
-
 const TestnetHubID = "35-C"
 const StagingHubID = "internal-devnet"
 const LocalHubID = "local"
@@ -77,14 +43,6 @@ type HubData = struct {
 }
 
 const defaultRollappRPC = "http://localhost:26657"
-
-var CoinTypes = struct {
-	Cosmos uint32
-	EVM    uint32
-}{
-	Cosmos: 118,
-	EVM:    60,
-}
 
 const KeysDirName = "keys"
 const RollerConfigFileName = "config.toml"

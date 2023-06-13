@@ -40,7 +40,7 @@ func getCelestiaCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", "consensus-full-arabica-8.celestia-arabica.com",
-		"--node.store", filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.DALightNode),
+		"--node.store", filepath.Join(rollappConfig.Home, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		"--gateway.addr", "127.0.0.1",
 		"--gateway.port", "26659",
