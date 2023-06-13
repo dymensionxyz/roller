@@ -6,19 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
-
-func keyInfoToBech32Address(info keyring.Info, prefix string) (string, error) {
-	pk := info.GetPubKey()
-	addr := types.AccAddress(pk.Address())
-	bech32Address, err := bech32.ConvertAndEncode(prefix, addr.Bytes())
-	if err != nil {
-		return "", err
-	}
-	return bech32Address, nil
-}
 
 func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]string, error) {
 	keys := getDefaultKeysConfig(initConfig)
@@ -33,7 +22,7 @@ func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]stri
 			if err != nil {
 				return nil, err
 			}
-			formattedAddress, err := keyInfoToBech32Address(keyInfo, key.Prefix)
+			formattedAddress, err := utils.KeyInfoToBech32Address(keyInfo, key.Prefix)
 			if err != nil {
 				return nil, err
 			}
@@ -43,14 +32,7 @@ func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]stri
 	return addresses, nil
 }
 
-type KeyConfig struct {
-	Dir      string
-	ID       string
-	CoinType uint32
-	Prefix   string
-}
-
-func createKey(keyConfig KeyConfig, home string) (keyring.Info, error) {
+func createKey(keyConfig utils.KeyConfig, home string) (keyring.Info, error) {
 	kr, err := keyring.New(
 		"",
 		keyring.BackendTest,
@@ -68,8 +50,8 @@ func createKey(keyConfig KeyConfig, home string) (keyring.Info, error) {
 	return info, nil
 }
 
-func getDefaultKeysConfig(initConfig InitConfig) []KeyConfig {
-	return []KeyConfig{
+func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
+	return []utils.KeyConfig{
 		{
 			Dir:      ConfigDirName.Rollapp,
 			ID:       KeyNames.HubSequencer,
@@ -117,26 +99,4 @@ func initializeKeys(initConfig InitConfig) map[string]string {
 		}
 		return addresses
 	}
-}
-
-func GetAddress(keyConfig KeyConfig) (string, error) {
-	kr, err := keyring.New(
-		"",
-		keyring.BackendTest,
-		keyConfig.Dir,
-		nil,
-	)
-	if err != nil {
-		return "", err
-	}
-	keyInfo, err := kr.Key(keyConfig.ID)
-	if err != nil {
-		return "", err
-	}
-	formattedAddress, err := keyInfoToBech32Address(keyInfo, keyConfig.Prefix)
-	if err != nil {
-		return "", err
-	}
-
-	return formattedAddress, nil
 }

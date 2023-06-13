@@ -12,7 +12,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -57,8 +56,8 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 	stderrStr := stderr.String()
 	if len(stderrStr) > 0 {
 		if strings.Contains(stderrStr, "key not found") {
-			sequencerAddress, err := initconfig.GetAddress(
-				initconfig.KeyConfig{
+			sequencerAddress, err := utils.GetAddress(
+				utils.KeyConfig{
 					ID:       initconfig.KeyNames.HubSequencer,
 					Prefix:   initconfig.AddressPrefixes.Hub,
 					Dir:      filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),

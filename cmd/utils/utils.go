@@ -8,3 +8,4 @@ import (
 func GetRollerRootDir() string {
 	return filepath.Join(os.Getenv("HOME"), ".roller")
 }
+

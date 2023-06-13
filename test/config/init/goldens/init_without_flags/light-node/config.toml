@@ -5,12 +5,12 @@
 
 [State]
   KeyringAccName = ""
+  KeyringBackend = "test"
 
 [P2P]
   ListenAddresses = ["/ip4/0.0.0.0/udp/2121/quic-v1", "/ip6/::/udp/2121/quic-v1", "/ip4/0.0.0.0/tcp/2121", "/ip6/::/tcp/2121"]
   AnnounceAddresses = []
   NoAnnounceAddresses = ["/ip4/0.0.0.0/udp/2121/quic-v1", "/ip4/127.0.0.1/udp/2121/quic-v1", "/ip6/::/udp/2121/quic-v1", "/ip4/0.0.0.0/tcp/2121", "/ip4/127.0.0.1/tcp/2121", "/ip6/::/tcp/2121"]
-  Bootstrapper = false
   MutualPeers = []
   PeerExchange = false
   RoutingTableRefreshPeriod = "1m0s"
@@ -29,9 +29,28 @@
   Enabled = false
 
 [Share]
-  PeersLimit = 3
-  DiscoveryInterval = "30s"
-  AdvertiseInterval = "30s"
+  UseShareExchange = true
+  [Share.ShrExEDSParams]
+    ServerReadTimeout = "5s"
+    ServerWriteTimeout = "1m0s"
+    HandleRequestTimeout = "1m0s"
+    ConcurrencyLimit = 10
+    BufferSize = 32768
+  [Share.ShrExNDParams]
+    ServerReadTimeout = "5s"
+    ServerWriteTimeout = "1m0s"
+    HandleRequestTimeout = "1m0s"
+    ConcurrencyLimit = 10
+  [Share.PeerManagerParams]
+    PoolValidationTimeout = "2m0s"
+    PeerCooldown = "3s"
+    GcInterval = "30s"
+    EnableBlackListing = false
+  [Share.LightAvailability]
+    SampleAmount = 16
+  [Share.Discovery]
+    PeersLimit = 5
+    AdvertiseInterval = "22h0m0s"
 
 [Header]
   TrustedHash = ""
@@ -42,25 +61,17 @@
     WriteBatchSize = 2048
   [Header.Syncer]
     TrustingPeriod = "168h0m0s"
-    MaxRequestSize = 512
   [Header.Server]
-    WriteDeadline = "5s"
+    WriteDeadline = "8s"
     ReadDeadline = "1m0s"
-    MaxRequestSize = 512
-    RequestTimeout = "5s"
+    RangeRequestTimeout = "10s"
   [Header.Client]
-    MinResponses = 2
-    MaxRequestSize = 512
-    MaxHeadersPerRequest = 64
-    MaxAwaitingTime = "1h0m0s"
-    DefaultScore = 1.0
-    RequestTimeout = "3s"
-    MaxPeerTrackerSize = 100
+    MaxHeadersPerRangeRequest = 64
+    RangeRequestTimeout = "8s"
 
 [DASer]
   SamplingRange = 100
   ConcurrencyLimit = 16
   BackgroundStoreInterval = "10m0s"
-  PriorityQueueSize = 64
   SampleFrom = 1
-  SampleTimeout = "1m0s"
+  SampleTimeout = "4m0s"
