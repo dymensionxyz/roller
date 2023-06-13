@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func printInitOutput(addresses map[string]string, rollappId string) {
@@ -13,9 +14,9 @@ func printInitOutput(addresses map[string]string, rollappId string) {
 	fmt.Printf("🔑 Addresses:\n\n")
 
 	data := [][]string{
-		{"Celestia", addresses[KeyNames.DALightNode]},
-		{"Sequencer", addresses[KeyNames.HubSequencer]},
-		{"Relayer", addresses[KeyNames.HubRelayer]},
+		{"Celestia", addresses[consts.KeyNames.DALightNode]},
+		{"Sequencer", addresses[consts.KeyNames.HubSequencer]},
+		{"Relayer", addresses[consts.KeyNames.HubRelayer]},
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)

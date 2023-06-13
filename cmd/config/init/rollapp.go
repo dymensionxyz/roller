@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 
 	toml "github.com/pelletier/go-toml"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func initializeRollappConfig(initConfig InitConfig) {
-	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", KeyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, ConfigDirName.Rollapp))
+	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, ConfigDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {
 		panic(err)

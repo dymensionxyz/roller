@@ -97,14 +97,14 @@ func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHo
 		ChainConfig: rollappConfig,
 		GasPrices:   "0.0" + rollappConfig.Denom,
 		ClientType:  "01-dymint",
-		KeyName:     KeyNames.RollappRelayer,
+		KeyName:     consts.KeyNames.RollappRelayer,
 	})
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
 		GasPrices:   "0.25" + hubConfig.Denom,
 		ClientType:  "07-tendermint",
-		KeyName:     KeyNames.HubRelayer,
+		KeyName:     consts.KeyNames.HubRelayer,
 	})
 
 	if err := addChainToRelayer(relayerRollappConfig, relayerHome); err != nil {

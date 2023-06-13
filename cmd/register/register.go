@@ -58,7 +58,7 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 		if strings.Contains(stderrStr, "key not found") {
 			sequencerAddress, err := utils.GetAddress(
 				utils.KeyConfig{
-					ID:       initconfig.KeyNames.HubSequencer,
+					ID:       consts.KeyNames.HubSequencer,
 					Prefix:   initconfig.AddressPrefixes.Hub,
 					Dir:      filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
 					CoinType: initconfig.CoinTypes.Cosmos,
@@ -77,7 +77,7 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension, "tx", "rollapp", "create-rollapp",
-		"--from", initconfig.KeyNames.HubSequencer,
+		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
 		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
