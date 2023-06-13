@@ -14,39 +14,6 @@ var FlagNames = struct {
 	HubRPC:        "hub-rpc",
 }
 
-var KeyNames = struct {
-	HubSequencer     string
-	RollappSequencer string
-	RollappRelayer   string
-	DALightNode      string
-	HubRelayer       string
-}{
-	HubSequencer:     "hub_sequencer",
-	RollappSequencer: "rollapp_sequencer",
-	RollappRelayer:   "relayer-rollapp-key",
-	DALightNode:      "my-celes-key",
-	HubRelayer:       "relayer-hub-key",
-}
-
-var addressPrefixes = struct {
-	Hub     string
-	Rollapp string
-	DA      string
-}{
-	Rollapp: "rol",
-	Hub:     "dym",
-	DA:      "celestia",
-}
-
-var ConfigDirName = struct {
-	Rollapp     string
-	Relayer     string
-	DALightNode string
-}{
-	Rollapp:     "rollapp",
-	Relayer:     "relayer",
-	DALightNode: "light-node",
-}
 
 var HubData = struct {
 	API_URL string
@@ -58,9 +25,19 @@ var HubData = struct {
 	RPC_URL: "https://rpc-hub-35c.dymension.xyz:443",
 }
 
+var Executables = struct {
+	Celestia  string
+	Rollapp   string
+	Relayer   string
+	Dymension string
+}{
+	Celestia:  "/usr/local/bin/roller_bins/celestia",
+	Rollapp:   "/usr/local/bin/rollapp_evm",
+	Relayer:   "/usr/local/bin/roller_bins/rly",
+	Dymension: "/usr/local/bin/roller_bins/dymd",
+}
+
 const defaultRollappRPC = "http://localhost:26657"
 
-const evmCoinType uint32 = 60
 const KeysDirName = "keys"
-const cosmosDefaultCointype uint32 = 118
 const RollerConfigFileName = "config.toml"

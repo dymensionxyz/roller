@@ -8,7 +8,8 @@ import (
 
 	"path/filepath"
 	"regexp"
-
+	"github.com/dymensionxyz/roller/cmd/consts"
+	
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 )
 
@@ -80,12 +81,12 @@ func verifyAndRemoveFilePattern(pattern string, dir string) error {
 }
 
 func getLightNodeKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.DALightNode, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.DALightNode, initconfig.KeysDirName)
 }
 
 func VerifyLightNodeKeys(root string) error {
 	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
-	infoFilePath := filepath.Join(lightNodeKeysDir, initconfig.KeyNames.DALightNode+".info")
+	infoFilePath := filepath.Join(lightNodeKeysDir, consts.KeyNames.DALightNode+".info")
 	err := verifyFileExists(infoFilePath)
 	if err != nil {
 		return err
@@ -94,13 +95,13 @@ func VerifyLightNodeKeys(root string) error {
 }
 
 func getRelayerKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.Relayer, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.Relayer, initconfig.KeysDirName)
 }
 
 func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
 	relayerKeysDir := getRelayerKeysDir(root)
 	rollappKeysDir := filepath.Join(relayerKeysDir, rollappID, innerKeysDirName)
-	rollappKeyInfoPath := filepath.Join(rollappKeysDir, initconfig.KeyNames.RollappRelayer+".info")
+	rollappKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.RollappRelayer+".info")
 	if err := verifyFileExists(rollappKeyInfoPath); err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
 		return err
 	}
 	hubKeysDir := filepath.Join(relayerKeysDir, hubID, innerKeysDirName)
-	hubKeyInfoPath := filepath.Join(hubKeysDir, initconfig.KeyNames.HubRelayer+".info")
+	hubKeyInfoPath := filepath.Join(hubKeysDir, consts.KeyNames.HubRelayer+".info")
 	if err := verifyFileExists(hubKeyInfoPath); err != nil {
 		return err
 	}

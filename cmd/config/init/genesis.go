@@ -8,13 +8,14 @@ import (
 	"path/filepath"
 
 	"github.com/tidwall/sjson"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func initializeRollappGenesis(initConfig InitConfig) error {
 	zeros := initConfig.Decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
-	rollappConfigDirPath := filepath.Join(initConfig.Home, ConfigDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", KeyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", consts.KeyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	err := genesisSequencerAccountCmd.Run()
 	if err != nil {
 		return err
