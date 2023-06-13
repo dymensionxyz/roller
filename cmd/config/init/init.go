@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 type InitConfig struct {
@@ -46,12 +47,12 @@ func InitCmd() *cobra.Command {
 				ID:            initConfig.RollappID,
 				RPC:           defaultRollappRPC,
 				Denom:         initConfig.Denom,
-				AddressPrefix: AddressPrefixes.Rollapp,
+				AddressPrefix: consts.AddressPrefixes.Rollapp,
 			}, ChainConfig{
 				ID:            HubData.ID,
 				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
 				Denom:         "udym",
-				AddressPrefix: AddressPrefixes.Hub,
+				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
 			utils.PrettifyErrorIfExists(WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)

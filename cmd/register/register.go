@@ -59,7 +59,7 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 			sequencerAddress, err := utils.GetAddress(
 				utils.KeyConfig{
 					ID:       consts.KeyNames.HubSequencer,
-					Prefix:   initconfig.AddressPrefixes.Hub,
+					Prefix:   consts.AddressPrefixes.Hub,
 					Dir:      filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
 					CoinType: initconfig.CoinTypes.Cosmos,
 				},

@@ -25,3 +25,14 @@ var KeyNames = struct {
 	DALightNode:      "my-celes-key",
 	HubRelayer:       "relayer-hub-key",
 }
+
+var AddressPrefixes = struct {
+	Hub     string
+	Rollapp string
+	DA      string
+}{
+	Rollapp: "rol",
+	Hub:     "dym",
+	DA:      "celestia",
+}
+

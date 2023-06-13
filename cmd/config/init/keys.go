@@ -57,31 +57,31 @@ func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
 			Dir:      ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.HubSequencer,
 			CoinType: CoinTypes.Cosmos,
-			Prefix:   AddressPrefixes.Hub,
+			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
 			Dir:      ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.RollappSequencer,
 			CoinType: CoinTypes.EVM,
-			Prefix:   AddressPrefixes.Rollapp,
+			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 		{
 			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, HubData.ID),
 			ID:       consts.KeyNames.HubRelayer,
 			CoinType: CoinTypes.Cosmos,
-			Prefix:   AddressPrefixes.Hub,
+			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
 			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
 			ID:       consts.KeyNames.RollappRelayer,
 			CoinType: CoinTypes.EVM,
-			Prefix:   AddressPrefixes.Rollapp,
+			Prefix:   consts.AddressPrefixes.Rollapp,
 		}, {
 
 			Dir:      path.Join(ConfigDirName.DALightNode, KeysDirName),
 			ID:       consts.KeyNames.DALightNode,
 			CoinType: CoinTypes.Cosmos,
-			Prefix:   AddressPrefixes.DA,
+			Prefix:   consts.AddressPrefixes.DA,
 		},
 	}
 }
