@@ -130,7 +130,7 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 }
 
 func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig InitConfig) error {
-	relayerHome := filepath.Join(initConfig.Home, ConfigDirName.Relayer)
+	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err
 	}

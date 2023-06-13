@@ -36,3 +36,12 @@ var AddressPrefixes = struct {
 	DA:      "celestia",
 }
 
+var ConfigDirName = struct {
+	Rollapp     string
+	Relayer     string
+	DALightNode string
+}{
+	Rollapp:     "rollapp",
+	Relayer:     "relayer",
+	DALightNode: "light-node",
+}

@@ -81,7 +81,7 @@ func verifyAndRemoveFilePattern(pattern string, dir string) error {
 }
 
 func getLightNodeKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.DALightNode, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.DALightNode, initconfig.KeysDirName)
 }
 
 func VerifyLightNodeKeys(root string) error {
@@ -95,7 +95,7 @@ func VerifyLightNodeKeys(root string) error {
 }
 
 func getRelayerKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.Relayer, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.Relayer, initconfig.KeysDirName)
 }
 
 func VerifyRelayerKeys(root string, rollappID string, hubID string) error {

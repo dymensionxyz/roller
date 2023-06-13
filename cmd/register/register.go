@@ -60,7 +60,7 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 				utils.KeyConfig{
 					ID:       consts.KeyNames.HubSequencer,
 					Prefix:   consts.AddressPrefixes.Hub,
-					Dir:      filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
+					Dir:      filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 					CoinType: initconfig.CoinTypes.Cosmos,
 				},
 			)
@@ -79,7 +79,7 @@ func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 		consts.Executables.Dymension, "tx", "rollapp", "create-rollapp",
 		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(rollappConfig.Home, initconfig.ConfigDirName.Rollapp),
+		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
 		"--node", initconfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block",
 	)

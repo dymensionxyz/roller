@@ -54,31 +54,31 @@ func createKey(keyConfig utils.KeyConfig, home string) (keyring.Info, error) {
 func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
 	return []utils.KeyConfig{
 		{
-			Dir:      ConfigDirName.Rollapp,
+			Dir:      consts.ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.HubSequencer,
 			CoinType: CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
-			Dir:      ConfigDirName.Rollapp,
+			Dir:      consts.ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.RollappSequencer,
 			CoinType: CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 		{
-			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, HubData.ID),
+			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, HubData.ID),
 			ID:       consts.KeyNames.HubRelayer,
 			CoinType: CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
-			Dir:      path.Join(ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
+			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
 			ID:       consts.KeyNames.RollappRelayer,
 			CoinType: CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		}, {
 
-			Dir:      path.Join(ConfigDirName.DALightNode, KeysDirName),
+			Dir:      path.Join(consts.ConfigDirName.DALightNode, KeysDirName),
 			ID:       consts.KeyNames.DALightNode,
 			CoinType: CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.DA,

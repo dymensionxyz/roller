@@ -14,26 +14,6 @@ var FlagNames = struct {
 	HubRPC:        "hub-rpc",
 }
 
-var AddressPrefixes = struct {
-	Hub     string
-	Rollapp string
-	DA      string
-}{
-	Rollapp: "rol",
-	Hub:     "dym",
-	DA:      "celestia",
-}
-
-var ConfigDirName = struct {
-	Rollapp     string
-	Relayer     string
-	DALightNode string
-}{
-	Rollapp:     "rollapp",
-	Relayer:     "relayer",
-	DALightNode: "light-node",
-}
-
 var HubData = struct {
 	API_URL string
 	ID      string

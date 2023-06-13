@@ -10,7 +10,7 @@ import (
 )
 
 func getRollappKeysDir(root string) string {
-	return filepath.Join(root, initconfig.ConfigDirName.Rollapp, innerKeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, innerKeysDirName)
 }
 
 func VerifyRollappKeys(root string) error {
