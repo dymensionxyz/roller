@@ -45,3 +45,11 @@ var ConfigDirName = struct {
 	Relayer:     "relayer",
 	DALightNode: "light-node",
 }
+
+var CoinTypes = struct {
+	Cosmos uint32
+	EVM    uint32
+}{
+	Cosmos: 118,
+	EVM:    60,
+}

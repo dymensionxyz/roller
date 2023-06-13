@@ -6,8 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]string, error) {
@@ -56,31 +56,31 @@ func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
 		{
 			Dir:      consts.ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.HubSequencer,
-			CoinType: CoinTypes.Cosmos,
+			CoinType: consts.CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
 			Dir:      consts.ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.RollappSequencer,
-			CoinType: CoinTypes.EVM,
+			CoinType: consts.CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 		{
 			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, HubData.ID),
 			ID:       consts.KeyNames.HubRelayer,
-			CoinType: CoinTypes.Cosmos,
+			CoinType: consts.CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
 			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
 			ID:       consts.KeyNames.RollappRelayer,
-			CoinType: CoinTypes.EVM,
+			CoinType: consts.CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		}, {
 
 			Dir:      path.Join(consts.ConfigDirName.DALightNode, KeysDirName),
 			ID:       consts.KeyNames.DALightNode,
-			CoinType: CoinTypes.Cosmos,
+			CoinType: consts.CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.DA,
 		},
 	}

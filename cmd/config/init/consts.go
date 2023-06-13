@@ -14,6 +14,7 @@ var FlagNames = struct {
 	HubRPC:        "hub-rpc",
 }
 
+
 var HubData = struct {
 	API_URL string
 	ID      string
@@ -37,14 +38,6 @@ var Executables = struct {
 }
 
 const defaultRollappRPC = "http://localhost:26657"
-
-var CoinTypes = struct {
-	Cosmos uint32
-	EVM    uint32
-}{
-	Cosmos: 118,
-	EVM:    60,
-}
 
 const KeysDirName = "keys"
 const RollerConfigFileName = "config.toml"

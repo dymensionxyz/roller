@@ -61,7 +61,7 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 					ID:       consts.KeyNames.HubSequencer,
 					Prefix:   consts.AddressPrefixes.Hub,
 					Dir:      filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-					CoinType: initconfig.CoinTypes.Cosmos,
+					CoinType: consts.CoinTypes.Cosmos,
 				},
 			)
 			if err != nil {
