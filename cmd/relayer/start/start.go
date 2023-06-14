@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func start() *cobra.Command {
+func Start() *cobra.Command {
 	registerCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
@@ -19,7 +19,7 @@ func start() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			fmt.Println(rollappConfig)
 			createChannelCmd := getCreateChannelCmd(rollappConfig)
-			utils.PrettifyErrorIfExists(utils.ExecBashCommand(createChannelCmd))Ï
+			utils.PrettifyErrorIfExists(utils.ExecBashCommand(createChannelCmd))
 		},
 	}
 	utils.AddGlobalFlags(registerCmd)
