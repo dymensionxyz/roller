@@ -23,7 +23,7 @@ func RegisterCmd() *cobra.Command {
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.FlagNames.Home).Value.String()
-			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
+			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			err = registerRollapp(rollappConfig)
@@ -39,7 +39,7 @@ func RegisterCmd() *cobra.Command {
 	return registerCmd
 }
 
-func registerRollapp(rollappConfig initconfig.InitConfig) error {
+func registerRollapp(rollappConfig utils.InitConfig) error {
 	cmd := getRegisterRollappCmd(rollappConfig)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -58,7 +58,7 @@ func registerRollapp(rollappConfig initconfig.InitConfig) error {
 	return nil
 }
 
-func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) error {
+func handleStdErr(stderr bytes.Buffer, rollappConfig utils.InitConfig) error {
 	stderrStr := stderr.String()
 	if len(stderrStr) > 0 {
 		if strings.Contains(stderrStr, "key not found") {
@@ -84,7 +84,7 @@ type Response struct {
 	RawLog string `json:"raw_log"`
 }
 
-func handleStdOut(stdout bytes.Buffer, rollappConfig initconfig.InitConfig) error {
+func handleStdOut(stdout bytes.Buffer, rollappConfig utils.InitConfig) error {
 	var response Response
 
 	err := json.NewDecoder(&stdout).Decode(&response)
@@ -99,6 +99,6 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 	return nil
 }
 
-func printRegisterOutput(rollappConfig initconfig.InitConfig) {
+func printRegisterOutput(rollappConfig utils.InitConfig) {
 	fmt.Printf("💈 Rollapp '%s' has been successfully registered on the hub.\n", rollappConfig.RollappID)
 }

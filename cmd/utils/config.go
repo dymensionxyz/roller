@@ -1,10 +1,9 @@
-package initconfig
+package utils
 
 import (
+	"github.com/pelletier/go-toml"
 	"io/ioutil"
 	"path/filepath"
-
-	"github.com/pelletier/go-toml"
 )
 
 func WriteConfigToTOML(InitConfig InitConfig) error {
@@ -32,4 +31,21 @@ func LoadConfigFromTOML(root string) (InitConfig, error) {
 	}
 
 	return config, nil
+}
+
+type InitConfig struct {
+	Home          string
+	RollappID     string
+	RollappBinary string
+	Denom         string
+	Decimals      uint64
+	HubData       HubData
+}
+
+const RollerConfigFileName = "config.toml"
+
+type HubData = struct {
+	API_URL string
+	ID      string
+	RPC_URL string
 }

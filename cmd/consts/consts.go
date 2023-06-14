@@ -61,3 +61,5 @@ var CoinTypes = struct {
 	Cosmos: 118,
 	EVM:    60,
 }
+
+const KeysDirName = "keys"

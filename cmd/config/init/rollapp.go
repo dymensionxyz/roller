@@ -1,15 +1,16 @@
 package initconfig
 
 import (
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	toml "github.com/pelletier/go-toml"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	toml "github.com/pelletier/go-toml"
 )
 
-func initializeRollappConfig(initConfig InitConfig) {
+func initializeRollappConfig(initConfig utils.InitConfig) {
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {

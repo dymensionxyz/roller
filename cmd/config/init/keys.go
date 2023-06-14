@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
-func generateKeys(initConfig InitConfig, excludeKeys ...string) (map[string]string, error) {
+func generateKeys(initConfig utils.InitConfig, excludeKeys ...string) (map[string]string, error) {
 	keys := getDefaultKeysConfig(initConfig)
 	excludeKeysMap := make(map[string]struct{})
 	for _, key := range excludeKeys {
@@ -51,7 +51,7 @@ func createKey(keyConfig utils.KeyConfig, home string) (keyring.Info, error) {
 	return info, nil
 }
 
-func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
+func getDefaultKeysConfig(initConfig utils.InitConfig) []utils.KeyConfig {
 	return []utils.KeyConfig{
 		{
 			Dir:      consts.ConfigDirName.Rollapp,
@@ -66,13 +66,13 @@ func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 		{
-			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, initConfig.HubData.ID),
+			Dir:      path.Join(consts.ConfigDirName.Relayer, consts.KeysDirName, initConfig.HubData.ID),
 			ID:       consts.KeyNames.HubRelayer,
 			CoinType: consts.CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
-			Dir:      path.Join(consts.ConfigDirName.Relayer, KeysDirName, initConfig.RollappID),
+			Dir:      path.Join(consts.ConfigDirName.Relayer, consts.KeysDirName, initConfig.RollappID),
 			ID:       consts.KeyNames.RollappRelayer,
 			CoinType: consts.CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,

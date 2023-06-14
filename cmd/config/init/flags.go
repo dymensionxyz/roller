@@ -41,20 +41,20 @@ func getRollappBinaryPath(cmd *cobra.Command) string {
 	return rollappBinaryPath
 }
 
-func GetInitConfig(initCmd *cobra.Command, args []string) InitConfig {
+func GetInitConfig(initCmd *cobra.Command, args []string) utils.InitConfig {
 	rollappId := args[0]
 	denom := args[1]
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	rollappBinaryPath := getRollappBinaryPath(initCmd)
 	decimals := getDecimals(initCmd)
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	return InitConfig{
-		Home:              home,
-		RollappID:         rollappId,
-		RollappBinary:     rollappBinaryPath,
-		Denom:             denom,
-		Decimals:          decimals,
-		HubData:           Hubs[hubID],
+	return utils.InitConfig{
+		Home:          home,
+		RollappID:     rollappId,
+		RollappBinary: rollappBinaryPath,
+		Denom:         denom,
+		Decimals:      decimals,
+		HubData:       Hubs[hubID],
 	}
 }
 

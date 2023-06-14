@@ -5,19 +5,10 @@ import (
 
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
-
-type InitConfig struct {
-	Home          string
-	RollappID     string
-	RollappBinary string
-	Denom         string
-	Decimals      uint64
-	HubData       HubData
-}
 
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
@@ -53,8 +44,8 @@ func InitCmd() *cobra.Command {
 				Denom:         "udym",
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
-			utils.PrettifyErrorIfExists(WriteConfigToTOML(initConfig))
-			daLightNodeAddress, err := utils.GetCelestiaAddress(filepath.Join(initConfig.Home, consts.ConfigDirName.DALightNode, KeysDirName))
+			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
+			daLightNodeAddress, err := utils.GetCelestiaAddress(filepath.Join(initConfig.Home, consts.ConfigDirName.DALightNode, consts.KeysDirName))
 			utils.PrettifyErrorIfExists(err)
 			addresses[consts.KeyNames.DALightNode] = daLightNodeAddress
 			printInitOutput(addresses, initConfig.RollappID)

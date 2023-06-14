@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ func StartCmd() *cobra.Command {
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
+			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			startRollappCmd := getCelestiaCmd(rollappConfig)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
@@ -36,7 +35,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getCelestiaCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
+func getCelestiaCmd(rollappConfig utils.InitConfig) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", "consensus-full-arabica-8.celestia-arabica.com",

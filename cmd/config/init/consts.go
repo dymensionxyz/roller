@@ -1,5 +1,7 @@
 package initconfig
 
+import "github.com/dymensionxyz/roller/cmd/utils"
+
 var FlagNames = struct {
 	Home          string
 	DAEndpoint    string
@@ -18,7 +20,7 @@ const TestnetHubID = "35-C"
 const StagingHubID = "internal-devnet"
 const LocalHubID = "local"
 
-var Hubs = map[string]HubData{
+var Hubs = map[string]utils.HubData{
 	TestnetHubID: {
 		API_URL: "https://rest-hub-35c.dymension.xyz",
 		ID:      "35-C",
@@ -36,13 +38,4 @@ var Hubs = map[string]HubData{
 	},
 }
 
-type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
-}
-
 const defaultRollappRPC = "http://localhost:26657"
-
-const KeysDirName = "keys"
-const RollerConfigFileName = "config.toml"

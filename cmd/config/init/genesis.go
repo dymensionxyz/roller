@@ -1,17 +1,18 @@
 package initconfig
 
 import (
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
 
 	"fmt"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/tidwall/sjson"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/tidwall/sjson"
 )
 
-func initializeRollappGenesis(initConfig InitConfig) error {
+func initializeRollappGenesis(initConfig utils.InitConfig) error {
 	zeros := initConfig.Decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
