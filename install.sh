@@ -12,8 +12,8 @@ INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
 
 # Check if Roller binary already exists
-if [ -f "$ROLLER_BIN_PATH" ]; then
-    sudo rm "$ROLLER_BIN_PATH"
+if [ -f "$ROLLER_BIN_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
+    sudo rm -f "$ROLLER_BIN_PATH"
     sudo rm -rf "$INTERNAL_DIR"
 fi
 
