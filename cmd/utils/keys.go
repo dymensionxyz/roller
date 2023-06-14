@@ -16,12 +16,7 @@ type KeyInfo struct {
 	Address string `json:"address"`
 }
 
-func GetCelestiaAddress(keyringDir string) (string, error) {
-	cmd := exec.Command(
-		consts.Executables.CelKey,
-		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
-	)
-
+func ParseCmdOutputAddress(cmd *exec.Cmd) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
@@ -39,6 +34,14 @@ func GetCelestiaAddress(keyringDir string) (string, error) {
 	}
 
 	return key.Address, nil
+}
+
+func GetCelestiaAddress(keyringDir string) (string, error) {
+	cmd := exec.Command(
+		consts.Executables.CelKey,
+		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
+	)
+	return ParseCmdOutputAddress(cmd)
 }
 
 type KeyConfig struct {

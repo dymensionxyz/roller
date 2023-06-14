@@ -1,6 +1,7 @@
 package initconfig
 
 import (
+	"os/exec"
 	"path"
 	"path/filepath"
 
@@ -19,15 +20,23 @@ func generateKeys(initConfig utils.RollappConfig, excludeKeys ...string) (map[st
 	addresses := make(map[string]string)
 	for _, key := range keys {
 		if _, exists := excludeKeysMap[key.ID]; !exists {
-			keyInfo, err := createKey(key, initConfig.Home)
-			if err != nil {
-				return nil, err
+			if key.Prefix == consts.AddressPrefixes.Rollapp {
+				address, err := createAddressBinary(key, consts.Executables.RollappEVM, initConfig.Home)
+				if err != nil {
+					return nil, err
+				}
+				addresses[key.ID] = address
+			} else {
+				keyInfo, err := createKey(key, initConfig.Home)
+				if err != nil {
+					return nil, err
+				}
+				formattedAddress, err := utils.KeyInfoToBech32Address(keyInfo, key.Prefix)
+				if err != nil {
+					return nil, err
+				}
+				addresses[key.ID] = formattedAddress
 			}
-			formattedAddress, err := utils.KeyInfoToBech32Address(keyInfo, key.Prefix)
-			if err != nil {
-				return nil, err
-			}
-			addresses[key.ID] = formattedAddress
 		}
 	}
 	return addresses, nil
@@ -78,4 +87,10 @@ func getDefaultKeysConfig(initConfig utils.RollappConfig) []utils.KeyConfig {
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 	}
+}
+
+func createAddressBinary(keyConfig utils.KeyConfig, binaryPath string, home string) (string, error) {
+	createKeyCommand := exec.Command(binaryPath, "keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json")
+	return utils.ParseCmdOutputAddress(createKeyCommand)
 }

@@ -42,6 +42,8 @@ func ExecBashCommand(cmd *exec.Cmd) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
+	// Todo: Remove this
+	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
