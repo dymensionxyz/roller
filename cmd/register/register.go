@@ -24,7 +24,7 @@ func RegisterCmd() *cobra.Command {
 			home := cmd.Flag(initconfig.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID))
+			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 		},
 	}
@@ -81,6 +81,6 @@ func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 		"--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
-		"--node", initconfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block",
+		"--node", rollappConfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block",
 	)
 }

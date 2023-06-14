@@ -57,7 +57,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, initconfig.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
-			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initconfig.HubData.ID))
+			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
 			if !testutils.Contains(tc.optionalFlags, "--"+initconfig.FlagNames.DAEndpoint) {
 				assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
 			}

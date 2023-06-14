@@ -3,9 +3,9 @@ package initconfig
 import (
 	"os"
 
-	"github.com/spf13/cobra"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/spf13/cobra"
 )
 
 type InitConfig struct {
@@ -15,7 +15,7 @@ type InitConfig struct {
 	CreateDALightNode bool
 	Denom             string
 	Decimals          uint64
-	HubID             string
+	HubData           HubData
 }
 
 func InitCmd() *cobra.Command {
@@ -24,7 +24,7 @@ func InitCmd() *cobra.Command {
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := GetInitConfig(cmd, args)
-			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID))
+			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
 			if isRootExist {
@@ -49,8 +49,8 @@ func InitCmd() *cobra.Command {
 				Denom:         initConfig.Denom,
 				AddressPrefix: consts.AddressPrefixes.Rollapp,
 			}, ChainConfig{
-				ID:            HubData.ID,
-				RPC:           cmd.Flag(FlagNames.HubRPC).Value.String(),
+				ID:            initConfig.HubData.ID,
+				RPC:           initConfig.HubData.RPC_URL,
 				Denom:         "udym",
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
