@@ -51,7 +51,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getStartRollapCmd(rollappConfig utils.InitConfig, lightNodeEndpoint string) *exec.Cmd {
+func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)

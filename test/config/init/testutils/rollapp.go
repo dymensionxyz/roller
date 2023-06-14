@@ -72,7 +72,7 @@ func SanitizeGenesis(genesisPath string) error {
 	return nil
 }
 
-func VerifyRollerConfig(rollappConfig utils.InitConfig) error {
+func VerifyRollerConfig(rollappConfig utils.RollappConfig) error {
 	existingConfig, err := utils.LoadConfigFromTOML(rollappConfig.Home)
 	if err != nil {
 		return err

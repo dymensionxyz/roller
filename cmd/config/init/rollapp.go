@@ -10,7 +10,7 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-func initializeRollappConfig(initConfig utils.InitConfig) {
+func initializeRollappConfig(initConfig utils.RollappConfig) {
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeyNames.HubSequencer, "--chain-id", initConfig.RollappID, "--home", filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp))
 	err := initRollappCmd.Run()
 	if err != nil {

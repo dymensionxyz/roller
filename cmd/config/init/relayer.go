@@ -122,15 +122,16 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 	if err := setSettlementCmd.Run(); err != nil {
 		return err
 	}
-	relayerPath := "hub-rollapp"
-	newPathCmd := exec.Command(consts.Executables.Relayer, "paths", "new", rollappConfig.ID, hubConfig.ID, relayerPath, "--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1", "--home", relayerHome)
+	args := []string{"paths", "new", rollappConfig.ID, hubConfig.ID, consts.DefaultRelayerPath}
+	args = append(args, utils.GetRelayerDefaultFlags(relayerHome)...)
+	newPathCmd := exec.Command(consts.Executables.Relayer, args...)
 	if err := newPathCmd.Run(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig utils.InitConfig) error {
+func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig utils.RollappConfig) error {
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err

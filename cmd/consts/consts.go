@@ -63,3 +63,4 @@ var CoinTypes = struct {
 }
 
 const KeysDirName = "keys"
+const DefaultRelayerPath = "hub-rollapp"

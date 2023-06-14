@@ -35,7 +35,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getCelestiaCmd(rollappConfig utils.InitConfig) *exec.Cmd {
+func getCelestiaCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", "consensus-full-arabica-8.celestia-arabica.com",

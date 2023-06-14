@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
-	"github.com/fatih/color"
-	"errors"
 	"bytes"
+	"errors"
+	"github.com/fatih/color"
 )
 
 func PrettifyErrorIfExists(err error) {
@@ -35,4 +36,16 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 		errMsg := parseError(stderr.String())
 		PrettifyErrorIfExists(errors.New(errMsg))
 	}
+}
+
+func ExecBashCommand(cmd *exec.Cmd) error {
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+	}
+
+	return nil
 }

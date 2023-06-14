@@ -39,7 +39,7 @@ func RegisterCmd() *cobra.Command {
 	return registerCmd
 }
 
-func registerRollapp(rollappConfig utils.InitConfig) error {
+func registerRollapp(rollappConfig utils.RollappConfig) error {
 	cmd := getRegisterRollappCmd(rollappConfig)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -58,7 +58,7 @@ func registerRollapp(rollappConfig utils.InitConfig) error {
 	return nil
 }
 
-func handleStdErr(stderr bytes.Buffer, rollappConfig utils.InitConfig) error {
+func handleStdErr(stderr bytes.Buffer, rollappConfig utils.RollappConfig) error {
 	stderrStr := stderr.String()
 	if len(stderrStr) > 0 {
 		if strings.Contains(stderrStr, "key not found") {
@@ -84,7 +84,7 @@ type Response struct {
 	RawLog string `json:"raw_log"`
 }
 
-func handleStdOut(stdout bytes.Buffer, rollappConfig utils.InitConfig) error {
+func handleStdOut(stdout bytes.Buffer, rollappConfig utils.RollappConfig) error {
 	var response Response
 
 	err := json.NewDecoder(&stdout).Decode(&response)
@@ -99,6 +99,6 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig utils.InitConfig) error {
 	return nil
 }
 
-func printRegisterOutput(rollappConfig utils.InitConfig) {
+func printRegisterOutput(rollappConfig utils.RollappConfig) {
 	fmt.Printf("💈 Rollapp '%s' has been successfully registered on the hub.\n", rollappConfig.RollappID)
 }

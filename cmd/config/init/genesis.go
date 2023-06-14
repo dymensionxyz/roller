@@ -12,7 +12,7 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-func initializeRollappGenesis(initConfig utils.InitConfig) error {
+func initializeRollappGenesis(initConfig utils.RollappConfig) error {
 	zeros := initConfig.Decimals + 9
 	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)

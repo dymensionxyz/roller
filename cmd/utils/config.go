@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func WriteConfigToTOML(InitConfig InitConfig) error {
+func WriteConfigToTOML(InitConfig RollappConfig) error {
 	tomlBytes, err := toml.Marshal(InitConfig)
 	if err != nil {
 		return err
@@ -19,8 +19,8 @@ func WriteConfigToTOML(InitConfig InitConfig) error {
 	return nil
 }
 
-func LoadConfigFromTOML(root string) (InitConfig, error) {
-	var config InitConfig
+func LoadConfigFromTOML(root string) (RollappConfig, error) {
+	var config RollappConfig
 	tomlBytes, err := ioutil.ReadFile(filepath.Join(root, RollerConfigFileName))
 	if err != nil {
 		return config, err
@@ -33,7 +33,7 @@ func LoadConfigFromTOML(root string) (InitConfig, error) {
 	return config, nil
 }
 
-type InitConfig struct {
+type RollappConfig struct {
 	Home          string
 	RollappID     string
 	RollappBinary string
