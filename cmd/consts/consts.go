@@ -39,7 +39,7 @@ var AddressPrefixes = struct {
 	Rollapp string
 	DA      string
 }{
-	Rollapp: "rol",
+	Rollapp: "ethm",
 	Hub:     "dym",
 	DA:      "celestia",
 }
