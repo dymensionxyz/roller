@@ -8,6 +8,7 @@ import (
 
 func start() *cobra.Command {
 	registerCmd := &cobra.Command{
+
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
