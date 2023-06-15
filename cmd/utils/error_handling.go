@@ -38,16 +38,19 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	}
 }
 
-func ExecBashCommand(cmd *exec.Cmd) error {
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+func ExecBashCommandWithoutOutput(cmd *exec.Cmd) error {
+	_, err := ExecBashCommand(cmd)
+	return err
+}
 
-	// Todo: Remove this
-	cmd.Stdout = os.Stdout
+func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
+	var stderr bytes.Buffer
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
-
-	return nil
+	return stdout, nil
 }

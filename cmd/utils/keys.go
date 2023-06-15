@@ -3,7 +3,6 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"os/exec"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -16,23 +15,12 @@ type KeyInfo struct {
 	Address string `json:"address"`
 }
 
-func ParseCmdOutputAddress(cmd *exec.Cmd) (string, error) {
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return "", errors.New(stderr.String())
-	}
-
+func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	var key = &KeyInfo{}
-	err = json.Unmarshal(out.Bytes(), key)
+	err := json.Unmarshal(output.Bytes(), key)
 	if err != nil {
 		return "", err
 	}
-
 	return key.Address, nil
 }
 
@@ -41,7 +29,12 @@ func GetCelestiaAddress(keyringDir string) (string, error) {
 		consts.Executables.CelKey,
 		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
 	)
-	return ParseCmdOutputAddress(cmd)
+	output, err := ExecBashCommand(cmd)
+	if err != nil {
+		return "", err
+	}
+	address, err := ParseAddressFromOutput(output)
+	return address, err
 }
 
 type KeyConfig struct {

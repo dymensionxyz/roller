@@ -39,6 +39,7 @@ func generateKeys(initConfig utils.RollappConfig, excludeKeys ...string) (map[st
 			}
 		}
 	}
+	//relayerAddresses, err := generateRelayerKeys(initConfig)
 	return addresses, nil
 }
 
@@ -92,5 +93,25 @@ func getDefaultKeysConfig(initConfig utils.RollappConfig) []utils.KeyConfig {
 func createAddressBinary(keyConfig utils.KeyConfig, binaryPath string, home string) (string, error) {
 	createKeyCommand := exec.Command(binaryPath, "keys", "add", keyConfig.ID, "--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json")
-	return utils.ParseCmdOutputAddress(createKeyCommand)
+	out, err := utils.ExecBashCommand(createKeyCommand)
+	if err != nil {
+		return "", err
+	}
+	return utils.ParseAddressFromOutput(out)
 }
+
+//func generateRelayerKeys(rollappConfig utils.RollappConfig) (map[string]string, error) {
+//
+//}
+//
+//func getAddRlyKeyCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
+//	return exec.Command(
+//		consts.Executables.Relayer,
+//		consts.KeysDirName,
+//		"add",
+//		rollappConfig.RollappID,
+//		"relayer-rollapp-keyy",
+//		"--home",
+//		"~/.roller/relayer",
+//	)
+//}
