@@ -24,15 +24,16 @@ func InitCmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(err)
 				if shouldOverwrite {
 					utils.PrettifyErrorIfExists(os.RemoveAll(initConfig.Home))
+					utils.PrettifyErrorIfExists(os.Mkdir(initConfig.Home, 0755))
 				} else {
 					os.Exit(0)
 				}
+			} else {
+				utils.PrettifyErrorIfExists(os.Mkdir(initConfig.Home, 0755))
 			}
-			addresses, err := generateKeys(initConfig)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			initializeRollappConfig(initConfig)
-			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
 				RPC:           defaultRollappRPC,
@@ -44,6 +45,9 @@ func InitCmd() *cobra.Command {
 				Denom:         "udym",
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
+			addresses, err := generateKeys(initConfig)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 			daLightNodeAddress, err := utils.GetCelestiaAddress(filepath.Join(initConfig.Home, consts.ConfigDirName.DALightNode, consts.KeysDirName))
 			utils.PrettifyErrorIfExists(err)
