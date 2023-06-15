@@ -38,11 +38,6 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	}
 }
 
-func ExecBashCommandWithoutOutput(cmd *exec.Cmd) error {
-	_, err := ExecBashCommand(cmd)
-	return err
-}
-
 func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
@@ -53,4 +48,10 @@ func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
 		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
 	return stdout, nil
+}
+
+func ExecBashCommandWithOSOutput(cmd *exec.Cmd) error {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }

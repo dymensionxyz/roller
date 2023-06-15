@@ -19,9 +19,8 @@ func Start() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			fmt.Println(rollappConfig)
 			createChannelCmd := getCreateChannelCmd(rollappConfig)
-			// print the createChannelCmd args seperated by spaces
-			fmt.Println("createChannelCmd args: ", createChannelCmd.Args)
-			utils.PrettifyErrorIfExists(utils.ExecBashCommandWithoutOutput(createChannelCmd))
+			err = utils.ExecBashCommandWithOSOutput(createChannelCmd)
+			utils.PrettifyErrorIfExists(err)
 		},
 	}
 	utils.AddGlobalFlags(registerCmd)
