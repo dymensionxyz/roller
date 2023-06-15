@@ -76,28 +76,6 @@ func getDefaultKeysConfig(initConfig InitConfig) []utils.KeyConfig {
 			ID:       consts.KeyNames.RollappRelayer,
 			CoinType: consts.CoinTypes.EVM,
 			Prefix:   consts.AddressPrefixes.Rollapp,
-		}, {
-
-			Dir:      path.Join(consts.ConfigDirName.DALightNode, KeysDirName),
-			ID:       consts.KeyNames.DALightNode,
-			CoinType: consts.CoinTypes.Cosmos,
-			Prefix:   consts.AddressPrefixes.DA,
 		},
-	}
-}
-
-func initializeKeys(initConfig InitConfig) map[string]string {
-	if initConfig.CreateDALightNode {
-		addresses, err := generateKeys(initConfig)
-		if err != nil {
-			panic(err)
-		}
-		return addresses
-	} else {
-		addresses, err := generateKeys(initConfig, consts.KeyNames.DALightNode)
-		if err != nil {
-			panic(err)
-		}
-		return addresses
 	}
 }

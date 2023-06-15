@@ -2,13 +2,11 @@ package initconfig
 
 var FlagNames = struct {
 	Home          string
-	DAEndpoint    string
 	Decimals      string
 	RollappBinary string
 	HubID         string
 }{
 	Home:          "home",
-	DAEndpoint:    "data-availability-endpoint",
 	Decimals:      "decimals",
 	RollappBinary: "rollapp-binary",
 	HubID:         "hub",
