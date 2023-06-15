@@ -16,7 +16,7 @@ func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 	cmdArgs := []string{
 		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`,
 	}
-	cmdArgs = append(cmdArgs, GetCommonFlags(rollappConfig)...)
+	cmdArgs = append(cmdArgs, getCommonFlags(rollappConfig)...)
 	return exec.Command(
 		consts.Executables.Dymension, cmdArgs...,
 	)
@@ -50,11 +50,11 @@ func getRegisterSequencerCmd(rollappConfig initconfig.InitConfig) (*exec.Cmd, er
 		rollappConfig.RollappID,
 		description,
 	}
-	cmdArgs = append(cmdArgs, GetCommonFlags(rollappConfig)...)
+	cmdArgs = append(cmdArgs, getCommonFlags(rollappConfig)...)
 	return exec.Command(consts.Executables.Dymension, cmdArgs...), nil
 }
 
-func GetCommonFlags(rollappConfig initconfig.InitConfig) []string {
+func getCommonFlags(rollappConfig initconfig.InitConfig) []string {
 	return []string{
 		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
