@@ -8,12 +8,12 @@ import (
 
 	"fmt"
 
-	"strings"
-
+	"encoding/json"
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 func RegisterCmd() *cobra.Command {
@@ -26,6 +26,7 @@ func RegisterCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
+			printRegisterOutput(rollappConfig)
 		},
 	}
 	addFlags(registerCmd)
@@ -48,6 +49,9 @@ func registerRollapp(rollappConfig initconfig.InitConfig) error {
 	}
 	if cmdExecErr != nil {
 		return cmdExecErr
+	}
+	if err := handleStdOut(stdout, rollappConfig); err != nil {
+		return err
 	}
 	return nil
 }
@@ -74,6 +78,25 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 	return nil
 }
 
+type Response struct {
+	RawLog string `json:"raw_log"`
+}
+
+func handleStdOut(stdout bytes.Buffer, rollappConfig initconfig.InitConfig) error {
+	var response Response
+
+	err := json.NewDecoder(&stdout).Decode(&response)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(response.RawLog, "fail") {
+		return errors.New(response.RawLog)
+	}
+
+	return nil
+}
+
 func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension, "tx", "rollapp", "create-rollapp",
@@ -81,6 +104,10 @@ func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 		"--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
-		"--node", rollappConfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block",
+		"--node", rollappConfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
 	)
+}
+
+func printRegisterOutput(rollappConfig initconfig.InitConfig) {
+	fmt.Printf("💈 Rollapp '%s' has been successfully registered on the hub.\n", rollappConfig.RollappID)
 }
