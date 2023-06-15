@@ -39,10 +39,10 @@ func TestInitCmd(t *testing.T) {
 			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
 			assert.NoError(err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				assert.NoError(err)
-			}()
+			//defer func() {
+			//	err := os.RemoveAll(tempDir)
+			//	assert.NoError(err)
+			//}()
 			initCmd := initconfig.InitCmd()
 			denom := "udym"
 			rollappID := "mars"

@@ -25,7 +25,7 @@ chains:
             key: relayer-rollapp-key
             chain-id: mars
             rpc-addr: http://localhost:26657
-            account-prefix: rol
+            account-prefix: ethm
             keyring-backend: test
             gas-adjustment: 1.2
             gas-prices: 0.0udym

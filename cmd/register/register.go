@@ -3,6 +3,7 @@ package register
 import (
 	"bytes"
 	"errors"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
 
 	"fmt"
@@ -12,7 +13,6 @@ import (
 	"encoding/json"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
