@@ -19,7 +19,7 @@ type InitConfig struct {
 }
 
 func InitCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	initCmd := &cobra.Command{
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -59,7 +59,7 @@ func InitCmd() *cobra.Command {
 		},
 		Args: cobra.ExactArgs(2),
 	}
-
-	addFlags(cmd)
-	return cmd
+	utils.AddGlobalFlags(initCmd)
+	addFlags(initCmd)
+	return initCmd
 }

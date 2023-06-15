@@ -3,17 +3,18 @@ package register
 import (
 	"bytes"
 	"errors"
-	"os/exec"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
 
 	"fmt"
 
+	"strings"
+
 	"encoding/json"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 func RegisterCmd() *cobra.Command {
@@ -26,6 +27,10 @@ func RegisterCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
+			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
+			utils.PrettifyErrorIfExists(err)
+			err = registerSequencerCmd.Run()
+			utils.PrettifyErrorIfExists(err)
 			printRegisterOutput(rollappConfig)
 		},
 	}
@@ -95,17 +100,6 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig initconfig.InitConfig) erro
 	}
 
 	return nil
-}
-
-func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
-	return exec.Command(
-		consts.Executables.Dymension, "tx", "rollapp", "create-rollapp",
-		"--from", consts.KeyNames.HubSequencer,
-		"--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-		rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`, "--output", "json",
-		"--node", rollappConfig.HubData.RPC_URL, "--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
-	)
 }
 
 func printRegisterOutput(rollappConfig initconfig.InitConfig) {

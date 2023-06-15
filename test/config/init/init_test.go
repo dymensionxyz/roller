@@ -8,6 +8,7 @@ import (
 	"os"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/test/config/init/testutils"
 	"github.com/stretchr/testify/assert"
 )
@@ -44,16 +45,16 @@ func TestInitCmd(t *testing.T) {
 				err := os.RemoveAll(tempDir)
 				assert.NoError(err)
 			}()
-			cmd := initconfig.InitCmd()
+			initCmd := initconfig.InitCmd()
 			denom := "udym"
 			rollappID := "mars"
-			cmd.SetArgs(append([]string{
+			initCmd.SetArgs(append([]string{
 				rollappID,
 				denom,
-				"--" + initconfig.FlagNames.Home, tempDir,
+				"--" + utils.FlagNames.Home, tempDir,
 			}, tc.optionalFlags...))
-			assert.NoError(cmd.Execute())
-			initConfig := initconfig.GetInitConfig(cmd, []string{rollappID, denom})
+			assert.NoError(initCmd.Execute())
+			initConfig := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, initconfig.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))

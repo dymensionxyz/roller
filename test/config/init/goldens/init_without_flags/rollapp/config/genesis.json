@@ -74,6 +74,23 @@
       "index": "1",
       "owners": []
     },
+    "claims": {
+      "params": {
+        "enable_claims": true,
+        "airdrop_start_time": "0001-01-01T00:00:00Z",
+        "duration_until_decay": "2629800s",
+        "duration_of_decay": "5259600s",
+        "claims_denom": "aevmos",
+        "authorized_channels": [
+          "channel-0",
+          "channel-3"
+        ],
+        "evm_channels": [
+          "channel-2"
+        ]
+      },
+      "claims_records": []
+    },
     "crisis": {
       "constant_fee": {
         "denom": "udym",
@@ -130,7 +147,9 @@
           "london_block": "0",
           "arrow_glacier_block": "0",
           "gray_glacier_block": "0",
-          "merge_netsplit_block": "0"
+          "merge_netsplit_block": "0",
+          "shanghai_block": "0",
+          "cancun_block": "0"
         },
         "allow_unprotected_txs": false
       }
@@ -175,6 +194,16 @@
         "threshold": "0.500000000000000000",
         "veto_threshold": "0.334000000000000000"
       }
+    },
+    "group": {
+      "group_seq": "0",
+      "groups": [],
+      "group_members": [],
+      "group_policy_seq": "0",
+      "group_policies": [],
+      "proposal_seq": "0",
+      "proposals": [],
+      "votes": []
     },
     "ibc": {
       "client_genesis": {
@@ -226,7 +255,8 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 10000,
-        "bond_denom": "udym"
+        "bond_denom": "udym",
+        "min_commission_rate": "0.050000000000000000"
       },
       "last_total_power": "0",
       "last_validator_powers": [],
