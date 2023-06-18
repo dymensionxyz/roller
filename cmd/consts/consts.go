@@ -22,7 +22,7 @@ var KeyNames = struct {
 	HubSequencer:     "hub_sequencer",
 	RollappSequencer: "rollapp_sequencer",
 	RollappRelayer:   "relayer-rollapp-key",
-	DALightNode:      "my-celes-key",
+	DALightNode:      "my_celes_key",
 	HubRelayer:       "relayer-hub-key",
 }
 
@@ -43,7 +43,7 @@ var ConfigDirName = struct {
 }{
 	Rollapp:     "rollapp",
 	Relayer:     "relayer",
-	DALightNode: "light-node",
+	DALightNode: "da-light-node",
 }
 
 var CoinTypes = struct {

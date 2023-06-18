@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", TestnetHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
-	cmd.Flags().StringP(FlagNames.DAEndpoint, "", "", "The data availability light node endpoint. Runs an Arabica Celestia light node if not provided")
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
 
@@ -41,22 +41,20 @@ func getRollappBinaryPath(cmd *cobra.Command) string {
 	return rollappBinaryPath
 }
 
-func GetInitConfig(cmd *cobra.Command, args []string) InitConfig {
+func GetInitConfig(initCmd *cobra.Command, args []string) InitConfig {
 	rollappId := args[0]
 	denom := args[1]
-	home := cmd.Flag(FlagNames.Home).Value.String()
-	createLightNode := !cmd.Flags().Changed(FlagNames.DAEndpoint)
-	rollappBinaryPath := getRollappBinaryPath(cmd)
-	decimals := getDecimals(cmd)
-	hubID := cmd.Flag(FlagNames.HubID).Value.String()
+	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
+	rollappBinaryPath := getRollappBinaryPath(initCmd)
+	decimals := getDecimals(initCmd)
+	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	return InitConfig{
-		Home:              home,
-		RollappID:         rollappId,
-		RollappBinary:     rollappBinaryPath,
-		CreateDALightNode: createLightNode,
-		Denom:             denom,
-		Decimals:          decimals,
-		HubData:           Hubs[hubID],
+		Home:          home,
+		RollappID:     rollappId,
+		RollappBinary: rollappBinaryPath,
+		Denom:         denom,
+		Decimals:      decimals,
+		HubData:       Hubs[hubID],
 	}
 }
 

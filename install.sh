@@ -10,10 +10,12 @@ TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/v0.0.0/roller_
 # Create internal dir
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
+ROLLAPP_EVM_PATH="/usr/local/bin/rollapp_evm"  # The path where rollapp_evm will be installed
 
-# Check if Roller binary already exists
-if [ -f "$ROLLER_BIN_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
+# Check if Roller and rollapp_evm binaries already exist or the internal directory exists
+if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
     sudo rm -f "$ROLLER_BIN_PATH"
+    sudo rm -f "$ROLLAPP_EVM_PATH"
     sudo rm -rf "$INTERNAL_DIR"
 fi
 
@@ -25,14 +27,16 @@ sudo mkdir -p "/tmp/roller_tmp"
 echo "$EMOJI Downloading roller..."
 sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp"
 
-# Assuming that the tar file contains the lib folder and the roller binary inside the roller_bins directory.
+# Assuming that the tar file contains the lib folder and the roller and rollapp_evm binaries inside the roller_bins directory.
 # Move binaries to their correct locations
 echo "$EMOJI Installing roller..."
 sudo mv "/tmp/roller_tmp/roller_bins/lib"/* "$INTERNAL_DIR"
 sudo mv "/tmp/roller_tmp/roller_bins/roller" "$ROLLER_BIN_PATH"
+sudo mv "/tmp/roller_tmp/roller_bins/rollapp_evm" "$ROLLAPP_EVM_PATH"  # move the rollapp_evm binary
 
-# Make roller executable
+# Make roller and rollapp_evm executables
 sudo chmod +x "$ROLLER_BIN_PATH"
+sudo chmod +x "$ROLLAPP_EVM_PATH"
 
 # Cleanup temporary directory
 sudo rm -rf "/tmp/roller_tmp"

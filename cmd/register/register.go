@@ -3,7 +3,6 @@ package register
 import (
 	"bytes"
 	"errors"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
 
 	"fmt"
@@ -14,6 +13,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/spf13/cobra"
 )
 
@@ -34,12 +34,8 @@ func RegisterCmd() *cobra.Command {
 			printRegisterOutput(rollappConfig)
 		},
 	}
-	addFlags(registerCmd)
+	utils.AddGlobalFlags(registerCmd)
 	return registerCmd
-}
-
-func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(initconfig.FlagNames.Home, "", utils.GetRollerRootDir(), "The directory of the roller config files")
 }
 
 func registerRollapp(rollappConfig initconfig.InitConfig) error {

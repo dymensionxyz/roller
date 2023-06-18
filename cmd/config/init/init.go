@@ -9,13 +9,12 @@ import (
 )
 
 type InitConfig struct {
-	Home              string
-	RollappID         string
-	RollappBinary     string
-	CreateDALightNode bool
-	Denom             string
-	Decimals          uint64
-	HubData           HubData
+	Home          string
+	RollappID     string
+	RollappBinary string
+	Denom         string
+	Decimals      uint64
+	HubData       HubData
 }
 
 func InitCmd() *cobra.Command {
@@ -37,10 +36,9 @@ func InitCmd() *cobra.Command {
 				}
 			}
 
-			addresses := initializeKeys(initConfig)
-			if initConfig.CreateDALightNode {
-				utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
-			}
+			addresses, err := generateKeys(initConfig)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			initializeRollappConfig(initConfig)
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
