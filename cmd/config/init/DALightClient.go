@@ -1,9 +1,9 @@
 package initconfig
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"os/exec"
 	"path/filepath"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func initializeLightNodeConfig(initConfig InitConfig) error {
