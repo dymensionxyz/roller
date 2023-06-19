@@ -22,8 +22,14 @@ func RunCmd() *cobra.Command {
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			startRollappCmd := getStartRollapCmd(rollappConfig, cmd.Flag(daLightClientEndpointFlag).Value.String())
-			startRollappErr := startRollappCmd.Run()
+			startRollappErr := startRollappCmd.Start()
 			utils.PrettifyErrorIfExists(startRollappErr)
+			fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
+			fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
+			fmt.Println("💈 Rest API: http://0.0.0.0:1317")
+			err = startRollappCmd.Wait()
+			utils.PrettifyErrorIfExists(err)
 		},
 	}
 	addFlags(runCmd)
