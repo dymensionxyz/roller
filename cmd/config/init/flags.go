@@ -24,9 +24,10 @@ func addFlags(cmd *cobra.Command) {
 		}
 		rollappID := args[0]
 		if !validateRollAppID(rollappID) {
-			return fmt.Errorf("the provided RollApp ID '%s' is invalid. Please ensure it follows the format:"+
-				" 'letters_numbers_numbers',"+
-				" where 'letters' are lowercase English letters, and 'numbers' are 1 to 5 digit numbers", rollappID)
+			return fmt.Errorf("invalid RollApp ID '%s'. A valid ID should follow the format 'rollapp-name_EIP155_version', "+
+				"where 'rollapp-name' is made up of lowercase English letters, 'EIP155_version' is a 1 to 5 digit number"+
+				" representing the EIP155 rollapp ID, "+
+				"and 'version' is a 1 to 5 digit number representing the rollapp version. For example: 'mars_9721_1'", rollappID)
 		}
 		return nil
 	}
