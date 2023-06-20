@@ -1,6 +1,7 @@
 package initconfig
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -21,6 +22,10 @@ func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:   "init <rollapp-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
+		Long: fmt.Sprintf(`Initialize a RollApp configuration on your local machine.
+		
+%s
+`, getValidRollappIdMessage()),
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
