@@ -19,11 +19,11 @@ chains:
             output-format: json
             sign-mode: direct
             client-type: 07-tendermint
-    mars:
+    mars_1_1:
         type: cosmos
         value:
             key: relayer-rollapp-key
-            chain-id: mars
+            chain-id: mars_1_1
             rpc-addr: http://localhost:26657
             account-prefix: rol
             keyring-backend: test
@@ -37,7 +37,7 @@ chains:
 paths:
     hub-rollapp:
         src:
-            chain-id: mars
+            chain-id: mars_1_1
         dst:
             chain-id: 35-C
         src-channel-filter:
