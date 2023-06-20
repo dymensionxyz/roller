@@ -29,7 +29,7 @@ func StartCmd() *cobra.Command {
 
 func printOutput() {
 	fmt.Println("💈 The data availability light node is running on your local machine!")
-	fmt.Println("💈 Light node endpoint: http://0.0.0.0:26659")
+	fmt.Println("💈 Light node endpoint: http://127.0.0.1:26659")
 }
 
 func parseError(errMsg string) string {
