@@ -6,6 +6,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"errors"
+
+	"bytes"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -22,18 +26,26 @@ func RunCmd() *cobra.Command {
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			startRollappCmd := getStartRollapCmd(rollappConfig, cmd.Flag(daLightClientEndpointFlag).Value.String())
+			var stderr bytes.Buffer
+			startRollappCmd.Stderr = &stderr
 			startRollappErr := startRollappCmd.Start()
+			if startRollappErr != nil {
+				utils.PrettifyErrorIfExists(errors.New(stderr.String()))
+			}
 			utils.PrettifyErrorIfExists(startRollappErr)
 			fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 			fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 			fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 			fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 			err = startRollappCmd.Wait()
-			utils.PrettifyErrorIfExists(err)
+			if err != nil {
+				errMsg := stderr.String()
+				utils.PrettifyErrorIfExists(errors.New(errMsg))
+			}
 		},
 	}
-	addFlags(runCmd)
 	utils.AddGlobalFlags(runCmd)
+	addFlags(runCmd)
 	return runCmd
 }
 

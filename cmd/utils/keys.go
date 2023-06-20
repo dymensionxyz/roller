@@ -1,10 +1,45 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"os/exec"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
+
+type KeyInfo struct {
+	Address string `json:"address"`
+}
+
+func GetCelestiaAddress(keyringDir string) (string, error) {
+	cmd := exec.Command(
+		consts.Executables.CelKey,
+		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
+	)
+
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return "", errors.New(stderr.String())
+	}
+
+	var key = &KeyInfo{}
+	err = json.Unmarshal(out.Bytes(), key)
+	if err != nil {
+		return "", err
+	}
+
+	return key.Address, nil
+}
 
 type KeyConfig struct {
 	Dir      string
@@ -41,6 +76,5 @@ func GetAddress(keyConfig KeyConfig) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return formattedAddress, nil
 }

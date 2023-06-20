@@ -3,6 +3,7 @@ package initconfig
 import (
 	"os/exec"
 	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
