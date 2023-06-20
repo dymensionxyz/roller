@@ -45,7 +45,7 @@ func TestInitCmd(t *testing.T) {
 			}()
 			initCmd := initconfig.InitCmd()
 			denom := "udym"
-			rollappID := "mars"
+			rollappID := "mars_1_1"
 			initCmd.SetArgs(append([]string{
 				rollappID,
 				denom,

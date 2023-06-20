@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -21,8 +22,18 @@ func addFlags(cmd *cobra.Command) {
 		if _, ok := Hubs[hubID]; !ok {
 			return fmt.Errorf("invalid hub ID: %s. %s", hubID, getAvailableHubsMessage())
 		}
+		rollappID := args[0]
+		if !validateRollAppID(rollappID) {
+			return fmt.Errorf("invalid RollApp ID '%s'. %s", rollappID, getValidRollappIdMessage())
+		}
 		return nil
 	}
+}
+
+func getValidRollappIdMessage() string {
+	return "A valid RollApp ID should follow the format 'rollapp-name_EIP155_version', where 'rollapp-name' is made up of" +
+		" lowercase English letters, 'EIP155_version' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
+		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721_1'"
 }
 
 func getDecimals(cmd *cobra.Command) uint64 {
@@ -60,4 +71,10 @@ func GetInitConfig(initCmd *cobra.Command, args []string) InitConfig {
 
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", TestnetHubID, StagingHubID, LocalHubID)
+}
+
+func validateRollAppID(id string) bool {
+	pattern := `^[a-z]+_[0-9]{1,5}_[0-9]{1,5}$`
+	r, _ := regexp.Compile(pattern)
+	return r.MatchString(id)
 }
