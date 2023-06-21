@@ -1,6 +1,7 @@
 package register
 
 import (
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"os/exec"
 	"path/filepath"
 
@@ -8,11 +9,10 @@ import (
 
 	"strings"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
+func getRegisterRollappCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
 	cmdArgs := []string{
 		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`,
 	}
@@ -22,7 +22,7 @@ func getRegisterRollappCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
 	)
 }
 
-func showSequencerPubKey(rollappConfig initconfig.InitConfig) (string, error) {
+func showSequencerPubKey(rollappConfig utils.RollappConfig) (string, error) {
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"dymint",
@@ -37,7 +37,7 @@ func showSequencerPubKey(rollappConfig initconfig.InitConfig) (string, error) {
 	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
 }
 
-func getRegisterSequencerCmd(rollappConfig initconfig.InitConfig) (*exec.Cmd, error) {
+func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, error) {
 	seqPubKey, err := showSequencerPubKey(rollappConfig)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func getRegisterSequencerCmd(rollappConfig initconfig.InitConfig) (*exec.Cmd, er
 	return exec.Command(consts.Executables.Dymension, cmdArgs...), nil
 }
 
-func getCommonFlags(rollappConfig initconfig.InitConfig) []string {
+func getCommonFlags(rollappConfig utils.RollappConfig) []string {
 	return []string{
 		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",

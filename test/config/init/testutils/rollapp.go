@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"path/filepath"
 
 	"errors"
@@ -71,8 +72,8 @@ func SanitizeGenesis(genesisPath string) error {
 	return nil
 }
 
-func VerifyRollerConfig(rollappConfig initconfig.InitConfig) error {
-	existingConfig, err := initconfig.LoadConfigFromTOML(rollappConfig.Home)
+func VerifyRollerConfig(rollappConfig utils.RollappConfig) error {
+	existingConfig, err := utils.LoadConfigFromTOML(rollappConfig.Home)
 	if err != nil {
 		return err
 	}

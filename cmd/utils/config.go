@@ -1,13 +1,12 @@
-package initconfig
+package utils
 
 import (
+	"github.com/pelletier/go-toml"
 	"io/ioutil"
 	"path/filepath"
-
-	"github.com/pelletier/go-toml"
 )
 
-func WriteConfigToTOML(InitConfig InitConfig) error {
+func WriteConfigToTOML(InitConfig RollappConfig) error {
 	tomlBytes, err := toml.Marshal(InitConfig)
 	if err != nil {
 		return err
@@ -20,8 +19,8 @@ func WriteConfigToTOML(InitConfig InitConfig) error {
 	return nil
 }
 
-func LoadConfigFromTOML(root string) (InitConfig, error) {
-	var config InitConfig
+func LoadConfigFromTOML(root string) (RollappConfig, error) {
+	var config RollappConfig
 	tomlBytes, err := ioutil.ReadFile(filepath.Join(root, RollerConfigFileName))
 	if err != nil {
 		return config, err
@@ -32,4 +31,21 @@ func LoadConfigFromTOML(root string) (InitConfig, error) {
 	}
 
 	return config, nil
+}
+
+type RollappConfig struct {
+	Home          string
+	RollappID     string
+	RollappBinary string
+	Denom         string
+	Decimals      uint64
+	HubData       HubData
+}
+
+const RollerConfigFileName = "config.toml"
+
+type HubData = struct {
+	API_URL string
+	ID      string
+	RPC_URL string
 }

@@ -13,7 +13,7 @@ chains:
             account-prefix: dym
             keyring-backend: test
             gas-adjustment: 1.2
-            gas-prices: 0.25udym
+            gas-prices: 0.0udym
             debug: true
             timeout: 10s
             output-format: json
@@ -25,7 +25,7 @@ chains:
             key: relayer-rollapp-key
             chain-id: mars_1_1
             rpc-addr: http://localhost:26657
-            account-prefix: rol
+            account-prefix: ethm
             keyring-backend: test
             gas-adjustment: 1.2
             gas-prices: 0.0udym

@@ -7,7 +7,6 @@ import (
 
 	"strings"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -19,7 +18,7 @@ func StartCmd() *cobra.Command {
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
+			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
 			startRollappCmd := getStartRollapCmd(rollappConfig, LightNodeEndpoint)
@@ -52,7 +51,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getStartRollapCmd(rollappConfig initconfig.InitConfig, lightNodeEndpoint string) *exec.Cmd {
+func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)

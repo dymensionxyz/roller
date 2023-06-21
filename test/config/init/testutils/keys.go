@@ -6,10 +6,10 @@ import (
 
 	"os"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
 	"regexp"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 )
 
@@ -81,7 +81,7 @@ func verifyAndRemoveFilePattern(pattern string, dir string) error {
 }
 
 func getLightNodeKeysDir(root string) string {
-	return filepath.Join(root, consts.ConfigDirName.DALightNode, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 }
 
 func VerifyLightNodeKeys(root string) error {
@@ -95,7 +95,7 @@ func VerifyLightNodeKeys(root string) error {
 }
 
 func getRelayerKeysDir(root string) string {
-	return filepath.Join(root, consts.ConfigDirName.Relayer, initconfig.KeysDirName)
+	return filepath.Join(root, consts.ConfigDirName.Relayer, consts.KeysDirName)
 }
 
 func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
