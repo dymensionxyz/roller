@@ -1,15 +1,23 @@
 package consts
 
+import "fmt"
+
+const binsDir = "/usr/local/bin"
+
+var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
+
 var Executables = struct {
 	Celestia   string
 	RollappEVM string
 	Relayer    string
 	Dymension  string
+	CelKey     string
 }{
-	Celestia:   "/usr/local/bin/roller_bins/celestia",
-	RollappEVM: "/usr/local/bin/rollapp_evm",
-	Relayer:    "/usr/local/bin/roller_bins/rly",
-	Dymension:  "/usr/local/bin/roller_bins/dymd",
+	Celestia:   fmt.Sprintf("%s/celestia", internalBinsDir),
+	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
+	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
+	Relayer:    fmt.Sprintf("%s/rly", internalBinsDir),
+	Dymension:  fmt.Sprintf("%s/dymd", internalBinsDir),
 }
 
 var KeyNames = struct {
