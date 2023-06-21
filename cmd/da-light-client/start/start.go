@@ -11,7 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func StartCmd() *cobra.Command {
+const rpcEndpointFlag = "--rpc-endpoint"
+
+func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Runs the rollapp sequencer.",
@@ -19,12 +21,19 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := initconfig.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			startRollappCmd := getCelestiaCmd(rollappConfig)
+			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
+			startRollappCmd := getStartCelestiaLCCmd(rollappConfig, rpcEndpoint)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
+	addFlags(runCmd)
 	return runCmd
+}
+
+func addFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP(rpcEndpointFlag, "", "consensus-full-arabica-8.celestia-arabica.com",
+		"The DA rpc endpoint to connect to.")
 }
 
 func printOutput() {
@@ -36,10 +45,10 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getCelestiaCmd(rollappConfig initconfig.InitConfig) *exec.Cmd {
+func getStartCelestiaLCCmd(rollappConfig initconfig.InitConfig, rpcEndpoint string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
-		"--core.ip", "consensus-full-arabica-8.celestia-arabica.com",
+		"--core.ip", rpcEndpoint,
 		"--node.store", filepath.Join(rollappConfig.Home, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		"--gateway.addr", "127.0.0.1",

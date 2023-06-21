@@ -10,6 +10,6 @@ func DALightClientCmd() *cobra.Command {
 		Use:   "da-light-client",
 		Short: "Commands for running and managing the data availability light client.",
 	}
-	cmd.AddCommand(da_start.StartCmd())
+	cmd.AddCommand(da_start.Cmd())
 	return cmd
 }
