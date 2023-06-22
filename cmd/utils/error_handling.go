@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"os"
 
 	"github.com/fatih/color"
-	"os"
 )
 
 func PrettifyErrorIfExists(err error) {

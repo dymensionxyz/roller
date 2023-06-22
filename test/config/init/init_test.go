@@ -59,9 +59,9 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
 			assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
 			assert.NoError(testutils.ClearKeys(tempDir))
-			are_dirs_equal, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
+			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
 			assert.NoError(err)
-			assert.True(are_dirs_equal)
+			assert.True(areDirsEqual)
 		})
 	}
 }

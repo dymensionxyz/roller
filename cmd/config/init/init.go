@@ -2,9 +2,10 @@ package initconfig
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"os"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -48,9 +49,11 @@ func InitCmd() *cobra.Command {
 			addresses, err := generateKeys(initConfig)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
+			daAddress, err := utils.GetCelestiaAddress(filepath.Join(initConfig.Home, consts.ConfigDirName.DALightNode, consts.KeysDirName))
+			utils.PrettifyErrorIfExists(err)
+			addresses[consts.KeyNames.DALightNode] = daAddress
 			initializeRollappConfig(initConfig)
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
-
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)
 		},

@@ -16,7 +16,7 @@ func getRegisterRollappCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
 	cmdArgs := []string{
 		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`,
 	}
-	cmdArgs = append(cmdArgs, getCommonFlags(rollappConfig)...)
+	cmdArgs = append(cmdArgs, getCommonDymdTxFlags(rollappConfig)...)
 	return exec.Command(
 		consts.Executables.Dymension, cmdArgs...,
 	)
@@ -50,16 +50,17 @@ func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, erro
 		rollappConfig.RollappID,
 		description,
 	}
-	cmdArgs = append(cmdArgs, getCommonFlags(rollappConfig)...)
+	cmdArgs = append(cmdArgs, getCommonDymdTxFlags(rollappConfig)...)
 	return exec.Command(consts.Executables.Dymension, cmdArgs...), nil
 }
 
-func getCommonFlags(rollappConfig utils.RollappConfig) []string {
-	return []string{
+func getCommonDymdTxFlags(rollappConfig utils.RollappConfig) []string {
+	commonFlags := utils.GetCommonDymdFlags(rollappConfig)
+	txArgs := []string{
 		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-		"--node", rollappConfig.HubData.RPC_URL, "--output", "json",
 		"--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
 	}
+	return append(commonFlags, txArgs...)
 }
