@@ -9,15 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type InitConfig struct {
-	Home          string
-	RollappID     string
-	RollappBinary string
-	Denom         string
-	Decimals      uint64
-	HubData       HubData
-}
-
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:   "init <rollapp-id> <denom>",
@@ -36,16 +27,13 @@ func InitCmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(err)
 				if shouldOverwrite {
 					utils.PrettifyErrorIfExists(os.RemoveAll(initConfig.Home))
+					utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
 				} else {
 					os.Exit(0)
 				}
+			} else {
+				utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
 			}
-
-			addresses, err := generateKeys(initConfig)
-			utils.PrettifyErrorIfExists(err)
-			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
-			initializeRollappConfig(initConfig)
-			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
 				RPC:           defaultRollappRPC,
@@ -57,7 +45,13 @@ func InitCmd() *cobra.Command {
 				Denom:         "udym",
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
-			utils.PrettifyErrorIfExists(WriteConfigToTOML(initConfig))
+			addresses, err := generateKeys(initConfig)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
+			initializeRollappConfig(initConfig)
+			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
+
+			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),

@@ -39,7 +39,7 @@ var AddressPrefixes = struct {
 	Rollapp string
 	DA      string
 }{
-	Rollapp: "rol",
+	Rollapp: "ethm",
 	Hub:     "dym",
 	DA:      "celestia",
 }
@@ -61,3 +61,6 @@ var CoinTypes = struct {
 	Cosmos: 118,
 	EVM:    60,
 }
+
+const KeysDirName = "keys"
+const DefaultRelayerPath = "hub-rollapp"

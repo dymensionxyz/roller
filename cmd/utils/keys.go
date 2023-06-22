@@ -3,7 +3,6 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"os/exec"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -16,29 +15,26 @@ type KeyInfo struct {
 	Address string `json:"address"`
 }
 
+func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
+	var key = &KeyInfo{}
+	err := json.Unmarshal(output.Bytes(), key)
+	if err != nil {
+		return "", err
+	}
+	return key.Address, nil
+}
+
 func GetCelestiaAddress(keyringDir string) (string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelKey,
 		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
 	)
-
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return "", errors.New(stderr.String())
-	}
-
-	var key = &KeyInfo{}
-	err = json.Unmarshal(out.Bytes(), key)
+	output, err := ExecBashCommand(cmd)
 	if err != nil {
 		return "", err
 	}
-
-	return key.Address, nil
+	address, err := ParseAddressFromOutput(output)
+	return address, err
 }
 
 type KeyConfig struct {
@@ -77,4 +73,16 @@ func GetAddress(keyConfig KeyConfig) (string, error) {
 		return "", err
 	}
 	return formattedAddress, nil
+}
+
+func MergeMaps(map1, map2 map[string]string) map[string]string {
+	result := make(map[string]string)
+	for key, value := range map1 {
+		result[key] = value
+	}
+	for key, value := range map2 {
+		result[key] = value
+	}
+
+	return result
 }

@@ -2,10 +2,11 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"net/http"
 )
 
-func IsRollappIDUnique(rollappID string, initConfig InitConfig) (bool, error) {
+func IsRollappIDUnique(rollappID string, initConfig utils.RollappConfig) (bool, error) {
 	url := initConfig.HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -31,7 +32,7 @@ func IsRollappIDUnique(rollappID string, initConfig InitConfig) (bool, error) {
 	}
 }
 
-func VerifyUniqueRollappID(rollappID string, initConfig InitConfig) error {
+func VerifyUniqueRollappID(rollappID string, initConfig utils.RollappConfig) error {
 	isUniqueRollapp, err := IsRollappIDUnique(rollappID, initConfig)
 	if err != nil {
 		return err
