@@ -68,7 +68,7 @@ func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint stri
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
 		"--dymint.settlement_config", settlementConfig,
-		"--dymint.block_batch_size", "1200",
+		"--dymint.block_batch_size", "50",
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
 		"--home", rollappConfigDir,

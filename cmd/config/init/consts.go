@@ -31,7 +31,7 @@ var Hubs = map[string]utils.HubData{
 	},
 	LocalHubID: {
 		API_URL: "http://localhost:1317",
-		ID:      "local",
+		ID:      "local-testnet",
 		RPC_URL: "http://localhost:36657",
 	},
 }

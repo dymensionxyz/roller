@@ -30,7 +30,7 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(config.ConfigCmd())
 	rootCmd.AddCommand(version.VersionCmd())
-	rootCmd.AddCommand(register.RegisterCmd())
+	rootCmd.AddCommand(register.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(sequencer.SequencerCmd())
 	rootCmd.AddCommand(relayer.Cmd())

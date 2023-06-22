@@ -12,12 +12,12 @@ import (
 	"encoding/json"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
-func RegisterCmd() *cobra.Command {
+func Cmd() *cobra.Command {
 	registerCmd := &cobra.Command{
 		Use:   "register",
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
