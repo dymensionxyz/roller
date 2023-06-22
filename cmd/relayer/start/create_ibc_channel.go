@@ -8,10 +8,8 @@ import (
 	"path/filepath"
 )
 
+// Creates an IBC channel between the hub and the client, and return the source channel ID.
 func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig) (string, error) {
-	/**
-	Creates an IBC channel between the hub and the client, and return the source channel ID.
-	*/
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)
 	fmt.Println("Creating clients...")
 	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd); err != nil {

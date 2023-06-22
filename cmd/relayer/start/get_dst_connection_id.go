@@ -18,10 +18,9 @@ type Destination struct {
 	ConnectionID string `yaml:"connection-id"`
 }
 
+// GetDstConnectionIDFromYAMLFile Returns the destination connection ID if it been created already, an empty string otherwise.
 func GetDstConnectionIDFromYAMLFile(filename string) (string, error) {
-	/**
-	Returns the destination connection ID if it been created already, an empty string otherwise.
-	*/
+
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", err

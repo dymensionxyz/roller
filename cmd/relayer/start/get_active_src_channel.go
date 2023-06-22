@@ -7,11 +7,9 @@ import (
 	"os/exec"
 )
 
+// GetSourceChannelForConnection Returns the open source channel for the given destination connection ID. If no open channel exists, it returns an
+// empty string.
 func GetSourceChannelForConnection(dstConnectionID string, rollappConfig utils.RollappConfig) (string, error) {
-	/**
-	Returns the open source channel for the given destination connection ID. If no open channel exists, it returns an
-	emtpy string.
-	*/
 	commonDymdFlags := utils.GetCommonDymdFlags(rollappConfig)
 	args := []string{"query", "ibc", "channel", "connections", dstConnectionID}
 	args = append(args, commonDymdFlags...)
