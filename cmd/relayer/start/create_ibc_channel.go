@@ -8,11 +8,15 @@ import (
 	"path/filepath"
 )
 
+func getLogFilePath(home string) string {
+	return filepath.Join(home, consts.ConfigDirName.Relayer, "relayer.log")
+}
+
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
-func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig) (string, error) {
+func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption utils.CommandOption) (string, error) {
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)
 	fmt.Println("Creating clients...")
-	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd); err != nil {
+	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd, logFileOption); err != nil {
 		return "", err
 	}
 	dstConnectionId, err := GetDstConnectionIDFromYAMLFile(filepath.Join(rollappConfig.Home, consts.ConfigDirName.Relayer,
@@ -23,7 +27,7 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig) (string, error)
 	if dstConnectionId == "" {
 		createConnectionCmd := getCreateConnectionCmd(rollappConfig)
 		fmt.Println("Creating connection...")
-		if err := utils.ExecBashCmdWithOSOutput(createConnectionCmd); err != nil {
+		if err := utils.ExecBashCmdWithOSOutput(createConnectionCmd, logFileOption); err != nil {
 			return "", err
 		}
 	}
@@ -34,7 +38,7 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig) (string, error)
 	if srcChannelId == "" {
 		createChannelCmd := getCreateChannelCmd(rollappConfig)
 		fmt.Println("Creating channel...")
-		if err := utils.ExecBashCmdWithOSOutput(createChannelCmd); err != nil {
+		if err := utils.ExecBashCmdWithOSOutput(createChannelCmd, logFileOption); err != nil {
 			return "", err
 		}
 		srcChannelId, err = GetSourceChannelForConnection(dstConnectionId, rollappConfig)

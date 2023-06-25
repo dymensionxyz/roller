@@ -21,8 +21,9 @@ func Cmd() *cobra.Command {
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
-			startRollappCmd := getStartCelestiaLCCmd(rollappConfig, rpcEndpoint)
-			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
+			startDACmd := getStartCelestiaLCCmd(rollappConfig, rpcEndpoint)
+			logFilePath := filepath.Join(rollappConfig.Home, consts.ConfigDirName.DALightNode, "light_client.log")
+			utils.RunBashCmdAsync(startDACmd, printOutput, parseError, utils.WithLogging(logFilePath))
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
