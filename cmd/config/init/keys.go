@@ -41,10 +41,10 @@ func generateSequencersKeys(initConfig utils.RollappConfig) (map[string]string, 
 	return addresses, nil
 }
 
-func getSequencerKeysConfig() []utils.KeyConfig {
-	return []utils.KeyConfig{
+func getSequencerKeysConfig() []utils.CreateKeyConfig {
+	return []utils.CreateKeyConfig{
 		{
-			Dir:      consts.ConfigDirName.Rollapp,
+			Dir:      consts.ConfigDirName.HubKeys,
 			ID:       consts.KeyNames.HubSequencer,
 			CoinType: consts.CoinTypes.Cosmos,
 			Prefix:   consts.AddressPrefixes.Hub,
@@ -58,8 +58,8 @@ func getSequencerKeysConfig() []utils.KeyConfig {
 	}
 }
 
-func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.KeyConfig {
-	return map[string]utils.KeyConfig{
+func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.CreateKeyConfig {
+	return map[string]utils.CreateKeyConfig{
 		consts.KeyNames.RollappRelayer: {
 			Dir:      path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:       consts.KeyNames.RollappRelayer,
@@ -75,7 +75,7 @@ func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.Ke
 	}
 }
 
-func createAddressBinary(keyConfig utils.KeyConfig, binaryPath string, home string) (string, error) {
+func createAddressBinary(keyConfig utils.CreateKeyConfig, binaryPath string, home string) (string, error) {
 	createKeyCommand := exec.Command(binaryPath, "keys", "add", keyConfig.ID, "--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json")
 	out, err := utils.ExecBashCommand(createKeyCommand)
@@ -111,7 +111,7 @@ func generateRelayerKeys(rollappConfig utils.RollappConfig) (map[string]string, 
 	return relayerAddresses, err
 }
 
-func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
+func getAddRlyKeyCmd(keyConfig utils.CreateKeyConfig, chainID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Relayer,
 		consts.KeysDirName,

@@ -14,21 +14,28 @@ func getRollappKeysDir(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, innerKeysDirName)
 }
 
+func getHubKeysDir(root string) string {
+	return filepath.Join(root, consts.ConfigDirName.HubKeys, innerKeysDirName)
+}
+
 func VerifyRollappKeys(root string) error {
 	rollappKeysDir := getRollappKeysDir(root)
 	sequencerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.RollappSequencer+".info")
 	if err := verifyFileExists(sequencerKeyInfoPath); err != nil {
 		return err
 	}
-	relayerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.HubSequencer+".info")
+	hubKeysDir := getHubKeysDir(root)
+	relayerKeyInfoPath := filepath.Join(hubKeysDir, consts.KeyNames.HubSequencer+".info")
 	if err := verifyFileExists(relayerKeyInfoPath); err != nil {
 		return err
 	}
-	for i := 0; i < 2; i++ {
-		err := verifyAndRemoveFilePattern(addressPattern, rollappKeysDir)
-		if err != nil {
-			return err
-		}
+	err := verifyAndRemoveFilePattern(addressPattern, rollappKeysDir)
+	if err != nil {
+		return err
+	}
+	err = verifyAndRemoveFilePattern(addressPattern, hubKeysDir)
+	if err != nil {
+		return err
 	}
 	nodeKeyPath := getNodeKeyPath(root)
 	if err := verifyFileExists(nodeKeyPath); err != nil {

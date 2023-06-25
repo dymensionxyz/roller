@@ -61,13 +61,12 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig utils.RollappConfig) error 
 	stderrStr := stderr.String()
 	if len(stderrStr) > 0 {
 		if strings.Contains(stderrStr, "key not found") {
-			sequencerAddress, err := utils.GetAddress(
-				utils.KeyConfig{
-					ID:       consts.KeyNames.HubSequencer,
-					Prefix:   consts.AddressPrefixes.Hub,
-					Dir:      filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-					CoinType: consts.CoinTypes.Cosmos,
+			sequencerAddress, err := utils.GetAddressBinary(
+				utils.GetKeyConfig{
+					ID:  consts.KeyNames.HubSequencer,
+					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 				},
+				consts.Executables.Dymension,
 			)
 			if err != nil {
 				return err

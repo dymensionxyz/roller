@@ -17,7 +17,7 @@ const innerKeysDirName = "keyring-test"
 const addressPattern = `.*\.address`
 
 func ClearKeys(root string) error {
-	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root)}
+	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root), getHubKeysDir(root)}
 	for _, dir := range keyDirs {
 		if err := os.RemoveAll(dir); err != nil {
 			return err

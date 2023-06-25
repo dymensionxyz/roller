@@ -55,9 +55,11 @@ func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint stri
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
+	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
 	// TODO: Update the gas_fees to 2000000udym before 35-c launch.
-	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`, rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, consts.KeyNames.HubSequencer, rollappConfigDir)
+	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`,
+		rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, consts.KeyNames.HubSequencer, hubKeysDir)
 
 	return exec.Command(
 		rollappConfig.RollappBinary, "start",

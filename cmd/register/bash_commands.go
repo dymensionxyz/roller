@@ -59,7 +59,7 @@ func getCommonDymdTxFlags(rollappConfig utils.RollappConfig) []string {
 	txArgs := []string{
 		"--from", consts.KeyNames.HubSequencer,
 		"--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
+		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 		"--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,
 	}
 	return append(commonFlags, txArgs...)

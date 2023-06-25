@@ -48,10 +48,12 @@ var ConfigDirName = struct {
 	Rollapp     string
 	Relayer     string
 	DALightNode string
+	HubKeys     string
 }{
 	Rollapp:     "rollapp",
 	Relayer:     "relayer",
 	DALightNode: "da-light-node",
+	HubKeys:     "hub-keys",
 }
 
 var CoinTypes = struct {
