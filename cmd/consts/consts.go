@@ -64,5 +64,9 @@ var CoinTypes = struct {
 	EVM:    60,
 }
 
+const HubDenom string = "udym"
+
 const KeysDirName = "keys"
 const DefaultRelayerPath = "hub-rollapp"
+
+const DefaultRollappRPC = "http://localhost:26657"

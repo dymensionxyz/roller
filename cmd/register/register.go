@@ -3,6 +3,7 @@ package register
 import (
 	"bytes"
 	"errors"
+	"math/big"
 	"path/filepath"
 
 	"fmt"
@@ -17,6 +18,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: Test registration on 35-C and update the price
+var registerUdymPrice = big.NewInt(1)
+
 func Cmd() *cobra.Command {
 	registerCmd := &cobra.Command{
 		Use:   "register",
@@ -26,6 +30,7 @@ func Cmd() *cobra.Command {
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
+			utils.PrettifyErrorIfExists(utils.VerifySequencerBalance(rollappConfig, registerUdymPrice, getInsufficientBalanceErr))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
@@ -71,11 +76,17 @@ func handleStdErr(stderr bytes.Buffer, rollappConfig utils.RollappConfig) error 
 			if err != nil {
 				return err
 			}
-			return fmt.Errorf("Insufficient funds in the sequencer's address to register the RollApp. Please deposit DYM to the following address: %s and attempt the registration again", sequencerAddress)
+			return getInsufficientBalanceErr(sequencerAddress)
 		}
 		return errors.New(stderrStr)
 	}
 	return nil
+}
+
+func getInsufficientBalanceErr(address string) error {
+	return fmt.Errorf("insufficient funds in the sequencer's address to register the RollApp. Please deposit at "+
+		"least %sudym to the "+
+		"following address: %s and attempt the registration again", registerUdymPrice, address)
 }
 
 type Response struct {

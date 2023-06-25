@@ -2,6 +2,7 @@ package sequnecer_start
 
 import (
 	"fmt"
+	"math/big"
 	"os/exec"
 	"path/filepath"
 
@@ -12,6 +13,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO: Test sequencing on 35-C and update the price
+var oneDaySequencePrice = big.NewInt(1)
+
 func StartCmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "start",
@@ -20,6 +24,7 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(utils.VerifySequencerBalance(rollappConfig, oneDaySequencePrice, getInsufficientBalanceErr))
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
 			startRollappCmd := getStartRollapCmd(rollappConfig, LightNodeEndpoint)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
@@ -46,7 +51,7 @@ func printOutput() {
 func parseError(errMsg string) string {
 	lines := strings.Split(errMsg, "\n")
 	if len(lines) > 0 && lines[0] == "Error: failed to initialize database: resource temporarily unavailable" {
-		return "The Rollapp sequencer is already running. Only one sequencer can run on the machine at any given time."
+		return "The Rollapp sequencer is already running on your local machine. Only one sequencer can run at any given time."
 	}
 	return errMsg
 }
@@ -79,4 +84,10 @@ func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint stri
 		"--max-log-size", "2000",
 		"--module-log-level-override", "",
 	)
+}
+
+func getInsufficientBalanceErr(address string) error {
+	return fmt.Errorf("insufficient funds in the sequencer's address to run the sequencer. Please deposit at "+
+		"least %sudym to the "+
+		"following address: %s and try again", oneDaySequencePrice, address)
 }

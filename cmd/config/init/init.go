@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -10,12 +9,8 @@ import (
 
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
-		Use:   "init <rollapp-id> <denom>",
+		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
-		Long: fmt.Sprintf(`Initialize a RollApp configuration on your local machine.
-		
-%s
-`, getValidRollappIdMessage()),
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
@@ -35,13 +30,13 @@ func InitCmd() *cobra.Command {
 			}
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
-				RPC:           defaultRollappRPC,
+				RPC:           consts.DefaultRollappRPC,
 				Denom:         initConfig.Denom,
 				AddressPrefix: consts.AddressPrefixes.Rollapp,
 			}, ChainConfig{
 				ID:            initConfig.HubData.ID,
 				RPC:           initConfig.HubData.RPC_URL,
-				Denom:         "udym",
+				Denom:         consts.HubDenom,
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
 			addresses, err := generateKeys(initConfig)

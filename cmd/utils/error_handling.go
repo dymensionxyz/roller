@@ -5,7 +5,9 @@ import (
 	"os"
 )
 
-func PrettifyErrorIfExists(err error) {
+type ErrorOption func()
+
+func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 	if err != nil {
 		defer func() {
 			if r := recover(); r != nil {
@@ -13,6 +15,11 @@ func PrettifyErrorIfExists(err error) {
 			}
 		}()
 		color.New(color.FgRed, color.Bold).Printf("💈 %s\n", err.Error())
+
+		for _, printInfo := range printAdditionalInfo {
+			printInfo()
+		}
+
 		panic(err)
 	}
 }
