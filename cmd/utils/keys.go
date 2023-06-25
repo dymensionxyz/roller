@@ -3,11 +3,13 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/olekukonko/tablewriter"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
@@ -24,10 +26,11 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	return key.Address, nil
 }
 
-func GetCelestiaAddress(keyringDir string) (string, error) {
+func GetCelestiaAddress(rollerRoot string) (string, error) {
+	daKeysDir := filepath.Join(rollerRoot, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
-		consts.Executables.CelKey,
-		"show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir", keyringDir, "--keyring-backend", "test", "--output", "json",
+		consts.Executables.CelKey, "show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir",
+		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
 	output, err := ExecBashCommand(cmd)
 	if err != nil {
@@ -37,42 +40,28 @@ func GetCelestiaAddress(keyringDir string) (string, error) {
 	return address, err
 }
 
-type KeyConfig struct {
+type GetKeyConfig struct {
+	Dir string
+	ID  string
+}
+
+type CreateKeyConfig struct {
 	Dir      string
 	ID       string
 	CoinType uint32
 	Prefix   string
 }
 
-func KeyInfoToBech32Address(info keyring.Info, prefix string) (string, error) {
-	pk := info.GetPubKey()
-	addr := types.AccAddress(pk.Address())
-	bech32Address, err := bech32.ConvertAndEncode(prefix, addr.Bytes())
-	if err != nil {
-		return "", err
-	}
-	return bech32Address, nil
-}
-
-func GetAddress(keyConfig KeyConfig) (string, error) {
-	kr, err := keyring.New(
-		"",
-		keyring.BackendTest,
-		keyConfig.Dir,
-		nil,
+func GetAddressBinary(keyConfig GetKeyConfig, binaryPath string) (string, error) {
+	showKeyCommand := exec.Command(
+		binaryPath, "keys", "show", keyConfig.ID, "--keyring-backend", "test", "--keyring-dir", keyConfig.Dir,
+		"--output", "json",
 	)
+	output, err := ExecBashCommand(showKeyCommand)
 	if err != nil {
 		return "", err
 	}
-	keyInfo, err := kr.Key(keyConfig.ID)
-	if err != nil {
-		return "", err
-	}
-	formattedAddress, err := KeyInfoToBech32Address(keyInfo, keyConfig.Prefix)
-	if err != nil {
-		return "", err
-	}
-	return formattedAddress, nil
+	return ParseAddressFromOutput(output)
 }
 
 func MergeMaps(map1, map2 map[string]string) map[string]string {
@@ -85,4 +74,31 @@ func MergeMaps(map1, map2 map[string]string) map[string]string {
 	}
 
 	return result
+}
+
+func GetRelayerAddress(home string, chainID string) (string, error) {
+	showKeyCmd := exec.Command(
+		consts.Executables.Relayer, "keys", "show", chainID, "--home", filepath.Join(home, consts.ConfigDirName.Relayer),
+	)
+	out, err := ExecBashCommand(showKeyCmd)
+	return strings.TrimSuffix(out.String(), "\n"), err
+}
+
+func PrintAddresses(addresses map[string]string) {
+	fmt.Printf("🔑 Addresses:\n\n")
+
+	data := [][]string{
+		{"Celestia", addresses[consts.KeyNames.DALightNode]},
+		{"Sequencer, Hub", addresses[consts.KeyNames.HubSequencer]},
+		{"Sequencer, Rollapp", addresses[consts.KeyNames.RollappSequencer]},
+		{"Relayer, Hub", addresses[consts.KeyNames.HubRelayer]},
+		{"Relayer, RollApp", addresses[consts.KeyNames.RollappRelayer]},
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetBorder(false)
+	table.AppendBulk(data)
+	table.Render()
 }
