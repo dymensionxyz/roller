@@ -36,7 +36,7 @@ func InitCmd() *cobra.Command {
 			}, ChainConfig{
 				ID:            initConfig.HubData.ID,
 				RPC:           initConfig.HubData.RPC_URL,
-				Denom:         consts.HubDenom,
+				Denom:         consts.Denoms.Hub,
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
 			addresses, err := generateKeys(initConfig)

@@ -14,7 +14,7 @@ import (
 )
 
 // TODO: Test sequencing on 35-C and update the price
-var oneDaySequencePrice = big.NewInt(1)
+var OneDaySequencePrice = big.NewInt(1)
 
 func StartCmd() *cobra.Command {
 	runCmd := &cobra.Command{
@@ -24,14 +24,17 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			utils.PrettifyErrorIfExists(utils.VerifySequencerBalance(rollappConfig, oneDaySequencePrice, getInsufficientBalanceErr))
+			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *OneDaySequencePrice)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
-			startRollappCmd := getStartRollapCmd(rollappConfig, LightNodeEndpoint)
+			startRollappCmd := GetStartRollappCmd(rollappConfig, LightNodeEndpoint)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
-	runCmd.Flags().StringP(FlagNames.DAEndpoint, "", "http://localhost:26659", "The data availability light node endpoint.")
+	runCmd.Flags().StringP(FlagNames.DAEndpoint, "", consts.DefaultDALCRPC,
+		"The data availability light node endpoint.")
 	return runCmd
 }
 
@@ -56,7 +59,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
+func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
@@ -75,6 +78,7 @@ func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint stri
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
 		"--dymint.settlement_config", settlementConfig,
+		// TODO: 600
 		"--dymint.block_batch_size", "50",
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
@@ -84,10 +88,4 @@ func getStartRollapCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint stri
 		"--max-log-size", "2000",
 		"--module-log-level-override", "",
 	)
-}
-
-func getInsufficientBalanceErr(address string) error {
-	return fmt.Errorf("insufficient funds in the sequencer's address to run the sequencer. Please deposit at "+
-		"least %sudym to the "+
-		"following address: %s and try again", oneDaySequencePrice, address)
 }

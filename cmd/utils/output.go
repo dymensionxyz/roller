@@ -8,7 +8,10 @@ import (
 	"os"
 )
 
-func PrintInsufficientBalances(addressesData []NotFundedAddressData) {
+func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
+	if len(addressesData) == 0 {
+		return
+	}
 	printAddresses := func() {
 		data := make([][]string, len(addressesData))
 		for i, addressData := range addressesData {

@@ -69,7 +69,7 @@ func VerifyRelayerBalances(rolCfg utils.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	utils.PrettifyErrorIfExists(err)
 	if len(insufficientBalances) > 0 {
-		utils.PrintInsufficientBalances(insufficientBalances)
+		utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 	}
 }
 
@@ -80,7 +80,7 @@ func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFund
 	}
 	HubRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
 		RPC:    config.HubData.RPC_URL,
-		Denom:  consts.HubDenom,
+		Denom:  consts.Denoms.Hub,
 		Binary: consts.Executables.Dymension,
 	}, HubRlyAddr)
 	if err != nil {
@@ -93,7 +93,7 @@ func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFund
 			Address:         HubRlyAddr,
 			CurrentBalance:  HubRlyBalance,
 			RequiredBalance: oneDayRelayPriceHub,
-			Denom:           consts.HubDenom,
+			Denom:           consts.Denoms.Hub,
 		})
 	}
 	RollappRlyAddr, err := utils.GetRelayerAddress(config.Home, config.RollappID)

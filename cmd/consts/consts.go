@@ -12,10 +12,12 @@ var Executables = struct {
 	Relayer    string
 	Dymension  string
 	CelKey     string
+	Roller     string
 }{
+	Roller:     fmt.Sprintf("%s/roller", binsDir),
+	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
 	Celestia:   fmt.Sprintf("%s/celestia", internalBinsDir),
 	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
-	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
 	Relayer:    fmt.Sprintf("%s/rly", internalBinsDir),
 	Dymension:  fmt.Sprintf("%s/dymd", internalBinsDir),
 }
@@ -64,9 +66,15 @@ var CoinTypes = struct {
 	EVM:    60,
 }
 
-const HubDenom string = "udym"
+var Denoms = struct {
+	Hub      string
+	Celestia string
+}{
+	Hub:      "udym",
+	Celestia: "utia",
+}
 
 const KeysDirName = "keys"
 const DefaultRelayerPath = "hub-rollapp"
-
 const DefaultRollappRPC = "http://localhost:26657"
+const DefaultDALCRPC = "http://localhost:26659"

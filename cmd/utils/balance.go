@@ -53,44 +53,32 @@ type BalanceResponse struct {
 	Balances []Balance `json:"balances"`
 }
 
-func VerifySequencerBalance(rollappConfig RollappConfig, requiredBalance *big.Int, insufficientBalanceErrHandler func(string) error) error {
-	verifyBalanceConfig := VerifyBalanceConfig{
-		RequiredBalance:               requiredBalance,
-		InsufficientBalanceErrHandler: insufficientBalanceErrHandler,
-		KeyConfig: GetKeyConfig{
-			ID:  consts.KeyNames.HubSequencer,
-			Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-		},
-		ChainConfig: ChainQueryConfig{
-			Binary: consts.Executables.Dymension,
-			Denom:  consts.HubDenom,
-			RPC:    rollappConfig.HubData.RPC_URL,
-		},
-	}
-	return VerifyBalance(verifyBalanceConfig)
-}
-
-type VerifyBalanceConfig struct {
-	RequiredBalance               *big.Int
-	InsufficientBalanceErrHandler func(string) error
-	KeyConfig                     GetKeyConfig
-	ChainConfig                   ChainQueryConfig
-}
-
-func VerifyBalance(verifyBalanceConfig VerifyBalanceConfig) error {
-	sequencerAddress, err := GetAddressBinary(
-		verifyBalanceConfig.KeyConfig,
-		consts.Executables.Dymension,
-	)
+func GetSequencerInsufficientAddrs(config RollappConfig, requiredBalance big.Int) ([]NotFundedAddressData, error) {
+	sequencerAddress, err := GetAddressBinary(GetKeyConfig{
+		ID:  consts.KeyNames.HubSequencer,
+		Dir: filepath.Join(config.Home, consts.ConfigDirName.HubKeys),
+	}, consts.Executables.Dymension)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	sequencerBalance, err := QueryBalance(verifyBalanceConfig.ChainConfig, sequencerAddress)
+	sequencerBalance, err := QueryBalance(ChainQueryConfig{
+		Binary: consts.Executables.Dymension,
+		Denom:  consts.Denoms.Hub,
+		RPC:    config.HubData.RPC_URL,
+	}, sequencerAddress)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if sequencerBalance.Cmp(verifyBalanceConfig.RequiredBalance) < 0 {
-		return verifyBalanceConfig.InsufficientBalanceErrHandler(sequencerAddress)
+	if sequencerBalance.Cmp(&requiredBalance) < 0 {
+		return []NotFundedAddressData{
+			{
+				Address:         sequencerAddress,
+				Denom:           consts.Denoms.Hub,
+				CurrentBalance:  sequencerBalance,
+				RequiredBalance: &requiredBalance,
+				KeyName:         consts.KeyNames.HubSequencer,
+			},
+		}, nil
 	}
-	return nil
+	return []NotFundedAddressData{}, nil
 }

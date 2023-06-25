@@ -3,17 +3,14 @@ package register
 import (
 	"bytes"
 	"errors"
-	"math/big"
-	"path/filepath"
-
 	"fmt"
+	"math/big"
 
 	"strings"
 
 	"encoding/json"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -29,8 +26,10 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
-			utils.PrettifyErrorIfExists(utils.VerifySequencerBalance(rollappConfig, registerUdymPrice, getInsufficientBalanceErr))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
@@ -50,8 +49,8 @@ func registerRollapp(rollappConfig utils.RollappConfig) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	cmdExecErr := cmd.Run()
-	if err := handleStdErr(stderr, rollappConfig); err != nil {
-		return err
+	if len(stderr.String()) > 0 {
+		return errors.New(stderr.String())
 	}
 	if cmdExecErr != nil {
 		return cmdExecErr
@@ -60,33 +59,6 @@ func registerRollapp(rollappConfig utils.RollappConfig) error {
 		return err
 	}
 	return nil
-}
-
-func handleStdErr(stderr bytes.Buffer, rollappConfig utils.RollappConfig) error {
-	stderrStr := stderr.String()
-	if len(stderrStr) > 0 {
-		if strings.Contains(stderrStr, "key not found") {
-			sequencerAddress, err := utils.GetAddressBinary(
-				utils.GetKeyConfig{
-					ID:  consts.KeyNames.HubSequencer,
-					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-				},
-				consts.Executables.Dymension,
-			)
-			if err != nil {
-				return err
-			}
-			return getInsufficientBalanceErr(sequencerAddress)
-		}
-		return errors.New(stderrStr)
-	}
-	return nil
-}
-
-func getInsufficientBalanceErr(address string) error {
-	return fmt.Errorf("insufficient funds in the sequencer's address to register the RollApp. Please deposit at "+
-		"least %sudym to the "+
-		"following address: %s and attempt the registration again", registerUdymPrice, address)
 }
 
 type Response struct {
