@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-type ErrorOption func()
-
 func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 	if err != nil {
 		defer func() {
