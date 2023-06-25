@@ -1,10 +1,10 @@
 package initconfig
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
 
-	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -13,11 +13,11 @@ import (
 )
 
 func initializeRollappGenesis(initConfig utils.RollappConfig) error {
-	zeros := initConfig.Decimals + 9
-	tokenAmount := "1" + fmt.Sprintf("%0*d", zeros, 0) + initConfig.Denom
+	tokenSupply := fmt.Sprintf("%s%s", initConfig.TokenSupply, initConfig.Denom)
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account", consts.KeyNames.RollappSequencer, tokenAmount, "--keyring-backend", "test", "--home", rollappConfigDirPath)
-	err := genesisSequencerAccountCmd.Run()
+	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
+		consts.KeyNames.RollappSequencer, tokenSupply, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	_, err := utils.ExecBashCommand(genesisSequencerAccountCmd)
 	if err != nil {
 		return err
 	}

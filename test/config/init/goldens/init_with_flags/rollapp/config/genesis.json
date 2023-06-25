@@ -57,7 +57,7 @@
           "coins": [
             {
               "denom": "udym",
-              "amount": "1000000000000000"
+              "amount": "1000"
             }
           ]
         }
@@ -65,7 +65,7 @@
       "supply": [
         {
           "denom": "udym",
-          "amount": "1000000000000000"
+          "amount": "1000"
         }
       ],
       "denom_metadata": []

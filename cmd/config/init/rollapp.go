@@ -10,26 +10,38 @@ import (
 	toml "github.com/pelletier/go-toml"
 )
 
-func initializeRollappConfig(initConfig utils.RollappConfig) {
+func initializeRollappConfig(initConfig utils.RollappConfig) error {
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeyNames.HubSequencer, "--chain-id",
 		initConfig.RollappID, "--home", filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp))
-	err := initRollappCmd.Run()
+	_, err := utils.ExecBashCommand(initRollappCmd)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config/app.toml"), initConfig.Denom)
+	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config/app.toml"),
+		initConfig.Denom)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func setRollappAppConfig(appConfigFilePath string, denom string) {
+func setRollappAppConfig(appConfigFilePath string, denom string) error {
 	config, _ := toml.LoadFile(appConfigFilePath)
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
-	file, _ := os.Create(appConfigFilePath)
-	_, err := file.WriteString(config.String())
+	file, err := os.Create(appConfigFilePath)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	file.Close()
+	_, err = file.WriteString(config.String())
+	if err != nil {
+		return err
+	}
+	err = file.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func RollappConfigDir(root string) string {

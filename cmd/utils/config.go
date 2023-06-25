@@ -38,7 +38,7 @@ type RollappConfig struct {
 	RollappID     string
 	RollappBinary string
 	Denom         string
-	Decimals      uint64
+	TokenSupply   string
 	HubData       HubData
 }
 

@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -10,14 +9,11 @@ import (
 
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
-		Use:   "init <rollapp-id> <denom>",
+		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
-		Long: fmt.Sprintf(`Initialize a RollApp configuration on your local machine.
-		
-%s
-`, getValidRollappIdMessage()),
 		Run: func(cmd *cobra.Command, args []string) {
-			initConfig := GetInitConfig(cmd, args)
+			initConfig, err := GetInitConfig(cmd, args)
+			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
@@ -50,7 +46,7 @@ func InitCmd() *cobra.Command {
 			daAddress, err := utils.GetCelestiaAddress(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
 			addresses[consts.KeyNames.DALightNode] = daAddress
-			initializeRollappConfig(initConfig)
+			utils.PrettifyErrorIfExists(initializeRollappConfig(initConfig))
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 			printInitOutput(addresses, initConfig.RollappID)
