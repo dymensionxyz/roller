@@ -68,9 +68,7 @@ func getRelayPacketsCmd(config utils.RollappConfig, srcChannel string) *exec.Cmd
 func VerifyRelayerBalances(rolCfg utils.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	utils.PrettifyErrorIfExists(err)
-	if len(insufficientBalances) > 0 {
-		utils.PrintInsufficientBalancesIfAny(insufficientBalances)
-	}
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
 func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
