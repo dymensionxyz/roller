@@ -34,7 +34,17 @@
         {
           "@type": "/ethermint.types.v1.EthAccount",
           "base_account": {
-            "address": "PLACEHOLDER_ADDRESS",
+            "address": "PLACEHOLDER_SEQUENCER_ADDRESS",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "PLACEHOLDER_RELAYER_ADDRESS",
             "pub_key": null,
             "account_number": "0",
             "sequence": "0"
@@ -53,11 +63,20 @@
       },
       "balances": [
         {
-          "address": "PLACEHOLDER_ADDRESS",
+          "address": "PLACEHOLDER_SEQUENCER_ADDRESS",
           "coins": [
             {
               "denom": "udym",
-              "amount": "1000000000"
+              "amount": "PLACEHOLDER_SEQUENCER_BALANCE"
+            }
+          ]
+        },
+        {
+          "address": "PLACEHOLDER_RELAYER_ADDRESS",
+          "coins": [
+            {
+              "denom": "udym",
+              "amount": "PLACEHOLDER_RELAYER_BALANCE"
             }
           ]
         }

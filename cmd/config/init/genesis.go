@@ -2,22 +2,40 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
+	"math/big"
 
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/tidwall/sjson"
 )
 
 func initializeRollappGenesis(initConfig utils.RollappConfig) error {
-	tokenSupply := fmt.Sprintf("%s%s", initConfig.TokenSupply, initConfig.Denom)
+	totalTokenSupply, success := new(big.Int).SetString(initConfig.TokenSupply, 10)
+	if !success {
+		return fmt.Errorf("invalid token supply")
+	}
+	relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
+	sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
+	sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
+	relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
-		consts.KeyNames.RollappSequencer, tokenSupply, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+		consts.KeyNames.RollappSequencer, sequencerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	_, err := utils.ExecBashCommand(genesisSequencerAccountCmd)
+	if err != nil {
+		return err
+	}
+	rlyRollappAddress, err := utils.GetRelayerAddress(initConfig.Home, initConfig.RollappID)
+	if err != nil {
+		return err
+	}
+	genesisRelayerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
+		rlyRollappAddress, relayerBalanceStr, "--home", rollappConfigDirPath)
+	_, err = utils.ExecBashCommand(genesisRelayerAccountCmd)
 	if err != nil {
 		return err
 	}

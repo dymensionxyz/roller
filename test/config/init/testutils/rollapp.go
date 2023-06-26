@@ -64,11 +64,26 @@ func SanitizeGenesis(genesisPath string) error {
 		},
 		{
 			Path:  "app_state.auth.accounts.0.base_account.address",
-			Value: "PLACEHOLDER_ADDRESS",
+			Value: "PLACEHOLDER_SEQUENCER_ADDRESS",
 		},
 		{
 			Path:  "app_state.bank.balances.0.address",
-			Value: "PLACEHOLDER_ADDRESS",
+			Value: "PLACEHOLDER_SEQUENCER_ADDRESS",
+		},
+		{
+			Path:  "app_state.bank.balances.0.coins.0.amount",
+			Value: "PLACEHOLDER_SEQUENCER_BALANCE",
+		},
+		{
+			Path:  "app_state.auth.accounts.1.base_account.address",
+			Value: "PLACEHOLDER_RELAYER_ADDRESS",
+		},
+		{
+			Path:  "app_state.bank.balances.1.address",
+			Value: "PLACEHOLDER_RELAYER_ADDRESS",
+		}, {
+			Path:  "app_state.bank.balances.1.coins.0.amount",
+			Value: "PLACEHOLDER_RELAYER_BALANCE",
 		},
 	}
 
