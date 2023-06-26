@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,12 +19,16 @@ func GetRelayerDefaultFlags(root string) []string {
 	}
 }
 
-func RunCommandEvery(command string, args []string, intervalSec int) {
+func RunCommandEvery(command string, args []string, intervalSec int, options ...CommandOption) {
 	go func() {
 		for {
 			cmd := exec.Command(command, args...)
+			for _, option := range options {
+				option(cmd)
+			}
 			var stderr bytes.Buffer
-			cmd.Stderr = &stderr
+			errmw := io.MultiWriter(&stderr, cmd.Stderr)
+			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
 				// get the cmd args joined by space
@@ -39,27 +45,16 @@ func GetCommonDymdFlags(rollappConfig RollappConfig) []string {
 	}
 }
 
-func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
-	var stderr bytes.Buffer
-	var stdout bytes.Buffer
-	cmd.Stderr = &stderr
-	cmd.Stdout = &stdout
-	err := cmd.Run()
-	if err != nil {
-		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+type CommandOption func(cmd *exec.Cmd)
+
+func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg string) string,
+	options ...CommandOption) {
+	for _, option := range options {
+		option(cmd)
 	}
-	return stdout, nil
-}
-
-func ExecBashCommandWithOSOutput(cmd *exec.Cmd) error {
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg string) string) {
 	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+	mw := io.MultiWriter(cmd.Stderr, &stderr)
+	cmd.Stderr = mw
 	err := cmd.Start()
 	if err != nil {
 		errMsg := parseError(stderr.String())
@@ -73,11 +68,48 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	}
 }
 
-func ExecBashCmdWithOSOutput(cmd *exec.Cmd) error {
+func WithLogging(logFile string) CommandOption {
+	return func(cmd *exec.Cmd) {
+		logger := getLogger(logFile)
+		cmd.Stdout = logger.Writer()
+		cmd.Stderr = logger.Writer()
+	}
+}
+
+func getLogger(filepath string) *log.Logger {
+	lumberjackLogger := &lumberjack.Logger{
+		Filename:   filepath,
+		MaxSize:    500,
+		MaxBackups: 3,
+		MaxAge:     28,
+		Compress:   true,
+	}
+	multiWriter := io.MultiWriter(lumberjackLogger)
+	logger := log.New(multiWriter, "", log.LstdFlags)
+	return logger
+}
+
+func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
-	cmd.Stdout = os.Stdout
-	mw := io.MultiWriter(os.Stderr, &stderr)
-	cmd.Stderr = mw
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	if err != nil {
+		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+	}
+	return stdout, nil
+}
+
+func ExecBashCmdWithOSOutput(cmd *exec.Cmd, options ...CommandOption) error {
+	for _, option := range options {
+		option(cmd)
+	}
+	var stderr bytes.Buffer
+	outmw := io.MultiWriter(cmd.Stdout, os.Stdout)
+	cmd.Stdout = outmw
+	errmw := io.MultiWriter(os.Stderr, &stderr, cmd.Stderr)
+	cmd.Stderr = errmw
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())

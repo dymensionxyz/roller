@@ -27,16 +27,18 @@ func Start() *cobra.Command {
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			VerifyRelayerBalances(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
-			srcChannelId, err := createIBCChannelIfNeeded(rollappConfig)
+			relayerLogFilePath := filepath.Join(home, consts.ConfigDirName.Relayer, "relayer.log")
+			logFileOption := utils.WithLogging(relayerLogFilePath)
+			srcChannelId, err := createIBCChannelIfNeeded(rollappConfig, logFileOption)
 			utils.PrettifyErrorIfExists(err)
 			updateClientsCmd := getUpdateClientsCmd(rollappConfig)
-			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60)
+			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60, logFileOption)
 			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, srcChannelId)
-			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30)
+			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
 			startCmd := getRlyStartCmd(rollappConfig)
 			utils.RunBashCmdAsync(startCmd, func() {
 				fmt.Printf("💈 The relayer is running successfully on you local machine on channel %s!", srcChannelId)
-			}, parseError)
+			}, parseError, logFileOption)
 		},
 	}
 	utils.AddGlobalFlags(registerCmd)
