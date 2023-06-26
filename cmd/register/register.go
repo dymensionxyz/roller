@@ -3,19 +3,20 @@ package register
 import (
 	"bytes"
 	"errors"
-	"path/filepath"
-
 	"fmt"
+	"math/big"
 
 	"strings"
 
 	"encoding/json"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 )
+
+// TODO: Test registration on 35-C and update the price
+var registerUdymPrice = big.NewInt(1)
 
 func Cmd() *cobra.Command {
 	registerCmd := &cobra.Command{
@@ -25,6 +26,9 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
@@ -45,35 +49,14 @@ func registerRollapp(rollappConfig utils.RollappConfig) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	cmdExecErr := cmd.Run()
-	if err := handleStdErr(stderr, rollappConfig); err != nil {
-		return err
+	if len(stderr.String()) > 0 {
+		return errors.New(stderr.String())
 	}
 	if cmdExecErr != nil {
 		return cmdExecErr
 	}
 	if err := handleStdOut(stdout, rollappConfig); err != nil {
 		return err
-	}
-	return nil
-}
-
-func handleStdErr(stderr bytes.Buffer, rollappConfig utils.RollappConfig) error {
-	stderrStr := stderr.String()
-	if len(stderrStr) > 0 {
-		if strings.Contains(stderrStr, "key not found") {
-			sequencerAddress, err := utils.GetAddressBinary(
-				utils.GetKeyConfig{
-					ID:  consts.KeyNames.HubSequencer,
-					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-				},
-				consts.Executables.Dymension,
-			)
-			if err != nil {
-				return err
-			}
-			return fmt.Errorf("Insufficient funds in the sequencer's address to register the RollApp. Please deposit DYM to the following address: %s and attempt the registration again", sequencerAddress)
-		}
-		return errors.New(stderrStr)
 	}
 	return nil
 }

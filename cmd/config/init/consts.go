@@ -35,5 +35,3 @@ var Hubs = map[string]utils.HubData{
 		RPC_URL: "http://localhost:36657",
 	},
 }
-
-const defaultRollappRPC = "http://localhost:26657"
