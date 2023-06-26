@@ -2,15 +2,24 @@ package start
 
 import (
 	"fmt"
-	"os/exec"
-	"path/filepath"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
+	"math/big"
+	"os/exec"
+	"path/filepath"
 )
 
 const rpcEndpointFlag = "--rpc-endpoint"
+
+// TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
+var lcMinBalance = big.NewInt(1)
+
+const gatewayAddr = "0.0.0.0"
+const gatewayPort = "26659"
+const celestiaRestApiEndpoint = "https://api-arabica-8.consensus.celestia-arabica.com"
+
+var LCEndpoint = fmt.Sprintf("http://%s:%s", gatewayAddr, gatewayPort)
 
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
@@ -20,6 +29,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			verifyDABalanceRest(rollappConfig)
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			startRollappCmd := getStartCelestiaLCCmd(rollappConfig, rpcEndpoint)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
@@ -35,9 +45,37 @@ func addFlags(cmd *cobra.Command) {
 		"The DA rpc endpoint to connect to.")
 }
 
+func verifyDABalanceRest(config utils.RollappConfig) {
+	celAddress, err := utils.GetCelestiaAddress(config.Home)
+	utils.PrettifyErrorIfExists(err)
+	var restQueryUrl = fmt.Sprintf(
+		"%s/cosmos/bank/v1beta1/balances/%s",
+		celestiaRestApiEndpoint, celAddress,
+	)
+	balancesJson, err := utils.RestQueryJson(restQueryUrl)
+	utils.PrettifyErrorIfExists(err)
+	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
+	utils.PrettifyErrorIfExists(err)
+	if balance.Cmp(lcMinBalance) < 0 {
+		outputInsufficientBalanceError(balance, celAddress)
+	}
+}
+
+func outputInsufficientBalanceError(currentBalance *big.Int, celAddress string) {
+	insufficientBalances := make([]utils.NotFundedAddressData, 0)
+	insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
+		Address:         celAddress,
+		CurrentBalance:  currentBalance,
+		RequiredBalance: lcMinBalance,
+		KeyName:         consts.KeyNames.DALightNode,
+		Denom:           consts.Denoms.Celestia,
+	})
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+}
+
 func printOutput() {
 	fmt.Println("💈 The data availability light node is running on your local machine!")
-	fmt.Println("💈 Light node endpoint: http://127.0.0.1:26659")
+	fmt.Printf("💈 Light node endpoint: %s", LCEndpoint)
 }
 
 func parseError(errMsg string) string {
@@ -50,8 +88,8 @@ func getStartCelestiaLCCmd(rollappConfig utils.RollappConfig, rpcEndpoint string
 		"--core.ip", rpcEndpoint,
 		"--node.store", filepath.Join(rollappConfig.Home, consts.ConfigDirName.DALightNode),
 		"--gateway",
-		"--gateway.addr", "127.0.0.1",
-		"--gateway.port", "26659",
+		"--gateway.addr", gatewayAddr,
+		"--gateway.port", gatewayPort,
 		"--p2p.network", "arabica",
 	)
 }
