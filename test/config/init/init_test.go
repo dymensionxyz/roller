@@ -14,7 +14,7 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
-	decimals := "6"
+	tokenSupply := "1000"
 	testCases := []struct {
 		name          string
 		goldenDirPath string
@@ -29,7 +29,7 @@ func TestInitCmd(t *testing.T) {
 			name:          "Roller config init with custom flags",
 			goldenDirPath: "./goldens/init_with_flags",
 			optionalFlags: []string{
-				"--" + initconfig.FlagNames.Decimals, decimals,
+				"--" + initconfig.FlagNames.TokenSupply, tokenSupply,
 			},
 		},
 	}
@@ -52,7 +52,8 @@ func TestInitCmd(t *testing.T) {
 				"--" + utils.FlagNames.Home, tempDir,
 			}, tc.optionalFlags...))
 			assert.NoError(initCmd.Execute())
-			initConfig := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
+			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
+			assert.NoError(err)
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, utils.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))

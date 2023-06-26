@@ -12,7 +12,7 @@ import (
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", TestnetHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
-	cmd.Flags().Uint64P(FlagNames.Decimals, "", 18, "The number of decimal places a rollapp token supports")
+	cmd.Flags().StringP(FlagNames.TokenSupply, "", "1000000000", "The total token supply of the RollApp")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		hubID, err := cmd.Flags().GetString(FlagNames.HubID)
@@ -36,14 +36,6 @@ func getValidRollappIdMessage() string {
 		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721_1'"
 }
 
-func getDecimals(cmd *cobra.Command) uint64 {
-	decimals, err := cmd.Flags().GetUint64(FlagNames.Decimals)
-	if err != nil {
-		panic(err)
-	}
-	return decimals
-}
-
 func getRollappBinaryPath(cmd *cobra.Command) string {
 	rollappBinaryPath := cmd.Flag(FlagNames.RollappBinary).Value.String()
 	if rollappBinaryPath == "" {
@@ -52,21 +44,25 @@ func getRollappBinaryPath(cmd *cobra.Command) string {
 	return rollappBinaryPath
 }
 
-func GetInitConfig(initCmd *cobra.Command, args []string) utils.RollappConfig {
+func getTokenSupply(cmd *cobra.Command) string {
+	return cmd.Flag(FlagNames.TokenSupply).Value.String()
+}
+
+func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, error) {
 	rollappId := args[0]
 	denom := args[1]
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	rollappBinaryPath := getRollappBinaryPath(initCmd)
-	decimals := getDecimals(initCmd)
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
+	tokenSupply := getTokenSupply(initCmd)
 	return utils.RollappConfig{
 		Home:          home,
 		RollappID:     rollappId,
 		RollappBinary: rollappBinaryPath,
 		Denom:         denom,
-		Decimals:      decimals,
 		HubData:       Hubs[hubID],
-	}
+		TokenSupply:   tokenSupply,
+	}, nil
 }
 
 func getAvailableHubsMessage() string {

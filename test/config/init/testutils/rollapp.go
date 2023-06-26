@@ -84,7 +84,7 @@ func VerifyRollerConfig(rollappConfig utils.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	if rollappConfig == existingConfig {
+	if existingConfig == rollappConfig {
 		return nil
 	}
 	return errors.New("roller config does not match")

@@ -4,12 +4,12 @@ import "github.com/dymensionxyz/roller/cmd/utils"
 
 var FlagNames = struct {
 	Home          string
-	Decimals      string
+	TokenSupply   string
 	RollappBinary string
 	HubID         string
 }{
 	Home:          "home",
-	Decimals:      "decimals",
+	TokenSupply:   "token-supply",
 	RollappBinary: "rollapp-binary",
 	HubID:         "hub",
 }
