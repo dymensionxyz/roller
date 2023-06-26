@@ -8,10 +8,6 @@ import (
 	"path/filepath"
 )
 
-func getLogFilePath(home string) string {
-	return filepath.Join(home, consts.ConfigDirName.Relayer, "relayer.log")
-}
-
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
 func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption utils.CommandOption) (string, error) {
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)

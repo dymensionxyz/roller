@@ -21,7 +21,7 @@ func Start() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			relayerLogFilePath := getLogFilePath(rollappConfig.Home)
+			relayerLogFilePath := filepath.Join(home, consts.ConfigDirName.Relayer, "relayer.log")
 			logFileOption := utils.WithLogging(relayerLogFilePath)
 			srcChannelId, err := createIBCChannelIfNeeded(rollappConfig, logFileOption)
 			utils.PrettifyErrorIfExists(err)
