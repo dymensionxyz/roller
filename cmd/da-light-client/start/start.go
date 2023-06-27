@@ -29,11 +29,13 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			verifyDABalanceRest(rollappConfig)
+			insufficientBalances, err := CheckDABalance(rollappConfig)
+			utils.PrettifyErrorIfExists(err)
+			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
-			startDACmd := getStartCelestiaLCCmd(rollappConfig, rpcEndpoint)
-			logFilePath := filepath.Join(rollappConfig.Home, consts.ConfigDirName.DALightNode, "light_client.log")
-			utils.RunBashCmdAsync(startDACmd, printOutput, parseError, utils.WithLogging(logFilePath))
+			startDALCCmd := GetStartDACmd(rollappConfig, rpcEndpoint)
+			logFilePath := GetDALogFilePath(rollappConfig.Home)
+			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
@@ -42,36 +44,37 @@ func Cmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(rpcEndpointFlag, "", "consensus-full-arabica-8.celestia-arabica.com",
-		"The DA rpc endpoint to connect to.")
+	cmd.Flags().StringP(rpcEndpointFlag, "", consts.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
 }
 
-func verifyDABalanceRest(config utils.RollappConfig) {
+func CheckDABalance(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	celAddress, err := utils.GetCelestiaAddress(config.Home)
-	utils.PrettifyErrorIfExists(err)
+	if err != nil {
+		return nil, err
+	}
 	var restQueryUrl = fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
 		celestiaRestApiEndpoint, celAddress,
 	)
 	balancesJson, err := utils.RestQueryJson(restQueryUrl)
-	utils.PrettifyErrorIfExists(err)
-	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
-	utils.PrettifyErrorIfExists(err)
-	if balance.Cmp(lcMinBalance) < 0 {
-		outputInsufficientBalanceError(balance, celAddress)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func outputInsufficientBalanceError(currentBalance *big.Int, celAddress string) {
-	insufficientBalances := make([]utils.NotFundedAddressData, 0)
-	insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
-		Address:         celAddress,
-		CurrentBalance:  currentBalance,
-		RequiredBalance: lcMinBalance,
-		KeyName:         consts.KeyNames.DALightNode,
-		Denom:           consts.Denoms.Celestia,
-	})
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
+	if err != nil {
+		return nil, err
+	}
+	var insufficientBalances []utils.NotFundedAddressData
+	if balance.Cmp(lcMinBalance) < 0 {
+		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
+			Address:         celAddress,
+			CurrentBalance:  balance,
+			RequiredBalance: lcMinBalance,
+			KeyName:         consts.KeyNames.DALightNode,
+			Denom:           consts.Denoms.Celestia,
+		})
+	}
+	return insufficientBalances, nil
 }
 
 func printOutput() {
@@ -83,7 +86,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func getStartCelestiaLCCmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.Cmd {
+func GetStartDACmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", rpcEndpoint,
@@ -93,4 +96,8 @@ func getStartCelestiaLCCmd(rollappConfig utils.RollappConfig, rpcEndpoint string
 		"--gateway.port", gatewayPort,
 		"--p2p.network", "arabica",
 	)
+}
+
+func GetDALogFilePath(home string) string {
+	return filepath.Join(home, consts.ConfigDirName.DALightNode, "light_client.log")
 }

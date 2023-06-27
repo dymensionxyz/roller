@@ -19,7 +19,7 @@ type RelayerConfig struct {
 }
 
 func Start() *cobra.Command {
-	registerCmd := &cobra.Command{
+	relayerStartCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -41,8 +41,8 @@ func Start() *cobra.Command {
 			}, parseError, logFileOption)
 		},
 	}
-	utils.AddGlobalFlags(registerCmd)
-	return registerCmd
+	utils.AddGlobalFlags(relayerStartCmd)
+	return relayerStartCmd
 }
 
 func parseError(errStr string) string {
@@ -73,7 +73,7 @@ func VerifyRelayerBalances(rolCfg utils.RollappConfig) {
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
-func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRlyHubInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
 		return nil, err
@@ -95,6 +95,14 @@ func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFund
 			RequiredBalance: oneDayRelayPriceHub,
 			Denom:           consts.Denoms.Hub,
 		})
+	}
+	return insufficientBalances, nil
+}
+
+func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
+	if err != nil {
+		return insufficientBalances, err
 	}
 	RollappRlyAddr, err := utils.GetRelayerAddress(config.Home, config.RollappID)
 	if err != nil {
