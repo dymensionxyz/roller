@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/dymensionxyz/roller/cmd/run"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/config"
@@ -36,4 +37,5 @@ func init() {
 	rootCmd.AddCommand(sequencer.SequencerCmd())
 	rootCmd.AddCommand(relayer.Cmd())
 	rootCmd.AddCommand(keys.Cmd())
+	rootCmd.AddCommand(run.Cmd())
 }
