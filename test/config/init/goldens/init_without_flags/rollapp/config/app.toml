@@ -38,7 +38,7 @@ pruning-keep-recent = "0"
   enable-unsafe-cors = false
 
 [json-rpc]
-  address = "0.0.0.0:8545"
+  address = "127.0.0.1:8545"
   allow-unprotected-txs = false
   api = "eth,net,web3"
   block-range-cap = 10000
@@ -47,14 +47,15 @@ pruning-keep-recent = "0"
   evm-timeout = "5s"
   feehistory-cap = 100
   filter-cap = 200
+  fix-revert-gas-refund-height = 0
   gas-cap = 25000000
   http-idle-timeout = "2m0s"
   http-timeout = "30s"
   logs-cap = 10000
   max-open-connections = 0
-  metrics-address = "0.0.0.0:6065"
+  metrics-address = "127.0.0.1:6065"
   txfee-cap = 1
-  ws-address = "0.0.0.0:8546"
+  ws-address = "127.0.0.1:8546"
 
 [rosetta]
   address = ":8080"

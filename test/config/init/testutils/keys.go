@@ -16,7 +16,7 @@ import (
 const innerKeysDirName = "keyring-test"
 const addressPattern = `.*\.address`
 
-func ClearKeys(root string) error {
+func SanitizeConfigDir(root string) error {
 	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root), getHubKeysDir(root)}
 	for _, dir := range keyDirs {
 		if err := os.RemoveAll(dir); err != nil {
@@ -34,9 +34,16 @@ func ClearKeys(root string) error {
 	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
 		return err
 	}
+	if err := SanitizeDymintToml(root); err != nil {
+		return err
+	}
 	return nil
 }
 
+func SanitizeDymintToml(root string) error {
+	dymintTomlPath := filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "dymint.toml")
+	return os.Remove(dymintTomlPath)
+}
 func verifyFileExists(path string) error {
 	_, err := os.Stat(path)
 	if err != nil {

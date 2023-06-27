@@ -76,8 +76,12 @@ func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.Cr
 }
 
 func createAddressBinary(keyConfig utils.CreateKeyConfig, binaryPath string, home string) (string, error) {
-	createKeyCommand := exec.Command(binaryPath, "keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json")
+	args := []string{"keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json"}
+	if binaryPath == consts.Executables.Dymension {
+		args = append(args, "--algo", "secp256k1")
+	}
+	createKeyCommand := exec.Command(binaryPath, args...)
 	out, err := utils.ExecBashCommand(createKeyCommand)
 	if err != nil {
 		return "", err

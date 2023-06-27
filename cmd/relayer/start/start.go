@@ -19,7 +19,7 @@ type RelayerConfig struct {
 }
 
 func Start() *cobra.Command {
-	registerCmd := &cobra.Command{
+	relayerStartCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -41,8 +41,8 @@ func Start() *cobra.Command {
 			}, parseError, logFileOption)
 		},
 	}
-	utils.AddGlobalFlags(registerCmd)
-	return registerCmd
+	utils.AddGlobalFlags(relayerStartCmd)
+	return relayerStartCmd
 }
 
 func parseError(errStr string) string {
@@ -73,7 +73,7 @@ func VerifyRelayerBalances(rolCfg utils.RollappConfig) {
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
-func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRlyHubInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
 		return nil, err
@@ -96,23 +96,23 @@ func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFund
 			Denom:           consts.Denoms.Hub,
 		})
 	}
-	RollappRlyAddr, err := utils.GetRelayerAddress(config.Home, config.RollappID)
+	return insufficientBalances, nil
+}
+
+func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {
-		return nil, err
+		return insufficientBalances, err
 	}
-	RollappRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
-		RPC:    consts.DefaultRollappRPC,
-		Denom:  config.Denom,
-		Binary: config.RollappBinary,
-	}, RollappRlyAddr)
+	rolRlyData, err := utils.GetRolRlyAccData(config)
 	if err != nil {
-		return nil, err
+		return insufficientBalances, err
 	}
-	if RollappRlyBalance.Cmp(oneDayRelayPriceRollapp) < 0 {
+	if rolRlyData.Balance.Cmp(oneDayRelayPriceRollapp) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			KeyName:         consts.KeyNames.RollappRelayer,
-			Address:         RollappRlyAddr,
-			CurrentBalance:  RollappRlyBalance,
+			Address:         rolRlyData.Address,
+			CurrentBalance:  rolRlyData.Balance,
 			RequiredBalance: oneDayRelayPriceRollapp,
 			Denom:           config.Denom,
 		})

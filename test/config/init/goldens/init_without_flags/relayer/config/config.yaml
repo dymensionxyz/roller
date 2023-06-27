@@ -4,12 +4,12 @@ global:
     memo: ""
     light-cache-size: 20
 chains:
-    35-C:
+    devnet_666-1:
         type: cosmos
         value:
             key: relayer-hub-key
-            chain-id: 35-C
-            rpc-addr: https://rpc-hub-35c.dymension.xyz:443
+            chain-id: devnet_666-1
+            rpc-addr: https://rpc-hub-devnet.dymension.xyz:443
             account-prefix: dym
             keyring-backend: test
             gas-adjustment: 1.2
@@ -19,11 +19,11 @@ chains:
             output-format: json
             sign-mode: direct
             client-type: 07-tendermint
-    mars_1_1:
+    mars_1-1:
         type: cosmos
         value:
             key: relayer-rollapp-key
-            chain-id: mars_1_1
+            chain-id: mars_1-1
             rpc-addr: http://localhost:26657
             account-prefix: ethm
             keyring-backend: test
@@ -37,10 +37,10 @@ chains:
 paths:
     hub-rollapp:
         src:
-            chain-id: mars_1_1
+            chain-id: mars_1-1
         dst:
-            chain-id: 35-C
+            chain-id: devnet_666-1
         src-channel-filter:
             rule: ""
             channel-list: []
-settlement: 35-C
+settlement: devnet_666-1

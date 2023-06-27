@@ -14,24 +14,18 @@ var FlagNames = struct {
 	HubID:         "hub",
 }
 
-const TestnetHubID = "35-C"
 const StagingHubID = "internal-devnet"
 const LocalHubID = "local"
 
 var Hubs = map[string]utils.HubData{
-	TestnetHubID: {
-		API_URL: "https://rest-hub-35c.dymension.xyz",
-		ID:      "35-C",
-		RPC_URL: "https://rpc-hub-35c.dymension.xyz:443",
-	},
 	StagingHubID: {
 		API_URL: "https://rest-hub-devnet.dymension.xyz",
-		ID:      "internal-devnet",
+		ID:      "devnet_666-1",
 		RPC_URL: "https://rpc-hub-devnet.dymension.xyz:443",
 	},
 	LocalHubID: {
-		API_URL: "http://localhost:1317",
-		ID:      "local-testnet",
+		API_URL: "http://localhost:1318",
+		ID:      "dymension_100-1",
 		RPC_URL: "http://localhost:36657",
 	},
 }
