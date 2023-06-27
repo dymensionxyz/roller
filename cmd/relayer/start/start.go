@@ -104,23 +104,15 @@ func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFund
 	if err != nil {
 		return insufficientBalances, err
 	}
-	RollappRlyAddr, err := utils.GetRelayerAddress(config.Home, config.RollappID)
+	rolRlyData, err := utils.GetRolRlyAccData(config)
 	if err != nil {
-		return nil, err
+		return insufficientBalances, err
 	}
-	RollappRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
-		RPC:    consts.DefaultRollappRPC,
-		Denom:  config.Denom,
-		Binary: config.RollappBinary,
-	}, RollappRlyAddr)
-	if err != nil {
-		return nil, err
-	}
-	if RollappRlyBalance.Cmp(oneDayRelayPriceRollapp) < 0 {
+	if rolRlyData.Balance.Cmp(oneDayRelayPriceRollapp) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			KeyName:         consts.KeyNames.RollappRelayer,
-			Address:         RollappRlyAddr,
-			CurrentBalance:  RollappRlyBalance,
+			Address:         rolRlyData.Address,
+			CurrentBalance:  rolRlyData.Balance,
 			RequiredBalance: oneDayRelayPriceRollapp,
 			Denom:           config.Denom,
 		})

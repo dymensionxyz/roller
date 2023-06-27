@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 			runDaWithRestarts(rollappConfig)
 			runSequencerWithRestarts(rollappConfig)
 			runRelayerWithRestarts(rollappConfig)
-			select {}
+			PrintServicesStatus(rollappConfig)
 		},
 	}
 	utils.AddGlobalFlags(cmd)

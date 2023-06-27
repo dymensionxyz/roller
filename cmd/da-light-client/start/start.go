@@ -17,7 +17,6 @@ var lcMinBalance = big.NewInt(1)
 
 const gatewayAddr = "0.0.0.0"
 const gatewayPort = "26659"
-const celestiaRestApiEndpoint = "https://api-arabica-8.consensus.celestia-arabica.com"
 
 var LCEndpoint = fmt.Sprintf("http://%s:%s", gatewayAddr, gatewayPort)
 
@@ -48,27 +47,15 @@ func addFlags(cmd *cobra.Command) {
 }
 
 func CheckDABalance(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
-	celAddress, err := utils.GetCelestiaAddress(config.Home)
-	if err != nil {
-		return nil, err
-	}
-	var restQueryUrl = fmt.Sprintf(
-		"%s/cosmos/bank/v1beta1/balances/%s",
-		celestiaRestApiEndpoint, celAddress,
-	)
-	balancesJson, err := utils.RestQueryJson(restQueryUrl)
-	if err != nil {
-		return nil, err
-	}
-	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
+	accData, err := utils.GetCelLCAccData(config)
 	if err != nil {
 		return nil, err
 	}
 	var insufficientBalances []utils.NotFundedAddressData
-	if balance.Cmp(lcMinBalance) < 0 {
+	if accData.Balance.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
-			Address:         celAddress,
-			CurrentBalance:  balance,
+			Address:         accData.Address,
+			CurrentBalance:  accData.Balance,
 			RequiredBalance: lcMinBalance,
 			KeyName:         consts.KeyNames.DALightNode,
 			Denom:           consts.Denoms.Celestia,

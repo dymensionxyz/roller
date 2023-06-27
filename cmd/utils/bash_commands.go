@@ -73,13 +73,13 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 
 func WithLogging(logFile string) CommandOption {
 	return func(cmd *exec.Cmd) {
-		logger := getLogger(logFile)
+		logger := GetLogger(logFile)
 		cmd.Stdout = logger.Writer()
 		cmd.Stderr = logger.Writer()
 	}
 }
 
-func getLogger(filepath string) *log.Logger {
+func GetLogger(filepath string) *log.Logger {
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   filepath,
 		MaxSize:    500,
