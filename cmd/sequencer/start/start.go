@@ -74,7 +74,6 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.da_layer", "celestia",
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
-		// TODO: 600
 		"--dymint.block_batch_size", "500",
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
