@@ -75,7 +75,7 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
 		// TODO: 600
-		"--dymint.block_batch_size", "50",
+		"--dymint.block_batch_size", "500",
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
 		"--home", rollappConfigDir,
@@ -88,6 +88,8 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
 		"--dymint.settlement_config.gas_fees", "0udym",
 		"--dymint.settlement_config.gas_prices", "0udym",
+		"--dymint.batch_submit_max_time", "100s",
+		"--dymint.empty_blocks_max_time", "100s",
 	)
 	return cmd
 }
