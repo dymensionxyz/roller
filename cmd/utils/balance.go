@@ -7,7 +7,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
 	"os/exec"
-	"path/filepath"
 )
 
 type ChainQueryConfig struct {
@@ -53,28 +52,25 @@ type BalanceResponse struct {
 	Balances []Balance `json:"balances"`
 }
 
+type AccountData struct {
+	Address string
+	Balance *big.Int
+}
+
 func GetSequencerInsufficientAddrs(config RollappConfig, requiredBalance big.Int) ([]NotFundedAddressData, error) {
-	sequencerAddress, err := GetAddressBinary(GetKeyConfig{
-		ID:  consts.KeyNames.HubSequencer,
-		Dir: filepath.Join(config.Home, consts.ConfigDirName.HubKeys),
-	}, consts.Executables.Dymension)
+	sequencerData, err := GetSequencerData(config)
 	if err != nil {
 		return nil, err
 	}
-	sequencerBalance, err := QueryBalance(ChainQueryConfig{
-		Binary: consts.Executables.Dymension,
-		Denom:  consts.Denoms.Hub,
-		RPC:    config.HubData.RPC_URL,
-	}, sequencerAddress)
 	if err != nil {
 		return nil, err
 	}
-	if sequencerBalance.Cmp(&requiredBalance) < 0 {
+	if sequencerData.Balance.Cmp(&requiredBalance) < 0 {
 		return []NotFundedAddressData{
 			{
-				Address:         sequencerAddress,
+				Address:         sequencerData.Address,
 				Denom:           consts.Denoms.Hub,
-				CurrentBalance:  sequencerBalance,
+				CurrentBalance:  sequencerData.Balance,
 				RequiredBalance: &requiredBalance,
 				KeyName:         consts.KeyNames.HubSequencer,
 			},

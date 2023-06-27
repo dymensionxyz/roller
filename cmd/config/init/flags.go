@@ -11,7 +11,7 @@ import (
 )
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(FlagNames.HubID, "", TestnetHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", "1000000000", "The total token supply of the RollApp")
 
@@ -61,17 +61,17 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 	}, nil
 }
 func getValidRollappIdMessage() string {
-	return "A valid RollApp ID should follow the format 'rollapp-name_EIP155_version', where 'rollapp-name' is made up of" +
+	return "A valid RollApp ID should follow the format 'name_EIP155-version', where 'name' is made up of" +
 		" lowercase English letters, 'EIP155_version' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
 		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721_1'"
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", TestnetHubID, StagingHubID, LocalHubID)
+	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubID, LocalHubID)
 }
 
 func validateRollAppID(id string) bool {
-	pattern := `^[a-z]+_[0-9]{1,5}_[0-9]{1,5}$`
+	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
 	r, _ := regexp.Compile(pattern)
 	return r.MatchString(id)
 }

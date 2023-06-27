@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -31,7 +29,6 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
-				// get the cmd args joined by space
 				fmt.Println("Cron command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
 			}
 			time.Sleep(time.Duration(intervalSec) * time.Second)
@@ -53,7 +50,10 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 		option(cmd)
 	}
 	var stderr bytes.Buffer
-	mw := io.MultiWriter(cmd.Stderr, &stderr)
+	mw := io.MultiWriter(&stderr)
+	if cmd.Stderr != nil {
+		mw = io.MultiWriter(&stderr, cmd.Stderr)
+	}
 	cmd.Stderr = mw
 	err := cmd.Start()
 	if err != nil {
@@ -66,27 +66,6 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 		errMsg := parseError(stderr.String())
 		PrettifyErrorIfExists(errors.New(errMsg))
 	}
-}
-
-func WithLogging(logFile string) CommandOption {
-	return func(cmd *exec.Cmd) {
-		logger := getLogger(logFile)
-		cmd.Stdout = logger.Writer()
-		cmd.Stderr = logger.Writer()
-	}
-}
-
-func getLogger(filepath string) *log.Logger {
-	lumberjackLogger := &lumberjack.Logger{
-		Filename:   filepath,
-		MaxSize:    500,
-		MaxBackups: 3,
-		MaxAge:     28,
-		Compress:   true,
-	}
-	multiWriter := io.MultiWriter(lumberjackLogger)
-	logger := log.New(multiWriter, "", log.LstdFlags)
-	return logger
 }
 
 func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {

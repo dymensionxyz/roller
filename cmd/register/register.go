@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
-			err = registerSequencerCmd.Run()
+			_, err = utils.ExecBashCommand(registerSequencerCmd)
 			utils.PrettifyErrorIfExists(err)
 			printRegisterOutput(rollappConfig)
 		},
@@ -73,7 +73,7 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig utils.RollappConfig) error 
 		return err
 	}
 
-	if strings.Contains(response.RawLog, "fail") {
+	if strings.Contains(response.RawLog, "fail") || strings.Contains(response.RawLog, "error") {
 		return errors.New(response.RawLog)
 	}
 

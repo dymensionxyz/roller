@@ -1,6 +1,7 @@
 package initconfig_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -38,14 +39,15 @@ func TestInitCmd(t *testing.T) {
 			assert := assert.New(t)
 			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
+			fmt.Println(tc.name, tempDir)
 			assert.NoError(err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				assert.NoError(err)
-			}()
+			//defer func() {
+			//	err := os.RemoveAll(tempDir)
+			//	assert.NoError(err)
+			//}()
 			initCmd := initconfig.InitCmd()
 			denom := "udym"
-			rollappID := "mars_1_1"
+			rollappID := "mars_1-1"
 			initCmd.SetArgs(append([]string{
 				rollappID,
 				denom,
@@ -59,7 +61,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
 			assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
-			assert.NoError(testutils.ClearKeys(tempDir))
+			assert.NoError(testutils.SanitizeConfigDir(tempDir))
 			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
 			assert.NoError(err)
 			assert.True(areDirsEqual)

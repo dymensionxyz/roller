@@ -29,7 +29,8 @@ func StartCmd() *cobra.Command {
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
 			startRollappCmd := GetStartRollappCmd(rollappConfig, LightNodeEndpoint)
-			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError)
+			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError, utils.WithLogging(
+				filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")))
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
@@ -65,11 +66,7 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
-	// TODO: Update the gas_fees to 2000000udym before 35-c launch.
-	settlementConfig := fmt.Sprintf(`{"node_address": "%s", "rollapp_id": "%s", "dym_account_name": "%s", "keyring_home_dir": "%s", "keyring_backend":"test", "gas_fees": "0udym"}`,
-		rollappConfig.HubData.RPC_URL, rollappConfig.RollappID, consts.KeyNames.HubSequencer, hubKeysDir)
-
-	return exec.Command(
+	cmd := exec.Command(
 		rollappConfig.RollappBinary, "start",
 		"--dymint.aggregator",
 		"--json-rpc.enable",
@@ -77,7 +74,6 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.da_layer", "celestia",
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
-		"--dymint.settlement_config", settlementConfig,
 		// TODO: 600
 		"--dymint.block_batch_size", "50",
 		"--dymint.namespace_id", "000000000000ffff",
@@ -87,5 +83,11 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 		"--max-log-size", "2000",
 		"--module-log-level-override", "",
+		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
+		"--dymint.settlement_config.dym_account_name", consts.KeyNames.HubSequencer,
+		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
+		"--dymint.settlement_config.gas_fees", "0udym",
+		"--dymint.settlement_config.gas_prices", "0udym",
 	)
+	return cmd
 }
