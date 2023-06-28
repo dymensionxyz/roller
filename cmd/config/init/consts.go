@@ -17,7 +17,7 @@ const (
 	LocalHubID   = "local"
 )
 
-// TODO: The avaialble hub networks should be read from YAML file
+// TODO(#112): The avaialble hub networks should be read from YAML file
 var Hubs = map[string]utils.HubData{
 	StagingHubID: {
 		API_URL: "https://rest-hub-devnet.dymension.xyz",

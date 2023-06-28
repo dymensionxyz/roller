@@ -14,10 +14,6 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-const (
-	genesisTokenAmount = 1000000000 // 1 billion
-)
-
 func initializeRollappGenesis(initConfig utils.RollappConfig) error {
 	totalTokenSupply, success := new(big.Int).SetString(initConfig.TokenSupply, 10)
 	if !success {
@@ -60,7 +56,7 @@ type PathValue struct {
 	Value interface{}
 }
 
-// FIXME: fix to support epochs
+// TODO(#130): fix to support epochs
 func getDefaultGenesisParams(denom string) []PathValue {
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
