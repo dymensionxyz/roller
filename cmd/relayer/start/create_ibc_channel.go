@@ -48,7 +48,7 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption u
 
 func getCreateChannelCmd(config utils.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
-	args := []string{"tx", "channel"}
+	args := []string{"tx", "channel", "--override"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
