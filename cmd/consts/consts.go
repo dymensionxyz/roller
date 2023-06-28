@@ -22,7 +22,7 @@ var Executables = struct {
 	Dymension:  fmt.Sprintf("%s/dymd", internalBinsDir),
 }
 
-var KeyNames = struct {
+var KeysIds = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string

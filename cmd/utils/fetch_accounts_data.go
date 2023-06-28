@@ -46,7 +46,7 @@ func GetHubRlyAccData(config RollappConfig) (*AccountData, error) {
 
 func GetSequencerData(config RollappConfig) (*AccountData, error) {
 	sequencerAddress, err := GetAddressBinary(GetKeyConfig{
-		ID:  consts.KeyNames.HubSequencer,
+		ID:  consts.KeysIds.HubSequencer,
 		Dir: filepath.Join(config.Home, consts.ConfigDirName.HubKeys),
 	}, consts.Executables.Dymension)
 	if err != nil {

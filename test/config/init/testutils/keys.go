@@ -93,7 +93,7 @@ func getLightNodeKeysDir(root string) string {
 
 func VerifyLightNodeKeys(root string) error {
 	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
-	infoFilePath := filepath.Join(lightNodeKeysDir, consts.KeyNames.DALightNode+".info")
+	infoFilePath := filepath.Join(lightNodeKeysDir, consts.KeysIds.DALightNode+".info")
 	err := verifyFileExists(infoFilePath)
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func getRelayerKeysDir(root string) string {
 func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
 	relayerKeysDir := getRelayerKeysDir(root)
 	rollappKeysDir := filepath.Join(relayerKeysDir, rollappID, innerKeysDirName)
-	rollappKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.RollappRelayer+".info")
+	rollappKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeysIds.RollappRelayer+".info")
 	if err := verifyFileExists(rollappKeyInfoPath); err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func VerifyRelayerKeys(root string, rollappID string, hubID string) error {
 		return err
 	}
 	hubKeysDir := filepath.Join(relayerKeysDir, hubID, innerKeysDirName)
-	hubKeyInfoPath := filepath.Join(hubKeysDir, consts.KeyNames.HubRelayer+".info")
+	hubKeyInfoPath := filepath.Join(hubKeysDir, consts.KeysIds.HubRelayer+".info")
 	if err := verifyFileExists(hubKeyInfoPath); err != nil {
 		return err
 	}

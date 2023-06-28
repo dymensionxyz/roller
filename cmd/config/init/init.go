@@ -45,7 +45,10 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			daAddress, err := utils.GetCelestiaAddress(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
-			addresses[consts.KeyNames.DALightNode] = daAddress
+			addresses = append(addresses, utils.AddressData{
+				Addr: daAddress,
+				Name: consts.KeysIds.DALightNode,
+			})
 			utils.PrettifyErrorIfExists(initializeRollappConfig(initConfig))
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))

@@ -84,7 +84,7 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--max-log-size", "2000",
 		"--module-log-level-override", "",
 		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
-		"--dymint.settlement_config.dym_account_name", consts.KeyNames.HubSequencer,
+		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
 		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
 		"--dymint.settlement_config.gas_fees", "0udym",
 		"--dymint.settlement_config.gas_prices", "0udym",
