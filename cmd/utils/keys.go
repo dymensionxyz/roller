@@ -29,7 +29,7 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 func GetCelestiaAddress(rollerRoot string) (string, error) {
 	daKeysDir := filepath.Join(rollerRoot, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
-		consts.Executables.CelKey, "show", consts.KeyNames.DALightNode, "--node.type", "light", "--keyring-dir",
+		consts.Executables.CelKey, "show", consts.KeysIds.DALightNode, "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
 	output, err := ExecBashCommand(cmd)
@@ -84,17 +84,17 @@ func GetRelayerAddress(home string, chainID string) (string, error) {
 	return strings.TrimSuffix(out.String(), "\n"), err
 }
 
-func PrintAddresses(addresses map[string]string) {
+type AddressData struct {
+	Name string
+	Addr string
+}
+
+func PrintAddresses(addresses []AddressData) {
 	fmt.Printf("🔑 Addresses:\n\n")
-
-	data := [][]string{
-		{"Celestia", addresses[consts.KeyNames.DALightNode]},
-		{"Sequencer, Hub", addresses[consts.KeyNames.HubSequencer]},
-		{"Sequencer, Rollapp", addresses[consts.KeyNames.RollappSequencer]},
-		{"Relayer, Hub", addresses[consts.KeyNames.HubRelayer]},
-		{"Relayer, RollApp", addresses[consts.KeyNames.RollappRelayer]},
+	data := make([][]string, 0, len(addresses))
+	for _, address := range addresses {
+		data = append(data, []string{address.Name, address.Addr})
 	}
-
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)

@@ -11,7 +11,7 @@ import (
 )
 
 func initializeRollappConfig(initConfig utils.RollappConfig) error {
-	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeyNames.HubSequencer, "--chain-id",
+	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeysIds.HubSequencer, "--chain-id",
 		initConfig.RollappID, "--home", filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp))
 	_, err := utils.ExecBashCommand(initRollappCmd)
 	if err != nil {

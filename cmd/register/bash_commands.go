@@ -43,7 +43,7 @@ func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, erro
 		return nil, err
 	}
 	description := fmt.Sprintf(`{"Moniker":"%s","Identity":"","Website":"","SecurityContact":"","Details":""}`,
-		consts.KeyNames.HubSequencer)
+		consts.KeysIds.HubSequencer)
 	cmdArgs := []string{
 		"tx", "sequencer", "create-sequencer",
 		seqPubKey,
@@ -57,7 +57,7 @@ func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, erro
 func getCommonDymdTxFlags(rollappConfig utils.RollappConfig) []string {
 	commonFlags := utils.GetCommonDymdFlags(rollappConfig)
 	txArgs := []string{
-		"--from", consts.KeyNames.HubSequencer,
+		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 		"--yes", "--broadcast-mode", "block", "--chain-id", rollappConfig.HubData.ID,

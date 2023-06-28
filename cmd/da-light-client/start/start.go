@@ -57,7 +57,7 @@ func CheckDABalance(config utils.RollappConfig) ([]utils.NotFundedAddressData, e
 			Address:         accData.Address,
 			CurrentBalance:  accData.Balance,
 			RequiredBalance: lcMinBalance,
-			KeyName:         consts.KeyNames.DALightNode,
+			KeyName:         consts.KeysIds.DALightNode,
 			Denom:           consts.Denoms.Celestia,
 		})
 	}
