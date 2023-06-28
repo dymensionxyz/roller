@@ -20,12 +20,12 @@ func getHubKeysDir(root string) string {
 
 func VerifyRollappKeys(root string) error {
 	rollappKeysDir := getRollappKeysDir(root)
-	sequencerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeyNames.RollappSequencer+".info")
+	sequencerKeyInfoPath := filepath.Join(rollappKeysDir, consts.KeysIds.RollappSequencer+".info")
 	if err := verifyFileExists(sequencerKeyInfoPath); err != nil {
 		return err
 	}
 	hubKeysDir := getHubKeysDir(root)
-	relayerKeyInfoPath := filepath.Join(hubKeysDir, consts.KeyNames.HubSequencer+".info")
+	relayerKeyInfoPath := filepath.Join(hubKeysDir, consts.KeysIds.HubSequencer+".info")
 	if err := verifyFileExists(relayerKeyInfoPath); err != nil {
 		return err
 	}

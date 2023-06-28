@@ -17,26 +17,41 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			daAddr, err := utils.GetCelestiaAddress(rollappConfig.Home)
 			utils.PrettifyErrorIfExists(err)
-			addresses := map[string]string{}
-			addresses[consts.KeyNames.DALightNode] = daAddr
+			addresses := make([]utils.AddressData, 0)
+			addresses = append(addresses, utils.AddressData{
+				Addr: daAddr,
+				Name: consts.KeysIds.DALightNode,
+			})
 			hubSeqAddr, err := utils.GetAddressBinary(utils.GetKeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-				ID:  consts.KeyNames.HubSequencer,
+				ID:  consts.KeysIds.HubSequencer,
 			}, consts.Executables.Dymension)
 			utils.PrettifyErrorIfExists(err)
-			addresses[consts.KeyNames.HubSequencer] = hubSeqAddr
+			addresses = append(addresses, utils.AddressData{
+				Addr: hubSeqAddr,
+				Name: consts.KeysIds.HubSequencer,
+			})
 			rollappSeqAddr, err := utils.GetAddressBinary(utils.GetKeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-				ID:  consts.KeyNames.RollappSequencer,
+				ID:  consts.KeysIds.RollappSequencer,
 			}, consts.Executables.RollappEVM)
 			utils.PrettifyErrorIfExists(err)
-			addresses[consts.KeyNames.RollappSequencer] = rollappSeqAddr
+			addresses = append(addresses, utils.AddressData{
+				Addr: rollappSeqAddr,
+				Name: consts.KeysIds.RollappSequencer,
+			})
 			hubRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.HubData.ID)
 			utils.PrettifyErrorIfExists(err)
-			addresses[consts.KeyNames.HubRelayer] = hubRlyAddr
+			addresses = append(addresses, utils.AddressData{
+				Addr: hubRlyAddr,
+				Name: consts.KeysIds.HubRelayer,
+			})
 			rollappRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.RollappID)
 			utils.PrettifyErrorIfExists(err)
-			addresses[consts.KeyNames.RollappRelayer] = rollappRlyAddr
+			addresses = append(addresses, utils.AddressData{
+				Addr: rollappRlyAddr,
+				Name: consts.KeysIds.RollappRelayer,
+			})
 			utils.PrintAddresses(addresses)
 		},
 	}

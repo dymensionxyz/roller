@@ -72,7 +72,7 @@ func GetSequencerInsufficientAddrs(config RollappConfig, requiredBalance big.Int
 				Denom:           consts.Denoms.Hub,
 				CurrentBalance:  sequencerData.Balance,
 				RequiredBalance: &requiredBalance,
-				KeyName:         consts.KeyNames.HubSequencer,
+				KeyName:         consts.KeysIds.HubSequencer,
 			},
 		}, nil
 	}

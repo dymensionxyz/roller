@@ -25,7 +25,7 @@ func initializeRollappGenesis(initConfig utils.RollappConfig) error {
 	relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
-		consts.KeyNames.RollappSequencer, sequencerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+		consts.KeysIds.RollappSequencer, sequencerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	_, err := utils.ExecBashCommand(genesisSequencerAccountCmd)
 	if err != nil {
 		return err
