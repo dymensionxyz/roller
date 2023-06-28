@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/olekukonko/tablewriter"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -49,6 +50,7 @@ type CreateKeyConfig struct {
 	Dir      string
 	ID       string
 	CoinType uint32
+	Algo     string
 	Prefix   string
 }
 

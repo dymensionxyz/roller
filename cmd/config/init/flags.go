@@ -4,32 +4,17 @@ import (
 	"fmt"
 	"regexp"
 
+	"math/big"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
-	"math/big"
 )
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", "1000000000", "The total token supply of the RollApp")
-
-	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		err := verifyHubID(cmd)
-		if err != nil {
-			return err
-		}
-		err = verifyTokenSupply(cmd)
-		if err != nil {
-			return err
-		}
-		rollappID := args[0]
-		if !validateRollAppID(rollappID) {
-			return fmt.Errorf("invalid RollApp ID '%s'. %s", rollappID, getValidRollappIdMessage())
-		}
-		return nil
-	}
 }
 
 func getRollappBinaryPath(cmd *cobra.Command) string {
@@ -61,9 +46,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 	}, nil
 }
 func getValidRollappIdMessage() string {
-	return "A valid RollApp ID should follow the format 'name_EIP155-version', where 'name' is made up of" +
-		" lowercase English letters, 'EIP155_version' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
-		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721_1'"
+	return "A valid RollApp ID should follow the format 'rollapp-name_EIP155-revision', where 'rollapp-name' is made up of" +
+		" lowercase English letters, 'EIP155-revision' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
+		"revision' is a 1 to 5 digit number representing the revision. For example: 'mars_9721-1'"
 }
 
 func getAvailableHubsMessage() string {

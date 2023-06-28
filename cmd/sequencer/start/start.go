@@ -47,9 +47,14 @@ var FlagNames = struct {
 
 func printOutput() {
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+
+	//TODO: either mark the ports as default, or read from configuration file
+
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
+
+	//TODO: print the log file path
 }
 
 func parseError(errMsg string) string {
@@ -79,7 +84,7 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
 		"--home", rollappConfigDir,
-		"--log_level", "debug",
+		"--log_level", "info",
 		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 		"--max-log-size", "2000",
 		"--module-log-level-override", "",

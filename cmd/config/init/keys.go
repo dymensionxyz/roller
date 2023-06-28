@@ -46,13 +46,15 @@ func getSequencerKeysConfig() []utils.CreateKeyConfig {
 		{
 			Dir:      consts.ConfigDirName.HubKeys,
 			ID:       consts.KeyNames.HubSequencer,
-			CoinType: consts.CoinTypes.Cosmos,
+			CoinType: consts.CoinTypes.EVM,
+			Algo:     consts.AlgoTypes.Secp256k1,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 		{
 			Dir:      consts.ConfigDirName.Rollapp,
 			ID:       consts.KeyNames.RollappSequencer,
 			CoinType: consts.CoinTypes.EVM,
+			Algo:     consts.AlgoTypes.Ethsecp256k1,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 	}
@@ -64,24 +66,22 @@ func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.Cr
 			Dir:      path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:       consts.KeyNames.RollappRelayer,
 			CoinType: consts.CoinTypes.EVM,
+			Algo:     consts.AlgoTypes.Ethsecp256k1,
 			Prefix:   consts.AddressPrefixes.Rollapp,
 		},
 		consts.KeyNames.HubRelayer: {
 			Dir:      path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:       consts.KeyNames.HubRelayer,
-			CoinType: consts.CoinTypes.Cosmos,
+			CoinType: consts.CoinTypes.EVM,
+			Algo:     consts.AlgoTypes.Secp256k1,
 			Prefix:   consts.AddressPrefixes.Hub,
 		},
 	}
 }
 
 func createAddressBinary(keyConfig utils.CreateKeyConfig, binaryPath string, home string) (string, error) {
-	args := []string{"keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--output", "json"}
-	if binaryPath == consts.Executables.Dymension {
-		args = append(args, "--algo", "secp256k1")
-	}
-	createKeyCommand := exec.Command(binaryPath, args...)
+	createKeyCommand := exec.Command(binaryPath, "keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"--keyring-dir", filepath.Join(home, keyConfig.Dir), "--algo", keyConfig.Algo, "--output", "json")
 	out, err := utils.ExecBashCommand(createKeyCommand)
 	if err != nil {
 		return "", err

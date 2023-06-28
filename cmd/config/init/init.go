@@ -1,16 +1,32 @@
 package initconfig
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			hubID, err := cmd.Flags().GetString(FlagNames.HubID)
+			if err != nil {
+				return err
+			}
+			if _, ok := Hubs[hubID]; !ok {
+				return fmt.Errorf("invalid hub ID: %s. %s", hubID, getAvailableHubsMessage())
+			}
+			rollappID := args[0]
+			if !validateRollAppID(rollappID) {
+				return fmt.Errorf("invalid RollApp ID '%s'. %s", rollappID, getValidRollappIdMessage())
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig, err := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(err)
@@ -22,13 +38,15 @@ func InitCmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(err)
 				if shouldOverwrite {
 					utils.PrettifyErrorIfExists(os.RemoveAll(initConfig.Home))
-					utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
 				} else {
 					os.Exit(0)
 				}
-			} else {
-				utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
 			}
+			utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
+
+			//TODO: create all dirs here
+
+			/* ---------------------------- Initilize relayer --------------------------- */
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
 				RPC:           consts.DefaultRollappRPC,
@@ -40,15 +58,23 @@ func InitCmd() *cobra.Command {
 				Denom:         consts.Denoms.Hub,
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
+
+			/* ------------------------------ Generate keys ----------------------------- */
 			addresses, err := generateKeys(initConfig)
 			utils.PrettifyErrorIfExists(err)
+
+			/* ------------------------ Initialize DA light node ------------------------ */
 			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
 			daAddress, err := utils.GetCelestiaAddress(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
 			addresses[consts.KeyNames.DALightNode] = daAddress
+
+			/* --------------------------- Initiailize Rollapp -------------------------- */
 			utils.PrettifyErrorIfExists(initializeRollappConfig(initConfig))
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
+
+			/* ------------------------------ Print output ------------------------------ */
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),

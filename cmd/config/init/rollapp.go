@@ -1,10 +1,11 @@
 package initconfig
 
 import (
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	toml "github.com/pelletier/go-toml"
@@ -26,6 +27,7 @@ func initializeRollappConfig(initConfig utils.RollappConfig) error {
 }
 
 func setRollappAppConfig(appConfigFilePath string, denom string) error {
+	//FIXME: why error not checked?
 	config, _ := toml.LoadFile(appConfigFilePath)
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")

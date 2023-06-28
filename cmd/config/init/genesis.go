@@ -2,15 +2,20 @@ package initconfig
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
 	"math/big"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 
 	"os/exec"
 	"path/filepath"
 
 	"github.com/tidwall/sjson"
+)
+
+const (
+	genesisTokenAmount = 1000000000 // 1 billion
 )
 
 func initializeRollappGenesis(initConfig utils.RollappConfig) error {
@@ -55,6 +60,7 @@ type PathValue struct {
 	Value interface{}
 }
 
+// FIXME: fix to support epochs
 func getDefaultGenesisParams(denom string) []PathValue {
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
