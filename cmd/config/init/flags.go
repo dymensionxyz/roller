@@ -11,10 +11,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	defaultTokenSupply = "1000000000"
+)
+
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
-	cmd.Flags().StringP(FlagNames.TokenSupply, "", "1000000000", "The total token supply of the RollApp")
+	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
 }
 
 func getRollappBinaryPath(cmd *cobra.Command) string {

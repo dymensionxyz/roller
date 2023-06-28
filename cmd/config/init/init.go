@@ -14,12 +14,13 @@ func InitCmd() *cobra.Command {
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			hubID, err := cmd.Flags().GetString(FlagNames.HubID)
+			err := verifyHubID(cmd)
 			if err != nil {
 				return err
 			}
-			if _, ok := Hubs[hubID]; !ok {
-				return fmt.Errorf("invalid hub ID: %s. %s", hubID, getAvailableHubsMessage())
+			err = verifyTokenSupply(cmd)
+			if err != nil {
+				return err
 			}
 			rollappID := args[0]
 			if !validateRollAppID(rollappID) {
