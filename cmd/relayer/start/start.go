@@ -35,24 +35,12 @@ func Start() *cobra.Command {
 			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60, logFileOption)
 			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, srcChannelId)
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
-			startCmd := getRlyStartCmd(rollappConfig)
-			utils.RunBashCmdAsync(startCmd, func() {
-				fmt.Printf("💈 The relayer is running successfully on you local machine on channel %s!", srcChannelId)
-			}, parseError, logFileOption)
+			fmt.Printf("💈 The relayer is running successfully on you local machine on channel %s!", srcChannelId)
+			select {}
 		},
 	}
 	utils.AddGlobalFlags(relayerStartCmd)
 	return relayerStartCmd
-}
-
-func parseError(errStr string) string {
-	// TODO
-	return errStr
-}
-
-func getRlyStartCmd(config utils.RollappConfig) *exec.Cmd {
-	return exec.Command(consts.Executables.Relayer, "start", consts.DefaultRelayerPath, "-l", "1", "--home",
-		filepath.Join(config.Home, consts.ConfigDirName.Relayer))
 }
 
 func getUpdateClientsCmd(config utils.RollappConfig) *exec.Cmd {
