@@ -66,14 +66,15 @@ func parseError(errMsg string) string {
 }
 
 func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
-	// daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
-	// lightNodeEndpoint)
+	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
+		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
 	cmd := exec.Command(
 		rollappConfig.RollappBinary, "start",
-		"--dymint.da_layer", "mock",
+		"--dymint.da_layer", "celestia",
+		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
 		"--dymint.block_batch_size", "500",
 		"--dymint.namespace_id", "000000000000ffff",
