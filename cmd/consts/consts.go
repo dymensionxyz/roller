@@ -71,7 +71,7 @@ var AlgoTypes = struct {
 	Ethsecp256k1 string
 }{
 	Secp256k1:    "secp256k1",
-	Ethsecp256k1: "ethsecp256k1",
+	Ethsecp256k1: "eth_secp256k1",
 }
 
 var Denoms = struct {
