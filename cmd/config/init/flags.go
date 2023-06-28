@@ -62,8 +62,8 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 }
 func getValidRollappIdMessage() string {
 	return "A valid RollApp ID should follow the format 'name_EIP155-version', where 'name' is made up of" +
-		" lowercase English letters, 'EIP155_version' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
-		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721_1'"
+		" lowercase English letters, 'EIP155' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
+		"version' is a 1 to 5 digit number representing the version. For example: 'mars_9721-1'"
 }
 
 func getAvailableHubsMessage() string {
