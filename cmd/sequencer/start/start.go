@@ -16,6 +16,12 @@ import (
 // TODO: Test sequencing on 35-C and update the price
 var OneDaySequencePrice = big.NewInt(1)
 
+var (
+	RollappBinary  string
+	RollappDirPath string
+	LogPath        string
+)
+
 func StartCmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "start",
@@ -24,13 +30,17 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+
+			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
+			RollappBinary = rollappConfig.RollappBinary
+			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
+
 			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *OneDaySequencePrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
 			startRollappCmd := GetStartRollappCmd(rollappConfig, LightNodeEndpoint)
-			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError, utils.WithLogging(
-				filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")))
+			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError, utils.WithLogging(LogPath))
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
@@ -47,14 +57,14 @@ var FlagNames = struct {
 
 func printOutput() {
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
-
-	//TODO: either mark the ports as default, or read from configuration file
+	fmt.Println("💈 Default endpoints:")
 
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 
-	//TODO: print the log file path
+	fmt.Println("💈 Log file path: ", LogPath)
+	fmt.Println("💈 To interact with the rollapp through CLI: \n", RollappBinary, "--home "+RollappDirPath, "keys list --keyring-backend test")
 }
 
 func parseError(errMsg string) string {
@@ -92,6 +102,6 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--max-log-size", "2000",
 	)
 
-	fmt.Println(cmd.String())
+	// fmt.Println(cmd.String())
 	return cmd
 }
