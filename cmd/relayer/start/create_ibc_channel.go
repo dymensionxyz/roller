@@ -2,10 +2,11 @@ package start
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
@@ -47,7 +48,7 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption u
 
 func getCreateChannelCmd(config utils.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
-	args := []string{"tx", "channel", "--override"}
+	args := []string{"tx", "channel", "-t", "300s", "--override"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
@@ -65,7 +66,7 @@ func getRelayerDefaultArgs(config utils.RollappConfig) []string {
 
 func getCreateConnectionCmd(config utils.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
-	args := []string{"tx", "connection"}
+	args := []string{"tx", "connection", "-t", "300s"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }

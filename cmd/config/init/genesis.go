@@ -2,10 +2,11 @@ package initconfig
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
 	"math/big"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 
 	"os/exec"
 	"path/filepath"
@@ -55,6 +56,7 @@ type PathValue struct {
 	Value interface{}
 }
 
+// TODO(#130): fix to support epochs
 func getDefaultGenesisParams(denom string) []PathValue {
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},

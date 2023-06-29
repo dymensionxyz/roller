@@ -47,9 +47,14 @@ var FlagNames = struct {
 
 func printOutput() {
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+
+	//TODO: either mark the ports as default, or read from configuration file
+
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
+
+	//TODO: print the log file path
 }
 
 func parseError(errMsg string) string {
@@ -61,33 +66,31 @@ func parseError(errMsg string) string {
 }
 
 func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
-	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":[0,0,0,0,0,0,255,255]}`,
+	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
 	cmd := exec.Command(
 		rollappConfig.RollappBinary, "start",
-		"--dymint.aggregator",
-		"--json-rpc.enable",
-		"--json-rpc.api", "eth,txpool,personal,net,debug,web3,miner",
 		"--dymint.da_layer", "celestia",
 		"--dymint.da_config", daConfig,
 		"--dymint.settlement_layer", "dymension",
-		// TODO: 600
-		"--dymint.block_batch_size", "50",
+		"--dymint.block_batch_size", "500",
 		"--dymint.namespace_id", "000000000000ffff",
 		"--dymint.block_time", "0.2s",
-		"--home", rollappConfigDir,
-		"--log_level", "debug",
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-		"--max-log-size", "2000",
-		"--module-log-level-override", "",
+		"--dymint.batch_submit_max_time", "100s",
+		"--dymint.empty_blocks_max_time", "10s",
+		"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
 		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
 		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
 		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
-		"--dymint.settlement_config.gas_fees", "0udym",
 		"--dymint.settlement_config.gas_prices", "0udym",
+		"--home", rollappConfigDir,
+		"--log_level", "info",
+		"--max-log-size", "2000",
 	)
+
+	fmt.Println(cmd.String())
 	return cmd
 }
