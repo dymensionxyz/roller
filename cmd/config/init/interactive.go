@@ -7,6 +7,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+// TODO: add validation for all prompts
 func RunInteractiveMode(config *utils.RollappConfig) {
 	promptChainID := promptui.Prompt{
 		Label: "Chain ID",
@@ -47,30 +48,5 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Items: []string{"local", "internal-devnet"},
 	}
 	_, mode, _ := promptNetwork.Run()
-	//TODO: add validation
 	config.HubData = Hubs[mode]
-
-	// promptPrefix := promptui.Prompt{
-	// 	Label:    "Prefix",
-	// 	Default:  config.Denom,
-	// 	Validate: validateNotEmpty,
-	// }
-	// prefix, _ := promptPrefix.Run()
-	// config.Prefix = prefix
-
-	// promptGenesisAccountAddr := promptui.Prompt{
-	// 	Label: "Genesis account address",
-	// }
-	// genesisAccountAddr, _ := promptGenesisAccountAddr.Run()
-	// if genesisAccountAddr != "" {
-	// 	config.GenesisAccountAddr = genesisAccountAddr
-	// 	config.NoValidators = true
-	// }
 }
-
-// func validateNotEmpty(input string) error {
-// 	if input == "" {
-// 		return fmt.Errorf("input must not be empty")
-// 	}
-// 	return nil
-// }
