@@ -22,6 +22,13 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption u
 		return "", err
 	}
 	if dstConnectionId == "" {
+		// Before setting up the connection, we need to call update clients
+		updateClientsCmd := getUpdateClientsCmd(rollappConfig)
+		fmt.Println("Updating clients...")
+		if err := utils.ExecBashCmdWithOSOutput(updateClientsCmd, logFileOption); err != nil {
+			return "", err
+		}
+
 		createConnectionCmd := getCreateConnectionCmd(rollappConfig)
 		fmt.Println("Creating connection...")
 		if err := utils.ExecBashCmdWithOSOutput(createConnectionCmd, logFileOption); err != nil {
