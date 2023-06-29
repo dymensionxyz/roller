@@ -11,6 +11,8 @@ func getServicesInfo(rollappConfig utils.RollappConfig, termWidth int) *widgets.
 	table.RowStyles[0] = termui.NewStyle(termui.ColorWhite, termui.ColorClear, termui.ModifierBold)
 	table.SetRect(0, 13, termWidth, 22)
 	table.Title = "Services Info"
+	table.FillRow = true
+	table.ColumnWidths = []int{termWidth / 6, termWidth / 2, termWidth / 3}
 	table.Rows = [][]string{
 		{"Name", "Log File", "Ports"},
 		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), "26657, 8545, 1317"},
