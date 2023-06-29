@@ -55,7 +55,8 @@ func (c RollappConfig) Validate() error {
 	if err != nil {
 		return err
 	}
-	if !ValidateRollAppID(c.RollappID) {
+	err = ValidateRollAppID(c.RollappID)
+	if err != nil {
 		return fmt.Errorf("invalid RollApp ID '%s'", c.RollappID)
 	}
 	return nil
@@ -69,10 +70,13 @@ type HubData = struct {
 	RPC_URL string
 }
 
-func ValidateRollAppID(id string) bool {
+func ValidateRollAppID(id string) error {
 	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
 	r, _ := regexp.Compile(pattern)
-	return r.MatchString(id)
+	if !r.MatchString(id) {
+		return fmt.Errorf("invalid RollApp ID '%s'", id)
+	}
+	return nil
 }
 
 func VerifyHubID(data HubData) error {

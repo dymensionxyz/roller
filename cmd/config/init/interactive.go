@@ -7,14 +7,15 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// TODO: add validation for all prompts
 func RunInteractiveMode(config *utils.RollappConfig) {
 	promptChainID := promptui.Prompt{
-		Label: "Chain ID",
+		Label:    "Chain ID",
+		Validate: utils.ValidateRollAppID,
 	}
 	chainID, _ := promptChainID.Run()
 	config.RollappID = chainID
 
+	// TODO: add validation for denomination
 	promptDenom := promptui.Prompt{
 		Label: "Denomination",
 	}
@@ -22,7 +23,8 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 	config.Denom = denom
 
 	promptTokenSupply := promptui.Prompt{
-		Label: "TokenSupply",
+		Label:    "TokenSupply",
+		Validate: utils.VerifyTokenSupply,
 	}
 	supply, _ := promptTokenSupply.Run()
 	config.TokenSupply = supply
@@ -32,7 +34,6 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Items: []string{"evm", "sdk"},
 	}
 	_, _, _ = promptType.Run()
-	// config.CliType = cliType
 	fmt.Println("Only EVM supported for now")
 
 	promptDAType := promptui.Select{
@@ -40,7 +41,6 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Items: []string{"Celestia", "Avail"},
 	}
 	_, _, _ = promptDAType.Run()
-	// config.daType = daType
 	fmt.Println("Only Celestia supported for now")
 
 	promptNetwork := promptui.Select{
