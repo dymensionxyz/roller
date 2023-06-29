@@ -1,9 +1,13 @@
 package utils
 
 import (
-	"github.com/pelletier/go-toml"
+	"fmt"
 	"io/ioutil"
+	"math/big"
 	"path/filepath"
+	"regexp"
+
+	"github.com/pelletier/go-toml"
 )
 
 func WriteConfigToTOML(InitConfig RollappConfig) error {
@@ -42,10 +46,56 @@ type RollappConfig struct {
 	HubData       HubData
 }
 
+func (c RollappConfig) Validate() error {
+	err := VerifyHubID(c.HubData)
+	if err != nil {
+		return err
+	}
+	err = VerifyTokenSupply(c.TokenSupply)
+	if err != nil {
+		return err
+	}
+	if !ValidateRollAppID(c.RollappID) {
+		return fmt.Errorf("invalid RollApp ID '%s'", c.RollappID)
+	}
+	return nil
+}
+
 const RollerConfigFileName = "config.toml"
 
 type HubData = struct {
 	API_URL string
 	ID      string
 	RPC_URL string
+}
+
+func ValidateRollAppID(id string) bool {
+	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
+	r, _ := regexp.Compile(pattern)
+	return r.MatchString(id)
+}
+
+func VerifyHubID(data HubData) error {
+	if data.RPC_URL == "" {
+		return fmt.Errorf("invalid hub ID: %s. RPC URL cannot be empty", data.ID)
+	}
+	return nil
+}
+
+func VerifyTokenSupply(supply string) error {
+	tokenSupply := new(big.Int)
+	_, ok := tokenSupply.SetString(supply, 10)
+	if !ok {
+		return fmt.Errorf("invalid token supply: %s. Must be a valid integer", supply)
+	}
+
+	ten := big.NewInt(10)
+	remainder := new(big.Int)
+	remainder.Mod(tokenSupply, ten)
+
+	if remainder.Cmp(big.NewInt(0)) != 0 {
+		return fmt.Errorf("invalid token supply: %s. Must be divisible by 10", supply)
+	}
+
+	return nil
 }
