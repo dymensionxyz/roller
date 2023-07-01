@@ -29,8 +29,8 @@ func StartCmd() *cobra.Command {
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
 			startRollappCmd := GetStartRollappCmd(rollappConfig, LightNodeEndpoint)
-			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError, utils.WithLogging(
-				filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")))
+			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError,
+				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 		},
 	}
 	utils.AddGlobalFlags(runCmd)
@@ -90,7 +90,5 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--log_level", "info",
 		"--max-log-size", "2000",
 	)
-
-	fmt.Println(cmd.String())
 	return cmd
 }
