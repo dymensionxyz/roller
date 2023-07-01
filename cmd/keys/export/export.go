@@ -10,18 +10,21 @@ import (
 	"strings"
 )
 
+var supportedKeys = []string{
+	consts.KeysIds.HubSequencer,
+	consts.KeysIds.RollappSequencer,
+}
+
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "export <key-id>",
-		Short: "Exports the private key of the given key id",
+		Use: "export <key-id>",
+		Short: fmt.Sprintf("Exports the private key of the given key id. The supported keys are %s",
+			strings.Join(supportedKeys, ", ")),
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			config, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			supportedKeys := []string{
-				consts.KeysIds.HubSequencer,
-				consts.KeysIds.RollappSequencer,
-			}
+
 			keyID := args[0]
 			if keyID == consts.KeysIds.HubSequencer {
 				exportKeyCmd := getExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
