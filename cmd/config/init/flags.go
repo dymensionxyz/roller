@@ -2,7 +2,6 @@ package initconfig
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"regexp"
 
 	"math/big"
@@ -37,7 +36,7 @@ func getTokenSupply(cmd *cobra.Command) string {
 func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, error) {
 	rollappId := args[0]
 	denom := args[1]
-	home := viper.GetString(utils.FlagNames.Home)
+	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	rollappBinaryPath := getRollappBinaryPath(initCmd)
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	tokenSupply := getTokenSupply(initCmd)

@@ -5,7 +5,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"math/big"
 	"os/exec"
 	"path/filepath"
@@ -26,7 +25,7 @@ func Cmd() *cobra.Command {
 		Use:   "start",
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := viper.GetString(utils.FlagNames.Home)
+			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			insufficientBalances, err := CheckDABalance(rollappConfig)
