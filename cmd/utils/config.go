@@ -39,13 +39,14 @@ type RollappConfig struct {
 	RollappBinary string
 	Denom         string
 	TokenSupply   string
+	Decimals      uint
 	HubData       HubData
 }
 
 const RollerConfigFileName = "config.toml"
 
 type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
+	ApiUrl string
+	ID     string
+	RpcUrl string
 }

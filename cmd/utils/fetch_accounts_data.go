@@ -31,7 +31,7 @@ func GetHubRlyAccData(config RollappConfig) (*AccountData, error) {
 		return nil, err
 	}
 	HubRlyBalance, err := QueryBalance(ChainQueryConfig{
-		RPC:    config.HubData.RPC_URL,
+		RPC:    config.HubData.RpcUrl,
 		Denom:  consts.Denoms.Hub,
 		Binary: consts.Executables.Dymension,
 	}, HubRlyAddr)
@@ -55,7 +55,7 @@ func GetSequencerData(config RollappConfig) (*AccountData, error) {
 	sequencerBalance, err := QueryBalance(ChainQueryConfig{
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,
-		RPC:    config.HubData.RPC_URL,
+		RPC:    config.HubData.RpcUrl,
 	}, sequencerAddress)
 	if err != nil {
 		return nil, err

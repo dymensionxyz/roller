@@ -9,9 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const validDenomMsg = "A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'"
+
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
-		Use:   "init <chain-id> <denom>",
+		Use:   "init <rollapp-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := verifyHubID(cmd)
@@ -25,6 +27,13 @@ func InitCmd() *cobra.Command {
 			rollappID := args[0]
 			if !validateRollAppID(rollappID) {
 				return fmt.Errorf("invalid RollApp ID '%s'. %s", rollappID, getValidRollappIdMessage())
+			}
+			denom := args[1]
+			if !isValidDenom(denom) {
+				return fmt.Errorf("invalid denom '%s'. %s", denom, validDenomMsg)
+			}
+			if err = verifyDecimals(cmd); err != nil {
+				return err
 			}
 			return nil
 		},
@@ -55,7 +64,7 @@ func InitCmd() *cobra.Command {
 				AddressPrefix: consts.AddressPrefixes.Rollapp,
 			}, ChainConfig{
 				ID:            initConfig.HubData.ID,
-				RPC:           initConfig.HubData.RPC_URL,
+				RPC:           initConfig.HubData.RpcUrl,
 				Denom:         consts.Denoms.Hub,
 				AddressPrefix: consts.AddressPrefixes.Hub,
 			}, initConfig))
@@ -79,7 +88,7 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 
 			/* ------------------------------ Print output ------------------------------ */
-			printInitOutput(addresses, initConfig.RollappID)
+			printInitOutput(initConfig, addresses, initConfig.RollappID)
 		},
 		Args: cobra.ExactArgs(2),
 	}

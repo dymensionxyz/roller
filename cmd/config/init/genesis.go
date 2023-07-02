@@ -19,6 +19,8 @@ func initializeRollappGenesis(initConfig utils.RollappConfig) error {
 	if !success {
 		return fmt.Errorf("invalid token supply")
 	}
+	totalTokenSupply = totalTokenSupply.Mul(totalTokenSupply, new(big.Int).Exp(big.NewInt(10),
+		new(big.Int).SetUint64(uint64(initConfig.Decimals)), nil))
 	relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
 	sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
 	sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom

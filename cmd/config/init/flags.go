@@ -3,6 +3,8 @@ package initconfig
 import (
 	"fmt"
 	"regexp"
+	"strings"
+	"unicode"
 
 	"math/big"
 
@@ -19,6 +21,10 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
+	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
+		"The precision level of the RollApp's token defined by the number of decimal places. "+
+			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
+			"Note: EVM RollApps must set this value to 18.")
 }
 
 func getRollappBinaryPath(cmd *cobra.Command) string {
@@ -40,13 +46,16 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 	rollappBinaryPath := getRollappBinaryPath(initCmd)
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	tokenSupply := getTokenSupply(initCmd)
+	// Error is ignored because the flag is validated in the cobra preRun hook
+	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
 	return utils.RollappConfig{
 		Home:          home,
 		RollappID:     rollappId,
 		RollappBinary: rollappBinaryPath,
-		Denom:         denom,
+		Denom:         "u" + denom,
 		HubData:       Hubs[hubID],
 		TokenSupply:   tokenSupply,
+		Decimals:      decimals,
 	}, nil
 }
 func getValidRollappIdMessage() string {
@@ -97,4 +106,27 @@ func verifyTokenSupply(cmd *cobra.Command) error {
 	}
 
 	return nil
+}
+
+func verifyDecimals(cmd *cobra.Command) error {
+	decimals, err := cmd.Flags().GetUint(FlagNames.Decimals)
+	if err != nil {
+		return err
+	}
+	if decimals > 18 {
+		return fmt.Errorf("invalid decimals: %d. Must be less than or equal to 18", decimals)
+	}
+	return nil
+}
+
+func isValidDenom(s string) bool {
+	if len(s) != 3 {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
+			return false
+		}
+	}
+	return true
 }

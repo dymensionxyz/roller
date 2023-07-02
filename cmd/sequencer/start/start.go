@@ -82,7 +82,7 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.batch_submit_max_time", "100s",
 		"--dymint.empty_blocks_max_time", "10s",
 		"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
-		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
+		"--dymint.settlement_config.node_address", rollappConfig.HubData.RpcUrl,
 		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
 		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
 		"--dymint.settlement_config.gas_prices", "0udym",

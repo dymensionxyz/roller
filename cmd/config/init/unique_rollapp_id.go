@@ -7,7 +7,7 @@ import (
 )
 
 func IsRollappIDUnique(rollappID string, initConfig utils.RollappConfig) (bool, error) {
-	url := initConfig.HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
+	url := initConfig.HubData.ApiUrl + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
