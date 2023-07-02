@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,9 +35,6 @@ func initializeRollappConfig(initConfig utils.RollappConfig) error {
 
 	setGentxCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
 		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--home", home)
-
-	fmt.Println(setGentxCmd.String())
-
 	_, err = utils.ExecBashCommand(setGentxCmd)
 	if err != nil {
 		return err
