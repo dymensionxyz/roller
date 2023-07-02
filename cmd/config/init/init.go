@@ -93,6 +93,9 @@ func InitCmd() *cobra.Command {
 		Args: cobra.ExactArgs(2),
 	}
 
-	addFlags(initCmd)
+	if err := addFlags(initCmd); err != nil {
+		panic(err)
+	}
+
 	return initCmd
 }

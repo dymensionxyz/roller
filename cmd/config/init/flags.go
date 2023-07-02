@@ -17,7 +17,7 @@ const (
 	defaultTokenSupply = "1000000000"
 )
 
-func addFlags(cmd *cobra.Command) {
+func addFlags(cmd *cobra.Command) error {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
@@ -25,6 +25,13 @@ func addFlags(cmd *cobra.Command) {
 		"The precision level of the RollApp's token defined by the number of decimal places. "+
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
 			"Note: EVM RollApps must set this value to 18.")
+
+	// TODO: Expose when supporting custom sdk rollapps.
+	err := cmd.Flags().MarkHidden(FlagNames.Decimals)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getRollappBinaryPath(cmd *cobra.Command) string {
