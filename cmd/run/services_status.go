@@ -68,7 +68,7 @@ func PrintServicesStatus(rollappConfig utils.RollappConfig) {
 
 	termWidth, _ := ui.TerminalDimensions()
 
-	p := buildUIParagraph(termWidth)
+	p := buildTitleParagraph(rollappConfig, termWidth)
 	servicesStatusTable := buildUITable(termWidth)
 	servicesInfoTable := getServicesInfo(rollappConfig, termWidth)
 	serviceData := getInitialServiceData()
