@@ -88,7 +88,7 @@ func InitCmd() *cobra.Command {
 			printInitOutput(addresses, initConfig.RollappID)
 		},
 	}
-	utils.AddGlobalFlags(initCmd)
+
 	addFlags(initCmd)
 	return initCmd
 }

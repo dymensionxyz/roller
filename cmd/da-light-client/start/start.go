@@ -33,11 +33,11 @@ func Cmd() *cobra.Command {
 			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			startDALCCmd := GetStartDACmd(rollappConfig, rpcEndpoint)
-			logFilePath := GetDALogFilePath(rollappConfig.Home)
+			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
 		},
 	}
-	utils.AddGlobalFlags(runCmd)
+
 	addFlags(runCmd)
 	return runCmd
 }
@@ -83,8 +83,4 @@ func GetStartDACmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.
 		"--gateway.port", gatewayPort,
 		"--p2p.network", "arabica",
 	)
-}
-
-func GetDALogFilePath(home string) string {
-	return filepath.Join(home, consts.ConfigDirName.DALightNode, "light_client.log")
 }

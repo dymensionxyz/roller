@@ -38,7 +38,7 @@ func Cmd() *cobra.Command {
 			printRegisterOutput(rollappConfig)
 		},
 	}
-	utils.AddGlobalFlags(registerCmd)
+
 	return registerCmd
 }
 

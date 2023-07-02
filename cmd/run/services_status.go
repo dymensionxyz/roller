@@ -58,11 +58,12 @@ func PrintServicesStatus(rollappConfig utils.RollappConfig) {
 	termWidth, _ := ui.TerminalDimensions()
 
 	p := buildUIParagraph(termWidth)
-	table := buildUITable(termWidth)
+	servicesStatusTable := buildUITable(termWidth)
+	servicesInfoTable := getServicesInfo(rollappConfig, termWidth)
 	serviceData := getInitialServiceData()
 
-	updateUITable(serviceData, table)
-	ui.Render(p, table)
+	updateUITable(serviceData, servicesStatusTable)
+	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
 	events := ui.PollEvents()
 	ticker := time.NewTicker(time.Second * 5).C
@@ -70,8 +71,7 @@ func PrintServicesStatus(rollappConfig utils.RollappConfig) {
 	config := ServiceStatusConfig{
 		rollappConfig: rollappConfig,
 		logger:        logger,
-		table:         table,
-		p:             p,
+		table:         servicesStatusTable,
 	}
 
 	eventLoop(events, ticker, config)
@@ -91,10 +91,9 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, config ServiceSt
 				config.logger.Printf("Error: failed to fetch service data: %v", err)
 			} else {
 				config.logger.Printf("Fetched services data successfully %s", serviceData)
-
 			}
 			updateUITable(serviceData, config.table)
-			ui.Render(config.p, config.table)
+			ui.Render(config.table)
 		}
 	}
 }
@@ -103,5 +102,4 @@ type ServiceStatusConfig struct {
 	rollappConfig utils.RollappConfig
 	logger        *log.Logger
 	table         *widgets.Table
-	p             *widgets.Paragraph
 }
