@@ -10,8 +10,9 @@ import (
 // TODO: return error output
 func RunInteractiveMode(config *utils.RollappConfig) {
 	promptNetwork := promptui.Select{
-		Label: "Select your network",
-		Items: []string{"local", "devnet"},
+		Label:     "Select your network",
+		Items:     []string{"local", "devnet"},
+		CursorPos: 1,
 	}
 	_, mode, _ := promptNetwork.Run()
 	config.HubData = Hubs[mode]
