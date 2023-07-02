@@ -65,7 +65,7 @@ func printOutput() {
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 
 	fmt.Println("💈 Log file path: ", LogPath)
-	fmt.Println("💈 To interact with the rollapp through CLI: \n", RollappBinary, "--home "+RollappDirPath, "keys list --keyring-backend test")
+	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
 }
 
 func parseError(errMsg string) string {
