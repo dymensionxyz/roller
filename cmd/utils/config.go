@@ -72,7 +72,7 @@ type HubData = struct {
 
 func ValidateRollAppID(id string) error {
 	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
-	r, _ := regexp.Compile(pattern)
+	r := regexp.MustCompile(pattern)
 	if !r.MatchString(id) {
 		return fmt.Errorf("invalid RollApp ID '%s'", id)
 	}

@@ -7,46 +7,53 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+// TODO: return error output
 func RunInteractiveMode(config *utils.RollappConfig) {
+	promptNetwork := promptui.Select{
+		Label: "Select your network",
+		Items: []string{"local", "devnet"},
+	}
+	_, mode, _ := promptNetwork.Run()
+	config.HubData = Hubs[mode]
+
 	promptChainID := promptui.Prompt{
-		Label:    "Chain ID",
-		Validate: utils.ValidateRollAppID,
+		Label:     "Enter your RollApp ID",
+		Default:   "myrollapp_1234-1",
+		AllowEdit: true,
+		Validate:  utils.ValidateRollAppID,
 	}
 	chainID, _ := promptChainID.Run()
 	config.RollappID = chainID
 
-	// TODO: add validation for denomination
 	promptDenom := promptui.Prompt{
-		Label: "Denomination",
+		Label:   "Specify your RollApp denom",
+		Default: "RAX",
+		// TODO: add validation for denomination
 	}
 	denom, _ := promptDenom.Run()
 	config.Denom = denom
 
 	promptTokenSupply := promptui.Prompt{
-		Label:    "TokenSupply",
+		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",
+		Default:  "1000000000",
 		Validate: utils.VerifyTokenSupply,
 	}
 	supply, _ := promptTokenSupply.Run()
 	config.TokenSupply = supply
 
-	promptType := promptui.Select{
-		Label: "CLI type",
-		Items: []string{"evm", "sdk"},
-	}
-	_, _, _ = promptType.Run()
-	fmt.Println("Only EVM supported for now")
-
 	promptDAType := promptui.Select{
-		Label: "DA type",
+		Label: "Choose your data layer",
 		Items: []string{"Celestia", "Avail"},
 	}
 	_, _, _ = promptDAType.Run()
 	fmt.Println("Only Celestia supported for now")
 
-	promptNetwork := promptui.Select{
-		Label: "Network",
-		Items: []string{"local", "internal-devnet"},
+	promptBinaryPath := promptui.Prompt{
+		Label:     "Set your runtime binary",
+		Default:   config.RollappBinary,
+		AllowEdit: true,
+		//TODO: add validate for binary path
 	}
-	_, mode, _ := promptNetwork.Run()
-	config.HubData = Hubs[mode]
+	path, _ := promptBinaryPath.Run()
+	config.RollappBinary = path
 }
