@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func GetRolRlyAccData(config RollappConfig) (*AccountData, error) {

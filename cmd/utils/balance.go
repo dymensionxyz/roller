@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
 	"os/exec"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 type ChainQueryConfig struct {

@@ -2,23 +2,26 @@ package start
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 	"math/big"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/spf13/cobra"
 )
 
-const rpcEndpointFlag = "--rpc-endpoint"
-
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
-var lcMinBalance = big.NewInt(1)
+const (
+	gatewayAddr     = "0.0.0.0"
+	gatewayPort     = "26659"
+	rpcEndpointFlag = "--rpc-endpoint"
+)
 
-const gatewayAddr = "0.0.0.0"
-const gatewayPort = "26659"
-
-var LCEndpoint = fmt.Sprintf("http://%s:%s", gatewayAddr, gatewayPort)
+var (
+	lcMinBalance = big.NewInt(1)
+	LCEndpoint   = fmt.Sprintf("http://%s:%s", gatewayAddr, gatewayPort)
+)
 
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
@@ -81,6 +84,6 @@ func GetStartDACmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.
 		"--gateway",
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
-		"--p2p.network", "arabica",
+		"--p2p.network", consts.DefaultCeletiaNetowrk,
 	)
 }
