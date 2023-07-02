@@ -4,12 +4,12 @@ global:
     memo: ""
     light-cache-size: 20
 chains:
-    devnet_666-1:
+    devnet_304-1:
         type: cosmos
         value:
             key: relayer-hub-key
-            chain-id: devnet_666-1
-            rpc-addr: https://rpc-hub-devnet.dymension.xyz:443
+            chain-id: devnet_304-1
+            rpc-addr: https://dymension.devnet.rpc.silknodes.io:443
             account-prefix: dym
             keyring-backend: test
             gas-adjustment: 1.2
@@ -39,8 +39,8 @@ paths:
         src:
             chain-id: mars_1-1
         dst:
-            chain-id: devnet_666-1
+            chain-id: devnet_304-1
         src-channel-filter:
             rule: ""
             channel-list: []
-settlement: devnet_666-1
+settlement: devnet_304-1
