@@ -1,7 +1,4 @@
 /.vscode
-*
-!*/
-!*.*
+build/
 *.exe
-\.*
-/.vscode
+/.idea

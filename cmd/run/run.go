@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
 	"os/exec"
-	"path/filepath"
 	"sync"
 )
 
@@ -41,7 +40,7 @@ func Cmd() *cobra.Command {
 			logger.Println("killed them")
 		},
 	}
-	utils.AddGlobalFlags(cmd)
+
 	return cmd
 }
 
@@ -55,15 +54,14 @@ func getStartRelayerCmd(config utils.RollappConfig) *exec.Cmd {
 }
 
 func runDaWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
-	daLogFilePath := da_start.GetDALogFilePath(rollappConfig.Home)
+	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	startDALCCmd := da_start.GetStartDACmd(rollappConfig, consts.DefaultCelestiaRPC)
 	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
 }
 
 func runSequencerWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
 	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
-	utils.RunServiceWithRestart(startRollappCmd, serviceConfig, utils.WithLogging(
-		filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")))
+	utils.RunServiceWithRestart(startRollappCmd, serviceConfig, utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 }
 
 func verifyBalances(rollappConfig utils.RollappConfig) {
