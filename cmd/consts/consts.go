@@ -85,12 +85,15 @@ var Denoms = struct {
 	Celestia: "utia",
 }
 
-const KeysDirName = "keys"
-const DefaultRelayerPath = "hub-rollapp"
-const DefaultRollappRPC = "http://localhost:26657"
-const DefaultDALCRPC = "http://localhost:26659"
-const CelestiaRestApiEndpoint = "https://api-arabica-8.consensus.celestia-arabica.com"
-const DefaultCelestiaRPC = "consensus-full-arabica-8.celestia-arabica.com"
+const (
+	KeysDirName             = "keys"
+	DefaultRelayerPath      = "hub-rollapp"
+	DefaultRollappRPC       = "http://localhost:26657"
+	DefaultDALCRPC          = "http://localhost:26659"
+	CelestiaRestApiEndpoint = "https://api-mocha.pops.one"
+	DefaultCelestiaRPC      = "rpc-mocha.pops.one"
+	DefaultCeletiaNetowrk   = "mocha"
+)
 
 // TODO: Check DA LC write price on arabica and update this value.
 var OneDAWritePrice = big.NewInt(1)
