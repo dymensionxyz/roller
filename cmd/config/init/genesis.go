@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"math/big"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 
@@ -58,7 +60,10 @@ type PathValue struct {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(denom string) []PathValue {
+	genesisEpochProvisions := sdk.NewDec(2_500_000).Mul(sdk.NewDec(1_000_000_000_000_000_000)).Quo(sdk.NewDec(24 * 365)) // 2.5MST first year, broken into hours ~= 285ST / hour
+
 	return []PathValue{
+		{"app_state.mint.params.genesis_epoch_provisions", genesisEpochProvisions},
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
 		{"app_state.crisis.constant_fee.denom", denom},
