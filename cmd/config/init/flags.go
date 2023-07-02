@@ -2,6 +2,8 @@ package initconfig
 
 import (
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -12,11 +14,22 @@ const (
 	defaultTokenSupply = "1000000000"
 )
 
-func addFlags(cmd *cobra.Command) {
+func addFlags(cmd *cobra.Command) error {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
 	cmd.Flags().BoolP(FlagNames.Interactive, "", false, "Run roller in interactive mode")
+	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
+		"The precision level of the RollApp's token defined by the number of decimal places. "+
+			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
+			"Note: EVM RollApps must set this value to 18.")
+
+	// TODO: Expose when supporting custom sdk rollapps.
+	err := cmd.Flags().MarkHidden(FlagNames.Decimals)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getTokenSupply(cmd *cobra.Command) string {
@@ -27,7 +40,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 	cfg := utils.RollappConfig{}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
-
+	// Error is ignored because the flag is validated in the cobra preRun hook
+	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
+	cfg.Decimals = decimals
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
 		RunInteractiveMode(&cfg)
@@ -39,9 +54,8 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	tokenSupply := getTokenSupply(initCmd)
-
 	cfg.RollappID = rollappId
-	cfg.Denom = denom
+	cfg.Denom = "u" + denom
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
 
@@ -55,4 +69,27 @@ func getValidRollappIdMessage() string {
 
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubID, LocalHubID)
+}
+
+func verifyDecimals(cmd *cobra.Command) error {
+	decimals, err := cmd.Flags().GetUint(FlagNames.Decimals)
+	if err != nil {
+		return err
+	}
+	if decimals > 18 {
+		return fmt.Errorf("invalid decimals: %d. Must be less than or equal to 18", decimals)
+	}
+	return nil
+}
+
+func isValidDenom(s string) bool {
+	if len(s) != 3 {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
+			return false
+		}
+	}
+	return true
 }

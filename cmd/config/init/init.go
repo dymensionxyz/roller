@@ -10,9 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const validDenomMsg = "A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'"
+
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
-		Use:   "init <chain-id> <denom>",
+		Use:   "init <rollapp-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool(FlagNames.Interactive)
@@ -22,14 +24,22 @@ func InitCmd() *cobra.Command {
 
 			if len(args) == 0 {
 				fmt.Println("No arguments provided. Running in interactive mode.")
-				cmd.Flags().Set(FlagNames.Interactive, "true")
+				if err := cmd.Flags().Set(FlagNames.Interactive, "true"); err != nil {
+					return err
+				}
 				return nil
 			}
 
 			if len(args) < 2 {
 				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
 			}
-
+			denom := args[1]
+			if !isValidDenom(denom) {
+				return fmt.Errorf("invalid denom '%s'. %s", denom, validDenomMsg)
+			}
+			if err := verifyDecimals(cmd); err != nil {
+				return err
+			}
 			//TODO: parse the config here instead of GetInitConfig in Run command
 			// cmd.SetContextValue("mydata", data)
 
@@ -91,10 +101,13 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 
 			/* ------------------------------ Print output ------------------------------ */
-			printInitOutput(addresses, initConfig.RollappID)
+			printInitOutput(initConfig, addresses, initConfig.RollappID)
 		},
 	}
 
-	addFlags(initCmd)
+	if err := addFlags(initCmd); err != nil {
+		panic(err)
+	}
+
 	return initCmd
 }

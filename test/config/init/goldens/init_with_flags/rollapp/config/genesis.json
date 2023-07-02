@@ -84,7 +84,7 @@
       "supply": [
         {
           "denom": "udym",
-          "amount": "1000"
+          "amount": "1000000000000000000000"
         }
       ],
       "denom_metadata": []
