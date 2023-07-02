@@ -1,6 +1,9 @@
 package consts
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+)
 
 const binsDir = "/usr/local/bin"
 
@@ -88,3 +91,6 @@ const DefaultRollappRPC = "http://localhost:26657"
 const DefaultDALCRPC = "http://localhost:26659"
 const CelestiaRestApiEndpoint = "https://api-arabica-8.consensus.celestia-arabica.com"
 const DefaultCelestiaRPC = "consensus-full-arabica-8.celestia-arabica.com"
+
+// TODO: Check DA LC write price on arabica and update this value.
+var OneDAWritePrice = big.NewInt(1)

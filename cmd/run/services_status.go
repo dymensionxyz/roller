@@ -29,22 +29,33 @@ func processDataResults(results chan fetchResult, size int, logger *log.Logger) 
 	return data
 }
 
+func activeIfSufficientBalance(currentBalance, threshold *big.Int) string {
+	if currentBalance.Cmp(threshold) >= 0 {
+		return "Active"
+	} else {
+		return "Stopped"
+	}
+}
+
 func buildServiceData(data []*utils.AccountData, rollappConfig utils.RollappConfig) []ServiceData {
+	rolRlyData := data[2]
 	return []ServiceData{
 		{
 			Name:    "Sequencer",
 			Balance: data[0].Balance.String() + consts.Denoms.Hub,
-			Status:  "Active",
+			// TODO: for now, we just check if the balance of the rollapp relayer is greater than 0
+			// in the future, we should have a better way to check the rollapp health.
+			Status: activeIfSufficientBalance(rolRlyData.Balance, big.NewInt(1)),
 		},
 		{
 			Name:    "DA Light Client",
 			Balance: data[3].Balance.String() + consts.Denoms.Celestia,
-			Status:  "Active",
+			Status:  activeIfSufficientBalance(data[3].Balance, consts.OneDAWritePrice),
 		},
 		{
 			Name: "Relayer",
 			Balance: data[1].Balance.String() + consts.Denoms.Hub + ", " +
-				data[2].Balance.String() + rollappConfig.Denom,
+				rolRlyData.Balance.String() + rollappConfig.Denom,
 			Status: "Starting...",
 		},
 	}
