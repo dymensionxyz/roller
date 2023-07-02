@@ -1,6 +1,8 @@
 package run
 
 import (
+	"fmt"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"log"
@@ -12,9 +14,10 @@ func initializeUI() {
 	}
 }
 
-func buildUIParagraph(termWidth int) *widgets.Paragraph {
+func buildTitleParagraph(rollappConfig utils.RollappConfig, termWidth int) *widgets.Paragraph {
 	p := widgets.NewParagraph()
-	p.Text = "💈 The rollapp is running successfully on your local machine!"
+	p.Text = fmt.Sprintf("💈 Rollapp '%s' is successfully running on your local machine, connected to Dymension hub '%s'.",
+		rollappConfig.RollappID, rollappConfig.HubData.ID)
 	p.SetRect(0, 0, termWidth, 3)
 	return p
 }
