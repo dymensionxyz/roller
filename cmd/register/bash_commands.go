@@ -1,13 +1,12 @@
 package register
 
 import (
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"os/exec"
 	"path/filepath"
 
-	"fmt"
+	"github.com/dymensionxyz/roller/cmd/utils"
 
-	"strings"
+	"fmt"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -22,23 +21,8 @@ func getRegisterRollappCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
 	)
 }
 
-func showSequencerPubKey(rollappConfig utils.RollappConfig) (string, error) {
-	cmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"dymint",
-		"show-sequencer",
-		"--home",
-		filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-	)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
-}
-
 func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, error) {
-	seqPubKey, err := showSequencerPubKey(rollappConfig)
+	seqPubKey, err := utils.GetSequencerPubKey(rollappConfig)
 	if err != nil {
 		return nil, err
 	}
