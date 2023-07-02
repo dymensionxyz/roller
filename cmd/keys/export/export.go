@@ -45,7 +45,7 @@ func Cmd() *cobra.Command {
 		},
 		Args: cobra.ExactArgs(1),
 	}
-	utils.AddGlobalFlags(cmd)
+
 	return cmd
 }
 

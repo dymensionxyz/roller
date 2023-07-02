@@ -1,7 +1,6 @@
 package initconfig_test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -39,13 +38,13 @@ func TestInitCmd(t *testing.T) {
 			assert := assert.New(t)
 			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
-			fmt.Println(tc.name, tempDir)
 			assert.NoError(err)
-			//defer func() {
-			//	err := os.RemoveAll(tempDir)
-			//	assert.NoError(err)
-			//}()
+			defer func() {
+				err := os.RemoveAll(tempDir)
+				assert.NoError(err)
+			}()
 			initCmd := initconfig.InitCmd()
+			utils.AddGlobalFlags(initCmd)
 			denom := "udym"
 			rollappID := "mars_1-1"
 			initCmd.SetArgs(append([]string{
@@ -55,6 +54,7 @@ func TestInitCmd(t *testing.T) {
 			}, tc.optionalFlags...))
 			assert.NoError(initCmd.Execute())
 			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
+			initConfig.Home = tempDir
 			assert.NoError(err)
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, utils.RollerConfigFileName)))

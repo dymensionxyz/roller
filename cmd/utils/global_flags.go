@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 
@@ -8,7 +9,10 @@ import (
 )
 
 func AddGlobalFlags(command *cobra.Command) {
-	command.Flags().StringP(FlagNames.Home, "", GetRollerRootDir(), "The directory of the roller config files")
+	command.PersistentFlags().StringP(
+		FlagNames.Home, "", GetRollerRootDir(), "The directory of the roller config files")
+	err := viper.BindPFlag(FlagNames.Home, command.PersistentFlags().Lookup(FlagNames.Home))
+	PrettifyErrorIfExists(err)
 }
 
 var FlagNames = struct {

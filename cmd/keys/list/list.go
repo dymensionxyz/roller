@@ -55,6 +55,6 @@ func Cmd() *cobra.Command {
 			utils.PrintAddresses(addresses)
 		},
 	}
-	utils.AddGlobalFlags(cmd)
+
 	return cmd
 }

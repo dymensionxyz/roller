@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 			logger.Println("killed them")
 		},
 	}
-	utils.AddGlobalFlags(cmd)
+
 	return cmd
 }
 
