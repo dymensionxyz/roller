@@ -83,7 +83,7 @@ func InitCmd() *cobra.Command {
 		},
 		Args: cobra.ExactArgs(2),
 	}
-	utils.AddGlobalFlags(initCmd)
+
 	addFlags(initCmd)
 	return initCmd
 }

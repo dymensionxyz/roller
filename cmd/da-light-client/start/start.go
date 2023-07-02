@@ -37,7 +37,7 @@ func Cmd() *cobra.Command {
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
 		},
 	}
-	utils.AddGlobalFlags(runCmd)
+
 	addFlags(runCmd)
 	return runCmd
 }

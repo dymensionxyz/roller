@@ -8,7 +8,8 @@ import (
 )
 
 func AddGlobalFlags(command *cobra.Command) {
-	command.Flags().StringP(FlagNames.Home, "", GetRollerRootDir(), "The directory of the roller config files")
+	command.PersistentFlags().StringP(
+		FlagNames.Home, "", GetRollerRootDir(), "The directory of the roller config files")
 }
 
 var FlagNames = struct {

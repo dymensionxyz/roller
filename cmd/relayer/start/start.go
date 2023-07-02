@@ -39,7 +39,7 @@ func Start() *cobra.Command {
 			select {}
 		},
 	}
-	utils.AddGlobalFlags(relayerStartCmd)
+
 	return relayerStartCmd
 }
 

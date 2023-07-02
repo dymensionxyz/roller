@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/dymensionxyz/roller/cmd/run"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/config"
@@ -38,4 +39,5 @@ func init() {
 	rootCmd.AddCommand(relayer.Cmd())
 	rootCmd.AddCommand(keys.Cmd())
 	rootCmd.AddCommand(run.Cmd())
+	utils.AddGlobalFlags(rootCmd)
 }

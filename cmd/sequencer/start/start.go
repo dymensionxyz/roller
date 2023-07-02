@@ -33,7 +33,7 @@ func StartCmd() *cobra.Command {
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 		},
 	}
-	utils.AddGlobalFlags(runCmd)
+
 	runCmd.Flags().StringP(FlagNames.DAEndpoint, "", consts.DefaultDALCRPC,
 		"The data availability light node endpoint.")
 	return runCmd
