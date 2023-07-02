@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
@@ -14,23 +15,34 @@ func InitCmd() *cobra.Command {
 		Use:   "init <chain-id> <denom>",
 		Short: "Initialize a RollApp configuration on your local machine.",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			err := verifyHubID(cmd)
-			if err != nil {
-				return err
+			interactive, _ := cmd.Flags().GetBool(FlagNames.Interactive)
+			if interactive {
+				return nil
 			}
-			err = verifyTokenSupply(cmd)
-			if err != nil {
-				return err
+
+			if len(args) == 0 {
+				fmt.Println("No arguments provided. Running in interactive mode.")
+				cmd.Flags().Set(FlagNames.Interactive, "true")
+				return nil
 			}
-			rollappID := args[0]
-			if !validateRollAppID(rollappID) {
-				return fmt.Errorf("invalid RollApp ID '%s'. %s", rollappID, getValidRollappIdMessage())
+
+			if len(args) < 2 {
+				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
 			}
+
+			//TODO: parse the config here instead of GetInitConfig in Run command
+			// cmd.SetContextValue("mydata", data)
+
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			initConfig, err := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(err)
+
+			err = initConfig.Validate()
+			err = errors.Wrap(err, getValidRollappIdMessage())
+			utils.PrettifyErrorIfExists(err)
+
 			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
@@ -81,7 +93,6 @@ func InitCmd() *cobra.Command {
 			/* ------------------------------ Print output ------------------------------ */
 			printInitOutput(addresses, initConfig.RollappID)
 		},
-		Args: cobra.ExactArgs(2),
 	}
 
 	addFlags(initCmd)
