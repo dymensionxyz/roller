@@ -67,7 +67,7 @@ func GetRlyHubInsufficientBalances(config utils.RollappConfig) ([]utils.NotFunde
 		return nil, err
 	}
 	HubRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
-		RPC:    config.HubData.RpcUrl,
+		RPC:    config.HubData.RPC_URL,
 		Denom:  consts.Denoms.Hub,
 		Binary: consts.Executables.Dymension,
 	}, HubRlyAddr)

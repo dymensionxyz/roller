@@ -7,28 +7,30 @@ var FlagNames = struct {
 	RollappBinary string
 	HubID         string
 	Decimals      string
+	Interactive   string
 }{
 	TokenSupply:   "token-supply",
 	RollappBinary: "rollapp-binary",
 	HubID:         "hub",
+	Interactive:   "interactive",
 	Decimals:      "decimals",
 }
 
 const (
-	StagingHubID = "internal-devnet"
+	StagingHubID = "devnet"
 	LocalHubID   = "local"
 )
 
 // TODO(#112): The avaialble hub networks should be read from YAML file
 var Hubs = map[string]utils.HubData{
 	StagingHubID: {
-		ApiUrl: "https://rest-hub-devnet.dymension.xyz",
-		ID:     "devnet_666-1",
-		RpcUrl: "https://rpc-hub-devnet.dymension.xyz:443",
+		API_URL: "https://dymension.devnet.api.silknodes.io:443",
+		ID:      "devnet_304-1",
+		RPC_URL: "https://dymension.devnet.rpc.silknodes.io:443",
 	},
 	LocalHubID: {
-		ApiUrl: "http://localhost:1318",
-		ID:     "dymension_100-1",
-		RpcUrl: "http://localhost:36657",
+		API_URL: "http://localhost:1318",
+		ID:      "dymension_100-1",
+		RPC_URL: "http://localhost:36657",
 	},
 }

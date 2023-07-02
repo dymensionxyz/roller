@@ -38,7 +38,7 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 
 func GetCommonDymdFlags(rollappConfig RollappConfig) []string {
 	return []string{
-		"--node", rollappConfig.HubData.RpcUrl, "--output", "json",
+		"--node", rollappConfig.HubData.RPC_URL, "--output", "json",
 	}
 }
 

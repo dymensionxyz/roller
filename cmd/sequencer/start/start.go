@@ -16,6 +16,12 @@ import (
 // TODO: Test sequencing on 35-C and update the price
 var OneDaySequencePrice = big.NewInt(1)
 
+var (
+	RollappBinary  string
+	RollappDirPath string
+	LogPath        string
+)
+
 func StartCmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "start",
@@ -24,6 +30,11 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+
+			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
+			RollappBinary = rollappConfig.RollappBinary
+			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
+
 			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *OneDaySequencePrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
@@ -47,14 +58,14 @@ var FlagNames = struct {
 
 func printOutput() {
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
-
-	//TODO: either mark the ports as default, or read from configuration file
+	fmt.Println("💈 Default endpoints:")
 
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
 	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 
-	//TODO: print the log file path
+	fmt.Println("💈 Log file path: ", LogPath)
+	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
 }
 
 func parseError(errMsg string) string {
@@ -82,11 +93,12 @@ func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint str
 		"--dymint.batch_submit_max_time", "100s",
 		"--dymint.empty_blocks_max_time", "10s",
 		"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
-		"--dymint.settlement_config.node_address", rollappConfig.HubData.RpcUrl,
+		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
 		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
 		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
 		"--dymint.settlement_config.gas_prices", "0udym",
 		"--home", rollappConfigDir,
+		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 		"--log_level", "info",
 		"--max-log-size", "2000",
 	)
