@@ -14,17 +14,9 @@ const (
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
-	cmd.Flags().StringP(FlagNames.RollappBinary, "", "", "The rollapp binary. Should be passed only if you built a custom rollapp")
+	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
 	cmd.Flags().BoolP(FlagNames.Interactive, "", false, "Run roller in interactive mode")
-}
-
-func getRollappBinaryPath(cmd *cobra.Command) string {
-	rollappBinaryPath := cmd.Flag(FlagNames.RollappBinary).Value.String()
-	if rollappBinaryPath == "" {
-		return consts.Executables.RollappEVM
-	}
-	return rollappBinaryPath
 }
 
 func getTokenSupply(cmd *cobra.Command) string {
@@ -34,7 +26,7 @@ func getTokenSupply(cmd *cobra.Command) string {
 func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, error) {
 	cfg := utils.RollappConfig{}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
-	cfg.RollappBinary = getRollappBinaryPath(initCmd)
+	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {

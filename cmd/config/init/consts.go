@@ -15,7 +15,7 @@ var FlagNames = struct {
 }
 
 const (
-	StagingHubID = "internal-devnet"
+	StagingHubID = "devnet"
 	LocalHubID   = "local"
 )
 
