@@ -87,9 +87,3 @@ func InitCmd() *cobra.Command {
 	addFlags(initCmd)
 	return initCmd
 }
-
-func InitCmdWithGlobalFlags() *cobra.Command {
-	initCmd := InitCmd()
-	utils.AddGlobalFlags(initCmd)
-	return initCmd
-}
