@@ -54,7 +54,6 @@ func TestInitCmd(t *testing.T) {
 			}, tc.optionalFlags...))
 			assert.NoError(initCmd.Execute())
 			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
-			initConfig.Home = tempDir
 			assert.NoError(err)
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, utils.RollerConfigFileName)))
