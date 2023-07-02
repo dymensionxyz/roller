@@ -77,7 +77,7 @@ func PrintServicesStatus(rollappConfig utils.RollappConfig) {
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
 	events := ui.PollEvents()
-	ticker := time.NewTicker(time.Second * 1).C
+	ticker := time.NewTicker(time.Second * 5).C
 
 	config := ServiceStatusConfig{
 		rollappConfig: rollappConfig,
