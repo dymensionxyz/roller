@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 
@@ -28,7 +27,7 @@ func initializeRollappConfig(initConfig utils.RollappConfig) error {
 		return err
 	}
 
-	seqPubKey, err := showSequencerPubKey(initConfig.RollappBinary, home)
+	seqPubKey, err := utils.GetSequencerPubKey(initConfig)
 	if err != nil {
 		return err
 	}
@@ -70,19 +69,4 @@ func setRollappAppConfig(appConfigFilePath string, denom string) error {
 
 func RollappConfigDir(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
-}
-
-func showSequencerPubKey(binary, home string) (string, error) {
-	cmd := exec.Command(
-		binary,
-		"dymint",
-		"show-sequencer",
-		"--home",
-		home,
-	)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
 }

@@ -104,3 +104,18 @@ func PrintAddresses(addresses []AddressData) {
 	table.AppendBulk(data)
 	table.Render()
 }
+
+func GetSequencerPubKey(rollappConfig RollappConfig) (string, error) {
+	cmd := exec.Command(
+		rollappConfig.RollappBinary,
+		"dymint",
+		"show-sequencer",
+		"--home",
+		filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
+	)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
+}
