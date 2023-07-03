@@ -17,14 +17,14 @@ func printInitOutput(rollappConfig utils.RollappConfig, addresses []utils.Addres
 
 func formatAddresses(rollappConfig utils.RollappConfig, addresses []utils.AddressData) []utils.AddressData {
 	requireFundingKeys := map[string]string{
-		consts.KeysIds.HubSequencer: strings.Title(fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.DisplayName)),
-		consts.KeysIds.HubRelayer:   strings.Title(fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.DisplayName)),
-		consts.KeysIds.DALightNode:  strings.Title(fmt.Sprintf("Celestia, %s Network", consts.DefaultCelestiaNetwork)),
+		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.DisplayName),
+		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.DisplayName),
+		consts.KeysIds.DALightNode:  fmt.Sprintf("Celestia, %s Network", consts.DefaultCelestiaNetwork),
 	}
 	filteredAddresses := make([]utils.AddressData, 0)
 	for _, address := range addresses {
 		if newName, ok := requireFundingKeys[address.Name]; ok {
-			address.Name = newName
+			address.Name = strings.Title(newName)
 			filteredAddresses = append(filteredAddresses, address)
 		}
 	}

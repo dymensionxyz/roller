@@ -3,14 +3,23 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/olekukonko/tablewriter"
 	"math/big"
 	"os"
+	"strings"
 )
 
-func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
+func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config RollappConfig) {
 	if len(addressesData) == 0 {
 		return
+	}
+	keyIdToNetwork := map[string]string{
+		consts.KeysIds.HubSequencer:     config.HubData.DisplayName + " Hub",
+		consts.KeysIds.HubRelayer:       config.HubData.DisplayName + " Hub",
+		consts.KeysIds.DALightNode:      consts.DefaultCelestiaNetwork,
+		consts.KeysIds.RollappRelayer:   config.RollappID,
+		consts.KeysIds.RollappSequencer: config.RollappID,
 	}
 	printAddresses := func() {
 		data := make([][]string, len(addressesData))
@@ -20,10 +29,11 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
 				addressData.Address,
 				addressData.CurrentBalance.String() + addressData.Denom,
 				addressData.RequiredBalance.String() + addressData.Denom,
+				strings.Title(keyIdToNetwork[addressData.KeyName]),
 			}
 		}
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Name", "Address", "Current", "Required"})
+		table.SetHeader([]string{"Name", "Address", "Current", "Required", "Network"})
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 		table.SetBorder(false)

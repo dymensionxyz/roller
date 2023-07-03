@@ -74,5 +74,5 @@ func verifyBalances(rollappConfig utils.RollappConfig) {
 	rlyAddrs, err := relayer_start.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
 }

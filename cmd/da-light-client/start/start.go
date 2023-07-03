@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			insufficientBalances, err := CheckDABalance(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+			utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			startDALCCmd := GetStartDACmd(rollappConfig, rpcEndpoint)
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)

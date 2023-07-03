@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
 			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
+			utils.PrintInsufficientBalancesIfAny(notFundedAddrs, rollappConfig)
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
