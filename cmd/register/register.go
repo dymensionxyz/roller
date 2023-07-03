@@ -24,7 +24,7 @@ func Cmd() *cobra.Command {
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
 		Run: func(cmd *cobra.Command, args []string) {
 			spin := utils.GetLoadingSpinner()
-			spin.Suffix = " Verifying sufficient balance...\n"
+			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
 			spin.Start()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
@@ -32,7 +32,7 @@ func Cmd() *cobra.Command {
 			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
-			spin.Suffix = consts.VerifyingUniqueRollappIDMsg
+			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
 			spin.Restart()
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
 			spin.Suffix = " Registering RollApp to hub...\n"

@@ -46,7 +46,7 @@ func InitCmd() *cobra.Command {
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			spin := utils.GetLoadingSpinner()
-			spin.Suffix = consts.VerifyingUniqueRollappIDMsg
+			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
 			spin.Start()
 			initConfig, err := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(err)
