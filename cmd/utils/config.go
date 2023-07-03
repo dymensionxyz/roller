@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"path/filepath"
 	"regexp"
+	"strings"
+	"unicode"
 
 	"github.com/pelletier/go-toml"
 )
@@ -58,7 +60,14 @@ func (c RollappConfig) Validate() error {
 	}
 	err = ValidateRollAppID(c.RollappID)
 	if err != nil {
-		return fmt.Errorf("invalid RollApp ID '%s'", c.RollappID)
+		return err
+	}
+	err = IsValidDenom(c.Denom)
+	if err != nil {
+		return err
+	}
+	if err := ValidateDecimals(c.Decimals); err != nil {
+		return err
 	}
 	return nil
 }
@@ -103,4 +112,33 @@ func VerifyTokenSupply(supply string) error {
 	}
 
 	return nil
+}
+
+func ValidateDecimals(decimals uint) error {
+	if decimals > 18 {
+		return fmt.Errorf("invalid decimals: %d. Must be less than or equal to 18", decimals)
+	}
+	return nil
+}
+
+func IsValidDenom(s string) error {
+	if !strings.HasPrefix(s, "u") {
+		return fmt.Errorf("invalid denom '%s'. denom expected to start with 'u'", s)
+	}
+	if !IsValidTokenSymbol(s[1:]) {
+		return fmt.Errorf("invalid token symbol '%s'", s[1:])
+	}
+	return nil
+}
+
+func IsValidTokenSymbol(s string) bool {
+	if len(s) != 3 {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
+			return false
+		}
+	}
+	return true
 }
