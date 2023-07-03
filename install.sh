@@ -6,7 +6,20 @@ set -e
 # Emoji for echo outputs
 EMOJI="💈"
 
-TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/v0.0.0/roller_0.0.0_darwin_amd64.tar.gz"
+# Detect the OS and architecture
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+VERSION="v0.0.0"
+
+# Set the appropriate download URL
+if [[ "$ARCH" == "x86_64" ]]; then
+    ARCH="amd64"
+elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
+    ARCH="arm64"
+fi
+
+TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/${VERSION}/roller_${VERSION}_${OS}_${ARCH}.tar.gz"
+echo "$TGZ_URL"
 # Create internal dir
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
