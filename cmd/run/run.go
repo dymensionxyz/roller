@@ -2,14 +2,16 @@ package run
 
 import (
 	"context"
+	"os"
+	"os/exec"
+	"sync"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	da_start "github.com/dymensionxyz/roller/cmd/da-light-client/start"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
-	"os/exec"
-	"sync"
 )
 
 func Cmd() *cobra.Command {
@@ -50,7 +52,11 @@ func runRelayerWithRestarts(config utils.RollappConfig, serviceConfig utils.Serv
 }
 
 func getStartRelayerCmd(config utils.RollappConfig) *exec.Cmd {
-	return exec.Command(consts.Executables.Roller, "relayer", "start", "--home", config.Home)
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	return exec.Command(ex, "relayer", "start", "--home", config.Home)
 }
 
 func runDaWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
