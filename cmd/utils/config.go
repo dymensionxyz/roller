@@ -66,9 +66,10 @@ func (c RollappConfig) Validate() error {
 const RollerConfigFileName = "config.toml"
 
 type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
+	API_URL     string
+	ID          string
+	RPC_URL     string
+	DisplayName string
 }
 
 func ValidateRollAppID(id string) error {

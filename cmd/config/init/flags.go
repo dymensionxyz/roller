@@ -15,7 +15,7 @@ const (
 )
 
 func addFlags(cmd *cobra.Command) error {
-	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
 	cmd.Flags().BoolP(FlagNames.Interactive, "", false, "Run roller in interactive mode")
@@ -68,7 +68,7 @@ func getValidRollappIdMessage() string {
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubID, LocalHubID)
+	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubName, LocalHubName)
 }
 
 func verifyDecimals(cmd *cobra.Command) error {

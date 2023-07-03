@@ -92,7 +92,7 @@ const (
 	DefaultDALCRPC          = "http://localhost:26659"
 	CelestiaRestApiEndpoint = "https://api-mocha.pops.one"
 	DefaultCelestiaRPC      = "rpc-mocha.pops.one"
-	DefaultCeletiaNetowrk   = "mocha"
+	DefaultCelestiaNetwork  = "mocha"
 )
 
 // TODO: Check DA LC write price on arabica and update this value.

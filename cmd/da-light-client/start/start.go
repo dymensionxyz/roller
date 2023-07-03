@@ -84,6 +84,6 @@ func GetStartDACmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.
 		"--gateway",
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
-		"--p2p.network", consts.DefaultCeletiaNetowrk,
+		"--p2p.network", consts.DefaultCelestiaNetwork,
 	)
 }

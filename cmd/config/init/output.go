@@ -11,15 +11,15 @@ func printInitOutput(rollappConfig utils.RollappConfig, addresses []utils.Addres
 	fmt.Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
-	utils.PrintAddresses(formatAddresses(addresses))
+	utils.PrintAddresses(formatAddresses(rollappConfig, addresses))
 	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
 }
 
-func formatAddresses(addresses []utils.AddressData) []utils.AddressData {
+func formatAddresses(rollappConfig utils.RollappConfig, addresses []utils.AddressData) []utils.AddressData {
 	requireFundingKeys := map[string]string{
-		consts.KeysIds.HubSequencer: "Sequencer",
-		consts.KeysIds.HubRelayer:   "Relayer",
-		consts.KeysIds.DALightNode:  "Celestia",
+		consts.KeysIds.HubSequencer: strings.Title(fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.DisplayName)),
+		consts.KeysIds.HubRelayer:   strings.Title(fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.DisplayName)),
+		consts.KeysIds.DALightNode:  strings.Title(fmt.Sprintf("Celestia, %s Network", consts.DefaultCelestiaNetwork)),
 	}
 	filteredAddresses := make([]utils.AddressData, 0)
 	for _, address := range addresses {

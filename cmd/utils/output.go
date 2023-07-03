@@ -23,7 +23,7 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
 			}
 		}
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Name", "Address", "Current Balance", "Required Balance"})
+		table.SetHeader([]string{"Name", "Address", "Current", "Required"})
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 		table.SetBorder(false)
