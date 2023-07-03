@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/briandowns/spinner"
 	"math/big"
+	"time"
 
 	"strings"
 
@@ -23,18 +25,28 @@ func Cmd() *cobra.Command {
 		Use:   "register",
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
 		Run: func(cmd *cobra.Command, args []string) {
+			spin := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+			spin.Suffix = " Verifying sufficient balance...\n"
+			spin.Start()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := utils.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
+			spin.Suffix = " Verifying unique RollApp ID...\n"
+			spin.Restart()
 			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
+			spin.Suffix = " Registering RollApp to hub...\n"
+			spin.Restart()
 			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
 			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
+			spin.Suffix = " Registering RollApp sequencer...\n"
+			spin.Restart()
 			_, err = utils.ExecBashCommand(registerSequencerCmd)
 			utils.PrettifyErrorIfExists(err)
+			spin.Stop()
 			printRegisterOutput(rollappConfig)
 		},
 	}
