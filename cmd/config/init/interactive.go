@@ -67,8 +67,8 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 	}
 
 	promptExecutionEnv := promptui.Select{
-		Label: "Choose your execution environment",
-		Items: []string{"EVM", "SDK"},
+		Label: "Choose your rollapp execution environment",
+		Items: []string{"EVM rollapp", "custom"},
 	}
 	_, env, _ := promptExecutionEnv.Run()
 	if env == "SDK" {
