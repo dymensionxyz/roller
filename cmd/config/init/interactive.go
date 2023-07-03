@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/manifoldco/promptui"
@@ -10,9 +11,8 @@ import (
 // TODO: return error output
 func RunInteractiveMode(config *utils.RollappConfig) {
 	promptNetwork := promptui.Select{
-		Label:     "Select your network",
-		Items:     []string{"local", "devnet"},
-		CursorPos: 1,
+		Label: "Select your network",
+		Items: []string{"devnet", "local"},
 	}
 	_, mode, _ := promptNetwork.Run()
 	config.HubData = Hubs[mode]
@@ -21,10 +21,18 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Label:     "Enter your RollApp ID",
 		Default:   "myrollapp_1234-1",
 		AllowEdit: true,
-		Validate:  utils.ValidateRollAppID,
 	}
-	chainID, _ := promptChainID.Run()
-	config.RollappID = chainID
+	for {
+		chainID, err := promptChainID.Run()
+		if err != nil {
+			break
+		}
+		if err := utils.ValidateRollAppID(chainID); err == nil {
+			config.RollappID = chainID
+			break
+		}
+		fmt.Println("Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)")
+	}
 
 	promptDenom := promptui.Prompt{
 		Label:   "Specify your RollApp denom",
@@ -46,15 +54,34 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Label: "Choose your data layer",
 		Items: []string{"Celestia", "Avail"},
 	}
-	_, _, _ = promptDAType.Run()
-	fmt.Println("Only Celestia supported for now")
 
-	promptBinaryPath := promptui.Prompt{
-		Label:     "Set your runtime binary",
-		Default:   config.RollappBinary,
-		AllowEdit: true,
-		//TODO: add validate for binary path
+	//TODO(#76): temporary hack to only support Celestia
+	for {
+		_, da, err := promptDAType.Run()
+		if err != nil || da == "Celestia" {
+			break
+		}
+		if da != "Celestia" {
+			fmt.Println("Only Celestia supported for now")
+		}
 	}
-	path, _ := promptBinaryPath.Run()
-	config.RollappBinary = path
+
+	promptExecutionEnv := promptui.Select{
+		Label: "Choose your execution environment",
+		Items: []string{"EVM", "SDK"},
+	}
+	_, env, _ := promptExecutionEnv.Run()
+	if env == "SDK" {
+		promptBinaryPath := promptui.Prompt{
+			Label:     "Set your runtime binary",
+			Default:   config.RollappBinary,
+			AllowEdit: true,
+			Validate: func(s string) error {
+				_, err := os.Stat(s)
+				return err
+			},
+		}
+		path, _ := promptBinaryPath.Run()
+		config.RollappBinary = path
+	}
 }
