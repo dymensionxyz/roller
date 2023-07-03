@@ -10,6 +10,14 @@ import (
 
 const RollerConfigFileName = "config.toml"
 
+type DAType string
+
+const (
+	Mock     DAType = "mock"
+	Celestia DAType = "Celestia"
+	Avail    DAType = "Avail"
+)
+
 type RollappConfig struct {
 	Home          string
 	RollappID     string
@@ -18,6 +26,7 @@ type RollappConfig struct {
 	TokenSupply   string
 	Decimals      uint
 	HubData       HubData
+	DA            DAType
 }
 
 type HubData = struct {
@@ -46,7 +55,20 @@ func (c RollappConfig) Validate() error {
 	if err := ValidateDecimals(c.Decimals); err != nil {
 		return err
 	}
+
+	if !IsValidDAType(string(c.DA)) {
+		return fmt.Errorf("invalid DA type: %s", c.DA)
+	}
+
 	return nil
+}
+
+func IsValidDAType(t string) bool {
+	switch DAType(t) {
+	case Mock, Celestia, Avail:
+		return true
+	}
+	return false
 }
 
 func ValidateRollAppID(id string) error {

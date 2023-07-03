@@ -23,16 +23,14 @@ func addFlags(cmd *cobra.Command) error {
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
 			"Note: EVM RollApps must set this value to 18.")
 
+	cmd.Flags().StringP(FlagNames.DAType, "", "Celestia", "The DA layer for the RollApp. Can be one of 'Celestia, Avail, Mock'")
+
 	// TODO: Expose when supporting custom sdk rollapps.
 	err := cmd.Flags().MarkHidden(FlagNames.Decimals)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func getTokenSupply(cmd *cobra.Command) string {
-	return cmd.Flag(FlagNames.TokenSupply).Value.String()
 }
 
 func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
@@ -52,24 +50,16 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	denom := args[1]
 
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	tokenSupply := getTokenSupply(initCmd)
+	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.RollappID = rollappId
 	cfg.Denom = "u" + denom
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
+	cfg.DA = config.DAType(initCmd.Flag(FlagNames.DAType).Value.String())
 
 	return cfg, nil
-}
-func getValidRollappIdMessage() string {
-	return "A valid RollApp ID should follow the format 'name_EIP155-revision', where 'name' is made up of" +
-		" lowercase English letters, 'EIP155-revision' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
-		"revision' is a 1 to 5 digit number representing the revision. For example: 'mars_9721-1'"
 }
 
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubID, LocalHubID)
-}
-
-func getValidDenomMessage() string {
-	return "A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'"
 }

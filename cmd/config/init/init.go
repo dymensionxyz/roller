@@ -2,18 +2,20 @@ package initconfig
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+	"os"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
-		Use:   "init <rollapp-id> <denom>",
-		Short: "Initialize a RollApp configuration on your local machine.",
+		Use:     "init <rollapp-id> <denom> | --interactive",
+		Short:   "Initialize a RollApp configuration on your local machine.",
+		Long:    "Initialize a RollApp configuration on your local machine\n" + requiredFlagsUsage(),
+		Example: `init mars_9721-1 btc`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool(FlagNames.Interactive)
 			if interactive {
@@ -45,8 +47,9 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 
 			err = initConfig.Validate()
-			err = errors.Wrap(err, getValidRollappIdMessage())
-			utils.PrettifyErrorIfExists(err)
+			utils.PrettifyErrorIfExists(err, func() {
+				fmt.Println(requiredFlagsUsage())
+			})
 
 			utils.PrettifyErrorIfExists(VerifyUniqueRollappID(initConfig.RollappID, initConfig))
 			isRootExist, err := dirNotEmpty(initConfig.Home)
@@ -109,4 +112,14 @@ func InitCmd() *cobra.Command {
 	}
 
 	return initCmd
+}
+
+func requiredFlagsUsage() string {
+	return `
+A valid RollApp ID should follow the format 'name_uniqueID-revision', where
+- 'name' is made up of lowercase English letters
+- 'uniqueID' is a 1 to 5 digit number representing the unique ID EIP155 rollapp ID
+- 'revision' is a 1 to 5 digit number representing the revision number for this rollapp
+
+A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'`
 }

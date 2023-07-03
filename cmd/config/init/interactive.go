@@ -55,20 +55,27 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 	supply, _ := promptTokenSupply.Run()
 	cfg.TokenSupply = supply
 
+	availableDAs := []config.DAType{config.Avail, config.Celestia}
+	if mode == "local" {
+		availableDAs = append(availableDAs, config.Mock)
+	}
 	promptDAType := promptui.Select{
 		Label: "Choose your data layer",
-		Items: []string{"Celestia", "Avail"},
+		Items: availableDAs,
 	}
 
 	//TODO(#76): temporary hack to only support Celestia
 	for {
 		_, da, err := promptDAType.Run()
-		if err != nil || da == "Celestia" {
+		if err != nil {
 			break
 		}
-		if da != "Celestia" {
-			fmt.Println("Only Celestia supported for now")
+		if da == string(config.Avail) {
+			fmt.Println("Avail not supported yet")
+			continue
 		}
+		cfg.DA = config.DAType(da)
+		break
 	}
 
 	promptExecutionEnv := promptui.Select{
