@@ -7,11 +7,11 @@ import (
 	"sync"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	da_start "github.com/dymensionxyz/roller/cmd/da-light-client/start"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
 
@@ -67,8 +67,9 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 }
 
 func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := da_start.GetStartDACmd(rollappConfig, consts.DefaultCelestiaRPC)
+	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
 	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
 }
 
@@ -78,14 +79,18 @@ func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig 
 }
 
 func verifyBalances(rollappConfig config.RollappConfig) {
-	insufficientBalances, err := da_start.CheckDABalance(rollappConfig)
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	insufficientBalances, err := damanager.CheckDABalance()
 	utils.PrettifyErrorIfExists(err)
+
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
 		rollappConfig, *sequnecer_start.OneDaySequencePrice)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
+
 	rlyAddrs, err := relayer_start.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
+
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
 
@@ -88,13 +89,18 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 
 			/* ------------------------ Initialize DA light node ------------------------ */
-			utils.PrettifyErrorIfExists(initializeLightNodeConfig(initConfig))
-			daAddress, err := utils.GetCelestiaAddress(initConfig.Home)
+			damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
+			err = damanager.InitializeLightNodeConfig()
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.AddressData{
-				Addr: daAddress,
-				Name: consts.KeysIds.DALightNode,
-			})
+			daAddress, err := damanager.GetDAAccountAddress()
+			utils.PrettifyErrorIfExists(err)
+
+			if daAddress != "" {
+				addresses = append(addresses, utils.AddressData{
+					Name: consts.KeysIds.DALightNode,
+					Addr: daAddress,
+				})
+			}
 
 			/* --------------------------- Initiailize Rollapp -------------------------- */
 			utils.PrettifyErrorIfExists(initializeRollappConfig(initConfig))

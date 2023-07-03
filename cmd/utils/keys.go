@@ -28,20 +28,6 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	return key.Address, nil
 }
 
-func GetCelestiaAddress(rollerRoot string) (string, error) {
-	daKeysDir := filepath.Join(rollerRoot, consts.ConfigDirName.DALightNode, consts.KeysDirName)
-	cmd := exec.Command(
-		consts.Executables.CelKey, "show", consts.KeysIds.DALightNode, "--node.type", "light", "--keyring-dir",
-		daKeysDir, "--keyring-backend", "test", "--output", "json",
-	)
-	output, err := ExecBashCommand(cmd)
-	if err != nil {
-		return "", err
-	}
-	address, err := ParseAddressFromOutput(output)
-	return address, err
-}
-
 type GetKeyConfig struct {
 	Dir string
 	ID  string

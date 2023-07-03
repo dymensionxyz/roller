@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +18,10 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			daAddr, err := utils.GetCelestiaAddress(rollappConfig.Home)
+
+			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+
+			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
 			utils.PrettifyErrorIfExists(err)
 			addresses := make([]utils.AddressData, 0)
 			addresses = append(addresses, utils.AddressData{

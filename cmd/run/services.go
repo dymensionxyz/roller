@@ -5,6 +5,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
 
 type ServiceData struct {
@@ -20,11 +21,14 @@ type fetchResult struct {
 }
 
 func fetchServicesData(rollappConfig config.RollappConfig, logger *log.Logger) ([]ServiceData, error) {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+
+	//TODO: avoid requiring passing rollappConfig to every function
 	fetchFuncs := []func(config.RollappConfig) (*utils.AccountData, error){
 		utils.GetSequencerData,
 		utils.GetHubRlyAccData,
 		utils.GetRolRlyAccData,
-		utils.GetCelLCAccData,
+		damanager.GetDAAccData,
 	}
 	results := fetchAsync(fetchFuncs, rollappConfig)
 	data := processDataResults(results, len(fetchFuncs), logger)

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -65,28 +64,5 @@ func GetSequencerData(cfg config.RollappConfig) (*AccountData, error) {
 	return &AccountData{
 		Address: sequencerAddress,
 		Balance: sequencerBalance,
-	}, nil
-}
-
-func GetCelLCAccData(rollappConfig config.RollappConfig) (*AccountData, error) {
-	celAddress, err := GetCelestiaAddress(rollappConfig.Home)
-	if err != nil {
-		return nil, err
-	}
-	var restQueryUrl = fmt.Sprintf(
-		"%s/cosmos/bank/v1beta1/balances/%s",
-		consts.CelestiaRestApiEndpoint, celAddress,
-	)
-	balancesJson, err := RestQueryJson(restQueryUrl)
-	if err != nil {
-		return nil, err
-	}
-	balance, err := ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
-	if err != nil {
-		return nil, err
-	}
-	return &AccountData{
-		Address: celAddress,
-		Balance: balance,
 	}, nil
 }
