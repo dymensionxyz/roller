@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/data_layer/damock"
 )
 
 type DataLayer interface {
@@ -14,7 +15,6 @@ type DataLayer interface {
 	CheckDABalance() ([]utils.NotFundedAddressData, error)
 	GetStartDACmd(rpcEndpoint string) *exec.Cmd
 	GetDAAccData(c config.RollappConfig) (*utils.AccountData, error)
-
 	GetLightNodeEndpoint() string
 }
 
@@ -24,11 +24,22 @@ type DAManager struct {
 }
 
 func NewDAManager(datype config.DAType, home string) *DAManager {
-	return &DAManager{
-		datype: datype,
-		//FIXME: initiilize handler by type
-		DataLayer: &celestia.Celestia{
+	var dalayer DataLayer
+
+	switch datype {
+	case config.Celestia:
+		dalayer = &celestia.Celestia{
 			Root: home,
-		},
+		}
+	case config.Mock:
+		dalayer = &damock.DAMock{}
+	default:
+		//TODO: return error
+		panic("Unknown data layer type")
+	}
+
+	return &DAManager{
+		datype:    datype,
+		DataLayer: dalayer,
 	}
 }

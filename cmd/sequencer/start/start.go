@@ -83,25 +83,32 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint st
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
+	//TODO(#110): this will be refactored when using config file
+	dastrings := []string{"--dymint.da_layer", "celestia", "--dymint.da_config", daConfig}
+	if rollappConfig.DA == config.Mock {
+		dastrings = append(dastrings, "--dymint.da_layer", "mock")
+	}
+
 	cmd := exec.Command(
-		rollappConfig.RollappBinary, "start",
-		"--dymint.da_layer", "celestia",
-		"--dymint.da_config", daConfig,
-		"--dymint.settlement_layer", "dymension",
-		"--dymint.block_batch_size", "500",
-		"--dymint.namespace_id", "000000000000ffff",
-		"--dymint.block_time", "0.2s",
-		"--dymint.batch_submit_max_time", "100s",
-		"--dymint.empty_blocks_max_time", "10s",
-		"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
-		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
-		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
-		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
-		"--dymint.settlement_config.gas_prices", "0udym",
-		"--home", rollappConfigDir,
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-		"--log_level", "info",
-		"--max-log-size", "2000",
+		rollappConfig.RollappBinary,
+		append([]string{
+			"start",
+			"--dymint.settlement_layer", "dymension",
+			"--dymint.block_batch_size", "500",
+			"--dymint.namespace_id", "000000000000ffff",
+			"--dymint.block_time", "0.2s",
+			"--dymint.batch_submit_max_time", "100s",
+			"--dymint.empty_blocks_max_time", "10s",
+			"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
+			"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
+			"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
+			"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
+			"--dymint.settlement_config.gas_prices", "0udym",
+			"--home", rollappConfigDir,
+			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
+			"--log_level", "info",
+			"--max-log-size", "2000",
+		}, dastrings...)...,
 	)
 	return cmd
 }

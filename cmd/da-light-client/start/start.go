@@ -1,6 +1,7 @@
 package start
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -32,6 +33,10 @@ func Cmd() *cobra.Command {
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 
 			startDALCCmd := damanager.GetStartDACmd(rpcEndpoint)
+			if startDALCCmd == nil {
+				utils.PrettifyErrorIfExists(errors.New("can't run mock DA. It runs automatically with the app"))
+			}
+
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))

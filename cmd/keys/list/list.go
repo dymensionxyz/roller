@@ -19,15 +19,17 @@ func Cmd() *cobra.Command {
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 
+			addresses := make([]utils.AddressData, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
 			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
 			utils.PrettifyErrorIfExists(err)
-			addresses := make([]utils.AddressData, 0)
-			addresses = append(addresses, utils.AddressData{
-				Addr: daAddr,
-				Name: consts.KeysIds.DALightNode,
-			})
+			if daAddr != "" {
+				addresses = append(addresses, utils.AddressData{
+					Addr: daAddr,
+					Name: consts.KeysIds.DALightNode,
+				})
+			}
 			hubSeqAddr, err := utils.GetAddressBinary(utils.GetKeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 				ID:  consts.KeysIds.HubSequencer,
