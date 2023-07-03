@@ -37,10 +37,15 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 	promptDenom := promptui.Prompt{
 		Label:   "Specify your RollApp denom",
 		Default: "RAX",
-		// TODO: add validation for denomination
+		Validate: func(s string) error {
+			if !utils.IsValidTokenSymbol(s) {
+				return fmt.Errorf("invalid token symbol")
+			}
+			return nil
+		},
 	}
 	denom, _ := promptDenom.Run()
-	config.Denom = denom
+	config.Denom = "u" + denom
 
 	promptTokenSupply := promptui.Prompt{
 		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",
@@ -71,7 +76,7 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Items: []string{"EVM rollapp", "custom"},
 	}
 	_, env, _ := promptExecutionEnv.Run()
-	if env == "SDK" {
+	if env == "custom" {
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
 			Default:   config.RollappBinary,
