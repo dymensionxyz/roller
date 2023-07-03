@@ -12,6 +12,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ func Cmd() *cobra.Command {
 			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
 			spin.Start()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
 			utils.PrettifyErrorIfExists(err)
@@ -52,7 +53,7 @@ func Cmd() *cobra.Command {
 	return registerCmd
 }
 
-func registerRollapp(rollappConfig utils.RollappConfig) error {
+func registerRollapp(rollappConfig config.RollappConfig) error {
 	cmd := getRegisterRollappCmd(rollappConfig)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -75,7 +76,7 @@ type Response struct {
 	RawLog string `json:"raw_log"`
 }
 
-func handleStdOut(stdout bytes.Buffer, rollappConfig utils.RollappConfig) error {
+func handleStdOut(stdout bytes.Buffer, rollappConfig config.RollappConfig) error {
 	var response Response
 
 	err := json.NewDecoder(&stdout).Decode(&response)
@@ -90,6 +91,6 @@ func handleStdOut(stdout bytes.Buffer, rollappConfig utils.RollappConfig) error 
 	return nil
 }
 
-func printRegisterOutput(rollappConfig utils.RollappConfig) {
+func printRegisterOutput(rollappConfig config.RollappConfig) {
 	fmt.Printf("💈 Rollapp '%s' has been successfully registered on the hub.\n", rollappConfig.RollappID)
 }

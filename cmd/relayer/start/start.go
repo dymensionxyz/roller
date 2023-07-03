@@ -2,12 +2,14 @@ package start
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 	"math/big"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/spf13/cobra"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -24,7 +26,7 @@ func Start() *cobra.Command {
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			VerifyRelayerBalances(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
@@ -43,25 +45,25 @@ func Start() *cobra.Command {
 	return relayerStartCmd
 }
 
-func getUpdateClientsCmd(config utils.RollappConfig) *exec.Cmd {
+func getUpdateClientsCmd(config config.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
 	args := []string{"tx", "update-clients"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func getRelayPacketsCmd(config utils.RollappConfig, srcChannel string) *exec.Cmd {
+func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, "tx", "relay-packets", consts.DefaultRelayerPath, srcChannel,
 		"-l", "1", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
 }
 
-func VerifyRelayerBalances(rolCfg utils.RollappConfig) {
+func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	utils.PrettifyErrorIfExists(err)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
-func GetRlyHubInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
 		return nil, err
@@ -87,7 +89,7 @@ func GetRlyHubInsufficientBalances(config utils.RollappConfig) ([]utils.NotFunde
 	return insufficientBalances, nil
 }
 
-func GetRelayerInsufficientBalances(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {
 		return insufficientBalances, err

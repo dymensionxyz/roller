@@ -1,8 +1,10 @@
 package run
 
 import (
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"log"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type ServiceData struct {
@@ -17,8 +19,8 @@ type fetchResult struct {
 	id   int
 }
 
-func fetchServicesData(rollappConfig utils.RollappConfig, logger *log.Logger) ([]ServiceData, error) {
-	fetchFuncs := []func(utils.RollappConfig) (*utils.AccountData, error){
+func fetchServicesData(rollappConfig config.RollappConfig, logger *log.Logger) ([]ServiceData, error) {
+	fetchFuncs := []func(config.RollappConfig) (*utils.AccountData, error){
 		utils.GetSequencerData,
 		utils.GetHubRlyAccData,
 		utils.GetRolRlyAccData,
@@ -49,10 +51,10 @@ func getInitialServiceData() []ServiceData {
 	}
 }
 
-func fetchAsync(fetchFuncs []func(utils.RollappConfig) (*utils.AccountData, error), rollappConfig utils.RollappConfig) chan fetchResult {
+func fetchAsync(fetchFuncs []func(config.RollappConfig) (*utils.AccountData, error), rollappConfig config.RollappConfig) chan fetchResult {
 	results := make(chan fetchResult, len(fetchFuncs))
 	for i, fn := range fetchFuncs {
-		go func(id int, fn func(utils.RollappConfig) (*utils.AccountData, error)) {
+		go func(id int, fn func(config.RollappConfig) (*utils.AccountData, error)) {
 			data, err := fn(rollappConfig)
 			results <- fetchResult{data, err, id}
 		}(i, fn)

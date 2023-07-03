@@ -12,6 +12,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type KeyInfo struct {
@@ -105,7 +106,7 @@ func PrintAddresses(addresses []AddressData) {
 	table.Render()
 }
 
-func GetSequencerPubKey(rollappConfig RollappConfig) (string, error) {
+func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
 	cmd := exec.Command(
 		rollappConfig.RollappBinary,
 		"dymint",

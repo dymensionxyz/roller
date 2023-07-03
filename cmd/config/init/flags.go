@@ -5,6 +5,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -34,8 +35,8 @@ func getTokenSupply(cmd *cobra.Command) string {
 	return cmd.Flag(FlagNames.TokenSupply).Value.String()
 }
 
-func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, error) {
-	cfg := utils.RollappConfig{}
+func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
+	cfg := config.RollappConfig{}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 	// Error is ignored because the flag is validated in the cobra preRun hook

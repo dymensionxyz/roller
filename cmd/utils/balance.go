@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type ChainQueryConfig struct {
@@ -58,8 +59,8 @@ type AccountData struct {
 	Balance *big.Int
 }
 
-func GetSequencerInsufficientAddrs(config RollappConfig, requiredBalance big.Int) ([]NotFundedAddressData, error) {
-	sequencerData, err := GetSequencerData(config)
+func GetSequencerInsufficientAddrs(cfg config.RollappConfig, requiredBalance big.Int) ([]NotFundedAddressData, error) {
+	sequencerData, err := GetSequencerData(cfg)
 	if err != nil {
 		return nil, err
 	}

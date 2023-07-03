@@ -1,12 +1,14 @@
 package run
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"log"
 	"math/big"
 	"path/filepath"
 	"time"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -37,7 +39,7 @@ func activeIfSufficientBalance(currentBalance, threshold *big.Int) string {
 	}
 }
 
-func buildServiceData(data []*utils.AccountData, rollappConfig utils.RollappConfig) []ServiceData {
+func buildServiceData(data []*utils.AccountData, rollappConfig config.RollappConfig) []ServiceData {
 	rolRlyData := data[2]
 	return []ServiceData{
 		{
@@ -61,7 +63,7 @@ func buildServiceData(data []*utils.AccountData, rollappConfig utils.RollappConf
 	}
 }
 
-func PrintServicesStatus(rollappConfig utils.RollappConfig) {
+func PrintServicesStatus(rollappConfig config.RollappConfig) {
 	logger := utils.GetLogger(filepath.Join(rollappConfig.Home, "roller.log"))
 	initializeUI()
 	defer ui.Close()
@@ -110,7 +112,7 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, config ServiceSt
 }
 
 type ServiceStatusConfig struct {
-	rollappConfig utils.RollappConfig
+	rollappConfig config.RollappConfig
 	logger        *log.Logger
 	table         *widgets.Table
 }

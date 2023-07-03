@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -95,7 +96,7 @@ func InitCmd() *cobra.Command {
 			/* --------------------------- Initiailize Rollapp -------------------------- */
 			utils.PrettifyErrorIfExists(initializeRollappConfig(initConfig))
 			utils.PrettifyErrorIfExists(initializeRollappGenesis(initConfig))
-			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
+			utils.PrettifyErrorIfExists(config.WriteConfigToTOML(initConfig))
 
 			/* ------------------------------ Print output ------------------------------ */
 			spin.Stop()

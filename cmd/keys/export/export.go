@@ -2,12 +2,14 @@ package export
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/spf13/cobra"
 )
 
 var supportedKeys = []string{
@@ -22,7 +24,7 @@ func Cmd() *cobra.Command {
 			strings.Join(supportedKeys, ", ")),
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			config, err := utils.LoadConfigFromTOML(home)
+			config, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 
 			keyID := args[0]

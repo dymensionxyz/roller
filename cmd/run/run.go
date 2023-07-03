@@ -11,6 +11,7 @@ import (
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +24,7 @@ func Cmd() *cobra.Command {
 			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
 			spin.Start()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			verifyBalances(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
@@ -52,12 +53,12 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func runRelayerWithRestarts(config utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runRelayerWithRestarts(config config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(config)
 	utils.RunServiceWithRestart(startRelayerCmd, serviceConfig)
 }
 
-func getStartRelayerCmd(config utils.RollappConfig) *exec.Cmd {
+func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -65,18 +66,18 @@ func getStartRelayerCmd(config utils.RollappConfig) *exec.Cmd {
 	return exec.Command(ex, "relayer", "start", "--home", config.Home)
 }
 
-func runDaWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	startDALCCmd := da_start.GetStartDACmd(rollappConfig, consts.DefaultCelestiaRPC)
 	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
 }
 
-func runSequencerWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
 	utils.RunServiceWithRestart(startRollappCmd, serviceConfig, utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 }
 
-func verifyBalances(rollappConfig utils.RollappConfig) {
+func verifyBalances(rollappConfig config.RollappConfig) {
 	insufficientBalances, err := da_start.CheckDABalance(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(

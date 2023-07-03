@@ -1,6 +1,6 @@
 package initconfig
 
-import "github.com/dymensionxyz/roller/cmd/utils"
+import "github.com/dymensionxyz/roller/config"
 
 var FlagNames = struct {
 	TokenSupply   string
@@ -22,7 +22,7 @@ const (
 )
 
 // TODO(#112): The avaialble hub networks should be read from YAML file
-var Hubs = map[string]utils.HubData{
+var Hubs = map[string]config.HubData{
 	StagingHubID: {
 		API_URL: "https://dymension.devnet.api.silknodes.io:443",
 		ID:      "devnet_304-1",

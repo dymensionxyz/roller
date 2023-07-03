@@ -1,43 +1,14 @@
-package utils
+package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
-
-	"github.com/pelletier/go-toml"
 )
 
-func WriteConfigToTOML(InitConfig RollappConfig) error {
-	tomlBytes, err := toml.Marshal(InitConfig)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(filepath.Join(InitConfig.Home, RollerConfigFileName), tomlBytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func LoadConfigFromTOML(root string) (RollappConfig, error) {
-	var config RollappConfig
-	tomlBytes, err := ioutil.ReadFile(filepath.Join(root, RollerConfigFileName))
-	if err != nil {
-		return config, err
-	}
-	err = toml.Unmarshal(tomlBytes, &config)
-	if err != nil {
-		return config, err
-	}
-
-	return config, nil
-}
+const RollerConfigFileName = "config.toml"
 
 type RollappConfig struct {
 	Home          string
@@ -47,6 +18,12 @@ type RollappConfig struct {
 	TokenSupply   string
 	Decimals      uint
 	HubData       HubData
+}
+
+type HubData = struct {
+	API_URL string
+	ID      string
+	RPC_URL string
 }
 
 func (c RollappConfig) Validate() error {
@@ -70,14 +47,6 @@ func (c RollappConfig) Validate() error {
 		return err
 	}
 	return nil
-}
-
-const RollerConfigFileName = "config.toml"
-
-type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
 }
 
 func ValidateRollAppID(id string) error {

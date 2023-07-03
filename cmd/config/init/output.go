@@ -6,9 +6,10 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
-func printInitOutput(rollappConfig utils.RollappConfig, addresses []utils.AddressData, rollappId string) {
+func printInitOutput(rollappConfig config.RollappConfig, addresses []utils.AddressData, rollappId string) {
 	fmt.Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
@@ -32,7 +33,7 @@ func formatAddresses(addresses []utils.AddressData) []utils.AddressData {
 	return filteredAddresses
 }
 
-func FormatTokenSupplyLine(rollappConfig utils.RollappConfig) string {
+func FormatTokenSupplyLine(rollappConfig config.RollappConfig) string {
 	displayDenom := strings.ToUpper(rollappConfig.Denom[1:])
 	return fmt.Sprintf("💰 Total Token Supply: %s %s. Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).",
 		addCommasToNum(rollappConfig.TokenSupply), displayDenom, displayDenom, rollappConfig.Decimals, "u"+displayDenom)

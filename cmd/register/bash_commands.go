@@ -5,13 +5,14 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 
 	"fmt"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-func getRegisterRollappCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
+func getRegisterRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 	cmdArgs := []string{
 		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`,
 	}
@@ -21,7 +22,7 @@ func getRegisterRollappCmd(rollappConfig utils.RollappConfig) *exec.Cmd {
 	)
 }
 
-func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, error) {
+func getRegisterSequencerCmd(rollappConfig config.RollappConfig) (*exec.Cmd, error) {
 	seqPubKey, err := utils.GetSequencerPubKey(rollappConfig)
 	if err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func getRegisterSequencerCmd(rollappConfig utils.RollappConfig) (*exec.Cmd, erro
 	return exec.Command(consts.Executables.Dymension, cmdArgs...), nil
 }
 
-func getCommonDymdTxFlags(rollappConfig utils.RollappConfig) []string {
+func getCommonDymdTxFlags(rollappConfig config.RollappConfig) []string {
 	commonFlags := utils.GetCommonDymdFlags(rollappConfig)
 	txArgs := []string{
 		"--from", consts.KeysIds.HubSequencer,

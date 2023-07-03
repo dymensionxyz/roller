@@ -2,11 +2,12 @@ package run
 
 import (
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
 
-func getServicesInfo(rollappConfig utils.RollappConfig, termWidth int) *widgets.Table {
+func getServicesInfo(rollappConfig config.RollappConfig, termWidth int) *widgets.Table {
 	table := widgets.NewTable()
 	table.RowStyles[0] = termui.NewStyle(termui.ColorWhite, termui.ColorClear, termui.ModifierBold)
 	table.SetRect(0, 13, termWidth, 22)

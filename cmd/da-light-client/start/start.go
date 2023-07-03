@@ -8,6 +8,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +30,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			insufficientBalances, err := CheckDABalance(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
@@ -49,7 +50,7 @@ func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(rpcEndpointFlag, "", consts.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
 }
 
-func CheckDABalance(config utils.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func CheckDABalance(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
 	accData, err := utils.GetCelLCAccData(config)
 	if err != nil {
 		return nil, err
@@ -76,7 +77,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func GetStartDACmd(rollappConfig utils.RollappConfig, rpcEndpoint string) *exec.Cmd {
+func GetStartDACmd(rollappConfig config.RollappConfig, rpcEndpoint string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", rpcEndpoint,
