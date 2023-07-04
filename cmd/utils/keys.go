@@ -89,7 +89,7 @@ func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
 }
 
 func GetAddressPrefix(binaryPath string) (string, error) {
-	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff", "--log_format", "json")
+	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff")
 	out, err := ExecBashCommand(cmd)
 	if err != nil {
 		return "", err
