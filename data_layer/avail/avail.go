@@ -1,14 +1,20 @@
 package avail
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 )
 
+const (
+	rpcEndpoint = "wss://kate.avail.tools/ws"
+)
+
 type Avail struct {
-	root string
+	root     string
+	mnemonic string
 }
 
 func NewAvail(root string) *Avail {
@@ -18,7 +24,7 @@ func NewAvail(root string) *Avail {
 }
 
 func (a *Avail) GetDAAccountAddress() (string, error) {
-	return "", nil
+	return "availtestaccount", nil
 }
 
 func (a *Avail) InitializeLightNodeConfig() error {
@@ -39,4 +45,8 @@ func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error
 
 func (a *Avail) GetLightNodeEndpoint() string {
 	return ""
+}
+
+func (a *Avail) GetSequencerDAConfig() string {
+	return fmt.Sprintf(`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":10}`, a.mnemonic, rpcEndpoint)
 }

@@ -44,3 +44,7 @@ func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, erro
 func (d *DAMock) GetLightNodeEndpoint() string {
 	return ""
 }
+
+func (d *DAMock) GetSequencerDAConfig() string {
+	return ""
+}

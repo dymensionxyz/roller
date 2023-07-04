@@ -11,6 +11,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
 
@@ -78,15 +79,16 @@ func parseError(errMsg string) string {
 }
 
 func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
-	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
-		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+
 	//TODO(#110): this will be refactored when using config file
-	dastrings := []string{"--dymint.da_layer", "celestia", "--dymint.da_config", daConfig}
-	if rollappConfig.DA == config.Mock {
-		dastrings = []string{"--dymint.da_layer", "mock"}
+	dastrings := []string{"--dymint.da_layer", string(rollappConfig.DA)}
+	daConfig := damanager.GetSequencerDAConfig()
+	if daConfig != "" {
+		dastrings = append(dastrings, []string{"--dymint.da_config", daConfig}...)
 	}
 
 	cmd := exec.Command(

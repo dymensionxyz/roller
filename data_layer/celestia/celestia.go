@@ -112,3 +112,8 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 		Balance: balance,
 	}, nil
 }
+
+func (c *Celestia) GetSequencerDAConfig() string {
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
+		LCEndpoint)
+}

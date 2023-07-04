@@ -17,6 +17,7 @@ type DataLayer interface {
 	GetStartDACmd(rpcEndpoint string) *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
 	GetLightNodeEndpoint() string
+	GetSequencerDAConfig() string
 }
 
 type DAManager struct {
