@@ -24,8 +24,8 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			verifyBalances(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
+
 			ctx, cancel := context.WithCancel(context.Background())
 			waitingGroup := sync.WaitGroup{}
 			serviceConfig := &servicemanager.ServiceConfig{
@@ -33,6 +33,8 @@ func Cmd() *cobra.Command {
 				Context:   ctx,
 				WaitGroup: &waitingGroup,
 			}
+			/* ----------------------------- verify balances ---------------------------- */
+			verifyBalances(rollappConfig)
 
 			/* ------------------------------ run processes ----------------------------- */
 			runDaWithRestarts(rollappConfig, serviceConfig)
@@ -53,7 +55,7 @@ func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemana
 	startRelayerCmd := getStartRelayerCmd(cfg)
 	service := servicemanager.ServiceData{
 		Command: startRelayerCmd,
-		FetchFn: utils.GetHubRlyAccData,
+		FetchFn: utils.GetRelayerAddresses,
 		UIData:  servicemanager.UIData{Name: "Relayer"},
 	}
 	serviceConfig.AddService("Relayer", service)

@@ -29,11 +29,12 @@ type UIData struct {
 
 type ServiceData struct {
 	Command *exec.Cmd
-	FetchFn func(config.RollappConfig) (*utils.AccountData, error)
+	FetchFn func(config.RollappConfig) ([]utils.AccountData, error)
 	UIData  UIData
 }
 
 // TODO: move this to a separate file
+// TODO: status should be Enum
 func activeIfSufficientBalance(currentBalance, threshold *big.Int) string {
 	if currentBalance.Cmp(threshold) >= 0 {
 		return "Active"
@@ -52,13 +53,12 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 				//TODO: set the status to FAILED
 				return
 			}
-			service.UIData.Accounts = []utils.AccountData{*accountData}
-
-			//FIXME: fix the denom
-			service.UIData.Balance = accountData.Balance.String()
+			service.UIData.Accounts = accountData
 
 			//FIXME: the status function should be part of the service
-			service.UIData.Status = activeIfSufficientBalance(accountData.Balance, big.NewInt(1))
+			for _, account := range accountData {
+				service.UIData.Status = activeIfSufficientBalance(account.Balance, big.NewInt(1))
+			}
 			if k == "Relayer" {
 				service.UIData.Status = "Starting..."
 			}

@@ -55,7 +55,7 @@ func (c *Celestia) InitializeLightNodeConfig() error {
 	return nil
 }
 
-func (c *Celestia) GetDAAccData(config.RollappConfig) (*utils.AccountData, error) {
+func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
 	celAddress, err := c.GetDAAccountAddress()
 	if err != nil {
 		return nil, err
@@ -78,8 +78,13 @@ func (c *Celestia) GetDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}, nil
 }
 
+func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
+	celAddress, err := c.getDAAccData(cfg)
+	return []utils.AccountData{*celAddress}, err
+}
+
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
-	accData, err := c.GetDAAccData(config.RollappConfig{})
+	accData, err := c.getDAAccData(config.RollappConfig{})
 	if err != nil {
 		return nil, err
 	}
