@@ -1,6 +1,7 @@
 package damock
 
 import (
+	"math/big"
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -32,7 +33,10 @@ func (d *DAMock) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
 }
 
 func (d *DAMock) GetDAAccData(c config.RollappConfig) (*utils.AccountData, error) {
-	return nil, nil
+	return &utils.AccountData{
+		Address: "mockDA",
+		Balance: big.NewInt(999999999999999),
+	}, nil
 }
 
 func (d *DAMock) GetLightNodeEndpoint() string {
