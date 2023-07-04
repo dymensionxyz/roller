@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/dymensionxyz/roller/config"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
@@ -31,9 +32,9 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 	return table
 }
 
-func updateUITable(serviceData []ServiceData, table *widgets.Table) {
+func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table) {
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	for _, data := range serviceData {
-		table.Rows = append(table.Rows, []string{data.Name, data.Balance, data.Status})
+		table.Rows = append(table.Rows, []string{data.Name, data.Accounts[0].Balance.String(), data.Status})
 	}
 }

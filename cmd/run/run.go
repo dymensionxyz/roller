@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/spf13/cobra"
 )
 
@@ -27,8 +28,7 @@ func Cmd() *cobra.Command {
 			logger := utils.GetRollerLogger(rollappConfig.Home)
 			ctx, cancel := context.WithCancel(context.Background())
 			waitingGroup := sync.WaitGroup{}
-			waitingGroup.Add(3)
-			serviceConfig := utils.ServiceConfig{
+			serviceConfig := &servicemanager.ServiceConfig{
 				Logger:    logger,
 				Context:   ctx,
 				WaitGroup: &waitingGroup,
@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
 
 			/* ------------------------------ render output ----------------------------- */
-			RenderUI(rollappConfig)
+			RenderUI(rollappConfig, serviceConfig)
 			cancel()
 			waitingGroup.Wait()
 		},
@@ -49,9 +49,15 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func runRelayerWithRestarts(config config.RollappConfig, serviceConfig utils.ServiceConfig) {
-	startRelayerCmd := getStartRelayerCmd(config)
-	utils.RunServiceWithRestart(startRelayerCmd, serviceConfig)
+func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
+	startRelayerCmd := getStartRelayerCmd(cfg)
+	service := servicemanager.ServiceData{
+		Command: startRelayerCmd,
+		FetchFn: utils.GetHubRlyAccData,
+		UIData:  servicemanager.UIData{Name: "Relayer"},
+	}
+	serviceConfig.AddService("Relayer", service)
+	serviceConfig.RunServiceWithRestart("Relayer")
 }
 
 func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
@@ -62,19 +68,32 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 	return exec.Command(ex, "relayer", "start", "--home", config.Home)
 }
 
-func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
 	if startDALCCmd == nil {
 		return
 	}
-	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
+
+	service := servicemanager.ServiceData{
+		Command: startDALCCmd,
+		FetchFn: damanager.GetDAAccData,
+		UIData:  servicemanager.UIData{Name: "DA Light Client"},
+	}
+	serviceConfig.AddService("DA Light Client", service)
+	serviceConfig.RunServiceWithRestart("DA Light Client", utils.WithLogging(daLogFilePath))
 }
 
-func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
-	utils.RunServiceWithRestart(startRollappCmd, serviceConfig, utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
+	service := servicemanager.ServiceData{
+		Command: startRollappCmd,
+		FetchFn: utils.GetSequencerData,
+		UIData:  servicemanager.UIData{Name: "Sequencer"},
+	}
+	serviceConfig.AddService("Sequencer", service)
+	serviceConfig.RunServiceWithRestart("Sequencer", utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 }
 
 func verifyBalances(rollappConfig config.RollappConfig) {
