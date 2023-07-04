@@ -17,20 +17,25 @@ type ChainQueryConfig struct {
 	Binary string
 }
 
-func QueryBalance(chainConfig ChainQueryConfig, address string) (*Balance, error) {
+func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error) {
 	cmd := exec.Command(chainConfig.Binary, "query", "bank", "balances", address, "--node", chainConfig.RPC, "--output", "json")
 	out, err := ExecBashCommand(cmd)
 	if err != nil {
-		return nil, err
+		return Balance{}, err
 	}
 	return ParseBalanceFromResponse(out, chainConfig.Denom)
 }
 
-func ParseBalanceFromResponse(out bytes.Buffer, denom string) (*Balance, error) {
+func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
 	var balanceResp BalanceResponse
 	err := json.Unmarshal(out.Bytes(), &balanceResp)
 	if err != nil {
-		return nil, err
+		return Balance{}, err
+	}
+
+	balance := Balance{
+		Denom:  denom,
+		Amount: big.NewInt(0),
 	}
 	for _, resbalance := range balanceResp.Balances {
 		if resbalance.Denom != denom {
@@ -39,14 +44,11 @@ func ParseBalanceFromResponse(out bytes.Buffer, denom string) (*Balance, error) 
 		amount := new(big.Int)
 		_, ok := amount.SetString(resbalance.Amount, 10)
 		if !ok {
-			return nil, errors.New("unable to convert balance amount to big.Int")
+			return Balance{}, errors.New("unable to convert balance amount to big.Int")
 		}
-		return &Balance{
-			Denom:  denom,
-			Amount: amount,
-		}, nil
+		balance.Amount = amount
 	}
-	return nil, nil
+	return balance, nil
 }
 
 type Balance struct {

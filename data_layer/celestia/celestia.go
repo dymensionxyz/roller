@@ -74,7 +74,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}
 	return &utils.AccountData{
 		Address: celAddress,
-		Balance: *balance,
+		Balance: balance,
 	}, nil
 }
 

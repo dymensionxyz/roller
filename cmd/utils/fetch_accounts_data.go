@@ -37,7 +37,7 @@ func GetRolRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 	}
 	return &AccountData{
 		Address: RollappRlyAddr,
-		Balance: *RollappRlyBalance,
+		Balance: RollappRlyBalance,
 	}, nil
 }
 
@@ -56,7 +56,7 @@ func GetHubRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 	}
 	return &AccountData{
 		Address: HubRlyAddr,
-		Balance: *HubRlyBalance,
+		Balance: HubRlyBalance,
 	}, nil
 }
 
@@ -68,6 +68,7 @@ func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sequencerBalance, err := QueryBalance(ChainQueryConfig{
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,
@@ -79,7 +80,7 @@ func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 	return []AccountData{
 		{
 			Address: sequencerAddress,
-			Balance: *sequencerBalance,
+			Balance: sequencerBalance,
 		},
 	}, nil
 }
