@@ -125,8 +125,8 @@ func requiredFlagsUsage() string {
 	return `
 A valid RollApp ID should follow the format 'name_uniqueID-revision', where
 - 'name' is made up of lowercase English letters
-- 'uniqueID' is a 1 to 5 digit number representing the unique ID EIP155 rollapp ID
-- 'revision' is a 1 to 5 digit number representing the revision number for this rollapp
+- 'uniqueID' is a number up to the length of 5 digits representing the unique ID EIP155 rollapp ID
+- 'revision' is a number up to the length of 5 digits representing the revision number for this rollapp
 
 A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'`
 }

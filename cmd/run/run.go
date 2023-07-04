@@ -67,6 +67,7 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.S
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
 	if startDALCCmd == nil {
+		serviceConfig.WaitGroup.Done()
 		return
 	}
 	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
