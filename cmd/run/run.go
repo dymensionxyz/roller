@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
 
 			/* ------------------------------ render output ----------------------------- */
-			PrintServicesStatus(rollappConfig)
+			RenderUI(rollappConfig)
 			cancel()
 			waitingGroup.Wait()
 		},

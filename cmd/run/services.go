@@ -28,8 +28,12 @@ func fetchServicesData(rollappConfig config.RollappConfig, logger *log.Logger) (
 		utils.GetSequencerData,
 		utils.GetHubRlyAccData,
 		utils.GetRolRlyAccData,
-		damanager.GetDAAccData,
 	}
+
+	if damanager.GetLightNodeEndpoint() != "" {
+		fetchFuncs = append(fetchFuncs, damanager.GetDAAccData)
+	}
+
 	results := fetchAsync(fetchFuncs, rollappConfig)
 	data := processDataResults(results, len(fetchFuncs), logger)
 	return buildServiceData(data, rollappConfig), nil

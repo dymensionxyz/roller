@@ -23,7 +23,7 @@ func buildTitleParagraph(rollappConfig config.RollappConfig, termWidth int) *wid
 	return p
 }
 
-func buildUITable(termWidth int) *widgets.Table {
+func NewServiceStatusTable(termWidth int) *widgets.Table {
 	table := widgets.NewTable()
 	table.RowStyles[0] = termui.NewStyle(termui.ColorWhite, termui.ColorClear, termui.ModifierBold)
 	table.SetRect(0, 3, termWidth, 12)
