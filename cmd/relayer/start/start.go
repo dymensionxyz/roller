@@ -77,11 +77,11 @@ func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFund
 		return nil, err
 	}
 	insufficientBalances := make([]utils.NotFundedAddressData, 0)
-	if HubRlyBalance.Cmp(oneDayRelayPriceHub) < 0 {
+	if HubRlyBalance.Amount.Cmp(oneDayRelayPriceHub) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			KeyName:         consts.KeysIds.HubRelayer,
 			Address:         HubRlyAddr,
-			CurrentBalance:  HubRlyBalance,
+			CurrentBalance:  HubRlyBalance.Amount,
 			RequiredBalance: oneDayRelayPriceHub,
 			Denom:           consts.Denoms.Hub,
 		})
@@ -98,11 +98,11 @@ func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFun
 	if err != nil {
 		return insufficientBalances, err
 	}
-	if rolRlyData.Balance.Cmp(oneDayRelayPriceRollapp) < 0 {
+	if rolRlyData.Balance.Amount.Cmp(oneDayRelayPriceRollapp) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			KeyName:         consts.KeysIds.RollappRelayer,
 			Address:         rolRlyData.Address,
-			CurrentBalance:  rolRlyData.Balance,
+			CurrentBalance:  rolRlyData.Balance.Amount,
 			RequiredBalance: oneDayRelayPriceRollapp,
 			Denom:           config.Denom,
 		})

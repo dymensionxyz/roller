@@ -74,7 +74,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}
 	return &utils.AccountData{
 		Address: celAddress,
-		Balance: balance,
+		Balance: *balance,
 	}, nil
 }
 
@@ -89,10 +89,10 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 		return nil, err
 	}
 	var insufficientBalances []utils.NotFundedAddressData
-	if accData.Balance.Cmp(lcMinBalance) < 0 {
+	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			Address:         accData.Address,
-			CurrentBalance:  accData.Balance,
+			CurrentBalance:  accData.Balance.Amount,
 			RequiredBalance: lcMinBalance,
 			KeyName:         consts.KeysIds.DALightNode,
 			Denom:           consts.Denoms.Celestia,

@@ -104,7 +104,7 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	utils.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
-		rollappConfig, *sequnecer_start.OneDaySequencePrice)
+		rollappConfig, sequnecer_start.OneDaySequencePrice)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
 

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
 	"strings"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 
 	"encoding/json"
 
@@ -30,7 +31,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
+			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerUdymPrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
 			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
