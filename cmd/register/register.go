@@ -27,6 +27,7 @@ func Cmd() *cobra.Command {
 			spin := utils.GetLoadingSpinner()
 			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
 			spin.Start()
+			defer spin.Stop()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
