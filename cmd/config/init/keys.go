@@ -8,9 +8,10 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
-func generateKeys(rollappConfig utils.RollappConfig) ([]utils.AddressData, error) {
+func generateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
 	sequencerAddresses, err := generateSequencersKeys(rollappConfig)
 	if err != nil {
 		return nil, err
@@ -22,7 +23,7 @@ func generateKeys(rollappConfig utils.RollappConfig) ([]utils.AddressData, error
 	return append(sequencerAddresses, relayerAddresses...), nil
 }
 
-func generateSequencersKeys(initConfig utils.RollappConfig) ([]utils.AddressData, error) {
+func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.AddressData, error) {
 	keys := getSequencerKeysConfig()
 	addresses := make([]utils.AddressData, 0)
 	for _, key := range keys {
@@ -63,7 +64,7 @@ func getSequencerKeysConfig() []utils.CreateKeyConfig {
 	}
 }
 
-func getRelayerKeysConfig(rollappConfig utils.RollappConfig) map[string]utils.CreateKeyConfig {
+func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.CreateKeyConfig {
 	return map[string]utils.CreateKeyConfig{
 		consts.KeysIds.RollappRelayer: {
 			Dir:      path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
@@ -92,7 +93,7 @@ func createAddressBinary(keyConfig utils.CreateKeyConfig, binaryPath string, hom
 	return utils.ParseAddressFromOutput(out)
 }
 
-func generateRelayerKeys(rollappConfig utils.RollappConfig) ([]utils.AddressData, error) {
+func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
 	relayerAddresses := make([]utils.AddressData, 0)
 	keys := getRelayerKeysConfig(rollappConfig)
 	createRollappKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.RollappRelayer], rollappConfig.RollappID)

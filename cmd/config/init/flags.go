@@ -3,10 +3,10 @@ package initconfig
 import (
 	"fmt"
 	"strings"
-	"unicode"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +24,8 @@ func addFlags(cmd *cobra.Command) error {
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
 			"Note: EVM RollApps must set this value to 18.")
 
+	cmd.Flags().StringP(FlagNames.DAType, "", "Celestia", "The DA layer for the RollApp. Can be one of 'Celestia, Avail, Mock'")
+
 	// TODO: Expose when supporting custom sdk rollapps.
 	err := cmd.Flags().MarkHidden(FlagNames.Decimals)
 	if err != nil {
@@ -32,12 +34,8 @@ func addFlags(cmd *cobra.Command) error {
 	return nil
 }
 
-func getTokenSupply(cmd *cobra.Command) string {
-	return cmd.Flag(FlagNames.TokenSupply).Value.String()
-}
-
-func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, error) {
-	cfg := utils.RollappConfig{}
+func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
+	cfg := config.RollappConfig{}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 	// Error is ignored because the flag is validated in the cobra preRun hook
@@ -53,43 +51,16 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (utils.RollappConfig, 
 	denom := args[1]
 
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	tokenSupply := getTokenSupply(initCmd)
+	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.RollappID = rollappId
 	cfg.Denom = "u" + denom
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
+	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 
 	return cfg, nil
-}
-func getValidRollappIdMessage() string {
-	return "A valid RollApp ID should follow the format 'name_EIP155-revision', where 'name' is made up of" +
-		" lowercase English letters, 'EIP155-revision' is a 1 to 5 digit number representing the EIP155 rollapp ID, and '" +
-		"revision' is a 1 to 5 digit number representing the revision. For example: 'mars_9721-1'"
 }
 
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubName, LocalHubName)
-}
-
-func verifyDecimals(cmd *cobra.Command) error {
-	decimals, err := cmd.Flags().GetUint(FlagNames.Decimals)
-	if err != nil {
-		return err
-	}
-	if decimals > 18 {
-		return fmt.Errorf("invalid decimals: %d. Must be less than or equal to 18", decimals)
-	}
-	return nil
-}
-
-func isValidDenom(s string) bool {
-	if len(s) != 3 {
-		return false
-	}
-	for _, r := range s {
-		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
-			return false
-		}
-	}
-	return true
 }

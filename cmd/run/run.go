@@ -2,14 +2,17 @@ package run
 
 import (
 	"context"
+	"os"
+	"os/exec"
+	"sync"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
-	da_start "github.com/dymensionxyz/roller/cmd/da-light-client/start"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
-	"os/exec"
-	"sync"
 )
 
 func Cmd() *cobra.Command {
@@ -18,7 +21,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			verifyBalances(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
@@ -30,47 +33,61 @@ func Cmd() *cobra.Command {
 				Context:   ctx,
 				WaitGroup: &waitingGroup,
 			}
+
+			/* ------------------------------ run processes ----------------------------- */
 			runDaWithRestarts(rollappConfig, serviceConfig)
 			runSequencerWithRestarts(rollappConfig, serviceConfig)
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
-			PrintServicesStatus(rollappConfig)
+
+			/* ------------------------------ render output ----------------------------- */
+			RenderUI(rollappConfig)
 			cancel()
-			logger.Println("Killing subprocesses")
 			waitingGroup.Wait()
-			logger.Println("killed them")
 		},
 	}
 
 	return cmd
 }
 
-func runRelayerWithRestarts(config utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runRelayerWithRestarts(config config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(config)
 	utils.RunServiceWithRestart(startRelayerCmd, serviceConfig)
 }
 
-func getStartRelayerCmd(config utils.RollappConfig) *exec.Cmd {
-	return exec.Command(consts.Executables.Roller, "relayer", "start", "--home", config.Home)
+func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	return exec.Command(ex, "relayer", "start", "--home", config.Home)
 }
 
-func runDaWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := da_start.GetStartDACmd(rollappConfig, consts.DefaultCelestiaRPC)
+	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
+	if startDALCCmd == nil {
+		serviceConfig.WaitGroup.Done()
+		return
+	}
 	utils.RunServiceWithRestart(startDALCCmd, serviceConfig, utils.WithLogging(daLogFilePath))
 }
 
-func runSequencerWithRestarts(rollappConfig utils.RollappConfig, serviceConfig utils.ServiceConfig) {
+func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
 	utils.RunServiceWithRestart(startRollappCmd, serviceConfig, utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 }
 
-func verifyBalances(rollappConfig utils.RollappConfig) {
-	insufficientBalances, err := da_start.CheckDABalance(rollappConfig)
+func verifyBalances(rollappConfig config.RollappConfig) {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	insufficientBalances, err := damanager.CheckDABalance()
 	utils.PrettifyErrorIfExists(err)
+
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
 		rollappConfig, *sequnecer_start.OneDaySequencePrice)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
+
 	rlyAddrs, err := relayer_start.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)

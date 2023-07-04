@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func StartCmd() *cobra.Command {
 		Short: "Runs the rollapp sequencer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := utils.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
@@ -76,31 +77,38 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func GetStartRollappCmd(rollappConfig utils.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
+func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
 	daConfig := fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
 		lightNodeEndpoint)
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
 
+	//TODO(#110): this will be refactored when using config file
+	dastrings := []string{"--dymint.da_layer", "celestia", "--dymint.da_config", daConfig}
+	if rollappConfig.DA == config.Mock {
+		dastrings = []string{"--dymint.da_layer", "mock"}
+	}
+
 	cmd := exec.Command(
-		rollappConfig.RollappBinary, "start",
-		"--dymint.da_layer", "celestia",
-		"--dymint.da_config", daConfig,
-		"--dymint.settlement_layer", "dymension",
-		"--dymint.block_batch_size", "500",
-		"--dymint.namespace_id", "000000000000ffff",
-		"--dymint.block_time", "0.2s",
-		"--dymint.batch_submit_max_time", "100s",
-		"--dymint.empty_blocks_max_time", "10s",
-		"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
-		"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
-		"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
-		"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
-		"--dymint.settlement_config.gas_prices", "0udym",
-		"--home", rollappConfigDir,
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-		"--log_level", "info",
-		"--max-log-size", "2000",
+		rollappConfig.RollappBinary,
+		append([]string{
+			"start",
+			"--dymint.settlement_layer", "dymension",
+			"--dymint.block_batch_size", "500",
+			"--dymint.namespace_id", "000000000000ffff",
+			"--dymint.block_time", "0.2s",
+			"--dymint.batch_submit_max_time", "100s",
+			"--dymint.empty_blocks_max_time", "10s",
+			"--dymint.settlement_config.rollapp_id", rollappConfig.RollappID,
+			"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
+			"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
+			"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
+			"--dymint.settlement_config.gas_prices", "0udym",
+			"--home", rollappConfigDir,
+			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
+			"--log_level", "info",
+			"--max-log-size", "2000",
+		}, dastrings...)...,
 	)
 	return cmd
 }

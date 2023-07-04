@@ -97,3 +97,11 @@ const (
 
 // TODO: Check DA LC write price on arabica and update this value.
 var OneDAWritePrice = big.NewInt(1)
+
+var SpinnerMsgs = struct {
+	UniqueIdVerification string
+	BalancesVerification string
+}{
+	UniqueIdVerification: " Verifying unique RollApp ID...\n",
+	BalancesVerification: " Verifying balances...\n",
+}

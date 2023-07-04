@@ -3,14 +3,17 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/briandowns/spinner"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/olekukonko/tablewriter"
 	"math/big"
 	"os"
 	"strings"
+	"time"
 )
 
-func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config RollappConfig) {
+func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config config.RollappConfig) {
 	if len(addressesData) == 0 {
 		return
 	}
@@ -53,4 +56,8 @@ type NotFundedAddressData struct {
 	CurrentBalance  *big.Int
 	RequiredBalance *big.Int
 	Denom           string
+}
+
+func GetLoadingSpinner() *spinner.Spinner {
+	return spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 }

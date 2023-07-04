@@ -7,6 +7,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 
 	"os/exec"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-func initializeRollappGenesis(initConfig utils.RollappConfig) error {
+func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	totalTokenSupply, success := new(big.Int).SetString(initConfig.TokenSupply, 10)
 	if !success {
 		return fmt.Errorf("invalid token supply")

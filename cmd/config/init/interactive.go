@@ -2,59 +2,100 @@ package initconfig
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
 )
 
 // TODO: return error output
-func RunInteractiveMode(config *utils.RollappConfig) {
+func RunInteractiveMode(cfg *config.RollappConfig) {
 	promptNetwork := promptui.Select{
-		Label:     "Select your network",
-		Items:     []string{"local", "devnet"},
-		CursorPos: 1,
+		Label: "Select your network",
+		Items: []string{"devnet", "local"},
 	}
 	_, mode, _ := promptNetwork.Run()
-	config.HubData = Hubs[mode]
+	cfg.HubData = Hubs[mode]
 
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
 		Default:   "myrollapp_1234-1",
 		AllowEdit: true,
-		Validate:  utils.ValidateRollAppID,
 	}
-	chainID, _ := promptChainID.Run()
-	config.RollappID = chainID
+	for {
+		chainID, err := promptChainID.Run()
+		if err != nil {
+			break
+		}
+		if err := config.ValidateRollAppID(chainID); err == nil {
+			cfg.RollappID = chainID
+			break
+		}
+		fmt.Println("Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)")
+	}
 
 	promptDenom := promptui.Prompt{
 		Label:   "Specify your RollApp denom",
 		Default: "RAX",
-		// TODO: add validation for denomination
+		Validate: func(s string) error {
+			if !config.IsValidTokenSymbol(s) {
+				return fmt.Errorf("invalid token symbol")
+			}
+			return nil
+		},
 	}
 	denom, _ := promptDenom.Run()
-	config.Denom = denom
+	cfg.Denom = "u" + denom
 
 	promptTokenSupply := promptui.Prompt{
 		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",
 		Default:  "1000000000",
-		Validate: utils.VerifyTokenSupply,
+		Validate: config.VerifyTokenSupply,
 	}
 	supply, _ := promptTokenSupply.Run()
-	config.TokenSupply = supply
+	cfg.TokenSupply = supply
 
+	availableDAs := []config.DAType{config.Avail, config.Celestia}
+	if mode == "local" {
+		availableDAs = append(availableDAs, config.Mock)
+	}
 	promptDAType := promptui.Select{
 		Label: "Choose your data layer",
-		Items: []string{"Celestia", "Avail"},
+		Items: availableDAs,
 	}
-	_, _, _ = promptDAType.Run()
-	fmt.Println("Only Celestia supported for now")
 
-	promptBinaryPath := promptui.Prompt{
-		Label:     "Set your runtime binary",
-		Default:   config.RollappBinary,
-		AllowEdit: true,
-		//TODO: add validate for binary path
+	//TODO(#76): temporary hack to only support Celestia
+	for {
+		_, da, err := promptDAType.Run()
+		if err != nil {
+			break
+		}
+		da = strings.ToLower(da)
+		if da == string(config.Avail) {
+			fmt.Println("Avail not supported yet")
+			continue
+		}
+		cfg.DA = config.DAType(da)
+		break
 	}
-	path, _ := promptBinaryPath.Run()
-	config.RollappBinary = path
+
+	promptExecutionEnv := promptui.Select{
+		Label: "Choose your rollapp execution environment",
+		Items: []string{"EVM rollapp", "custom"},
+	}
+	_, env, _ := promptExecutionEnv.Run()
+	if env == "custom" {
+		promptBinaryPath := promptui.Prompt{
+			Label:     "Set your runtime binary",
+			Default:   cfg.RollappBinary,
+			AllowEdit: true,
+			Validate: func(s string) error {
+				_, err := os.Stat(s)
+				return err
+			},
+		}
+		path, _ := promptBinaryPath.Run()
+		cfg.RollappBinary = path
+	}
 }

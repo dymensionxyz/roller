@@ -1,12 +1,14 @@
 package utils
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"log"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func GetRollerLogger(home string) *log.Logger {
@@ -34,12 +36,12 @@ func GetLogger(filepath string) *log.Logger {
 	return logger
 }
 
-func GetSequencerLogPath(rollappConfig RollappConfig) string {
+func GetSequencerLogPath(rollappConfig config.RollappConfig) string {
 	return filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 }
 
-func GetRelayerLogPath(config RollappConfig) string {
-	return filepath.Join(config.Home, consts.ConfigDirName.Relayer, "relayer.log")
+func GetRelayerLogPath(cfg config.RollappConfig) string {
+	return filepath.Join(cfg.Home, consts.ConfigDirName.Relayer, "relayer.log")
 }
 
 func GetDALogFilePath(home string) string {
