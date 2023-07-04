@@ -18,7 +18,7 @@ func addFlags(cmd *cobra.Command) error {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubID, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
-	cmd.Flags().BoolP(FlagNames.Interactive, "", false, "Run roller in interactive mode")
+	cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
 	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
 		"The precision level of the RollApp's token defined by the number of decimal places. "+
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
