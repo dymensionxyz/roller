@@ -86,7 +86,7 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint st
 	//TODO(#110): this will be refactored when using config file
 	dastrings := []string{"--dymint.da_layer", "celestia", "--dymint.da_config", daConfig}
 	if rollappConfig.DA == config.Mock {
-		dastrings = append(dastrings, "--dymint.da_layer", "mock")
+		dastrings = []string{"--dymint.da_layer", "mock"}
 	}
 
 	cmd := exec.Command(

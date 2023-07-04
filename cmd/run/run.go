@@ -36,11 +36,15 @@ func Cmd() *cobra.Command {
 				Context:   ctx,
 				WaitGroup: &waitingGroup,
 			}
+
+			/* ------------------------------ run processes ----------------------------- */
 			spin.Suffix = " Starting RollApp services..."
 			spin.Restart()
 			runDaWithRestarts(rollappConfig, serviceConfig)
 			runSequencerWithRestarts(rollappConfig, serviceConfig)
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
+
+			/* ------------------------------ render output ----------------------------- */
 			PrintServicesStatus(rollappConfig)
 			cancel()
 			spin.Suffix = " Killing subprocesses..."

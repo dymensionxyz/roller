@@ -32,7 +32,6 @@ func (d *DAMock) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
 }
 
 func (d *DAMock) GetDAAccData(c config.RollappConfig) (*utils.AccountData, error) {
-
 	return nil, nil
 }
 
