@@ -55,29 +55,6 @@ func (c *Celestia) InitializeLightNodeConfig() error {
 	return nil
 }
 
-func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
-	celAddress, err := c.GetDAAccountAddress()
-	if err != nil {
-		return nil, err
-	}
-	var restQueryUrl = fmt.Sprintf(
-		"%s/cosmos/bank/v1beta1/balances/%s",
-		consts.CelestiaRestApiEndpoint, celAddress,
-	)
-	balancesJson, err := utils.RestQueryJson(restQueryUrl)
-	if err != nil {
-		return nil, err
-	}
-	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
-	if err != nil {
-		return nil, err
-	}
-	return &utils.AccountData{
-		Address: celAddress,
-		Balance: balance,
-	}, nil
-}
-
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
 	celAddress, err := c.getDAAccData(cfg)
 	return []utils.AccountData{*celAddress}, err
@@ -111,4 +88,27 @@ func (c *Celestia) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
 		"--gateway.port", gatewayPort,
 		"--p2p.network", consts.DefaultCeletiaNetowrk,
 	)
+}
+
+func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
+	celAddress, err := c.GetDAAccountAddress()
+	if err != nil {
+		return nil, err
+	}
+	var restQueryUrl = fmt.Sprintf(
+		"%s/cosmos/bank/v1beta1/balances/%s",
+		consts.CelestiaRestApiEndpoint, celAddress,
+	)
+	balancesJson, err := utils.RestQueryJson(restQueryUrl)
+	if err != nil {
+		return nil, err
+	}
+	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
+	if err != nil {
+		return nil, err
+	}
+	return &utils.AccountData{
+		Address: celAddress,
+		Balance: balance,
+	}, nil
 }
