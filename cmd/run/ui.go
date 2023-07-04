@@ -18,7 +18,7 @@ func initializeUI() {
 func buildTitleParagraph(rollappConfig config.RollappConfig, termWidth int) *widgets.Paragraph {
 	p := widgets.NewParagraph()
 	p.Text = fmt.Sprintf("💈 Rollapp '%s' is successfully running on your local machine, connected to Dymension hub '%s'.",
-		rollappConfig.RollappID, rollappConfig.HubData.ID)
+		rollappConfig.RollappID, rollappConfig.HubData.DisplayName)
 	p.SetRect(0, 0, termWidth, 3)
 	return p
 }
