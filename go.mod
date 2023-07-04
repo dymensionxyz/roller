@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/briandowns/spinner v1.23.0
 	github.com/cosmos/cosmos-sdk v0.45.10
 	github.com/fatih/color v1.15.0
 	github.com/gizak/termui/v3 v3.1.0
@@ -45,6 +46,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
 	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
 	google.golang.org/grpc v1.51.0 // indirect

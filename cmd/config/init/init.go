@@ -2,12 +2,11 @@ package initconfig
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func InitCmd() *cobra.Command {
@@ -38,6 +37,9 @@ func InitCmd() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			spin := utils.GetLoadingSpinner()
+			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
+			spin.Start()
 			initConfig, err := GetInitConfig(cmd, args)
 			utils.PrettifyErrorIfExists(err)
 
@@ -49,6 +51,7 @@ func InitCmd() *cobra.Command {
 			isRootExist, err := dirNotEmpty(initConfig.Home)
 			utils.PrettifyErrorIfExists(err)
 			if isRootExist {
+				spin.Stop()
 				shouldOverwrite, err := promptOverwriteConfig(initConfig.Home)
 				utils.PrettifyErrorIfExists(err)
 				if shouldOverwrite {
@@ -56,11 +59,13 @@ func InitCmd() *cobra.Command {
 				} else {
 					os.Exit(0)
 				}
+				spin.Start()
 			}
 			utils.PrettifyErrorIfExists(os.MkdirAll(initConfig.Home, 0755))
 
 			//TODO: create all dirs here
-
+			spin.Suffix = " Initializing RollApp configuration files..."
+			spin.Restart()
 			/* ---------------------------- Initilize relayer --------------------------- */
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
@@ -93,6 +98,7 @@ func InitCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(utils.WriteConfigToTOML(initConfig))
 
 			/* ------------------------------ Print output ------------------------------ */
+			spin.Stop()
 			printInitOutput(initConfig, addresses, initConfig.RollappID)
 		},
 	}
