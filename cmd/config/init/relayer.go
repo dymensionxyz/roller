@@ -2,11 +2,13 @@ package initconfig
 
 import (
 	"encoding/json"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -131,7 +133,7 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 	return nil
 }
 
-func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig utils.RollappConfig) error {
+func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig config.RollappConfig) error {
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err

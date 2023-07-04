@@ -3,19 +3,20 @@ package initconfig
 import (
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
 )
 
 // TODO: return error output
-func RunInteractiveMode(config *utils.RollappConfig) {
+func RunInteractiveMode(cfg *config.RollappConfig) {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",
 		Items: []string{"devnet", "local"},
 	}
 	_, mode, _ := promptNetwork.Run()
-	config.HubData = Hubs[mode]
+	cfg.HubData = Hubs[mode]
 
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
@@ -27,8 +28,8 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		if err != nil {
 			break
 		}
-		if err := utils.ValidateRollAppID(chainID); err == nil {
-			config.RollappID = chainID
+		if err := config.ValidateRollAppID(chainID); err == nil {
+			cfg.RollappID = chainID
 			break
 		}
 		fmt.Println("Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)")
@@ -38,37 +39,45 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 		Label:   "Specify your RollApp denom",
 		Default: "RAX",
 		Validate: func(s string) error {
-			if !utils.IsValidTokenSymbol(s) {
+			if !config.IsValidTokenSymbol(s) {
 				return fmt.Errorf("invalid token symbol")
 			}
 			return nil
 		},
 	}
 	denom, _ := promptDenom.Run()
-	config.Denom = "u" + denom
+	cfg.Denom = "u" + denom
 
 	promptTokenSupply := promptui.Prompt{
 		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",
 		Default:  "1000000000",
-		Validate: utils.VerifyTokenSupply,
+		Validate: config.VerifyTokenSupply,
 	}
 	supply, _ := promptTokenSupply.Run()
-	config.TokenSupply = supply
+	cfg.TokenSupply = supply
 
+	availableDAs := []config.DAType{config.Avail, config.Celestia}
+	if mode == "local" {
+		availableDAs = append(availableDAs, config.Mock)
+	}
 	promptDAType := promptui.Select{
 		Label: "Choose your data layer",
-		Items: []string{"Celestia", "Avail"},
+		Items: availableDAs,
 	}
 
 	//TODO(#76): temporary hack to only support Celestia
 	for {
 		_, da, err := promptDAType.Run()
-		if err != nil || da == "Celestia" {
+		if err != nil {
 			break
 		}
-		if da != "Celestia" {
-			fmt.Println("Only Celestia supported for now")
+		da = strings.ToLower(da)
+		if da == string(config.Avail) {
+			fmt.Println("Avail not supported yet")
+			continue
 		}
+		cfg.DA = config.DAType(da)
+		break
 	}
 
 	promptExecutionEnv := promptui.Select{
@@ -79,7 +88,7 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 	if env == "custom" {
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
-			Default:   config.RollappBinary,
+			Default:   cfg.RollappBinary,
 			AllowEdit: true,
 			Validate: func(s string) error {
 				_, err := os.Stat(s)
@@ -87,6 +96,6 @@ func RunInteractiveMode(config *utils.RollappConfig) {
 			},
 		}
 		path, _ := promptBinaryPath.Run()
-		config.RollappBinary = path
+		cfg.RollappBinary = path
 	}
 }

@@ -2,14 +2,16 @@ package start
 
 import (
 	"encoding/json"
+	"os/exec"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"os/exec"
+	"github.com/dymensionxyz/roller/config"
 )
 
 // GetSourceChannelForConnection Returns the open source channel for the given destination connection ID. If no open channel exists, it returns an
 // empty string.
-func GetSourceChannelForConnection(dstConnectionID string, rollappConfig utils.RollappConfig) (string, error) {
+func GetSourceChannelForConnection(dstConnectionID string, rollappConfig config.RollappConfig) (string, error) {
 	commonDymdFlags := utils.GetCommonDymdFlags(rollappConfig)
 	args := []string{"query", "ibc", "channel", "connections", dstConnectionID}
 	args = append(args, commonDymdFlags...)

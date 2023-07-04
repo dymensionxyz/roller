@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/dymensionxyz/roller/config"
 )
 
 func GetRelayerDefaultFlags(root string) []string {
@@ -36,7 +38,7 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 	}()
 }
 
-func GetCommonDymdFlags(rollappConfig RollappConfig) []string {
+func GetCommonDymdFlags(rollappConfig config.RollappConfig) []string {
 	return []string{
 		"--node", rollappConfig.HubData.RPC_URL, "--output", "json",
 	}

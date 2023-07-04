@@ -7,10 +7,11 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
-func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption utils.CommandOption) (string, error) {
+func createIBCChannelIfNeeded(rollappConfig config.RollappConfig, logFileOption utils.CommandOption) (string, error) {
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)
 	fmt.Println("Creating clients...")
 	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd, logFileOption); err != nil {
@@ -53,25 +54,25 @@ func createIBCChannelIfNeeded(rollappConfig utils.RollappConfig, logFileOption u
 	return srcChannelId, nil
 }
 
-func getCreateChannelCmd(config utils.RollappConfig) *exec.Cmd {
+func getCreateChannelCmd(config config.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
 	args := []string{"tx", "channel", "-t", "300s", "--override"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func getCreateClientsCmd(rollappConfig utils.RollappConfig, srcId string, dstId string) *exec.Cmd {
+func getCreateClientsCmd(rollappConfig config.RollappConfig, srcId string, dstId string) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(rollappConfig)
 	args := []string{"tx", "clients"}
 	args = append(args, defaultRlyArgs...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func getRelayerDefaultArgs(config utils.RollappConfig) []string {
+func getRelayerDefaultArgs(config config.RollappConfig) []string {
 	return []string{consts.DefaultRelayerPath, "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer)}
 }
 
-func getCreateConnectionCmd(config utils.RollappConfig) *exec.Cmd {
+func getCreateConnectionCmd(config config.RollappConfig) *exec.Cmd {
 	defaultRlyArgs := getRelayerDefaultArgs(config)
 	args := []string{"tx", "connection", "-t", "300s"}
 	args = append(args, defaultRlyArgs...)

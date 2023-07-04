@@ -6,12 +6,13 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	toml "github.com/pelletier/go-toml"
 )
 
-func initializeRollappConfig(initConfig utils.RollappConfig) error {
+func initializeRollappConfig(initConfig config.RollappConfig) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeysIds.HubSequencer, "--chain-id",

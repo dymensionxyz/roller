@@ -1,12 +1,15 @@
 package run
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"log"
 	"math/big"
 	"path/filepath"
 	"time"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -37,31 +40,34 @@ func activeIfSufficientBalance(currentBalance, threshold *big.Int) string {
 	}
 }
 
-func buildServiceData(data []*utils.AccountData, rollappConfig utils.RollappConfig) []ServiceData {
-	rolRlyData := data[2]
-	return []ServiceData{
+func buildServiceData(data []*utils.AccountData, rollappConfig config.RollappConfig) []ServiceData {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+
+	var servicedata = []ServiceData{
 		{
 			Name:    "Sequencer",
 			Balance: data[0].Balance.String() + consts.Denoms.Hub,
-			// TODO: for now, we just check if the balance of the rollapp relayer is greater than 0
-			// in the future, we should have a better way to check the rollapp health.
-			Status: activeIfSufficientBalance(rolRlyData.Balance, big.NewInt(1)),
-		},
-		{
-			Name:    "DA Light Client",
-			Balance: data[3].Balance.String() + consts.Denoms.Celestia,
-			Status:  activeIfSufficientBalance(data[3].Balance, consts.OneDAWritePrice),
+			Status:  activeIfSufficientBalance(data[0].Balance, big.NewInt(1)),
 		},
 		{
 			Name: "Relayer",
 			Balance: data[1].Balance.String() + consts.Denoms.Hub + ", " +
-				rolRlyData.Balance.String() + rollappConfig.Denom,
+				data[1].Balance.String() + rollappConfig.Denom,
 			Status: "Starting...",
 		},
 	}
+
+	if damanager.GetLightNodeEndpoint() != "" {
+		servicedata = append(servicedata, ServiceData{
+			Name:    "DA Light Client",
+			Balance: data[3].Balance.String() + consts.Denoms.Celestia,
+			Status:  activeIfSufficientBalance(data[3].Balance, consts.OneDAWritePrice),
+		})
+	}
+	return servicedata
 }
 
-func PrintServicesStatus(rollappConfig utils.RollappConfig) {
+func RenderUI(rollappConfig config.RollappConfig) {
 	logger := utils.GetLogger(filepath.Join(rollappConfig.Home, "roller.log"))
 	initializeUI()
 	defer ui.Close()
@@ -69,16 +75,21 @@ func PrintServicesStatus(rollappConfig utils.RollappConfig) {
 	termWidth, _ := ui.TerminalDimensions()
 
 	p := buildTitleParagraph(rollappConfig, termWidth)
-	servicesStatusTable := buildUITable(termWidth)
-	servicesInfoTable := getServicesInfo(rollappConfig, termWidth)
-	serviceData := getInitialServiceData()
+	servicesStatusTable := NewServiceStatusTable(termWidth)
+	servicesInfoTable := NewServicesInfoTable(rollappConfig, termWidth)
 
+	serviceData, err := fetchServicesData(rollappConfig, logger)
+	if err != nil {
+		logger.Printf("Error: failed to fetch service data: %v", err)
+		serviceData = []ServiceData{}
+	}
 	updateUITable(serviceData, servicesStatusTable)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
 	events := ui.PollEvents()
 	ticker := time.NewTicker(time.Second * 5).C
 
+	//TODO: the renderer should be a struct that holds the config and the tables
 	config := ServiceStatusConfig{
 		rollappConfig: rollappConfig,
 		logger:        logger,
@@ -100,6 +111,7 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, config ServiceSt
 			serviceData, err := fetchServicesData(config.rollappConfig, config.logger)
 			if err != nil {
 				config.logger.Printf("Error: failed to fetch service data: %v", err)
+				serviceData = []ServiceData{}
 			} else {
 				config.logger.Printf("Fetched services data successfully %s", serviceData)
 			}
@@ -110,7 +122,7 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, config ServiceSt
 }
 
 type ServiceStatusConfig struct {
-	rollappConfig utils.RollappConfig
+	rollappConfig config.RollappConfig
 	logger        *log.Logger
 	table         *widgets.Table
 }

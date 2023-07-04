@@ -1,8 +1,11 @@
 package run
 
 import (
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"log"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
 
 type ServiceData struct {
@@ -17,13 +20,20 @@ type fetchResult struct {
 	id   int
 }
 
-func fetchServicesData(rollappConfig utils.RollappConfig, logger *log.Logger) ([]ServiceData, error) {
-	fetchFuncs := []func(utils.RollappConfig) (*utils.AccountData, error){
+func fetchServicesData(rollappConfig config.RollappConfig, logger *log.Logger) ([]ServiceData, error) {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+
+	//TODO: avoid requiring passing rollappConfig to every function
+	fetchFuncs := []func(config.RollappConfig) (*utils.AccountData, error){
 		utils.GetSequencerData,
 		utils.GetHubRlyAccData,
 		utils.GetRolRlyAccData,
-		utils.GetCelLCAccData,
 	}
+
+	if damanager.GetLightNodeEndpoint() != "" {
+		fetchFuncs = append(fetchFuncs, damanager.GetDAAccData)
+	}
+
 	results := fetchAsync(fetchFuncs, rollappConfig)
 	data := processDataResults(results, len(fetchFuncs), logger)
 	return buildServiceData(data, rollappConfig), nil
@@ -49,10 +59,10 @@ func getInitialServiceData() []ServiceData {
 	}
 }
 
-func fetchAsync(fetchFuncs []func(utils.RollappConfig) (*utils.AccountData, error), rollappConfig utils.RollappConfig) chan fetchResult {
+func fetchAsync(fetchFuncs []func(config.RollappConfig) (*utils.AccountData, error), rollappConfig config.RollappConfig) chan fetchResult {
 	results := make(chan fetchResult, len(fetchFuncs))
 	for i, fn := range fetchFuncs {
-		go func(id int, fn func(utils.RollappConfig) (*utils.AccountData, error)) {
+		go func(id int, fn func(config.RollappConfig) (*utils.AccountData, error)) {
 			data, err := fn(rollappConfig)
 			results <- fetchResult{data, err, id}
 		}(i, fn)

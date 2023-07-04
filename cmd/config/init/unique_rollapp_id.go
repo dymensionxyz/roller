@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 // TODO(#150): roller should use RPC for queries instead of REST
-func IsRollappIDUnique(rollappID string, initConfig utils.RollappConfig) (bool, error) {
+func IsRollappIDUnique(rollappID string, initConfig config.RollappConfig) (bool, error) {
 	url := initConfig.HubData.API_URL + "/dymensionxyz/dymension/rollapp/rollapp/" + rollappID
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -34,7 +34,7 @@ func IsRollappIDUnique(rollappID string, initConfig utils.RollappConfig) (bool, 
 	}
 }
 
-func VerifyUniqueRollappID(rollappID string, initConfig utils.RollappConfig) error {
+func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) error {
 	isUniqueRollapp, err := IsRollappIDUnique(rollappID, initConfig)
 	if err != nil {
 		return err
