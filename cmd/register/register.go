@@ -2,16 +2,14 @@ package register
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-
-	"encoding/json"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
@@ -25,33 +23,55 @@ func Cmd() *cobra.Command {
 		Use:   "register",
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
 		Run: func(cmd *cobra.Command, args []string) {
-			spin := utils.GetLoadingSpinner()
-			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
-			spin.Start()
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
-			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerUdymPrice)
-			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
-			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
-			spin.Restart()
-			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
-			spin.Suffix = " Registering RollApp to hub...\n"
-			spin.Restart()
-			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
-			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
-			utils.PrettifyErrorIfExists(err)
-			spin.Suffix = " Registering RollApp sequencer...\n"
-			spin.Restart()
-			_, err = utils.ExecBashCommand(registerSequencerCmd)
-			utils.PrettifyErrorIfExists(err)
-			spin.Stop()
-			printRegisterOutput(rollappConfig)
+			utils.PrettifyErrorIfExists(register(cmd, args))
 		},
 	}
 
 	return registerCmd
+}
+
+func register(cmd *cobra.Command, args []string) error {
+	spin := utils.GetLoadingSpinner()
+	spin.Suffix = consts.SpinnerMsgs.BalancesVerification
+	spin.Start()
+	defer spin.Stop()
+	utils.RunOnInterrupt(spin.Stop)
+	home := cmd.Flag(utils.FlagNames.Home).Value.String()
+	rollappConfig, err := config.LoadConfigFromTOML(home)
+	if err != nil {
+		return err
+	}
+	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerUdymPrice)
+	if err != nil {
+		return err
+	}
+	if len(notFundedAddrs) > 0 {
+		spin.Stop()
+		utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
+	}
+	spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
+	spin.Restart()
+	if err := initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig); err != nil {
+		return err
+	}
+	spin.Suffix = " Registering RollApp to hub...\n"
+	spin.Restart()
+	if err := registerRollapp(rollappConfig); err != nil {
+		return err
+	}
+	registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
+	if err != nil {
+		return err
+	}
+	spin.Suffix = " Registering RollApp sequencer...\n"
+	spin.Restart()
+	_, err = utils.ExecBashCommand(registerSequencerCmd)
+	if err != nil {
+		return err
+	}
+	spin.Stop()
+	printRegisterOutput(rollappConfig)
+	return nil
 }
 
 func registerRollapp(rollappConfig config.RollappConfig) error {
