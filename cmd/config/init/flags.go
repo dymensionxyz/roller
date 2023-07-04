@@ -2,8 +2,6 @@ package initconfig
 
 import (
 	"fmt"
-	"strings"
-	"unicode"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -71,25 +69,6 @@ func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubID, LocalHubID)
 }
 
-func verifyDecimals(cmd *cobra.Command) error {
-	decimals, err := cmd.Flags().GetUint(FlagNames.Decimals)
-	if err != nil {
-		return err
-	}
-	if decimals > 18 {
-		return fmt.Errorf("invalid decimals: %d. Must be less than or equal to 18", decimals)
-	}
-	return nil
-}
-
-func isValidDenom(s string) bool {
-	if len(s) != 3 {
-		return false
-	}
-	for _, r := range s {
-		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
-			return false
-		}
-	}
-	return true
+func getValidDenomMessage() string {
+	return "A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'"
 }

@@ -9,8 +9,6 @@ import (
 	"os"
 )
 
-const validDenomMsg = "A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'"
-
 func InitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:   "init <rollapp-id> <denom>",
@@ -32,13 +30,7 @@ func InitCmd() *cobra.Command {
 			if len(args) < 2 {
 				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
 			}
-			denom := args[1]
-			if !isValidDenom(denom) {
-				return fmt.Errorf("invalid denom '%s'. %s", denom, validDenomMsg)
-			}
-			if err := verifyDecimals(cmd); err != nil {
-				return err
-			}
+
 			//TODO: parse the config here instead of GetInitConfig in Run command
 			// cmd.SetContextValue("mydata", data)
 

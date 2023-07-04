@@ -2,9 +2,10 @@ package initconfig
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"strings"
 )
 
 func printInitOutput(rollappConfig utils.RollappConfig, addresses []utils.AddressData, rollappId string) {
