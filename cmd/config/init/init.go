@@ -41,11 +41,12 @@ func InitCmd() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			initConfig, err := GetInitConfig(cmd, args)
+			utils.PrettifyErrorIfExists(err)
+
 			spin := utils.GetLoadingSpinner()
 			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
 			spin.Start()
-			initConfig, err := GetInitConfig(cmd, args)
-			utils.PrettifyErrorIfExists(err)
 
 			err = initConfig.Validate()
 			utils.PrettifyErrorIfExists(err, func() {
