@@ -2,13 +2,12 @@ package initconfig
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func InitCmd() *cobra.Command {
@@ -69,6 +68,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 	spin := utils.GetLoadingSpinner()
 	spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
+	utils.RunOnInterrupt(spin.Stop)
 	spin.Start()
 	defer spin.Stop()
 	err = initConfig.Validate()
