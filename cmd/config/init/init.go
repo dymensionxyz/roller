@@ -73,11 +73,13 @@ func InitCmd() *cobra.Command {
 			spin.Suffix = " Initializing RollApp configuration files..."
 			spin.Restart()
 			/* ---------------------------- Initilize relayer --------------------------- */
+			rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
+			utils.PrettifyErrorIfExists(err)
 			utils.PrettifyErrorIfExists(initializeRelayerConfig(ChainConfig{
 				ID:            initConfig.RollappID,
 				RPC:           consts.DefaultRollappRPC,
 				Denom:         initConfig.Denom,
-				AddressPrefix: consts.AddressPrefixes.Rollapp,
+				AddressPrefix: rollappPrefix,
 			}, ChainConfig{
 				ID:            initConfig.HubData.ID,
 				RPC:           initConfig.HubData.RPC_URL,
