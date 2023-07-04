@@ -14,8 +14,8 @@ type DAType string
 
 const (
 	Mock     DAType = "mock"
-	Celestia DAType = "Celestia"
-	Avail    DAType = "Avail"
+	Celestia DAType = "celestia"
+	Avail    DAType = "avail"
 )
 
 type RollappConfig struct {

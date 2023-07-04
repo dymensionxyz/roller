@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -55,7 +56,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.Denom = "u" + denom
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
-	cfg.DA = config.DAType(initCmd.Flag(FlagNames.DAType).Value.String())
+	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 
 	return cfg, nil
 }

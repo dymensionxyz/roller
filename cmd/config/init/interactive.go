@@ -3,6 +3,7 @@ package initconfig
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
@@ -70,6 +71,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		if err != nil {
 			break
 		}
+		da = strings.ToLower(da)
 		if da == string(config.Avail) {
 			fmt.Println("Avail not supported yet")
 			continue
