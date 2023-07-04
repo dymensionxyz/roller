@@ -20,9 +20,6 @@ func Cmd() *cobra.Command {
 		Use:   "run",
 		Short: "Runs the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			spin := utils.GetLoadingSpinner()
-			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
-			spin.Start()
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
@@ -38,8 +35,6 @@ func Cmd() *cobra.Command {
 			}
 
 			/* ------------------------------ run processes ----------------------------- */
-			spin.Suffix = " Starting RollApp services..."
-			spin.Restart()
 			runDaWithRestarts(rollappConfig, serviceConfig)
 			runSequencerWithRestarts(rollappConfig, serviceConfig)
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
@@ -47,10 +42,9 @@ func Cmd() *cobra.Command {
 			/* ------------------------------ render output ----------------------------- */
 			PrintServicesStatus(rollappConfig)
 			cancel()
-			spin.Suffix = " Killing subprocesses..."
-			spin.Restart()
+			logger.Println("Killing subprocesses")
 			waitingGroup.Wait()
-			spin.Stop()
+			logger.Println("killed them")
 		},
 	}
 

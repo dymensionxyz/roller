@@ -3,11 +3,9 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/briandowns/spinner"
 	"github.com/olekukonko/tablewriter"
 	"math/big"
 	"os"
-	"time"
 )
 
 func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
@@ -45,8 +43,4 @@ type NotFundedAddressData struct {
 	CurrentBalance  *big.Int
 	RequiredBalance *big.Int
 	Denom           string
-}
-
-func GetLoadingSpinner() *spinner.Spinner {
-	return spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 }
