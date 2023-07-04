@@ -36,8 +36,9 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 	}
 
 	promptDenom := promptui.Prompt{
-		Label:   "Specify your RollApp denom",
-		Default: "RAX",
+		Label:     "Specify your RollApp denom",
+		Default:   "RAX",
+		AllowEdit: true,
 		Validate: func(s string) error {
 			if !config.IsValidTokenSymbol(s) {
 				return fmt.Errorf("invalid token symbol")

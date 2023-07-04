@@ -22,14 +22,6 @@ func InitCmd() *cobra.Command {
 				return nil
 			}
 
-			if len(args) == 0 {
-				fmt.Println("No arguments provided. Running in interactive mode.")
-				if err := cmd.Flags().Set(FlagNames.Interactive, "true"); err != nil {
-					return err
-				}
-				return nil
-			}
-
 			if len(args) < 2 {
 				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
 			}
