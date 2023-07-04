@@ -42,9 +42,7 @@ func Cmd() *cobra.Command {
 			/* ------------------------------ render output ----------------------------- */
 			PrintServicesStatus(rollappConfig)
 			cancel()
-			logger.Println("Killing subprocesses")
 			waitingGroup.Wait()
-			logger.Println("killed them")
 		},
 	}
 
