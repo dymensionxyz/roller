@@ -13,9 +13,11 @@ type DataLayer interface {
 	GetDAAccountAddress() (string, error)
 	InitializeLightNodeConfig() error
 	CheckDABalance() ([]utils.NotFundedAddressData, error)
-	GetStartDACmd(rpcEndpoint string) *exec.Cmd
+	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
 	GetLightNodeEndpoint() string
+	SetRPCEndpoint(string)
+	GetNetworkName() string
 }
 
 type DAManager struct {

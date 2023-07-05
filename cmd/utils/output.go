@@ -3,17 +3,20 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/briandowns/spinner"
-	"github.com/olekukonko/tablewriter"
 	"math/big"
 	"os"
 	"time"
+
+	"github.com/briandowns/spinner"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/olekukonko/tablewriter"
 )
 
-func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
+func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config config.RollappConfig) {
 	if len(addressesData) == 0 {
 		return
 	}
+
 	printAddresses := func() {
 		data := make([][]string, len(addressesData))
 		for i, addressData := range addressesData {
@@ -22,10 +25,11 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData) {
 				addressData.Address,
 				addressData.CurrentBalance.String() + addressData.Denom,
 				addressData.RequiredBalance.String() + addressData.Denom,
+				addressData.Network,
 			}
 		}
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Name", "Address", "Current Balance", "Required Balance"})
+		table.SetHeader([]string{"Name", "Address", "Current", "Required", "Network"})
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 		table.SetBorder(false)
@@ -45,6 +49,7 @@ type NotFundedAddressData struct {
 	CurrentBalance  *big.Int
 	RequiredBalance *big.Int
 	Denom           string
+	Network         string
 }
 
 func GetLoadingSpinner() *spinner.Spinner {

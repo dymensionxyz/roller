@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
@@ -29,10 +28,13 @@ func Cmd() *cobra.Command {
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 			insufficientBalances, err := damanager.CheckDABalance()
 			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
-			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
+			utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
 
-			startDALCCmd := damanager.GetStartDACmd(rpcEndpoint)
+			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
+			if rpcEndpoint != "" {
+				damanager.SetRPCEndpoint(rpcEndpoint)
+			}
+			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
 				utils.PrettifyErrorIfExists(errors.New("can't run mock DA. It runs automatically with the app"))
 			}
@@ -48,7 +50,7 @@ func Cmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(rpcEndpointFlag, "", consts.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
+	cmd.Flags().StringP(rpcEndpointFlag, "", "", "The DA rpc endpoint to connect to.")
 }
 
 func printOutput() {

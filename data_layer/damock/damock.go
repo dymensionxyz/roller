@@ -28,7 +28,7 @@ func (d *DAMock) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	return []utils.NotFundedAddressData{}, nil
 }
 
-func (d *DAMock) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
+func (d *DAMock) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
@@ -46,4 +46,11 @@ func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, erro
 
 func (d *DAMock) GetLightNodeEndpoint() string {
 	return ""
+}
+
+func (d *DAMock) SetRPCEndpoint(string) {
+}
+
+func (d *DAMock) GetNetworkName() string {
+	return "mock"
 }

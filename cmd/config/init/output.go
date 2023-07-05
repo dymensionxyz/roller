@@ -7,21 +7,23 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
 
 func printInitOutput(rollappConfig config.RollappConfig, addresses []utils.AddressData, rollappId string) {
 	fmt.Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
-	utils.PrintAddresses(formatAddresses(addresses))
+	utils.PrintAddresses(formatAddresses(rollappConfig, addresses))
 	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
 }
 
-func formatAddresses(addresses []utils.AddressData) []utils.AddressData {
+func formatAddresses(rollappConfig config.RollappConfig, addresses []utils.AddressData) []utils.AddressData {
+	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	requireFundingKeys := map[string]string{
-		consts.KeysIds.HubSequencer: "Sequencer",
-		consts.KeysIds.HubRelayer:   "Relayer",
-		consts.KeysIds.DALightNode:  "Celestia",
+		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
+		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID),
+		consts.KeysIds.DALightNode:  fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
 	}
 	filteredAddresses := make([]utils.AddressData, 0)
 	for _, address := range addresses {

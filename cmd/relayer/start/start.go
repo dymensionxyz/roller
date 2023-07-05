@@ -60,7 +60,7 @@ func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cm
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	utils.PrettifyErrorIfExists(err)
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rolCfg)
 }
 
 func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
@@ -84,6 +84,7 @@ func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFund
 			CurrentBalance:  HubRlyBalance.Amount,
 			RequiredBalance: oneDayRelayPriceHub,
 			Denom:           consts.Denoms.Hub,
+			Network:         config.HubData.ID,
 		})
 	}
 	return insufficientBalances, nil
@@ -105,6 +106,7 @@ func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFun
 			CurrentBalance:  rolRlyData.Balance.Amount,
 			RequiredBalance: oneDayRelayPriceRollapp,
 			Denom:           config.Denom,
+			Network:         config.RollappID,
 		})
 	}
 	return insufficientBalances, nil

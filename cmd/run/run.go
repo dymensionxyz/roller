@@ -73,7 +73,7 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
+	startDALCCmd := damanager.GetStartDACmd()
 	if startDALCCmd == nil {
 		return
 	}
@@ -111,6 +111,5 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	rlyAddrs, err := relayer_start.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
-
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
 }

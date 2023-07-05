@@ -90,6 +90,7 @@ func GetSequencerInsufficientAddrs(cfg config.RollappConfig, requiredBalance *bi
 					CurrentBalance:  seq.Balance.Amount,
 					RequiredBalance: requiredBalance,
 					KeyName:         consts.KeysIds.HubSequencer,
+					Network:         cfg.HubData.ID,
 				},
 			}, nil
 		}

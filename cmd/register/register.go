@@ -8,6 +8,8 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -47,7 +49,7 @@ func register(cmd *cobra.Command, args []string) error {
 	}
 	if len(notFundedAddrs) > 0 {
 		spin.Stop()
-		utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
+		utils.PrintInsufficientBalancesIfAny(notFundedAddrs, rollappConfig)
 	}
 	spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
 	spin.Restart()
