@@ -7,6 +7,21 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
+func GetRelayerAddresses(cfg config.RollappConfig) ([]AccountData, error) {
+	data := []AccountData{}
+	rollappRlyAcc, err := GetRolRlyAccData(cfg)
+	if err != nil {
+		return nil, err
+	}
+	data = append(data, *rollappRlyAcc)
+	hubRlyAcc, err := GetHubRlyAccData(cfg)
+	if err != nil {
+		return nil, err
+	}
+	data = append(data, *hubRlyAcc)
+	return data, nil
+}
+
 func GetRolRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 	RollappRlyAddr, err := GetRelayerAddress(cfg.Home, cfg.RollappID)
 	if err != nil {
@@ -45,7 +60,7 @@ func GetHubRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 	}, nil
 }
 
-func GetSequencerData(cfg config.RollappConfig) (*AccountData, error) {
+func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 	sequencerAddress, err := GetAddressBinary(KeyConfig{
 		ID:  consts.KeysIds.HubSequencer,
 		Dir: filepath.Join(cfg.Home, consts.ConfigDirName.HubKeys),
@@ -61,8 +76,10 @@ func GetSequencerData(cfg config.RollappConfig) (*AccountData, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &AccountData{
-		Address: sequencerAddress,
-		Balance: sequencerBalance,
+	return []AccountData{
+		{
+			Address: sequencerAddress,
+			Balance: sequencerBalance,
+		},
 	}, nil
 }
