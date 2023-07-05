@@ -26,15 +26,13 @@ const (
 // TODO(#112): The avaialble hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
 	StagingHubName: {
-		API_URL:     "https://dymension.devnet.api.silknodes.io:443",
-		ID:          "devnet_304-1",
-		RPC_URL:     "https://dymension.devnet.rpc.silknodes.io:443",
-		DisplayName: StagingHubName,
+		API_URL: "https://dymension.devnet.api.silknodes.io:443",
+		ID:      "devnet_304-1",
+		RPC_URL: "https://dymension.devnet.rpc.silknodes.io:443",
 	},
 	LocalHubName: {
-		API_URL:     "http://localhost:1318",
-		ID:          "dymension_100-1",
-		RPC_URL:     "http://localhost:36657",
-		DisplayName: LocalHubName,
+		API_URL: "http://localhost:1318",
+		ID:      "dymension_100-1",
+		RPC_URL: "http://localhost:36657",
 	},
 }

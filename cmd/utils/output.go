@@ -3,27 +3,20 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/briandowns/spinner"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
-	"github.com/olekukonko/tablewriter"
 	"math/big"
 	"os"
-	"strings"
 	"time"
+
+	"github.com/briandowns/spinner"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/olekukonko/tablewriter"
 )
 
 func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config config.RollappConfig) {
 	if len(addressesData) == 0 {
 		return
 	}
-	keyIdToNetwork := map[string]string{
-		consts.KeysIds.HubSequencer:     config.HubData.DisplayName + " Hub",
-		consts.KeysIds.HubRelayer:       config.HubData.DisplayName + " Hub",
-		consts.KeysIds.DALightNode:      consts.DefaultCelestiaNetwork,
-		consts.KeysIds.RollappRelayer:   config.RollappID,
-		consts.KeysIds.RollappSequencer: config.RollappID,
-	}
+
 	printAddresses := func() {
 		data := make([][]string, len(addressesData))
 		for i, addressData := range addressesData {
@@ -32,7 +25,7 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config
 				addressData.Address,
 				addressData.CurrentBalance.String() + addressData.Denom,
 				addressData.RequiredBalance.String() + addressData.Denom,
-				strings.Title(keyIdToNetwork[addressData.KeyName]),
+				addressData.Network,
 			}
 		}
 		table := tablewriter.NewWriter(os.Stdout)
@@ -56,6 +49,7 @@ type NotFundedAddressData struct {
 	CurrentBalance  *big.Int
 	RequiredBalance *big.Int
 	Denom           string
+	Network         string
 }
 
 func GetLoadingSpinner() *spinner.Spinner {

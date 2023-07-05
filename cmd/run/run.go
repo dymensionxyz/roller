@@ -65,7 +65,7 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig utils.ServiceConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := damanager.GetStartDACmd(consts.DefaultCelestiaRPC)
+	startDALCCmd := damanager.GetStartDACmd()
 	if startDALCCmd == nil {
 		serviceConfig.WaitGroup.Done()
 		return

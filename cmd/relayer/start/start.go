@@ -84,6 +84,7 @@ func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFund
 			CurrentBalance:  HubRlyBalance,
 			RequiredBalance: oneDayRelayPriceHub,
 			Denom:           consts.Denoms.Hub,
+			Network:         config.HubData.ID,
 		})
 	}
 	return insufficientBalances, nil
@@ -105,6 +106,7 @@ func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFun
 			CurrentBalance:  rolRlyData.Balance,
 			RequiredBalance: oneDayRelayPriceRollapp,
 			Denom:           config.Denom,
+			Network:         config.RollappID,
 		})
 	}
 	return insufficientBalances, nil

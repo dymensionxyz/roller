@@ -13,8 +13,11 @@ import (
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	gatewayAddr = "0.0.0.0"
-	gatewayPort = "26659"
+	gatewayAddr             = "0.0.0.0"
+	gatewayPort             = "26659"
+	CelestiaRestApiEndpoint = "https://api-mocha.pops.one"
+	DefaultCelestiaRPC      = "rpc-mocha.pops.one"
+	DefaultCelestiaNetwork  = "mocha"
 )
 
 var (
@@ -23,7 +26,8 @@ var (
 )
 
 type Celestia struct {
-	Root string
+	Root        string
+	rpcEndpoint string
 }
 
 func (c *Celestia) GetLightNodeEndpoint() string {
@@ -47,7 +51,7 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 
 // TODO: wrap in some DA interfafce to be used for Avail as well
 func (c *Celestia) InitializeLightNodeConfig() error {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network", consts.DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network", DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
@@ -62,7 +66,7 @@ func (c *Celestia) GetDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}
 	var restQueryUrl = fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
-		consts.CelestiaRestApiEndpoint, celAddress,
+		CelestiaRestApiEndpoint, celAddress,
 	)
 	balancesJson, err := utils.RestQueryJson(restQueryUrl)
 	if err != nil {
@@ -91,19 +95,28 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 			RequiredBalance: lcMinBalance,
 			KeyName:         consts.KeysIds.DALightNode,
 			Denom:           consts.Denoms.Celestia,
+			Network:         DefaultCelestiaNetwork,
 		})
 	}
 	return insufficientBalances, nil
 }
 
-func (c *Celestia) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
+func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Celestia, "light", "start",
-		"--core.ip", rpcEndpoint,
+		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
-		"--p2p.network", consts.DefaultCelestiaNetwork,
+		"--p2p.network", DefaultCelestiaNetwork,
 	)
+}
+
+func (c *Celestia) SetRPCEndpoint(rpc string) {
+	c.rpcEndpoint = rpc
+}
+
+func (c *Celestia) GetNetworkName() string {
+	return DefaultCelestiaNetwork
 }

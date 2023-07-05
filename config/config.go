@@ -30,10 +30,9 @@ type RollappConfig struct {
 }
 
 type HubData = struct {
-	API_URL     string
-	ID          string
-	RPC_URL     string
-	DisplayName string
+	API_URL string
+	ID      string
+	RPC_URL string
 }
 
 func (c RollappConfig) Validate() error {
