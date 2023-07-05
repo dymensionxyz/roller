@@ -57,7 +57,7 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 
 			//FIXME: the status function should be part of the service
 			for _, account := range accountData {
-				service.UIData.Status = activeIfSufficientBalance(account.Balance, big.NewInt(1))
+				service.UIData.Status = activeIfSufficientBalance(account.Balance.Amount, big.NewInt(1))
 			}
 			if k == "Relayer" {
 				service.UIData.Status = "Starting..."

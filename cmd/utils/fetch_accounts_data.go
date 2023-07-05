@@ -68,6 +68,7 @@ func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sequencerBalance, err := QueryBalance(ChainQueryConfig{
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,

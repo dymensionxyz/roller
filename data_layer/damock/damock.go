@@ -36,7 +36,10 @@ func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, erro
 	return []utils.AccountData{
 		{
 			Address: "mockDA",
-			Balance: big.NewInt(999999999999999),
+			Balance: utils.Balance{
+				Denom:  "mock",
+				Amount: big.NewInt(999999999999999),
+			},
 		},
 	}, nil
 }

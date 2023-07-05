@@ -36,7 +36,7 @@ func StartCmd() *cobra.Command {
 			RollappBinary = rollappConfig.RollappBinary
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
-			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *OneDaySequencePrice)
+			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, OneDaySequencePrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs)
 			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
