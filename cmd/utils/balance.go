@@ -67,17 +67,19 @@ func GetSequencerInsufficientAddrs(cfg config.RollappConfig, requiredBalance big
 	if err != nil {
 		return nil, err
 	}
-	if sequencerData.Balance.Cmp(&requiredBalance) < 0 {
-		return []NotFundedAddressData{
-			{
-				Address:         sequencerData.Address,
-				Denom:           consts.Denoms.Hub,
-				CurrentBalance:  sequencerData.Balance,
-				RequiredBalance: &requiredBalance,
-				KeyName:         consts.KeysIds.HubSequencer,
-				Network:         cfg.HubData.ID,
-			},
-		}, nil
+	for _, seq := range sequencerData {
+		if seq.Balance.Cmp(&requiredBalance) < 0 {
+			return []NotFundedAddressData{
+				{
+					Address:         seq.Address,
+					Denom:           consts.Denoms.Hub,
+					CurrentBalance:  seq.Balance,
+					RequiredBalance: &requiredBalance,
+					KeyName:         consts.KeysIds.HubSequencer,
+					Network:         cfg.HubData.ID,
+				},
+			}, nil
+		}
 	}
 	return []NotFundedAddressData{}, nil
 }

@@ -32,10 +32,12 @@ func (d *DAMock) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (d *DAMock) GetDAAccData(c config.RollappConfig) (*utils.AccountData, error) {
-	return &utils.AccountData{
-		Address: "mockDA",
-		Balance: big.NewInt(999999999999999),
+func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error) {
+	return []utils.AccountData{
+		{
+			Address: "mockDA",
+			Balance: big.NewInt(999999999999999),
+		},
 	}, nil
 }
 
