@@ -119,6 +119,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 }
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
+	// TODO: Add support for custom EVM rollapp binaries (#196)
 	var coinType = "118"
 	if keyConfig.ChainBinary == consts.Executables.RollappEVM {
 		coinType = "60"
