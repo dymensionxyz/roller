@@ -46,7 +46,12 @@ func Cmd() *cobra.Command {
 			/* ------------------------------ render output ----------------------------- */
 			RenderUI(rollappConfig, serviceConfig)
 			cancel()
+			spin := utils.GetLoadingSpinner()
+			spin.Suffix = " Stopping rollapp services, please wait..."
+			spin.Start()
+			utils.RunOnInterrupt(spin.Stop)
 			waitingGroup.Wait()
+			spin.Stop()
 		},
 	}
 
