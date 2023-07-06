@@ -2,6 +2,8 @@ package run
 
 import (
 	"context"
+	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 	"os"
 	"os/exec"
 	"sync"
@@ -53,10 +55,11 @@ func Cmd() *cobra.Command {
 
 func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
-	service := servicemanager.ServiceData{
-		Command: startRelayerCmd,
-		FetchFn: utils.GetRelayerAddresses,
-		UIData:  servicemanager.UIData{Name: "Relayer"},
+	service := servicemanager.Service{
+		Command:  startRelayerCmd,
+		FetchFn:  utils.GetRelayerAccountsData,
+		UIData:   servicemanager.UIData{Name: "Relayer"},
+		StatusFn: relayer.GetRelayerStatus,
 	}
 	serviceConfig.AddService("Relayer", service)
 	serviceConfig.RunServiceWithRestart("Relayer")
@@ -78,10 +81,11 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 		return
 	}
 
-	service := servicemanager.ServiceData{
-		Command: startDALCCmd,
-		FetchFn: damanager.GetDAAccData,
-		UIData:  servicemanager.UIData{Name: "DA Light Client"},
+	service := servicemanager.Service{
+		Command:  startDALCCmd,
+		FetchFn:  damanager.GetDAAccData,
+		StatusFn: damanager.GetStatus,
+		UIData:   servicemanager.UIData{Name: "DA Light Client"},
 	}
 	serviceConfig.AddService("DA Light Client", service)
 	serviceConfig.RunServiceWithRestart("DA Light Client", utils.WithLogging(daLogFilePath))
@@ -89,10 +93,11 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 
 func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
-	service := servicemanager.ServiceData{
-		Command: startRollappCmd,
-		FetchFn: utils.GetSequencerData,
-		UIData:  servicemanager.UIData{Name: "Sequencer"},
+	service := servicemanager.Service{
+		Command:  startRollappCmd,
+		FetchFn:  utils.GetSequencerData,
+		StatusFn: sequencer.GetSequencerStatus,
+		UIData:   servicemanager.UIData{Name: "Sequencer"},
 	}
 	serviceConfig.AddService("Sequencer", service)
 	serviceConfig.RunServiceWithRestart("Sequencer", utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))

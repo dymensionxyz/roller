@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-func GetRelayerAddresses(cfg config.RollappConfig) ([]AccountData, error) {
+func GetRelayerAccountsData(cfg config.RollappConfig) ([]AccountData, error) {
 	data := []AccountData{}
 	rollappRlyAcc, err := GetRolRlyAccData(cfg)
 	if err != nil {
