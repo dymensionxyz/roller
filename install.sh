@@ -57,6 +57,7 @@ if ! sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp";
     echo "$EMOJI Download failed. Cloning and building manually..."
     # Check prerequisites
     command -v curl >/dev/null 2>&1 || { echo >&2 "$EMOJI curl is required but it's not installed. Aborting."; exit 1; }
+    command -v wget >/dev/null 2>&1 || { echo >&2 "$EMOJI wget is required but it's not installed. Aborting."; exit 1; }
     command -v git >/dev/null 2>&1 || { echo >&2 "$EMOJI git is required but it's not installed. Aborting."; exit 1; }
     if ! command -v go >/dev/null 2>&1; then
         echo >&2 "$EMOJI Go is required but it's not installed. Aborting."
