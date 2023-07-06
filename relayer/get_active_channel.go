@@ -1,34 +1,33 @@
-package start
+package relayer
 
 import (
 	"encoding/json"
-	"os/exec"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"os/exec"
 )
 
-// GetSourceChannelForConnection Returns the open source channel for the given destination connection ID. If no open channel exists, it returns an
-// empty string.
-func GetSourceChannelForConnection(dstConnectionID string, rollappConfig config.RollappConfig) (string, error) {
+func GetConnectionChannels(dstConnectionID string, rollappConfig config.RollappConfig) (
+	ConnectionChannels, error) {
 	commonDymdFlags := utils.GetCommonDymdFlags(rollappConfig)
 	args := []string{"query", "ibc", "channel", "connections", dstConnectionID}
 	args = append(args, commonDymdFlags...)
 	cmd := exec.Command(consts.Executables.Dymension, args...)
 	out, err := cmd.Output()
 	if err != nil {
-		return "", err
+		return ConnectionChannels{}, err
 	}
-	channelId, err := GetOpenStateChannelID(out)
+	channels, err := extractChannelsFromResponse(out)
 	if err != nil {
-		return "", err
+		return ConnectionChannels{}, err
 	}
-	return channelId, nil
+	return channels, nil
 }
 
 type Channel struct {
 	State        string `json:"state"`
+	ChannelID    string `json:"channel_id"`
 	Counterparty struct {
 		ChannelID string `json:"channel_id"`
 	} `json:"counterparty"`
@@ -38,16 +37,23 @@ type ChannelList struct {
 	Channels []Channel `json:"channels"`
 }
 
-func GetOpenStateChannelID(jsonData []byte) (string, error) {
+type ConnectionChannels struct {
+	Src string
+	Dst string
+}
+
+func extractChannelsFromResponse(jsonData []byte) (ConnectionChannels, error) {
 	var channels ChannelList
 	if err := json.Unmarshal(jsonData, &channels); err != nil {
-		return "", err
+		return ConnectionChannels{}, err
 	}
-
 	for _, channel := range channels.Channels {
 		if channel.State == "STATE_OPEN" {
-			return channel.Counterparty.ChannelID, nil
+			return ConnectionChannels{
+				Src: channel.Counterparty.ChannelID,
+				Dst: channel.ChannelID,
+			}, nil
 		}
 	}
-	return "", nil
+	return ConnectionChannels{}, nil
 }

@@ -12,6 +12,10 @@ import (
 type DAMock struct {
 }
 
+func (d *DAMock) GetStatus(c config.RollappConfig) string {
+	return ""
+}
+
 func NewDAMock() *DAMock {
 	return &DAMock{}
 }

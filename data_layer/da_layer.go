@@ -18,6 +18,7 @@ type DataLayer interface {
 	GetLightNodeEndpoint() string
 	SetRPCEndpoint(string)
 	GetNetworkName() string
+	GetStatus(c config.RollappConfig) string
 }
 
 type DAManager struct {

@@ -30,6 +30,11 @@ type Celestia struct {
 	rpcEndpoint string
 }
 
+func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
+	//TODO implement me
+	return ""
+}
+
 func (c *Celestia) GetLightNodeEndpoint() string {
 	return LCEndpoint
 }

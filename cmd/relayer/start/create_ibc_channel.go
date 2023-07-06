@@ -2,6 +2,7 @@ package start
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/relayer"
 	"os/exec"
 	"path/filepath"
 
@@ -11,47 +12,48 @@ import (
 )
 
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
-func createIBCChannelIfNeeded(rollappConfig config.RollappConfig, logFileOption utils.CommandOption) (string, error) {
+func createIBCChannelIfNeeded(rollappConfig config.RollappConfig, logFileOption utils.CommandOption) (
+	relayer.ConnectionChannels, error) {
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)
 	fmt.Println("Creating clients...")
 	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd, logFileOption); err != nil {
-		return "", err
+		return relayer.ConnectionChannels{}, err
 	}
-	dstConnectionId, err := GetDstConnectionIDFromYAMLFile(filepath.Join(rollappConfig.Home, consts.ConfigDirName.Relayer,
+	dstConnectionId, err := relayer.GetDstConnectionIDFromYAMLFile(filepath.Join(rollappConfig.Home, consts.ConfigDirName.Relayer,
 		"config", "config.yaml"))
 	if err != nil {
-		return "", err
+		return relayer.ConnectionChannels{}, err
 	}
 	if dstConnectionId == "" {
 		// Before setting up the connection, we need to call update clients
 		updateClientsCmd := getUpdateClientsCmd(rollappConfig)
 		fmt.Println("Updating clients...")
 		if err := utils.ExecBashCmdWithOSOutput(updateClientsCmd, logFileOption); err != nil {
-			return "", err
+			return relayer.ConnectionChannels{}, err
 		}
 
 		createConnectionCmd := getCreateConnectionCmd(rollappConfig)
 		fmt.Println("Creating connection...")
 		if err := utils.ExecBashCmdWithOSOutput(createConnectionCmd, logFileOption); err != nil {
-			return "", err
+			return relayer.ConnectionChannels{}, err
 		}
 	}
-	srcChannelId, err := GetSourceChannelForConnection(dstConnectionId, rollappConfig)
+	connectionChannels, err := relayer.GetConnectionChannels(dstConnectionId, rollappConfig)
 	if err != nil {
-		return "", err
+		return relayer.ConnectionChannels{}, err
 	}
-	if srcChannelId == "" {
+	if connectionChannels.Src == "" {
 		createChannelCmd := getCreateChannelCmd(rollappConfig)
 		fmt.Println("Creating channel...")
 		if err := utils.ExecBashCmdWithOSOutput(createChannelCmd, logFileOption); err != nil {
-			return "", err
+			return relayer.ConnectionChannels{}, err
 		}
-		srcChannelId, err = GetSourceChannelForConnection(dstConnectionId, rollappConfig)
+		connectionChannels, err = relayer.GetConnectionChannels(dstConnectionId, rollappConfig)
 		if err != nil {
-			return "", err
+			return relayer.ConnectionChannels{}, err
 		}
 	}
-	return srcChannelId, nil
+	return connectionChannels, nil
 }
 
 func getCreateChannelCmd(config config.RollappConfig) *exec.Cmd {
