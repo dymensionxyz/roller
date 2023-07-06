@@ -25,7 +25,6 @@ elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
     ARCH="arm64"
 fi
 
-VERSION="555"
 TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/${VERSION}/roller_${VERSION}_${OS}_${ARCH}.tar.gz"
 # Create internal dir
 INTERNAL_DIR="/usr/local/bin/roller_bins"
@@ -67,8 +66,6 @@ if ! sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp";
 
     # Check go version
     GO_VERSION=$(go version | awk -F' ' '{print substr($3, 3, 4)}')  # Extract major.minor version number (remove the 'go' prefix)
-    
-
     if [ "$GO_VERSION" != "$GO_REQUIRED_VERSION" ]; then
         echo "$EMOJI Go version $GO_REQUIRED_VERSION is required, but you have version $GO_VERSION. Aborting."
         display_go_installation_instructions
