@@ -79,7 +79,7 @@ if ! sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp";
 
         REPO_URL=${REPOS[i]:-"https://github.com/dymensionxyz/${PROJECTS[i]}"}
         if [ ! -d "/tmp/${PROJECTS[i]}" ]; then
-            git clone "${REPOS[i]}"
+            git clone "$REPO_URL"
         fi
         cd "${PROJECTS[i]}"
         if [ -n "${VERSIONS[i]}" ]; then
