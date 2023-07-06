@@ -47,9 +47,6 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 			if service.StatusFn != nil {
 				service.UIData.Status = service.StatusFn(cfg)
 			}
-			//if k == "Relayer" {
-			//	service.UIData.Status = "Starting..."
-			//}
 
 			s.Services[k] = service
 		}
