@@ -37,7 +37,7 @@ func Start() *cobra.Command {
 			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60, logFileOption)
 			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, connectionChannels.Src)
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
-			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: %s <-> %s",
+			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
 				connectionChannels.Src, connectionChannels.Dst)
 			select {}
 		},

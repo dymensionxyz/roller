@@ -14,7 +14,7 @@ func GetRelayerStatus(config config.RollappConfig) string {
 	if err != nil || channels.Src == "" {
 		return fmt.Sprintf("Starting...")
 	}
-	return fmt.Sprintf("Active %s <-> %s", channels.Src, channels.Dst)
+	return fmt.Sprintf("Active src, %s <-> %s, dst", channels.Src, channels.Dst)
 }
 
 func GetChannels(rollappConfig config.RollappConfig) (ConnectionChannels, error) {
