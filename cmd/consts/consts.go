@@ -40,13 +40,9 @@ var KeysIds = struct {
 }
 
 var AddressPrefixes = struct {
-	Hub     string
-	Rollapp string
-	DA      string
+	Hub string
 }{
-	Rollapp: "ethm",
-	Hub:     "dym",
-	DA:      "celestia",
+	Hub: "dym",
 }
 
 var ConfigDirName = struct {
@@ -59,14 +55,6 @@ var ConfigDirName = struct {
 	Relayer:     "relayer",
 	DALightNode: "da-light-node",
 	HubKeys:     "hub-keys",
-}
-
-var CoinTypes = struct {
-	Cosmos uint32
-	EVM    uint32
-}{
-	Cosmos: 118,
-	EVM:    60,
 }
 
 var AlgoTypes = struct {

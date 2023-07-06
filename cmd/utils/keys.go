@@ -28,20 +28,13 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	return key.Address, nil
 }
 
-type GetKeyConfig struct {
-	Dir string
-	ID  string
+type KeyConfig struct {
+	Dir         string
+	ID          string
+	ChainBinary string
 }
 
-type CreateKeyConfig struct {
-	Dir      string
-	ID       string
-	CoinType uint32
-	Algo     string
-	Prefix   string
-}
-
-func GetAddressBinary(keyConfig GetKeyConfig, binaryPath string) (string, error) {
+func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 	showKeyCommand := exec.Command(
 		binaryPath, "keys", "show", keyConfig.ID, "--keyring-backend", "test", "--keyring-dir", keyConfig.Dir,
 		"--output", "json",
@@ -51,18 +44,6 @@ func GetAddressBinary(keyConfig GetKeyConfig, binaryPath string) (string, error)
 		return "", err
 	}
 	return ParseAddressFromOutput(output)
-}
-
-func MergeMaps(map1, map2 map[string]string) map[string]string {
-	result := make(map[string]string)
-	for key, value := range map1 {
-		result[key] = value
-	}
-	for key, value := range map2 {
-		result[key] = value
-	}
-
-	return result
 }
 
 func GetRelayerAddress(home string, chainID string) (string, error) {
@@ -105,4 +86,20 @@ func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
 		return "", err
 	}
 	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
+}
+
+func GetAddressPrefix(binaryPath string) (string, error) {
+	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff")
+	out, err := ExecBashCommand(cmd)
+	if err != nil {
+		return "", err
+	}
+	lines := strings.Split(out.String(), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "Bech32 Acc:") {
+			prefix := strings.Split(strings.TrimSpace(strings.Split(line, ":")[1]), "1")[0]
+			return strings.TrimSpace(prefix), nil
+		}
+	}
+	return "", fmt.Errorf("could not find address prefix in binary debug command output")
 }

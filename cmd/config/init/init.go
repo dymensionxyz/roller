@@ -2,12 +2,13 @@ package initconfig
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func InitCmd() *cobra.Command {
@@ -99,11 +100,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 	spin.Suffix = " Initializing RollApp configuration files..."
 	spin.Restart()
 	/* ---------------------------- Initialize relayer --------------------------- */
+	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
+	utils.PrettifyErrorIfExists(err)
 	err = initializeRelayerConfig(ChainConfig{
 		ID:            initConfig.RollappID,
 		RPC:           consts.DefaultRollappRPC,
 		Denom:         initConfig.Denom,
-		AddressPrefix: consts.AddressPrefixes.Rollapp,
+		AddressPrefix: rollappPrefix,
 	}, ChainConfig{
 		ID:            initConfig.HubData.ID,
 		RPC:           initConfig.HubData.RPC_URL,
