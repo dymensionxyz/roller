@@ -123,7 +123,7 @@ func IsValidDenom(s string) error {
 }
 
 func IsValidTokenSymbol(s string) bool {
-	if len(s) != 3 {
+	if len(s) < 3 || len(s) > 6 {
 		return false
 	}
 	for _, r := range s {

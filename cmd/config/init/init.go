@@ -51,7 +51,7 @@ A valid RollApp ID should follow the format 'name_uniqueID-revision', where
 - 'uniqueID' is a number up to the length of 5 digits representing the unique ID EIP155 rollapp ID
 - 'revision' is a number up to the length of 5 digits representing the revision number for this rollapp
 
-A valid denom should consist of exactly 3 English alphabet letters, for example 'btc', 'eth'`
+A valid denom should consist of 3-6 English alphabet letters, for example, 'btc', 'eth', 'pepe', etc.`
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
