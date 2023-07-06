@@ -26,6 +26,7 @@ type UIData struct {
 	Status   string
 }
 
+// Service TODO: The relayer, sequencer and data layer should implement the Service interface (#208)
 type Service struct {
 	Command  *exec.Cmd
 	FetchFn  func(config.RollappConfig) ([]utils.AccountData, error)

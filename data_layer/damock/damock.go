@@ -13,7 +13,6 @@ type DAMock struct {
 }
 
 func (d *DAMock) GetStatus(c config.RollappConfig) string {
-	//TODO implement me
 	return ""
 }
 
