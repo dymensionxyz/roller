@@ -56,7 +56,8 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 
 // TODO: wrap in some DA interfafce to be used for Avail as well
 func (c *Celestia) InitializeLightNodeConfig() error {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network", DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
+		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
@@ -116,6 +117,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		consts.Executables.Celestia, "light", "start",
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
+		"--gateway.deprecated-endpoints",
 		"--gateway",
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
