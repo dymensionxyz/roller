@@ -21,9 +21,9 @@ func printInitOutput(rollappConfig config.RollappConfig, addresses []utils.Addre
 func formatAddresses(rollappConfig config.RollappConfig, addresses []utils.AddressData) []utils.AddressData {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	requireFundingKeys := map[string]string{
-		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
-		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID),
-		consts.KeysIds.DALightNode:  fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
+		consts.KeysIds.HubSequencer: strings.Title(fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID)),
+		consts.KeysIds.HubRelayer:   strings.Title(fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID)),
+		consts.KeysIds.DALightNode:  strings.Title(fmt.Sprintf("DA, %s Network", damanager.GetNetworkName())),
 	}
 	filteredAddresses := make([]utils.AddressData, 0)
 	for _, address := range addresses {
