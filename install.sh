@@ -25,21 +25,12 @@ elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
     ARCH="arm64"
 fi
 
+VERSION="555"
 TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/${VERSION}/roller_${VERSION}_${OS}_${ARCH}.tar.gz"
 # Create internal dir
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
 ROLLAPP_EVM_PATH="/usr/local/bin/rollapp_evm"  # The path where rollapp_evm will be installed
-
-
-# Check prerequisites
-for cmd in git curl make; do
-  if ! command -v $cmd >/dev/null 2>&1; then
-    echo "Error: $cmd is not installed." >&2
-    exit 1
-  fi
-done
-
 
 # Check if Roller and rollapp_evm binaries already exist or the internal directory exists
 if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
@@ -52,11 +43,38 @@ fi
 sudo mkdir -p "$INTERNAL_DIR"
 sudo mkdir -p "/tmp/roller_tmp"
 
+# Function to display Go installation instructions
+GO_REQUIRED_VERSION="1.19"
+display_go_installation_instructions() {
+    echo "$EMOJI To install Go $GO_REQUIRED_VERSION, you can run the following commands:"
+    echo "  wget https://go.dev/dl/go1.19.10.${OS}-${ARCH}.tar.gz"
+    echo "  sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.19.10.${OS}-${ARCH}.tar.gz"
+}
+
 # Download and extract the tar file to a temporary directory
 echo "$EMOJI Downloading roller..."
 if ! sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp"; then
     # Curl failed. Fallback to clone and build.
     echo "$EMOJI Download failed. Cloning and building manually..."
+    # Check prerequisites
+    command -v curl >/dev/null 2>&1 || { echo >&2 "$EMOJI curl is required but it's not installed. Aborting."; exit 1; }
+    command -v git >/dev/null 2>&1 || { echo >&2 "$EMOJI git is required but it's not installed. Aborting."; exit 1; }
+    if ! command -v go >/dev/null 2>&1; then
+        echo >&2 "$EMOJI Go is required but it's not installed. Aborting."
+        display_go_installation_instructions
+        exit 1;
+    fi
+
+    # Check go version
+    GO_VERSION=$(go version | awk -F' ' '{print substr($3, 3, 4)}')  # Extract major.minor version number (remove the 'go' prefix)
+    
+
+    if [ "$GO_VERSION" != "$GO_REQUIRED_VERSION" ]; then
+        echo "$EMOJI Go version $GO_REQUIRED_VERSION is required, but you have version $GO_VERSION. Aborting."
+        display_go_installation_instructions
+        exit 1
+    fi
+
     for i in "${!PROJECTS[@]}"; do
         echo "$EMOJI handling ${PROJECTS[i]}..."
         cd /tmp
