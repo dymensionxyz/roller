@@ -25,7 +25,7 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	servicesInfoTable := NewServicesInfoTable(rollappConfig, termWidth)
 
 	manager.FetchServicesData(rollappConfig)
-	updateUITable(manager.GetUIData(), servicesStatusTable)
+	updateUITable(nil, manager.GetUIData(), servicesStatusTable)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
 	//TODO: the renderer should be a struct that holds the config and the tables
@@ -35,7 +35,7 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 		table:         servicesStatusTable,
 	}
 	events := ui.PollEvents()
-	ticker := time.NewTicker(time.Second * 5).C
+	ticker := time.NewTicker(time.Second * 1).C
 
 	eventLoop(events, ticker, manager, config)
 }
@@ -49,8 +49,9 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, manager *service
 			}
 		case <-ticker:
 			manager.Logger.Println("Fetching service data...")
+			oldUIData := manager.GetUIData()
 			manager.FetchServicesData(config.rollappConfig)
-			updateUITable(manager.GetUIData(), config.table)
+			updateUITable(oldUIData, manager.GetUIData(), config.table)
 			ui.Render(config.table)
 		}
 	}

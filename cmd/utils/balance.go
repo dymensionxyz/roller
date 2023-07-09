@@ -34,15 +34,14 @@ func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
 	}
 
 	balance := Balance{
-		Denom:  denom,
-		Amount: big.NewInt(0),
+		Denom: denom,
 	}
-	for _, resbalance := range balanceResp.Balances {
-		if resbalance.Denom != denom {
+	for _, resBalance := range balanceResp.Balances {
+		if resBalance.Denom != denom {
 			continue
 		}
 		amount := new(big.Int)
-		_, ok := amount.SetString(resbalance.Amount, 10)
+		_, ok := amount.SetString(resBalance.Amount, 10)
 		if !ok {
 			return Balance{}, errors.New("unable to convert balance amount to big.Int")
 		}

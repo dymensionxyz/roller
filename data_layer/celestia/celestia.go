@@ -88,8 +88,8 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 }
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
-	celAddress, err := c.getDAAccData(cfg)
-	return []utils.AccountData{*celAddress}, err
+	celAccData, err := c.getDAAccData(cfg)
+	return []utils.AccountData{*celAccData}, err
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {

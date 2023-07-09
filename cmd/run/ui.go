@@ -34,17 +34,28 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 	return table
 }
 
-func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table) {
+func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widgets.Table) {
+	//oldRows := table.Rows
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	sort.Slice(serviceData, func(i, j int) bool {
 		return serviceData[i].Name < serviceData[j].Name
 	})
-	for _, service := range serviceData {
-		balances := []string{}
-		for _, account := range service.Accounts {
-			balances = append(balances, account.Balance.String())
+	for index, service := range serviceData {
+		var oldServiceBalances []string
+		const sep = ", "
+		if oldUIData != nil {
+			oldServiceBalances = strings.Split(oldUIData[index].Balance, sep)
+		}
+		var newServiceBalances []string
+		for accountIndex, account := range service.Accounts {
+			if oldServiceBalances != nil {
+				if account.Balance
+			} else {
+				newServiceBalances = append(newServiceBalances, account.Balance.String())
+			}
 		}
 
-		table.Rows = append(table.Rows, []string{service.Name, strings.Join(balances, ","), service.Status})
+		table.Rows = append(table.Rows, []string{service.Name, strings.Join(newServiceBalances, sep),
+			service.Status})
 	}
 }
