@@ -85,9 +85,6 @@ func (c *Celestia) getDAAccData(cfg config.RollappConfig) (utils.AccountData, er
 		return accData, err
 	}
 	accData.Balance = balance
-	fmt.Println("Error parsing balance from response")
-	fmt.Println(balance)
-	fmt.Println(balancesJson)
 	return accData, nil
 }
 
