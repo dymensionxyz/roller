@@ -37,7 +37,6 @@ type Service struct {
 // TODO: fetch all data and populate UIData
 func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 	for k, service := range s.Services {
-		//TODO: make this async
 		if service.FetchFn != nil {
 			accountData, err := service.FetchFn(cfg)
 			if err != nil {

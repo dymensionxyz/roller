@@ -24,7 +24,6 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	servicesStatusTable := NewServiceStatusTable(termWidth)
 	servicesInfoTable := NewServicesInfoTable(rollappConfig, termWidth)
 
-	manager.FetchServicesData(rollappConfig)
 	updateUITable(manager.GetUIData(), servicesStatusTable)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
