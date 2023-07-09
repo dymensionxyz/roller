@@ -1,7 +1,7 @@
 package celestia
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os/exec"
@@ -36,21 +36,21 @@ func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
 	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", consts.DefaultDALCRPC))
 	const stoppedMsg = "Stopped, Restarting..."
 	if err != nil {
+		logger.Println("Error querying balance", err)
 		return stoppedMsg
 	} else {
-		newBuf := &bytes.Buffer{}
-		newBuf.WriteString("{\"balances\": [")
-		_, err = newBuf.ReadFrom(out)
+		var balanceResp utils.BalanceResp
+		err := json.Unmarshal(out.Bytes(), &balanceResp)
 		if err != nil {
+			logger.Println("Error unmarshalling balance response", err)
 			return stoppedMsg
 		}
-		newBuf.WriteString("]}")
-		balance, err := utils.ParseBalanceFromResponse(*newBuf, consts.Denoms.Celestia)
+		balance, err := utils.ParseBalance(balanceResp)
 		if err != nil {
-			logger.Println(err.Error())
-			return err.Error()
+			logger.Println("Error parsing balance", err)
+			return stoppedMsg
 		}
-		if balance.Amount.Cmp(lcMinBalance) < 0 {
+		if balance.Cmp(lcMinBalance) < 0 {
 			return "Stopped, out of funds"
 		}
 		return "Active"

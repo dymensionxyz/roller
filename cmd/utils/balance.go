@@ -26,6 +26,15 @@ func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error)
 	return ParseBalanceFromResponse(out, chainConfig.Denom)
 }
 
+func ParseBalance(balResp BalanceResp) (*big.Int, error) {
+	amount := new(big.Int)
+	_, ok := amount.SetString(balResp.Amount, 10)
+	if !ok {
+		return nil, errors.New("unable to convert balance amount to big.Int")
+	}
+	return amount, nil
+}
+
 func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
 	var balanceResp BalanceResponse
 	err := json.Unmarshal(out.Bytes(), &balanceResp)
@@ -41,10 +50,9 @@ func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
 		if resbalance.Denom != denom {
 			continue
 		}
-		amount := new(big.Int)
-		_, ok := amount.SetString(resbalance.Amount, 10)
-		if !ok {
-			return Balance{}, errors.New("unable to convert balance amount to big.Int")
+		amount, err := ParseBalance(resbalance)
+		if err != nil {
+			return Balance{}, err
 		}
 		balance.Amount = amount
 	}
@@ -60,12 +68,12 @@ func (b *Balance) String() string {
 	return b.Amount.String() + b.Denom
 }
 
-type resp struct {
+type BalanceResp struct {
 	Denom  string `json:"denom"`
 	Amount string `json:"amount"`
 }
 type BalanceResponse struct {
-	Balances []resp `json:"balances"`
+	Balances []BalanceResp `json:"balances"`
 }
 
 type AccountData struct {
