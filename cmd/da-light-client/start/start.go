@@ -3,6 +3,7 @@ package start
 import (
 	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -38,7 +39,7 @@ func Cmd() *cobra.Command {
 			if startDALCCmd == nil {
 				utils.PrettifyErrorIfExists(errors.New("can't run mock DA. It runs automatically with the app"))
 			}
-
+			fmt.Println(startDALCCmd.Args)
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
@@ -50,7 +51,7 @@ func Cmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(rpcEndpointFlag, "", "", "The DA rpc endpoint to connect to.")
+	cmd.Flags().StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
 }
 
 func printOutput() {

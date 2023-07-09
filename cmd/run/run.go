@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"os"
@@ -80,6 +81,7 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 
 func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	damanager.SetRPCEndpoint(celestia.DefaultCelestiaRPC)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	startDALCCmd := damanager.GetStartDACmd()
 	if startDALCCmd == nil {
