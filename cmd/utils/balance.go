@@ -21,7 +21,10 @@ func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error)
 	cmd := exec.Command(chainConfig.Binary, "query", "bank", "balances", address, "--node", chainConfig.RPC, "--output", "json")
 	out, err := ExecBashCommand(cmd)
 	if err != nil {
-		return Balance{}, err
+		return Balance{
+			Denom:  chainConfig.Denom,
+			Amount: big.NewInt(-1),
+		}, err
 	}
 	return ParseBalanceFromResponse(out, chainConfig.Denom)
 }

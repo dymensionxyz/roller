@@ -34,21 +34,18 @@ type Service struct {
 	UIData   UIData
 }
 
-// TODO: fetch all data and populate UIData
 func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 	for k, service := range s.Services {
-		//TODO: make this async
 		if service.FetchFn != nil {
-			accountData, err := service.FetchFn(cfg)
+			accountsData, err := service.FetchFn(cfg)
 			if err != nil {
-				//TODO: set the status to FAILED
-				return
+				logger := utils.GetRollerLogger(cfg.Home)
+				logger.Printf("Error: failed to fetch data for service %s: %s", k, err.Error())
 			}
-			service.UIData.Accounts = accountData
+			service.UIData.Accounts = accountsData
 			if service.StatusFn != nil {
 				service.UIData.Status = service.StatusFn(cfg)
 			}
-
 			s.Services[k] = service
 		}
 	}

@@ -65,32 +65,32 @@ func (c *Celestia) InitializeLightNodeConfig() error {
 	return nil
 }
 
-func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
+func (c *Celestia) getDAAccData(config.RollappConfig) (utils.AccountData, error) {
+	accData := utils.AccountData{}
 	celAddress, err := c.GetDAAccountAddress()
 	if err != nil {
-		return nil, err
+		return accData, err
 	}
+	accData.Address = celAddress
 	var restQueryUrl = fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
 		CelestiaRestApiEndpoint, celAddress,
 	)
 	balancesJson, err := utils.RestQueryJson(restQueryUrl)
 	if err != nil {
-		return nil, err
+		return accData, err
 	}
 	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
 	if err != nil {
-		return nil, err
+		return accData, err
 	}
-	return &utils.AccountData{
-		Address: celAddress,
-		Balance: balance,
-	}, nil
+	accData.Balance = balance
+	return accData, nil
 }
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
 	celAccData, err := c.getDAAccData(cfg)
-	return []utils.AccountData{*celAccData}, err
+	return []utils.AccountData{celAccData}, err
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {

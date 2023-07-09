@@ -3,7 +3,6 @@ package run
 import (
 	"fmt"
 	"log"
-	"math/big"
 	"sort"
 	"strings"
 
@@ -44,7 +43,7 @@ func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widget
 		const sep = ", "
 		var newServiceBalances []string
 		for accountIndex, newAccData := range service.Accounts {
-			if newAccData.Balance.Amount.Cmp(big.NewInt(-1)) == 0 {
+			if newAccData.Balance.Amount == nil {
 				if oldUIData != nil {
 					oldServiceBalances := strings.Split(oldUIData[index].Balance, sep)
 					newServiceBalances = append(newServiceBalances, oldServiceBalances[accountIndex])
