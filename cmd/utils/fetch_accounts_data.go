@@ -8,20 +8,19 @@ import (
 )
 
 func GetRelayerAccountsData(cfg config.RollappConfig) ([]AccountData, error) {
-	data := []AccountData{}
+	data := []AccountData{{}, {}} // Initialize with two zero-value AccountData instances
 	rollappRlyAcc, err := GetRolRlyAccData(cfg)
 	if err != nil {
-		return nil, err
+		return data, err
 	}
-	data = append(data, *rollappRlyAcc)
+	data[0] = *rollappRlyAcc // Update the first element
 	hubRlyAcc, err := GetHubRlyAccData(cfg)
 	if err != nil {
 		return data, err
 	}
-	data = append(data, *hubRlyAcc)
+	data[1] = *hubRlyAcc // Update the second element
 	return data, nil
 }
-
 func GetRolRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 	RollappRlyAddr, err := GetRelayerAddress(cfg.Home, cfg.RollappID)
 	if err != nil {

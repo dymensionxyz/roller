@@ -34,7 +34,7 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 	return table
 }
 
-func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widgets.Table) {
+func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widgets.Table, logger *log.Logger) {
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	sort.Slice(serviceData, func(i, j int) bool {
 		return serviceData[i].Name < serviceData[j].Name
@@ -46,7 +46,12 @@ func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widget
 			if newAccData.Balance.Amount == nil {
 				if oldUIData != nil {
 					oldServiceBalances := strings.Split(oldUIData[index].Balance, sep)
-					newServiceBalances = append(newServiceBalances, oldServiceBalances[accountIndex])
+					logger.Println("the old services balances are", oldServiceBalances)
+					logger.Println("the old ui data is ", oldUIData)
+					logger.Println("the old service data is ", oldUIData[index])
+					if len(oldServiceBalances) > accountIndex {
+						newServiceBalances = append(newServiceBalances, oldServiceBalances[accountIndex])
+					}
 				}
 			} else {
 				newServiceBalances = append(newServiceBalances, newAccData.Balance.String())
