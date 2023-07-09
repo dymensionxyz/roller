@@ -15,9 +15,9 @@ import (
 const (
 	gatewayAddr             = "0.0.0.0"
 	gatewayPort             = "26659"
-	CelestiaRestApiEndpoint = "https://api-mocha.pops.one"
-	DefaultCelestiaRPC      = "rpc-mocha.pops.one"
-	DefaultCelestiaNetwork  = "mocha"
+	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
+	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
+	DefaultCelestiaNetwork  = "arabica"
 )
 
 var (
@@ -56,7 +56,8 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 
 // TODO: wrap in some DA interfafce to be used for Avail as well
 func (c *Celestia) InitializeLightNodeConfig() error {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network", DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
+		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
@@ -117,6 +118,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
+		"--gateway.deprecated-endpoints",
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
 		"--p2p.network", DefaultCelestiaNetwork,
