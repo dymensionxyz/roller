@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"log"
+	"math/big"
 	"sort"
 	"strings"
 
@@ -35,23 +36,21 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 }
 
 func updateUITable(oldUIData, serviceData []servicemanager.UIData, table *widgets.Table) {
-	//oldRows := table.Rows
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	sort.Slice(serviceData, func(i, j int) bool {
 		return serviceData[i].Name < serviceData[j].Name
 	})
 	for index, service := range serviceData {
-		var oldServiceBalances []string
 		const sep = ", "
-		if oldUIData != nil {
-			oldServiceBalances = strings.Split(oldUIData[index].Balance, sep)
-		}
 		var newServiceBalances []string
-		for accountIndex, account := range service.Accounts {
-			if oldServiceBalances != nil {
-				if account.Balance
+		for accountIndex, newAccData := range service.Accounts {
+			if newAccData.Balance.Amount.Cmp(big.NewInt(-1)) == 0 {
+				if oldUIData != nil {
+					oldServiceBalances := strings.Split(oldUIData[index].Balance, sep)
+					newServiceBalances = append(newServiceBalances, oldServiceBalances[accountIndex])
+				}
 			} else {
-				newServiceBalances = append(newServiceBalances, account.Balance.String())
+				newServiceBalances = append(newServiceBalances, newAccData.Balance.String())
 			}
 		}
 
