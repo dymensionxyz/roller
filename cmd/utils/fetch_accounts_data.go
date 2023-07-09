@@ -61,24 +61,25 @@ func GetHubRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 }
 
 func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
-	accData := AccountData{}
-	accountsData := []AccountData{accData}
+	accData := &AccountData{} // Note: Using a pointer here
 	sequencerAddress, err := GetAddressBinary(KeyConfig{
 		ID:  consts.KeysIds.HubSequencer,
 		Dir: filepath.Join(cfg.Home, consts.ConfigDirName.HubKeys),
 	}, consts.Executables.Dymension)
 	if err != nil {
-		return accountsData, err
+		return []AccountData{*accData}, err
 	}
 	accData.Address = sequencerAddress
+
 	sequencerBalance, err := QueryBalance(ChainQueryConfig{
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,
 		RPC:    cfg.HubData.RPC_URL,
 	}, sequencerAddress)
 	if err != nil {
-		return accountsData, err
+		return []AccountData{*accData}, err
 	}
 	accData.Balance = sequencerBalance
-	return accountsData, nil
+
+	return []AccountData{*accData}, nil
 }
