@@ -28,7 +28,10 @@ type UIData struct {
 
 // Service TODO: The relayer, sequencer and data layer should implement the Service interface (#208)
 type Service struct {
-	Command  *exec.Cmd
+	Command *exec.Cmd
+
+	// The fetch function should return the accounts data for the service. It should always return a list of accounts
+	// in the same length, even if some of the fetches failed. In that case the account balance should be nil.
 	FetchFn  func(config.RollappConfig) ([]utils.AccountData, error)
 	StatusFn func(config.RollappConfig) string
 	UIData   UIData
