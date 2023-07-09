@@ -65,7 +65,7 @@ func (c *Celestia) InitializeLightNodeConfig() error {
 	return nil
 }
 
-func (c *Celestia) getDAAccData(config.RollappConfig) (utils.AccountData, error) {
+func (c *Celestia) getDAAccData(cfg config.RollappConfig) (utils.AccountData, error) {
 	accData := utils.AccountData{}
 	celAddress, err := c.GetDAAccountAddress()
 	if err != nil {
@@ -85,12 +85,15 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (utils.AccountData, error)
 		return accData, err
 	}
 	accData.Balance = balance
+	fmt.Println("Error parsing balance from response")
+	fmt.Println(balance)
+	fmt.Println(balancesJson)
 	return accData, nil
 }
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
-	celAccData, err := c.getDAAccData(cfg)
-	return []utils.AccountData{celAccData}, err
+	accData, err := c.getDAAccData(cfg)
+	return []utils.AccountData{accData}, err
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
@@ -99,7 +102,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 		return nil, err
 	}
 	var insufficientBalances []utils.NotFundedAddressData
-	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
+	if accData.Balance.Amount == nil || accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
 			Address:         accData.Address,
 			CurrentBalance:  accData.Balance.Amount,

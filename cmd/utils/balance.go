@@ -50,6 +50,9 @@ func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
 		}
 		balance.Amount = amount
 	}
+	if balance.Amount == nil {
+		balance.Amount = big.NewInt(0)
+	}
 	return balance, nil
 }
 
