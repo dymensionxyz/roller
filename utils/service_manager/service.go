@@ -53,6 +53,13 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 	}
 }
 
+func (s *ServiceConfig) InitServicesData(cfg config.RollappConfig) {
+	for k, service := range s.Services {
+		service.UIData.Status = "Starting..."
+		s.Services[k] = service
+	}
+}
+
 func (s *ServiceConfig) GetUIData() []UIData {
 	var uiData []UIData
 	for _, service := range s.Services {
