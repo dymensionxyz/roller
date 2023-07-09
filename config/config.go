@@ -29,12 +29,6 @@ type RollappConfig struct {
 	DA            DAType
 }
 
-type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
-}
-
 func (c RollappConfig) Validate() error {
 	err := VerifyHubID(c.HubData)
 	if err != nil {

@@ -41,6 +41,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	// Error is ignored because the flag is validated in the cobra preRun hook
 	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
 	cfg.Decimals = decimals
+
+	config.LoadNetworksFromFile()
+
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
 		RunInteractiveMode(&cfg)
@@ -54,7 +57,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.RollappID = rollappId
 	cfg.Denom = "u" + denom
-	cfg.HubData = Hubs[hubID]
+	cfg.HubData = config.Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 

@@ -16,7 +16,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		Items: []string{"devnet", "local"},
 	}
 	_, mode, _ := promptNetwork.Run()
-	cfg.HubData = Hubs[mode]
+	cfg.HubData = config.Hubs[mode]
 
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
