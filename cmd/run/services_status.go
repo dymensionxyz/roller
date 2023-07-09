@@ -24,7 +24,7 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	servicesStatusTable := NewServiceStatusTable(termWidth)
 	servicesInfoTable := NewServicesInfoTable(rollappConfig, termWidth)
 
-	manager.FetchServicesData(rollappConfig)
+	manager.InitServicesData(rollappConfig)
 	updateUITable(manager.GetUIData(), servicesStatusTable)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
@@ -40,7 +40,8 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	eventLoop(events, ticker, manager, config)
 }
 
-func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, manager *servicemanager.ServiceConfig, config ServiceStatusConfig) {
+func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, manager *servicemanager.ServiceConfig,
+	config ServiceStatusConfig) {
 	for {
 		select {
 		case e := <-events:

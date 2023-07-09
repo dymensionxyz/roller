@@ -1,6 +1,7 @@
 package celestia
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os/exec"
@@ -31,8 +32,29 @@ type Celestia struct {
 }
 
 func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
-	//TODO implement me
-	return ""
+	logger := utils.GetRollerLogger(c.Home)
+	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", consts.DefaultDALCRPC))
+	const stoppedMsg = "Stopped, Restarting..."
+	if err != nil {
+		logger.Println("Error querying balance", err)
+		return stoppedMsg
+	} else {
+		var balanceResp utils.BalanceResp
+		err := json.Unmarshal(out.Bytes(), &balanceResp)
+		if err != nil {
+			logger.Println("Error unmarshalling balance response", err)
+			return stoppedMsg
+		}
+		balance, err := utils.ParseBalance(balanceResp)
+		if err != nil {
+			logger.Println("Error parsing balance", err)
+			return stoppedMsg
+		}
+		if balance.Cmp(lcMinBalance) < 0 {
+			return "Stopped, out of funds"
+		}
+		return "Active"
+	}
 }
 
 func (c *Celestia) GetLightNodeEndpoint() string {
