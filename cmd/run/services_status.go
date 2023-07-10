@@ -25,7 +25,7 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	servicesInfoTable := NewServicesInfoTable(rollappConfig, termWidth)
 
 	manager.InitServicesData(rollappConfig)
-	updateUITable(manager.GetUIData(), servicesStatusTable)
+	updateUITable(manager.GetUIData(), servicesStatusTable, rollappConfig)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
 	//TODO: the renderer should be a struct that holds the config and the tables
@@ -51,7 +51,7 @@ func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, manager *service
 		case <-ticker:
 			manager.Logger.Println("Fetching service data...")
 			manager.FetchServicesData(config.rollappConfig)
-			updateUITable(manager.GetUIData(), config.table)
+			updateUITable(manager.GetUIData(), config.table, config.rollappConfig)
 			ui.Render(config.table)
 		}
 	}
