@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"math/big"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -69,15 +68,6 @@ func IsValidDAType(t string) bool {
 		return true
 	}
 	return false
-}
-
-func ValidateRollAppID(id string) error {
-	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
-	r := regexp.MustCompile(pattern)
-	if !r.MatchString(id) {
-		return fmt.Errorf("invalid RollApp ID '%s'", id)
-	}
-	return nil
 }
 
 func VerifyHubID(data HubData) error {
