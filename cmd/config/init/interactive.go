@@ -28,11 +28,18 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		if err != nil {
 			break
 		}
-		if err := config.ValidateRollAppID(chainID); err == nil {
-			cfg.RollappID = chainID
-			break
+		err = config.ValidateRollAppID(chainID)
+		if err != nil {
+			fmt.Println(err)
+			continue
 		}
-		fmt.Println("Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)")
+		err = VerifyUniqueRollappID(chainID, *cfg)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		cfg.RollappID = chainID
+		break
 	}
 
 	promptDenom := promptui.Prompt{

@@ -21,7 +21,8 @@ var (
 
 func ValidateRollAppID(id string) error {
 	if !rollappID.MatchString(id) {
-		return fmt.Errorf("invalid RollApp ID '%s'", id)
+		return fmt.Errorf("invalid RollApp ID '%s'. "+
+			"Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)", id)
 	}
 	return nil
 }
