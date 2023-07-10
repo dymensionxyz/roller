@@ -43,7 +43,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.Decimals = decimals
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
-		RunInteractiveMode(&cfg)
+		if err := RunInteractiveMode(&cfg); err != nil {
+			return cfg, err
+		}
 		return cfg, nil
 	}
 
