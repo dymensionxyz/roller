@@ -34,7 +34,7 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 	return table
 }
 
-func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table) {
+func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table, cfg config.RollappConfig) {
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	sort.Slice(serviceData, func(i, j int) bool {
 		return serviceData[i].Name < serviceData[j].Name
@@ -42,7 +42,7 @@ func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table) {
 	for _, service := range serviceData {
 		balances := []string{}
 		for _, account := range service.Accounts {
-			balances = append(balances, account.Balance.String())
+			balances = append(balances, account.Balance.BiggerDenomStr(cfg))
 		}
 
 		table.Rows = append(table.Rows, []string{service.Name, strings.Join(balances, ","), service.Status})

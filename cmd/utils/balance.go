@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"math/big"
-	"os/exec"
-
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
+	"math/big"
+	"os/exec"
+	"strings"
 )
 
 type ChainQueryConfig struct {
@@ -66,6 +67,34 @@ type Balance struct {
 
 func (b *Balance) String() string {
 	return b.Amount.String() + b.Denom
+}
+
+func formatBalance(balance *big.Int, decimals uint) string {
+	divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
+	quotient := new(big.Int).Div(balance, divisor)
+	remainder := new(big.Int).Mod(balance, divisor)
+	remainderStr := fmt.Sprintf("%0*s", decimals, remainder.String())
+	const decimalPrecision = 6
+	if len(remainderStr) > decimalPrecision {
+		remainderStr = remainderStr[:decimalPrecision]
+	}
+	remainderStr = strings.TrimRight(remainderStr, "0")
+	if remainderStr != "" {
+		return fmt.Sprintf("%s.%s", quotient.String(), remainderStr)
+	}
+	return quotient.String()
+}
+
+func (b *Balance) BiggerDenomStr(cfg config.RollappConfig) string {
+	biggerDenom := b.Denom[1:]
+	decimalsMap := map[string]uint{
+		consts.Denoms.Hub:      6,
+		consts.Denoms.Celestia: 6,
+		cfg.Denom:              cfg.Decimals,
+	}
+	decimals, _ := decimalsMap[b.Denom]
+	formattedBalance := formatBalance(b.Amount, decimals)
+	return formattedBalance + biggerDenom
 }
 
 type BalanceResp struct {
