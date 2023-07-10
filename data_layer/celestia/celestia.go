@@ -112,6 +112,12 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
 	celAddress, err := c.getDAAccData(cfg)
+	if err != nil {
+		return nil, err
+	}
+	if celAddress == nil {
+		return nil, fmt.Errorf("failed to get DA account data")
+	}
 	return []utils.AccountData{*celAddress}, err
 }
 
