@@ -10,12 +10,15 @@ import (
 )
 
 // TODO: return error output
-func RunInteractiveMode(cfg *config.RollappConfig) {
+func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",
 		Items: []string{"devnet", "local"},
 	}
-	_, mode, _ := promptNetwork.Run()
+	_, mode, err := promptNetwork.Run()
+	if err != nil {
+		return err
+	}
 	cfg.HubData = Hubs[mode]
 
 	promptChainID := promptui.Prompt{
@@ -26,7 +29,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 	for {
 		chainID, err := promptChainID.Run()
 		if err != nil {
-			break
+			return err
 		}
 		err = config.ValidateRollAppID(chainID)
 		if err != nil {
@@ -53,7 +56,10 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 			return nil
 		},
 	}
-	denom, _ := promptDenom.Run()
+	denom, err := promptDenom.Run()
+	if err != nil {
+		return err
+	}
 	cfg.Denom = "u" + denom
 
 	promptTokenSupply := promptui.Prompt{
@@ -61,7 +67,10 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		Default:  "1000000000",
 		Validate: config.VerifyTokenSupply,
 	}
-	supply, _ := promptTokenSupply.Run()
+	supply, err := promptTokenSupply.Run()
+	if err != nil {
+		return err
+	}
 	cfg.TokenSupply = supply
 
 	availableDAs := []config.DAType{config.Avail, config.Celestia}
@@ -77,11 +86,11 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 	for {
 		_, da, err := promptDAType.Run()
 		if err != nil {
-			break
+			return err
 		}
 		da = strings.ToLower(da)
 		if da == string(config.Avail) {
-			fmt.Println("Avail not supported yet")
+			fmt.Println("Avail is not supported yet")
 			continue
 		}
 		cfg.DA = config.DAType(da)
@@ -92,7 +101,10 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		Label: "Choose your rollapp execution environment",
 		Items: []string{"EVM rollapp", "custom"},
 	}
-	_, env, _ := promptExecutionEnv.Run()
+	_, env, err := promptExecutionEnv.Run()
+	if err != nil {
+		return err
+	}
 	if env == "custom" {
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
@@ -103,7 +115,11 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 				return err
 			},
 		}
-		path, _ := promptBinaryPath.Run()
+		path, err := promptBinaryPath.Run()
+		if err != nil {
+			return err
+		}
 		cfg.RollappBinary = path
 	}
+	return nil
 }
