@@ -40,8 +40,8 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 		if service.FetchFn != nil {
 			accountData, err := service.FetchFn(cfg)
 			if err != nil {
-				//TODO: set the status to FAILED
-				return
+				s.Logger.Println(err)
+				continue
 			}
 			service.UIData.Accounts = accountData
 			if service.StatusFn != nil {
