@@ -12,11 +12,11 @@ ARCH=$(uname -m)
 VERSION="v0.0.0"
 
 # The list of projects to be installed
-PROJECTS=("dymension" "dymension-relayer" "roller" "dymension-rdk" "celestia-node")
-REPOS=("" "" "" "" "https://github.com/celestiaorg/celestia-node")
-VERSIONS=("" "" "" "" "v0.6.4")
-BUILDCOMMANDS=("" "" "" "make install_evm" "make go-install install-key")
-BINARYNAME=("dymd" "rly" "roller" "rollapp_evm" "celestia cel-key")
+PROJECTS=("dymension" "dymension-relayer" "roller" "dymension-rdk")
+REPOS=("" "" "" "")
+VERSIONS=("v1.0.0-rc2" "" "v0.1.0" "v0.4.0-rc2")
+BUILDCOMMANDS=("" "" "" "make install_evm")
+BINARYNAME=("dymd" "rly" "roller" "rollapp_evm")
 
 # Set the appropriate download URL
 if [[ "$ARCH" == "x86_64" ]]; then
