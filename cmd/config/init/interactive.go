@@ -73,7 +73,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	}
 	cfg.TokenSupply = supply
 
-	availableDAs := []config.DAType{config.Avail, config.Celestia}
+	availableDAs := []config.DAType{config.Celestia, config.Avail}
 	if mode == "local" {
 		availableDAs = append(availableDAs, config.Mock)
 	}
