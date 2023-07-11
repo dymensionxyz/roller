@@ -106,7 +106,7 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint st
 			"--dymint.settlement_config.gas_prices", "0udym",
 			"--home", rollappConfigDir,
 			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-			"--log_level", "info",
+			"--log_level", "debug",
 			"--max-log-size", "2000",
 		}, dastrings...)...,
 	)
