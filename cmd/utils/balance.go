@@ -88,7 +88,7 @@ func formatBalance(balance *big.Int, decimals uint) string {
 func (b *Balance) BiggerDenomStr(cfg config.RollappConfig) string {
 	biggerDenom := b.Denom[1:]
 	decimalsMap := map[string]uint{
-		consts.Denoms.Hub:      6,
+		consts.Denoms.Hub:      18,
 		consts.Denoms.Celestia: 6,
 		cfg.Denom:              cfg.Decimals,
 	}
