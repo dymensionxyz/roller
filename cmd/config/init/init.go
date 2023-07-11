@@ -107,11 +107,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 		RPC:           consts.DefaultRollappRPC,
 		Denom:         initConfig.Denom,
 		AddressPrefix: rollappPrefix,
+		GasPrices:     "0",
 	}, ChainConfig{
 		ID:            initConfig.HubData.ID,
 		RPC:           initConfig.HubData.RPC_URL,
 		Denom:         consts.Denoms.Hub,
 		AddressPrefix: consts.AddressPrefixes.Hub,
+		GasPrices:     initConfig.HubData.GAS_PRICE,
 	}, initConfig)
 	if err != nil {
 		return err

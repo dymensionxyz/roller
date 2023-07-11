@@ -37,6 +37,7 @@ type ChainConfig struct {
 	RPC           string
 	Denom         string
 	AddressPrefix string
+	GasPrices     string
 }
 
 type RelayerChainConfig struct {
@@ -98,14 +99,14 @@ func initRelayer(relayerHome string) error {
 func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome string) error {
 	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: rollappConfig,
-		GasPrices:   "0.0" + rollappConfig.Denom,
+		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
 		ClientType:  "01-dymint",
 		KeyName:     consts.KeysIds.RollappRelayer,
 	})
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
-		GasPrices:   "0.25" + hubConfig.Denom,
+		GasPrices:   hubConfig.GasPrices + hubConfig.Denom,
 		ClientType:  "07-tendermint",
 		KeyName:     consts.KeysIds.HubRelayer,
 	})
