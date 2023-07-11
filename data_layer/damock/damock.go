@@ -16,6 +16,10 @@ func (d *DAMock) GetStatus(c config.RollappConfig) string {
 	return ""
 }
 
+func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
+	return nil
+}
+
 func NewDAMock() *DAMock {
 	return &DAMock{}
 }
@@ -53,6 +57,10 @@ func (d *DAMock) GetLightNodeEndpoint() string {
 }
 
 func (d *DAMock) SetRPCEndpoint(string) {
+}
+
+func (c *DAMock) GetKeyName() string {
+	return ""
 }
 
 func (d *DAMock) GetNetworkName() string {

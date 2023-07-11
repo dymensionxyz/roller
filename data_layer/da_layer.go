@@ -19,6 +19,8 @@ type DataLayer interface {
 	SetRPCEndpoint(string)
 	GetNetworkName() string
 	GetStatus(c config.RollappConfig) string
+	GetKeyName() string
+	GetExportKeyCmd() *exec.Cmd
 }
 
 type DAManager struct {

@@ -29,15 +29,12 @@ var KeysIds = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string
-	DALightNode      string
 	HubRelayer       string
 }{
 	HubSequencer:     "hub_sequencer",
 	RollappSequencer: "rollapp_sequencer",
 	RollappRelayer:   "relayer-rollapp-key",
-	//TODO(#76): da key name should be more generic
-	DALightNode: "my_celes_key",
-	HubRelayer:  "relayer-hub-key",
+	HubRelayer:       "relayer-hub-key",
 }
 
 var AddressPrefixes = struct {

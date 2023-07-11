@@ -65,7 +65,7 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 func (c *Celestia) GetDAAccountAddress() (string, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
-		consts.Executables.CelKey, "show", consts.KeysIds.DALightNode, "--node.type", "light", "--keyring-dir",
+		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
 	output, err := utils.ExecBashCommand(cmd)
@@ -121,6 +121,15 @@ func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, 
 	return []utils.AccountData{*celAddress}, err
 }
 
+func (c *Celestia) GetKeyName() string {
+	return "my_celes_key"
+}
+
+func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
+	return utils.GetExportKeyCmdBinary(c.GetKeyName(), filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
+		consts.Executables.CelKey)
+}
+
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	accData, err := c.getDAAccData(config.RollappConfig{})
 	if err != nil {
@@ -132,7 +141,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 			Address:         accData.Address,
 			CurrentBalance:  accData.Balance.Amount,
 			RequiredBalance: lcMinBalance,
-			KeyName:         consts.KeysIds.DALightNode,
+			KeyName:         c.GetKeyName(),
 			Denom:           consts.Denoms.Celestia,
 			Network:         DefaultCelestiaNetwork,
 		})
