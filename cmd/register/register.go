@@ -61,7 +61,7 @@ func register(cmd *cobra.Command, args []string) error {
 	registerRollappCmd := getRegisterRollappCmd(rollappConfig)
 	if err := runcCommandWithErrorChecking(registerRollappCmd); err != nil {
 		if cmd.Flag(flagForceSeqRegistration).Changed {
-			fmt.Println("RollApp is already registered. Attemting to register sequencer anyway...")
+			fmt.Println("RollApp is already registered. Attempting to register sequencer anyway...")
 		} else {
 			return err
 		}
