@@ -2,7 +2,7 @@ package export
 
 import (
 	"fmt"
-	"os/exec"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"path/filepath"
 	"strings"
 
@@ -12,34 +12,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var supportedKeys = []string{
-	consts.KeysIds.HubSequencer,
-	consts.KeysIds.RollappSequencer,
-}
-
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "export <key-id>",
-		Short: fmt.Sprintf("Exports the private key of the given key id. The supported keys are %s",
-			strings.Join(supportedKeys, ", ")),
+		Use:   "export <key-id>",
+		Short: "Exports the private key of the given key id.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			config, err := config.LoadConfigFromTOML(home)
+			rlpCfg, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-
+			var supportedKeys = []string{
+				consts.KeysIds.HubSequencer,
+				consts.KeysIds.RollappSequencer,
+			}
+			damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+			if damanager.GetKeyName() != "" {
+				supportedKeys = append(supportedKeys, damanager.GetKeyName())
+			}
 			keyID := args[0]
 			if keyID == consts.KeysIds.HubSequencer {
-				exportKeyCmd := getExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
+				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
 					consts.Executables.Dymension)
 				out, err := utils.ExecBashCommand(exportKeyCmd)
-				utils.PrettifyErrorIfExists(err)
-				fmt.Println(out.String())
+				printKeyOutput(out.String(), err)
 			} else if keyID == consts.KeysIds.RollappSequencer {
-				exportKeyCmd := getExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
-					config.RollappBinary)
+				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
+					rlpCfg.RollappBinary)
 				out, err := utils.ExecBashCommand(exportKeyCmd)
-				utils.PrettifyErrorIfExists(err)
-				fmt.Println(out.String())
+				printKeyOutput(out.String(), err)
+			} else if keyID != "" && keyID == damanager.GetKeyName() {
+				exportKeyCmd := damanager.GetExportKeyCmd()
+				// TODO: make more generic. need it because cel-key write the output to stderr for some reason
+				out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
+				printKeyOutput(out.String(), err)
 			} else {
 				utils.PrettifyErrorIfExists(fmt.Errorf("invalid key id: %s. The supported keys are %s", keyID,
 					strings.Join(supportedKeys, ", ")))
@@ -51,12 +55,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func getExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
-	flags := getExportKeyFlags(keyringDir)
-	cmdStr := fmt.Sprintf("yes | %s keys export %s %s", binary, keyID, flags)
-	return exec.Command("bash", "-c", cmdStr)
-}
-
-func getExportKeyFlags(keyringDir string) string {
-	return fmt.Sprintf("--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe", keyringDir)
+func printKeyOutput(output string, err error) {
+	utils.PrettifyErrorIfExists(err)
+	fmt.Printf("🔑 Unarmored Hex Private Key: %s", output)
 }

@@ -26,7 +26,7 @@ func Cmd() *cobra.Command {
 			if daAddr != "" {
 				addresses = append(addresses, utils.AddressData{
 					Addr: daAddr,
-					Name: consts.KeysIds.DALightNode,
+					Name: damanager.GetKeyName(),
 				})
 			}
 			hubSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{

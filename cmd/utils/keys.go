@@ -103,3 +103,19 @@ func GetAddressPrefix(binaryPath string) (string, error) {
 	}
 	return "", fmt.Errorf("could not find address prefix in binary debug command output")
 }
+
+func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
+	flags := getExportKeyFlags(keyringDir)
+	var commandStr string
+	if binary == consts.Executables.CelKey {
+		commandStr = fmt.Sprintf("%s export %s %s", binary, keyID, flags)
+	} else {
+		commandStr = fmt.Sprintf("%s keys export %s %s", binary, keyID, flags)
+	}
+	cmdStr := fmt.Sprintf("yes | %s", commandStr)
+	return exec.Command("bash", "-c", cmdStr)
+}
+
+func getExportKeyFlags(keyringDir string) string {
+	return fmt.Sprintf("--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe", keyringDir)
+}

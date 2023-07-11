@@ -82,6 +82,18 @@ func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
 	return stdout, nil
 }
 
+func ExecBashCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
+	var stderr bytes.Buffer
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	if err != nil {
+		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+	}
+	return stderr, nil
+}
+
 func ExecBashCmdWithOSOutput(cmd *exec.Cmd, options ...CommandOption) error {
 	for _, option := range options {
 		option(cmd)

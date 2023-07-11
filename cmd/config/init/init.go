@@ -137,7 +137,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	if daAddress != "" {
 		addresses = append(addresses, utils.AddressData{
-			Name: consts.KeysIds.DALightNode,
+			Name: damanager.GetKeyName(),
 			Addr: daAddress,
 		})
 	}

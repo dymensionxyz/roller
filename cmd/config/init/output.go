@@ -23,7 +23,7 @@ func formatAddresses(rollappConfig config.RollappConfig, addresses []utils.Addre
 	requireFundingKeys := map[string]string{
 		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
 		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID),
-		consts.KeysIds.DALightNode:  fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
+		damanager.GetKeyName():      fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
 	}
 	filteredAddresses := make([]utils.AddressData, 0)
 	for _, address := range addresses {
