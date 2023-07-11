@@ -103,7 +103,7 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint st
 			"--dymint.settlement_config.node_address", rollappConfig.HubData.RPC_URL,
 			"--dymint.settlement_config.dym_account_name", consts.KeysIds.HubSequencer,
 			"--dymint.settlement_config.keyring_home_dir", hubKeysDir,
-			"--dymint.settlement_config.gas_prices", "0udym",
+			"--dymint.settlement_config.gas_prices", "0.25udym",
 			"--home", rollappConfigDir,
 			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 			"--log_level", "info",

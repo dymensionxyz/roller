@@ -105,7 +105,7 @@ func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHo
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
-		GasPrices:   "0.0" + hubConfig.Denom,
+		GasPrices:   "0.25" + hubConfig.Denom,
 		ClientType:  "07-tendermint",
 		KeyName:     consts.KeysIds.HubRelayer,
 	})
