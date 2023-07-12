@@ -1,0 +1,47 @@
+name: Build for macOS (AMD)
+
+on: [ push ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Run the roller build installation script
+        run: |
+          gvm use go1.19
+          chmod +x ./install.sh
+          yes | ./install.sh
+      - name: Clone or update Celestia Node repository
+        run: |
+          if [ -d "$HOME/celestia-node" ]; then
+            cd celestia-node
+            git fetch --all
+          else
+            git clone https://github.com/celestiaorg/celestia-node.git
+            cd celestia-node
+          fi
+          git checkout tags/v0.11.0-rc6
+      - name: Build Celestia Node
+        run: |
+          gvm use go1.20
+          cd
+          cd celestia-node
+          make build
+          make go-install
+          make cel-key
+      - name: Create roller_bins folder structure
+        run: |
+          cd
+          mkdir roller_bins
+          mkdir roller_bins/lib
+          cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
+          cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
+        
+      
+
+        
+
+
