@@ -66,6 +66,7 @@ func register(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
+
 	registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
 	if err != nil {
 		return err
