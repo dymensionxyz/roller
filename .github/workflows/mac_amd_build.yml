@@ -45,7 +45,7 @@ jobs:
       - name: Archive the roller_bins folder
         run: |
           cd
-          tar -czvf roller_bins.tar.gz roller_bins
+          tar -czvf roller_v0.1.2_linux_amd64.tar.gz roller_bins
       
 
         
