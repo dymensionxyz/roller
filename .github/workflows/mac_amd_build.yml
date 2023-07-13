@@ -61,8 +61,7 @@ jobs:
           yes | ./install.sh
       - name: Get the latest version of Celestia Node
         run: |
-          cd ~
-          if [ -d "$HOME/celestia-node" ]; then
+          if [ -d "./celestia-node" ]; then
             cd celestia-node
             git fetch --all
           else
@@ -74,13 +73,12 @@ jobs:
         run: |
           source ~/.zshrc
           gvm use go1.20
-          cd ~/celestia-node
+          cd ./celestia-node
           make build
           make go-install
           make cel-key
       - name: Create roller_bins archive folder structure
         run: |
-          cd ~
           rm -rf roller_bins
           mkdir roller_bins
           mkdir roller_bins/lib
@@ -91,7 +89,6 @@ jobs:
           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
       - name: Archive the roller_bins folder
         run: |
-          cd ~
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
           ARCH=$(uname -m)
           VERSION=${{ github.ref }}
