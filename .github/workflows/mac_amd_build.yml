@@ -43,7 +43,7 @@ jobs:
           mkdir roller_bins/lib
           sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
           sudo cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
-          sudo cp -r /use/local/bin/roller_bins/* ./roller_bins/lib/
+          sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
           sudo cp /usr/local/bin/roller ./roller_bins/roller
           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
       - name: Archive the roller_bins folder
