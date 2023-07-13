@@ -18,14 +18,19 @@ jobs:
             bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
             echo "source ~/.gvm/scripts/gvm" >> ~/.zshrc
           fi
-      - name: Install Go1.4 for GVM Bootstrap
+      - name: Install Go for GVM Bootstrap
         run: |
           source ~/.zshrc
-          if ! gvm list | grep -q 'go1.4'; then
-            echo "Go 1.4 not found, Installing now for GVM bootstrap"
-            gvm install go1.4 -B
-            gvm use go1.4
-            export GOROOT_BOOTSTRAP=$GOROOT
+          if ! command -v go &> /dev/null
+          then
+            echo "Go could not be found, Installing now"
+            OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+            ARCH=$(uname -m)
+            DOWNLOAD_URL="https://golang.org/dl/go1.16.7.$OS-$ARCH.tar.gz"
+            curl -LO "$DOWNLOAD_URL"
+            sudo tar -C /usr/local -xzf go1.16.7.$OS-$ARCH.tar.gz
+            echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
+            echo "export GOROOT_BOOTSTRAP=\$(go env GOROOT)" >> ~/.zshrc
           fi
       - name: Check and Install Go versions if they do not exist
         run: |
