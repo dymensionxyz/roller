@@ -38,6 +38,7 @@ jobs:
       - name: Create roller_bins folder structure
         run: |
           cd
+          rm -rf roller_bins
           mkdir roller_bins
           mkdir roller_bins/lib
           sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
