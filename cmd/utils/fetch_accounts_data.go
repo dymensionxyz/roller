@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-func GetRelayerAddresses(cfg config.RollappConfig) ([]AccountData, error) {
+func GetRelayerAccountsData(cfg config.RollappConfig) ([]AccountData, error) {
 	data := []AccountData{}
 	rollappRlyAcc, err := GetRolRlyAccData(cfg)
 	if err != nil {
@@ -61,13 +61,14 @@ func GetHubRlyAccData(cfg config.RollappConfig) (*AccountData, error) {
 }
 
 func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
-	sequencerAddress, err := GetAddressBinary(GetKeyConfig{
+	sequencerAddress, err := GetAddressBinary(KeyConfig{
 		ID:  consts.KeysIds.HubSequencer,
 		Dir: filepath.Join(cfg.Home, consts.ConfigDirName.HubKeys),
 	}, consts.Executables.Dymension)
 	if err != nil {
 		return nil, err
 	}
+
 	sequencerBalance, err := QueryBalance(ChainQueryConfig{
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,

@@ -12,6 +12,14 @@ import (
 type DAMock struct {
 }
 
+func (d *DAMock) GetStatus(c config.RollappConfig) string {
+	return ""
+}
+
+func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
+	return nil
+}
+
 func NewDAMock() *DAMock {
 	return &DAMock{}
 }
@@ -28,7 +36,7 @@ func (d *DAMock) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	return []utils.NotFundedAddressData{}, nil
 }
 
-func (d *DAMock) GetStartDACmd(rpcEndpoint string) *exec.Cmd {
+func (d *DAMock) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
@@ -36,7 +44,10 @@ func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, erro
 	return []utils.AccountData{
 		{
 			Address: "mockDA",
-			Balance: big.NewInt(999999999999999),
+			Balance: utils.Balance{
+				Denom:  "mock",
+				Amount: big.NewInt(999999999999999),
+			},
 		},
 	}, nil
 }
@@ -47,4 +58,14 @@ func (d *DAMock) GetLightNodeEndpoint() string {
 
 func (d *DAMock) GetSequencerDAConfig() string {
 	return ""
+}
+func (d *DAMock) SetRPCEndpoint(string) {
+}
+
+func (c *DAMock) GetKeyName() string {
+	return ""
+}
+
+func (d *DAMock) GetNetworkName() string {
+	return "mock"
 }

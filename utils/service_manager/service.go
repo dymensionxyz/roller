@@ -3,7 +3,6 @@ package servicemanager
 import (
 	"context"
 	"log"
-	"math/big"
 	"os/exec"
 	"sync"
 	"time"
@@ -16,7 +15,7 @@ type ServiceConfig struct {
 	Context   context.Context
 	WaitGroup *sync.WaitGroup
 	Logger    *log.Logger
-	Services  map[string]ServiceData
+	Services  map[string]Service
 }
 
 type UIData struct {
@@ -27,44 +26,37 @@ type UIData struct {
 	Status   string
 }
 
-type ServiceData struct {
-	Command *exec.Cmd
-	FetchFn func(config.RollappConfig) ([]utils.AccountData, error)
-	UIData  UIData
-}
-
-// TODO: move this to a separate file
-// TODO: status should be Enum
-func activeIfSufficientBalance(currentBalance, threshold *big.Int) string {
-	if currentBalance.Cmp(threshold) >= 0 {
-		return "Active"
-	} else {
-		return "Stopped"
-	}
+// Service TODO: The relayer, sequencer and data layer should implement the Service interface (#208)
+type Service struct {
+	Command  *exec.Cmd
+	FetchFn  func(config.RollappConfig) ([]utils.AccountData, error)
+	StatusFn func(config.RollappConfig) string
+	UIData   UIData
 }
 
 // TODO: fetch all data and populate UIData
 func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 	for k, service := range s.Services {
-		//TODO: make this async
 		if service.FetchFn != nil {
 			accountData, err := service.FetchFn(cfg)
 			if err != nil {
-				//TODO: set the status to FAILED
-				return
+				s.Logger.Println(err)
+				continue
 			}
 			service.UIData.Accounts = accountData
-
-			//FIXME: the status function should be part of the service
-			for _, account := range accountData {
-				service.UIData.Status = activeIfSufficientBalance(account.Balance, big.NewInt(1))
-			}
-			if k == "Relayer" {
-				service.UIData.Status = "Starting..."
+			if service.StatusFn != nil {
+				service.UIData.Status = service.StatusFn(cfg)
 			}
 
 			s.Services[k] = service
 		}
+	}
+}
+
+func (s *ServiceConfig) InitServicesData(cfg config.RollappConfig) {
+	for k, service := range s.Services {
+		service.UIData.Status = "Starting..."
+		s.Services[k] = service
 	}
 }
 
@@ -76,9 +68,9 @@ func (s *ServiceConfig) GetUIData() []UIData {
 	return uiData
 }
 
-func (s *ServiceConfig) AddService(name string, data ServiceData) {
+func (s *ServiceConfig) AddService(name string, data Service) {
 	if s.Services == nil {
-		s.Services = make(map[string]ServiceData)
+		s.Services = make(map[string]Service)
 	}
 
 	s.Services[name] = data

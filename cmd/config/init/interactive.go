@@ -10,12 +10,15 @@ import (
 )
 
 // TODO: return error output
-func RunInteractiveMode(cfg *config.RollappConfig) {
+func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",
 		Items: []string{"devnet", "local"},
 	}
-	_, mode, _ := promptNetwork.Run()
+	_, mode, err := promptNetwork.Run()
+	if err != nil {
+		return err
+	}
 	cfg.HubData = Hubs[mode]
 
 	promptChainID := promptui.Prompt{
@@ -26,18 +29,26 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 	for {
 		chainID, err := promptChainID.Run()
 		if err != nil {
-			break
+			return err
 		}
-		if err := config.ValidateRollAppID(chainID); err == nil {
-			cfg.RollappID = chainID
-			break
+		err = config.ValidateRollAppID(chainID)
+		if err != nil {
+			fmt.Println(err)
+			continue
 		}
-		fmt.Println("Expected format: name_uniqueID-revision (e.g. myrollapp_1234-1)")
+		err = VerifyUniqueRollappID(chainID, *cfg)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		cfg.RollappID = chainID
+		break
 	}
 
 	promptDenom := promptui.Prompt{
-		Label:   "Specify your RollApp denom",
-		Default: "RAX",
+		Label:     "Specify your RollApp denom",
+		Default:   "RAX",
+		AllowEdit: true,
 		Validate: func(s string) error {
 			if !config.IsValidTokenSymbol(s) {
 				return fmt.Errorf("invalid token symbol")
@@ -45,7 +56,10 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 			return nil
 		},
 	}
-	denom, _ := promptDenom.Run()
+	denom, err := promptDenom.Run()
+	if err != nil {
+		return err
+	}
 	cfg.Denom = "u" + denom
 
 	promptTokenSupply := promptui.Prompt{
@@ -53,10 +67,13 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		Default:  "1000000000",
 		Validate: config.VerifyTokenSupply,
 	}
-	supply, _ := promptTokenSupply.Run()
+	supply, err := promptTokenSupply.Run()
+	if err != nil {
+		return err
+	}
 	cfg.TokenSupply = supply
 
-	availableDAs := []config.DAType{config.Avail, config.Celestia}
+	availableDAs := []config.DAType{config.Celestia, config.Avail}
 	if mode == "local" {
 		availableDAs = append(availableDAs, config.Mock)
 	}
@@ -71,7 +88,10 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 		Label: "Choose your rollapp execution environment",
 		Items: []string{"EVM rollapp", "custom"},
 	}
-	_, env, _ := promptExecutionEnv.Run()
+	_, env, err := promptExecutionEnv.Run()
+	if err != nil {
+		return err
+	}
 	if env == "custom" {
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
@@ -82,7 +102,11 @@ func RunInteractiveMode(cfg *config.RollappConfig) {
 				return err
 			},
 		}
-		path, _ := promptBinaryPath.Run()
+		path, err := promptBinaryPath.Run()
+		if err != nil {
+			return err
+		}
 		cfg.RollappBinary = path
 	}
+	return nil
 }

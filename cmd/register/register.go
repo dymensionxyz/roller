@@ -2,15 +2,15 @@ package register
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
+	"os/exec"
 	"strings"
 
-	"encoding/json"
+	"github.com/dymensionxyz/roller/cmd/consts"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
@@ -19,42 +19,70 @@ import (
 // TODO: Test registration on 35-C and update the price
 var registerUdymPrice = big.NewInt(1)
 
+const (
+	flagForceSeqRegistration = "force"
+)
+
 func Cmd() *cobra.Command {
 	registerCmd := &cobra.Command{
 		Use:   "register",
 		Short: "Registers the rollapp and the sequencer to the Dymension hub.",
 		Run: func(cmd *cobra.Command, args []string) {
-			spin := utils.GetLoadingSpinner()
-			spin.Suffix = consts.SpinnerMsgs.BalancesVerification
-			spin.Start()
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
-			notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, *registerUdymPrice)
-			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(notFundedAddrs)
-			spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
-			spin.Restart()
-			utils.PrettifyErrorIfExists(initconfig.VerifyUniqueRollappID(rollappConfig.RollappID, rollappConfig))
-			spin.Suffix = " Registering RollApp to hub...\n"
-			spin.Restart()
-			utils.PrettifyErrorIfExists(registerRollapp(rollappConfig))
-			registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
-			utils.PrettifyErrorIfExists(err)
-			spin.Suffix = " Registering RollApp sequencer...\n"
-			spin.Restart()
-			_, err = utils.ExecBashCommand(registerSequencerCmd)
-			utils.PrettifyErrorIfExists(err)
-			spin.Stop()
-			printRegisterOutput(rollappConfig)
+			utils.PrettifyErrorIfExists(register(cmd, args))
 		},
 	}
 
+	registerCmd.Flags().BoolP(flagForceSeqRegistration, "f", false, "force sequencer registration even if the rollapp is already registered")
 	return registerCmd
 }
 
-func registerRollapp(rollappConfig config.RollappConfig) error {
-	cmd := getRegisterRollappCmd(rollappConfig)
+func register(cmd *cobra.Command, args []string) error {
+	spin := utils.GetLoadingSpinner()
+	spin.Suffix = consts.SpinnerMsgs.BalancesVerification
+	spin.Start()
+	defer spin.Stop()
+	utils.RunOnInterrupt(spin.Stop)
+	home := cmd.Flag(utils.FlagNames.Home).Value.String()
+	rollappConfig, err := config.LoadConfigFromTOML(home)
+	if err != nil {
+		return err
+	}
+	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerUdymPrice)
+	if err != nil {
+		return err
+	}
+	if len(notFundedAddrs) > 0 {
+		spin.Stop()
+		utils.PrintInsufficientBalancesIfAny(notFundedAddrs, rollappConfig)
+	}
+
+	spin.Suffix = " Registering RollApp to hub...\n"
+	spin.Restart()
+	registerRollappCmd := getRegisterRollappCmd(rollappConfig)
+	if err := runcCommandWithErrorChecking(registerRollappCmd); err != nil {
+		if cmd.Flag(flagForceSeqRegistration).Changed {
+			fmt.Println("RollApp is already registered. Attempting to register sequencer anyway...")
+		} else {
+			return err
+		}
+	}
+	registerSequencerCmd, err := getRegisterSequencerCmd(rollappConfig)
+	if err != nil {
+		return err
+	}
+	spin.Suffix = " Registering RollApp sequencer...\n"
+	spin.Restart()
+	err = runcCommandWithErrorChecking(registerSequencerCmd)
+	if err != nil {
+		return err
+	}
+	spin.Stop()
+	printRegisterOutput(rollappConfig)
+	return nil
+}
+
+// TODO: probably should be moved to utils
+func runcCommandWithErrorChecking(cmd *exec.Cmd) error {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -66,7 +94,7 @@ func registerRollapp(rollappConfig config.RollappConfig) error {
 	if cmdExecErr != nil {
 		return cmdExecErr
 	}
-	if err := handleStdOut(stdout, rollappConfig); err != nil {
+	if err := handleStdOut(stdout); err != nil {
 		return err
 	}
 	return nil
@@ -76,7 +104,7 @@ type Response struct {
 	RawLog string `json:"raw_log"`
 }
 
-func handleStdOut(stdout bytes.Buffer, rollappConfig config.RollappConfig) error {
+func handleStdOut(stdout bytes.Buffer) error {
 	var response Response
 
 	err := json.NewDecoder(&stdout).Decode(&response)

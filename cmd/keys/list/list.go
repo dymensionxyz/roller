@@ -18,7 +18,6 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-
 			addresses := make([]utils.AddressData, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
@@ -27,10 +26,10 @@ func Cmd() *cobra.Command {
 			if daAddr != "" {
 				addresses = append(addresses, utils.AddressData{
 					Addr: daAddr,
-					Name: consts.KeysIds.DALightNode,
+					Name: damanager.GetKeyName(),
 				})
 			}
-			hubSeqAddr, err := utils.GetAddressBinary(utils.GetKeyConfig{
+			hubSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 				ID:  consts.KeysIds.HubSequencer,
 			}, consts.Executables.Dymension)
@@ -39,10 +38,10 @@ func Cmd() *cobra.Command {
 				Addr: hubSeqAddr,
 				Name: consts.KeysIds.HubSequencer,
 			})
-			rollappSeqAddr, err := utils.GetAddressBinary(utils.GetKeyConfig{
+			rollappSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 				ID:  consts.KeysIds.RollappSequencer,
-			}, consts.Executables.RollappEVM)
+			}, rollappConfig.RollappBinary)
 			utils.PrettifyErrorIfExists(err)
 			addresses = append(addresses, utils.AddressData{
 				Addr: rollappSeqAddr,

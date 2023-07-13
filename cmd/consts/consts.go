@@ -29,24 +29,18 @@ var KeysIds = struct {
 	HubSequencer     string
 	RollappSequencer string
 	RollappRelayer   string
-	DALightNode      string
 	HubRelayer       string
 }{
 	HubSequencer:     "hub_sequencer",
 	RollappSequencer: "rollapp_sequencer",
 	RollappRelayer:   "relayer-rollapp-key",
-	DALightNode:      "my_celes_key",
 	HubRelayer:       "relayer-hub-key",
 }
 
 var AddressPrefixes = struct {
-	Hub     string
-	Rollapp string
-	DA      string
+	Hub string
 }{
-	Rollapp: "ethm",
-	Hub:     "dym",
-	DA:      "celestia",
+	Hub: "dym",
 }
 
 var ConfigDirName = struct {
@@ -59,14 +53,6 @@ var ConfigDirName = struct {
 	Relayer:     "relayer",
 	DALightNode: "da-light-node",
 	HubKeys:     "hub-keys",
-}
-
-var CoinTypes = struct {
-	Cosmos uint32
-	EVM    uint32
-}{
-	Cosmos: 118,
-	EVM:    60,
 }
 
 var AlgoTypes = struct {
@@ -86,13 +72,10 @@ var Denoms = struct {
 }
 
 const (
-	KeysDirName             = "keys"
-	DefaultRelayerPath      = "hub-rollapp"
-	DefaultRollappRPC       = "http://localhost:26657"
-	DefaultDALCRPC          = "http://localhost:26659"
-	CelestiaRestApiEndpoint = "https://api-mocha.pops.one"
-	DefaultCelestiaRPC      = "rpc-mocha.pops.one"
-	DefaultCeletiaNetowrk   = "mocha"
+	KeysDirName        = "keys"
+	DefaultRelayerPath = "hub-rollapp"
+	DefaultRollappRPC  = "http://localhost:26657"
+	DefaultDALCRPC     = "http://localhost:26659"
 )
 
 // TODO: Check DA LC write price on arabica and update this value.

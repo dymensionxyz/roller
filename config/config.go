@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"math/big"
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -30,9 +29,10 @@ type RollappConfig struct {
 }
 
 type HubData = struct {
-	API_URL string
-	ID      string
-	RPC_URL string
+	API_URL   string
+	ID        string
+	RPC_URL   string
+	GAS_PRICE string
 }
 
 func (c RollappConfig) Validate() error {
@@ -69,15 +69,6 @@ func IsValidDAType(t string) bool {
 		return true
 	}
 	return false
-}
-
-func ValidateRollAppID(id string) error {
-	pattern := `^[a-z]+_[0-9]{1,5}-[0-9]{1,5}$`
-	r := regexp.MustCompile(pattern)
-	if !r.MatchString(id) {
-		return fmt.Errorf("invalid RollApp ID '%s'", id)
-	}
-	return nil
 }
 
 func VerifyHubID(data HubData) error {
@@ -123,7 +114,7 @@ func IsValidDenom(s string) error {
 }
 
 func IsValidTokenSymbol(s string) bool {
-	if len(s) != 3 {
+	if len(s) < 3 || len(s) > 6 {
 		return false
 	}
 	for _, r := range s {
