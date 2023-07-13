@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run the roller build installation script
         run: |
+          source ~/.zshrc
           gvm use go1.19
           chmod +x ./install.sh
           yes | ./install.sh
@@ -26,6 +27,7 @@ jobs:
           git checkout tags/v0.11.0-rc6
       - name: Build Celestia Node
         run: |
+          source ~/.zshrc
           gvm use go1.20
           cd
           cd celestia-node
@@ -46,8 +48,3 @@ jobs:
         run: |
           cd
           tar -czvf roller_v0.1.2_linux_amd64.tar.gz roller_bins
-      
-
-        
-
-
