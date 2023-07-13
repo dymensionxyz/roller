@@ -28,7 +28,7 @@ jobs:
             ARCH=$(uname -m)
             DOWNLOAD_URL="https://golang.org/dl/go1.17.13.$OS-$ARCH.tar.gz"
             curl -LO "$DOWNLOAD_URL"
-            sudo tar -C /usr/local -xzf go1.16.7.$OS-$ARCH.tar.gz
+            sudo tar -C /usr/local -xzf go1.17.13.$OS-$ARCH.tar.gz
             echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
             echo "export GOROOT_BOOTSTRAP=\$(go env GOROOT)" >> ~/.zshrc
           fi
