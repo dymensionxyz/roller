@@ -17,6 +17,7 @@ jobs:
           yes | ./install.sh
       - name: Clone or update Celestia Node repository
         run: |
+          cd ~
           if [ -d "$HOME/celestia-node" ]; then
             cd celestia-node
             git fetch --all
