@@ -16,7 +16,7 @@ jobs:
           then
             echo "GVM could not be found, Installing now"
             bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-            source ~/.gvm/scripts/gvm
+            echo "source ~/.gvm/scripts/gvm" >> ~/.zshrc
           fi
       - name: Check and Install Go versions if they do not exist
         run: |
