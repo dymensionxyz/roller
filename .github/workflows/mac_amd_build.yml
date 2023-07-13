@@ -9,6 +9,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Create .zshrc if not exists
+        run: |
+          if [ ! -f ~/.zshrc ]; then
+            touch ~/.zshrc
+          fi
       - name: Install GVM if not exists
         run: |
           source ~/.zshrc
