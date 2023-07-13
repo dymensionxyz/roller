@@ -94,6 +94,7 @@ jobs:
           VERSION=${{ github.ref }}
           VERSION_CLEAN="${VERSION#refs/tags/}"
           echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+          echo "ASSET_NAME=roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
           tar -czvf roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz roller_bins
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -102,5 +103,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ${{ env.PACKAGED_ASSET }}
-          asset_name: roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz
+          asset_name: ${{ env.ASSET_NAME }}
           asset_content_type: application/gzip
