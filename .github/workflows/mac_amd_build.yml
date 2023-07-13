@@ -93,7 +93,7 @@ jobs:
           ARCH=$(uname -m)
           VERSION=${{ github.ref }}
           VERSION_CLEAN="${VERSION#refs/tags/}"
-          echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+          echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
           tar -czvf roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz roller_bins
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
