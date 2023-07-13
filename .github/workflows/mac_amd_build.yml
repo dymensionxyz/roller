@@ -1,0 +1,112 @@
+name: Create Roller Release Assets
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, arm-mac, amd-mac ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Create .zshrc
+        run: |
+          if [ ! -f ~/.zshrc ]; then
+            touch ~/.zshrc
+          fi
+      - name: Install GVM
+        run: |
+          source ~/.zshrc
+          if ! command -v gvm &> /dev/null
+          then
+            echo "GVM could not be found, Installing now"
+            bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+            echo "source ~/.gvm/scripts/gvm" >> ~/.zshrc
+          fi
+      - name: Install initial Go version for GVM Bootstrap
+        run: |
+          source ~/.zshrc
+          if ! command -v go &> /dev/null
+          then
+            echo "Go could not be found, Installing now"
+            OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+            ARCH=$(uname -m)
+            DOWNLOAD_URL="https://golang.org/dl/go1.19.10.$OS-$ARCH.tar.gz"
+            curl -LO "$DOWNLOAD_URL"
+            sudo tar -C /usr/local -xzf go1.19.10.$OS-$ARCH.tar.gz
+            echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
+            echo "export GOROOT_BOOTSTRAP=\$(go env GOROOT)" >> ~/.zshrc
+          fi
+      - name: Install the different go versions needed for compiling roller
+        run: |
+          source ~/.zshrc
+          if ! gvm list | grep -q 'go1.19'; then
+            echo "Go 1.19 not found, Installing now"
+            gvm install go1.19
+          fi
+          if ! gvm list | grep -q 'go1.20'; then
+            echo "Go 1.20 not found, Installing now"
+            gvm install go1.20
+          fi
+      - name: Run the roller installation script
+        run: |
+          source ~/.zshrc
+          gvm use go1.19
+          chmod +x ./install.sh
+          yes | ./install.sh
+      - name: Get the latest version of Celestia Node
+        run: |
+          if [ -d "./celestia-node" ]; then
+            cd celestia-node
+            git fetch --all
+          else
+            git clone https://github.com/celestiaorg/celestia-node.git
+            cd celestia-node
+          fi
+          git checkout tags/v0.11.0-rc6
+      - name: Build Celestia Node
+        run: |
+          source ~/.zshrc
+          gvm use go1.20
+          cd ./celestia-node
+          make build
+          make go-install
+          make cel-key
+      - name: Create roller_bins archive folder structure
+        run: |
+          rm -rf roller_bins
+          mkdir roller_bins
+          mkdir roller_bins/lib
+          sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
+          sudo cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
+          sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
+          sudo cp /usr/local/bin/roller ./roller_bins/roller
+          sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
+      - name: Set up filenames
+        run: |
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+          VERSION=${{ github.ref }}
+          VERSION_CLEAN="${VERSION#refs/tags/}"
+          if [[ $ARCH == "x86_64" ]]; then
+            ARCH="amd64"
+          fi
+          echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+          echo "ASSET_NAME=roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+      - name: Archive the roller_bins folder
+        run: |
+          tar -czvf ${{ env.PACKAGED_ASSET }} roller_bins
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.PACKAGED_ASSET }}
+          asset_name: ${{ env.ASSET_NAME }}
+          asset_content_type: application/gzip
