@@ -9,6 +9,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Install GVM if not exists
+        run: |
+          source ~/.zshrc
+          if ! command -v gvm &> /dev/null
+          then
+            echo "GVM could not be found, Installing now"
+            bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+            source ~/.gvm/scripts/gvm
+          fi
+      - name: Check and Install Go versions if they do not exist
+        run: |
+          source ~/.zshrc
+          if ! gvm list | grep -q 'go1.19'; then
+            echo "Go 1.19 not found, Installing now"
+            gvm install go1.19
+          fi
+          if ! gvm list | grep -q 'go1.20'; then
+            echo "Go 1.20 not found, Installing now"
+            gvm install go1.20
+          fi
       - name: Run the roller build installation script
         run: |
           source ~/.zshrc
