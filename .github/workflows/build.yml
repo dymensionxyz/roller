@@ -57,8 +57,8 @@ jobs:
         run: |
           source ~/.zshrc
           gvm use go1.19
-          chmod +x ./install.sh
-          yes | ./install.sh
+          chmod +x ./compile_locally.sh
+          yes | ./compile_locally.sh
       - name: Get the latest version of Celestia Node
         run: |
           if [ -d "./celestia-node" ]; then
