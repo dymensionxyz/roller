@@ -1,20 +1,25 @@
 name: Build for macOS (AMD)
 
-on: [ push ]
+on:
+  release:
+    types: [created]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, arm-mac, amd-mac ]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Create .zshrc if not exists
+      - name: Create .zshrc
         run: |
           if [ ! -f ~/.zshrc ]; then
             touch ~/.zshrc
           fi
-      - name: Install GVM if not exists
+      - name: Install GVM
         run: |
           source ~/.zshrc
           if ! command -v gvm &> /dev/null
@@ -23,7 +28,7 @@ jobs:
             bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
             echo "source ~/.gvm/scripts/gvm" >> ~/.zshrc
           fi
-      - name: Install Go for GVM Bootstrap
+      - name: Install initial Go version for GVM Bootstrap
         run: |
           source ~/.zshrc
           if ! command -v go &> /dev/null
@@ -37,7 +42,7 @@ jobs:
             echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
             echo "export GOROOT_BOOTSTRAP=\$(go env GOROOT)" >> ~/.zshrc
           fi
-      - name: Check and Install Go versions if they do not exist
+      - name: Install the different go versions needed for compiling roller
         run: |
           source ~/.zshrc
           if ! gvm list | grep -q 'go1.19'; then
@@ -48,13 +53,13 @@ jobs:
             echo "Go 1.20 not found, Installing now"
             gvm install go1.20
           fi
-      - name: Run the roller build installation script
+      - name: Run the roller installation script
         run: |
           source ~/.zshrc
           gvm use go1.19
           chmod +x ./install.sh
           yes | ./install.sh
-      - name: Clone or update Celestia Node repository
+      - name: Get the latest version of Celestia Node
         run: |
           cd ~
           if [ -d "$HOME/celestia-node" ]; then
@@ -69,14 +74,13 @@ jobs:
         run: |
           source ~/.zshrc
           gvm use go1.20
-          cd
-          cd celestia-node
+          cd ~/celestia-node
           make build
           make go-install
           make cel-key
-      - name: Create roller_bins folder structure
+      - name: Create roller_bins archive folder structure
         run: |
-          cd
+          cd ~
           rm -rf roller_bins
           mkdir roller_bins
           mkdir roller_bins/lib
@@ -87,5 +91,18 @@ jobs:
           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
       - name: Archive the roller_bins folder
         run: |
-          cd
-          tar -czvf roller_v0.1.2_linux_amd64.tar.gz roller_bins
+          cd ~
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+          VERSION=${{ github.ref }}
+          VERSION_CLEAN="${VERSION#refs/tags/}"
+          tar -czvf roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz roller_bins
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz
+          asset_name: roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz
+          asset_content_type: application/gzip
