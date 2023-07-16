@@ -61,6 +61,12 @@ jobs:
           gvm use go1.19
           chmod +x ./compile_locally.sh
           yes | ./compile_locally.sh
+      - name: Install Roller binary
+        run: |
+          source ~/.zshrc
+          gvm use go1.19
+          make install
+          sudo cp ./build/roller /usr/local/bin/roller
       - name: Get the latest version of Celestia Node
         run: |
           if [ -d "./celestia-node" ]; then

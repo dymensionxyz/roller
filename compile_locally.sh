@@ -11,11 +11,11 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 # The list of projects to be installed
-PROJECTS=("dymension" "dymension-relayer" "roller" "dymension-rdk")
-REPOS=("" "" "" "")
-VERSIONS=("v1.0.0-rc2" "" "v0.1.0" "v0.4.0-rc2")
-BUILDCOMMANDS=("" "" "" "make install_evm")
-BINARYNAME=("dymd" "rly" "roller" "rollapp_evm")
+PROJECTS=("dymension" "dymension-relayer" "dymension-rdk")
+REPOS=("" "" "")
+VERSIONS=("v1.0.0-rc2" "" "v0.4.0-rc2")
+BUILDCOMMANDS=("" "" "make install_evm")
+BINARYNAME=("dymd" "rly" "rollapp_evm")
 
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
@@ -109,15 +109,8 @@ for i in "${!PROJECTS[@]}"; do
     done
 done
 
+sudo mv "$INTERNAL_DIR/rollapp_evm" "$ROLLAPP_EVM_PATH"
 
-  # Move roller and rollapp_evm separately
-  sudo mv "$INTERNAL_DIR/roller" "$ROLLER_BIN_PATH"
-  sudo mv "$INTERNAL_DIR/rollapp_evm" "$ROLLAPP_EVM_PATH"
-
-
-
-# Make roller and rollapp_evm executables
-sudo chmod +x "$ROLLER_BIN_PATH"
 sudo chmod +x "$ROLLAPP_EVM_PATH"
 
 # Cleanup temporary directory
