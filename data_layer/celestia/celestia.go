@@ -62,6 +62,7 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 }
 
 // GetDAAccountAddress implements datalayer.DataLayer.
+// FIXME: should be loaded once and cached
 func (c *Celestia) GetDAAccountAddress() (string, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(

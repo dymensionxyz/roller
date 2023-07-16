@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/briandowns/spinner v1.23.0
+	github.com/cosmos/go-bip39 v1.0.0
 	github.com/fatih/color v1.15.0
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/google/go-cmp v0.5.9
@@ -35,6 +36,7 @@ require (
 	github.com/tidwall/gjson v1.14.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
