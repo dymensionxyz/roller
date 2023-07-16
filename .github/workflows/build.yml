@@ -65,7 +65,7 @@ jobs:
         run: |
           source ~/.zshrc
           gvm use go1.19
-          make install
+          make build
           sudo cp ./build/roller /usr/local/bin/roller
       - name: Get the latest version of Celestia Node
         run: |
