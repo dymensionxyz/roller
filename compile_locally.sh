@@ -9,7 +9,6 @@ EMOJI="💈"
 # Detect the OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-VERSION="v0.1.2"
 
 # The list of projects to be installed
 PROJECTS=("dymension" "dymension-relayer" "roller" "dymension-rdk")
