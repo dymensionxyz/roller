@@ -162,7 +162,7 @@ func (a *Avail) SetRPCEndpoint(rpc string) {
 }
 
 func (a *Avail) GetLightNodeEndpoint() string {
-	return a.RpcEndpoint
+	return ""
 }
 
 func (a *Avail) GetNetworkName() string {

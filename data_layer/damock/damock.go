@@ -1,7 +1,6 @@
 package damock
 
 import (
-	"math/big"
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -13,7 +12,7 @@ type DAMock struct {
 }
 
 func (d *DAMock) GetStatus(c config.RollappConfig) string {
-	return "mock"
+	return "Running mock DA"
 }
 
 func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
@@ -41,15 +40,7 @@ func (d *DAMock) GetStartDACmd() *exec.Cmd {
 }
 
 func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error) {
-	return []utils.AccountData{
-		{
-			Address: "mockDA",
-			Balance: utils.Balance{
-				Denom:  "",
-				Amount: big.NewInt(0),
-			},
-		},
-	}, nil
+	return []utils.AccountData{}, nil
 }
 
 func (d *DAMock) GetLightNodeEndpoint() string {
