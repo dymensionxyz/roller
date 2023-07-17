@@ -3,6 +3,7 @@ package avail
 import (
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os/exec"
 	"path/filepath"
 
@@ -10,24 +11,29 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	"github.com/pelletier/go-toml"
 
+	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
+	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
+
 	bip39 "github.com/cosmos/go-bip39"
 )
 
 const (
-	availConfigFileName     = "avail.toml"
-	mnemonicEntropySize     = 256
-	gatewayAddr             = "0.0.0.0"
-	gatewayPort             = "26659"
-	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
-	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
-	DefaultCelestiaNetwork  = "arabica"
-	DeafultRPCEndpoint      = "wss://kate.avail.tools/ws"
+	availConfigFileName       = "avail.toml"
+	mnemonicEntropySize       = 256
+	keyringNetworkID    uint8 = 42
+	DeafultRPCEndpoint        = "wss://kate.avail.tools/ws"
+	requiredAVL               = 1
 )
 
 type Avail struct {
 	Root        string
 	Mnemonic    string
+	AccAddress  string
 	RpcEndpoint string
+
+	client *gsrpc.SubstrateAPI
+	accKey *availtypes.StorageKey
 }
 
 func NewAvail(root string) *Avail {
@@ -51,6 +57,12 @@ func NewAvail(root string) *Avail {
 		}
 	}
 
+	keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
+	if err != nil {
+		panic(err)
+	}
+	availConfig.AccAddress = keyringPair.Address
+
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DeafultRPCEndpoint
 	return &availConfig
@@ -61,14 +73,64 @@ func (a *Avail) InitializeLightNodeConfig() error {
 }
 
 func (a *Avail) GetDAAccountAddress() (string, error) {
-	//TODO: get address instead of mnemonic.
-	//we should be able to get the address from the mnemonic using avail's KeyringPairFromSecret()
-	return a.Mnemonic, nil
+	return a.AccAddress, nil
+}
+func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
+	balance, err := a.getBalance()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Balance: ", balance.Int.String())
+
+	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
+
+	if balance.Int.Cmp(required) < 0 {
+		return []utils.NotFundedAddressData{
+			{
+				KeyName:         a.GetKeyName(),
+				Address:         a.AccAddress,
+				CurrentBalance:  balance.Int,
+				RequiredBalance: required,
+				Denom:           "aAVL",
+				Network:         "avail",
+			},
+		}, nil
+	}
+	return nil, nil
 }
 
-func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
-	//TODO: implement
-	return nil, nil
+func (a *Avail) getBalance() (availtypes.U128, error) {
+	if a.client == nil {
+		client, err := gsrpc.NewSubstrateAPI(DeafultRPCEndpoint)
+		if err != nil {
+			return availtypes.U128{}, err
+		}
+		a.client = client
+	}
+	var res availtypes.U128
+	meta, err := a.client.RPC.State.GetMetadataLatest()
+	if err != nil {
+		return res, err
+	}
+
+	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
+	if err != nil {
+		return res, err
+	}
+	key, err := availtypes.CreateStorageKey(meta, "System", "Account", keyringPair.PublicKey)
+	if err != nil {
+		return res, err
+	}
+
+	var accountInfo availtypes.AccountInfo
+	ok, err := a.client.RPC.State.GetStorageLatest(key, &accountInfo)
+	if err != nil || !ok {
+		return res, err
+	}
+
+	return accountInfo.Data.Free, nil
 }
 
 func (a *Avail) GetStartDACmd() *exec.Cmd {
@@ -76,12 +138,20 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 }
 
 func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error) {
-	//TODO: implement
-	return nil, nil
-}
-
-func (a *Avail) GetLightNodeEndpoint() string {
-	return a.RpcEndpoint
+	balance, err := a.getBalance()
+	if err != nil {
+		return nil, err
+	}
+	return []utils.AccountData{
+		{
+			Address: a.AccAddress,
+			Balance: utils.Balance{
+				//FIXME: denom should be AVL. use huminize or utils.balance
+				Denom:  "aAVL",
+				Amount: balance.Int,
+			},
+		},
+	}, nil
 }
 
 func (a *Avail) GetSequencerDAConfig() string {
@@ -92,12 +162,16 @@ func (a *Avail) SetRPCEndpoint(rpc string) {
 	a.RpcEndpoint = rpc
 }
 
+func (a *Avail) GetLightNodeEndpoint() string {
+	return a.RpcEndpoint
+}
+
 func (a *Avail) GetNetworkName() string {
 	return "avail"
 }
 
 func (a *Avail) GetStatus(c config.RollappConfig) string {
-	return ""
+	return "Running"
 }
 
 func (a *Avail) GetKeyName() string {
