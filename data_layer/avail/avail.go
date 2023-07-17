@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/pelletier/go-toml"
@@ -40,7 +41,6 @@ func NewAvail(root string) *Avail {
 	cfgPath := filepath.Join(root, availConfigFileName)
 	availConfig, err := LoadConfigFromTOML(cfgPath)
 	if err != nil {
-		fmt.Println("avail config not found, creating new mnemonic")
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 		if err != nil {
 			panic(err)
@@ -78,22 +78,19 @@ func (a *Avail) GetDAAccountAddress() (string, error) {
 func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get DA balance: %w", err)
 	}
-
-	fmt.Println("Balance: ", balance.Int.String())
 
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
-
-	if balance.Int.Cmp(required) < 0 {
+	if required.Cmp(balance.Int) > 0 {
 		return []utils.NotFundedAddressData{
 			{
 				KeyName:         a.GetKeyName(),
 				Address:         a.AccAddress,
 				CurrentBalance:  balance.Int,
 				RequiredBalance: required,
-				Denom:           "aAVL",
+				Denom:           consts.Denoms.Avail,
 				Network:         "avail",
 			},
 		}, nil
@@ -126,8 +123,11 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 
 	var accountInfo availtypes.AccountInfo
 	ok, err := a.client.RPC.State.GetStorageLatest(key, &accountInfo)
-	if err != nil || !ok {
+	if err != nil {
 		return res, err
+	}
+	if !ok {
+		return res, fmt.Errorf("account %s not found", keyringPair.Address)
 	}
 
 	return accountInfo.Data.Free, nil
@@ -146,8 +146,7 @@ func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error
 		{
 			Address: a.AccAddress,
 			Balance: utils.Balance{
-				//FIXME: denom should be AVL. use huminize or utils.balance
-				Denom:  "aAVL",
+				Denom:  consts.Denoms.Avail,
 				Amount: balance.Int,
 			},
 		},

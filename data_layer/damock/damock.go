@@ -13,7 +13,7 @@ type DAMock struct {
 }
 
 func (d *DAMock) GetStatus(c config.RollappConfig) string {
-	return ""
+	return "mock"
 }
 
 func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
@@ -45,8 +45,8 @@ func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, erro
 		{
 			Address: "mockDA",
 			Balance: utils.Balance{
-				Denom:  "mock",
-				Amount: big.NewInt(999999999999999),
+				Denom:  "",
+				Amount: big.NewInt(0),
 			},
 		},
 	}, nil
