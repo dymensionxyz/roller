@@ -22,6 +22,7 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 		return err
 	}
 
+	//TODO: This should be removed once https://github.com/dymensionxyz/dymension-rdk/issues/238 is fixed
 	setConfigCmd := exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "test", "--home", home)
 	_, err = utils.ExecBashCommand(setConfigCmd)
 	if err != nil {
@@ -42,6 +43,12 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 
 	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config/app.toml"),
 		initConfig.Denom)
+	if err != nil {
+		return err
+	}
+
+	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
+	_, err = utils.ExecBashCommand(setConfigCmd)
 	if err != nil {
 		return err
 	}
