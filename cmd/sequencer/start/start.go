@@ -107,7 +107,6 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint st
 			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 			"--log_level", "debug",
 			"--max-log-size", "2000",
-			"--json-rpc.address", "0.0.0.0:8545",
 		}, dastrings...)...,
 	)
 	return cmd
