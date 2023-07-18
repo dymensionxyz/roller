@@ -2,7 +2,6 @@ package avail
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"os/exec"
 	"path/filepath"
@@ -10,7 +9,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/pelletier/go-toml"
 
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -39,7 +37,7 @@ type Avail struct {
 
 func NewAvail(root string) *Avail {
 	cfgPath := filepath.Join(root, availConfigFileName)
-	availConfig, err := LoadConfigFromTOML(cfgPath)
+	availConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 		if err != nil {
@@ -51,7 +49,7 @@ func NewAvail(root string) *Avail {
 			panic(err)
 		}
 
-		err = WriteConfigToTOML(cfgPath, availConfig)
+		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -180,36 +178,4 @@ func (a *Avail) GetKeyName() string {
 // FIXME: currently can't export the key from avail
 func (a *Avail) GetExportKeyCmd() *exec.Cmd {
 	return nil
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    utils                                   */
-/* -------------------------------------------------------------------------- */
-
-// FIXME: config package should be refactored so this could be reused
-func WriteConfigToTOML(path string, c Avail) error {
-	tomlBytes, err := toml.Marshal(c)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(path, tomlBytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func LoadConfigFromTOML(path string) (Avail, error) {
-	var config Avail
-	tomlBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return config, err
-	}
-	err = toml.Unmarshal(tomlBytes, &config)
-	if err != nil {
-		return config, err
-	}
-
-	return config, nil
 }
