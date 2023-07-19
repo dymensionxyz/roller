@@ -108,7 +108,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 				},
 				Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
 				Display:     displayDenom,
-				Name:        fmt.Sprintf("%s%s", strings.ToUpper(displayDenom[:1]), strings.ToLower(displayDenom[1:])),
+				Name:        displayDenom,
 				Symbol:      strings.ToUpper(displayDenom),
 			},
 		}},
