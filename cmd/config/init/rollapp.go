@@ -1,6 +1,7 @@
 package initconfig
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,10 +50,18 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 }
 
 func setRollappAppConfig(appConfigFilePath string, denom string) error {
-	//FIXME: why error not checked?
-	config, _ := toml.LoadFile(appConfigFilePath)
+	config, err := toml.LoadFile(appConfigFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
+	}
+
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
+	config.Set("api.enable", "true")
+	if config.Has("json-rpc") {
+		config.Set("json-rpc.address", "0.0.0.0:8545")
+		config.Set("json-rpc.ws-address", "0.0.0.0:8546")
+	}
 	file, err := os.Create(appConfigFilePath)
 	if err != nil {
 		return err
