@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -43,7 +44,7 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom)
+	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom, initConfig.Decimals)
 	if err != nil {
 		return err
 	}
@@ -59,8 +60,25 @@ type PathValue struct {
 	Value interface{}
 }
 
+type BankDenomMetadata struct {
+	Base        string                  `json:"base"`
+	DenomUnits  []BankDenomUnitMetadata `json:"denom_units"`
+	Description string                  `json:"description"`
+	Display     string                  `json:"display"`
+	Name        string                  `json:"name"`
+	Symbol      string                  `json:"symbol"`
+}
+
+type BankDenomUnitMetadata struct {
+	Aliases  []string `json:"aliases"`
+	Denom    string   `json:"denom"`
+	Exponent uint     `json:"exponent"`
+}
+
 // TODO(#130): fix to support epochs
-func getDefaultGenesisParams(denom string) []PathValue {
+func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
+	displayDenom := denom[1:]
+
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
@@ -73,6 +91,27 @@ func getDefaultGenesisParams(denom string) []PathValue {
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.staking.params.unbonding_time", "3628800s"},
+		{"app_state.bank.denom_metadata", []BankDenomMetadata{
+			{
+				Base: denom,
+				DenomUnits: []BankDenomUnitMetadata{
+					{
+						Aliases:  []string{},
+						Denom:    denom,
+						Exponent: 0,
+					},
+					{
+						Aliases:  []string{},
+						Denom:    displayDenom,
+						Exponent: decimals,
+					},
+				},
+				Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
+				Display:     displayDenom,
+				Name:        displayDenom,
+				Symbol:      strings.ToUpper(displayDenom),
+			},
+		}},
 	}
 }
 
@@ -95,7 +134,7 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-func updateGenesisParams(genesisFilePath string, denom string) error {
-	params := getDefaultGenesisParams(denom)
+func updateGenesisParams(genesisFilePath string, denom string, decimals uint) error {
+	params := getDefaultGenesisParams(denom, decimals)
 	return UpdateJSONParams(genesisFilePath, params)
 }
