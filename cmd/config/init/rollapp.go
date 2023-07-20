@@ -57,7 +57,6 @@ func setRollappAppConfig(appConfigFilePath string, denom string) error {
 
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
-	config.Set("api.enable", "true")
 	if config.Has("json-rpc") {
 		config.Set("json-rpc.address", "0.0.0.0:8545")
 		config.Set("json-rpc.ws-address", "0.0.0.0:8546")
