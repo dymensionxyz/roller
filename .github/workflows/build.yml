@@ -2,7 +2,7 @@ name: Create Roller Release Assets
 
 on:
   release:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   build:
