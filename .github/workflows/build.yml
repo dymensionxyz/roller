@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-20.04, arm-mac, amd-mac ]
+        os: [ ubuntu-20.04, arm-mac, amd-mac, arm-linux ]
 
     steps:
       - name: Checkout repository
