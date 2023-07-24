@@ -86,11 +86,9 @@ for i in "${!PROJECTS[@]}"; do
     fi
 
     REPO_URL=${REPOS[i]:-"https://github.com/dymensionxyz/${PROJECTS[i]}"}
-    if [ ! -d "/tmp/${PROJECTS[i]}" ]; then
-        git clone "$REPO_URL"
-    fi
+    rm -rf "/tmp/${PROJECTS[i]}"
+    git clone "$REPO_URL"
     cd "${PROJECTS[i]}"
-    git fetch
     if [ -n "${VERSIONS[i]}" ]; then
         git checkout "${VERSIONS[i]}"
     fi
