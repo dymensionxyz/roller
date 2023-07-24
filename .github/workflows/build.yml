@@ -2,14 +2,14 @@ name: Create Roller Release Assets
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-20.04, arm-mac, amd-mac ]
+        os: [ ubuntu-20.04, arm-mac, amd-mac, arm-linux ]
 
     steps:
       - name: Checkout repository
@@ -38,6 +38,9 @@ jobs:
             echo "Go could not be found, Installing now"
             OS=$(uname -s | tr '[:upper:]' '[:lower:]')
             ARCH=$(uname -m)
+            if [ "$ARCH" = "aarch64" ]; then
+              ARCH="arm64"
+            fi
             DOWNLOAD_URL="https://golang.org/dl/go1.19.10.$OS-$ARCH.tar.gz"
             curl -LO "$DOWNLOAD_URL"
             sudo tar -C /usr/local -xzf go1.19.10.$OS-$ARCH.tar.gz
@@ -99,6 +102,9 @@ jobs:
         run: |
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
           ARCH=$(uname -m)
+          if [ "$ARCH" = "aarch64" ]; then
+            ARCH="arm64"
+          fi
           VERSION=${{ github.ref }}
           VERSION_CLEAN="${VERSION#refs/tags/}"
           if [[ $ARCH == "x86_64" ]]; then
