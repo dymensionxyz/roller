@@ -38,6 +38,9 @@ jobs:
             echo "Go could not be found, Installing now"
             OS=$(uname -s | tr '[:upper:]' '[:lower:]')
             ARCH=$(uname -m)
+            if [ "$ARCH" = "aarch64" ]; then
+              ARCH="arm64"
+            fi
             DOWNLOAD_URL="https://golang.org/dl/go1.19.10.$OS-$ARCH.tar.gz"
             curl -LO "$DOWNLOAD_URL"
             sudo tar -C /usr/local -xzf go1.19.10.$OS-$ARCH.tar.gz
