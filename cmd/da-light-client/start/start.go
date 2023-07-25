@@ -3,6 +3,7 @@ package start
 import (
 	"errors"
 	"fmt"
+
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -37,8 +38,9 @@ func Cmd() *cobra.Command {
 			}
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
-				utils.PrettifyErrorIfExists(errors.New("can't run mock DA. It runs automatically with the app"))
+				utils.PrettifyErrorIfExists(errors.New("DA doesn't need to run seperatly. It runs automatically with the app"))
 			}
+
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))

@@ -76,12 +76,15 @@ func (s *ServiceConfig) AddService(name string, data Service) {
 	s.Services[name] = data
 }
 
-// FIXME(#154): this functions have busy loop in case some process fails to start
 func (s *ServiceConfig) RunServiceWithRestart(name string, options ...utils.CommandOption) {
 	if _, ok := s.Services[name]; !ok {
 		panic("service with that name does not exist")
 	}
 	cmd := s.Services[name].Command
+	if cmd == nil {
+		s.Logger.Printf("service %s does not need to run seperatly", name)
+		return
+	}
 
 	s.WaitGroup.Add(1)
 	go func() {
@@ -101,6 +104,7 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...utils.Comm
 				return
 			case <-commandExited:
 				s.Logger.Printf("process %s exited, restarting...", newCmd.String())
+				// FIXME(#154): this functions have busy loop in case some process fails to start
 				time.Sleep(5 * time.Second)
 				continue
 			}

@@ -81,21 +81,8 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		Label: "Choose your data layer",
 		Items: availableDAs,
 	}
-
-	//TODO(#76): temporary hack to only support Celestia
-	for {
-		_, da, err := promptDAType.Run()
-		if err != nil {
-			return err
-		}
-		da = strings.ToLower(da)
-		if da == string(config.Avail) {
-			fmt.Println("Avail is not supported yet")
-			continue
-		}
-		cfg.DA = config.DAType(da)
-		break
-	}
+	_, da, _ := promptDAType.Run()
+	cfg.DA = config.DAType(strings.ToLower(da))
 
 	promptExecutionEnv := promptui.Select{
 		Label: "Choose your rollapp execution environment",

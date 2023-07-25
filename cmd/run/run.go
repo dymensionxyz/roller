@@ -87,13 +87,8 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	damanager.SetRPCEndpoint(celestia.DefaultCelestiaRPC)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := damanager.GetStartDACmd()
-	if startDALCCmd == nil {
-		return
-	}
-
 	service := servicemanager.Service{
-		Command:  startDALCCmd,
+		Command:  damanager.GetStartDACmd(),
 		FetchFn:  damanager.GetDAAccData,
 		StatusFn: damanager.GetStatus,
 		UIData:   servicemanager.UIData{Name: "DA Light Client"},
