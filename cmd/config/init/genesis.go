@@ -39,7 +39,7 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 		return err
 	}
 	genesisRelayerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
-		rlyRollappAddress, relayerBalanceStr, "--home", rollappConfigDirPath)
+		rlyRollappAddress, relayerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	_, err = utils.ExecBashCommand(genesisRelayerAccountCmd)
 	if err != nil {
 		return err
