@@ -2,12 +2,13 @@ package run
 
 import (
 	"context"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
 	"os"
 	"os/exec"
 	"sync"
+
+	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
@@ -61,6 +62,9 @@ func Cmd() *cobra.Command {
 
 func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
+
+	relayer := relayer.NewRelayer(cfg.Home, cfg.RollappID)
+
 	service := servicemanager.Service{
 		Command:  startRelayerCmd,
 		FetchFn:  utils.GetRelayerAccountsData,

@@ -1,14 +1,16 @@
 package start
 
 import (
-	"log"
+	"fmt"
 	"math/big"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
 )
 
@@ -16,12 +18,7 @@ import (
 var oneDayRelayPriceHub = big.NewInt(1)
 var oneDayRelayPriceRollapp = big.NewInt(1)
 
-type RelayerConfig struct {
-	SrcChannelName string
-}
-
 var connectionCh string
-var logger log.Logger
 
 func Start() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
@@ -30,27 +27,36 @@ func Start() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
-			VerifyRelayerBalances(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
+
+			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			logFileOption := utils.WithLogging(relayerLogFilePath)
 
-			logger = *utils.GetLogger(relayerLogFilePath)
+			relayer := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID)
+			relayer.SetLogger(*utils.GetLogger(relayerLogFilePath))
 
-			//TODO: check if channels already established
-
-			connectionChannels, err := createIBCChannelIfNeeded(rollappConfig, logFileOption)
+			_, _, err = relayer.LoadChannels()
 			utils.PrettifyErrorIfExists(err)
 
-			logger.Printf("💈 IBC transfer channel is successfully created! Channels: src, %s <-> %s, dst",
-				connectionChannels.Src, connectionChannels.Dst)
-			connectionCh = connectionChannels.Src
+			if relayer.ChannelReady() {
+				fmt.Println("💈 IBC transfer channel is already established!")
+			} else {
+				_, err := relayer.CreateIBCChannel(logFileOption)
+				utils.PrettifyErrorIfExists(err)
+			}
 
-			updateClientsCmd := getUpdateClientsCmd(rollappConfig)
+			updateClientsCmd := relayer.GetUpdateClientsCmd()
 			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 600, logFileOption)
 
-			logger.Println("BEFORE RUNNING RLY START!!!!")
-			utils.RunBashCmdAsync(getRelayerStartRelaying(rollappConfig), printOutput, nil, logFileOption)
+			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, relayer.SrcChannel)
+			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
+			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
+				relayer.SrcChannel, relayer.DstChannel)
+
+			select {}
+
+			// utils.RunBashCmdAsync(getRelayerStartRelaying(rollappConfig), printOutput, nil, logFileOption)
 		},
 	}
 
@@ -58,14 +64,7 @@ func Start() *cobra.Command {
 }
 
 func printOutput() {
-	logger.Printf("💈 The relayer is running successfully on you local machine! Channels: %s", connectionCh)
-}
-
-func getUpdateClientsCmd(config config.RollappConfig) *exec.Cmd {
-	defaultRlyArgs := getRelayerDefaultArgs(config)
-	args := []string{"tx", "update-clients"}
-	args = append(args, defaultRlyArgs...)
-	return exec.Command(consts.Executables.Relayer, args...)
+	fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: %s", connectionCh)
 }
 
 func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {

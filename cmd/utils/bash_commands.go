@@ -32,7 +32,7 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
-				fmt.Println("Cron command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
+				fmt.Println("periodic command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
 			}
 			time.Sleep(time.Duration(intervalSec) * time.Second)
 		}
