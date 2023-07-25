@@ -2,12 +2,13 @@ package run
 
 import (
 	"context"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
 	"os"
 	"os/exec"
 	"sync"
+
+	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
@@ -83,13 +84,8 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	damanager.SetRPCEndpoint(celestia.DefaultCelestiaRPC)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-	startDALCCmd := damanager.GetStartDACmd()
-	if startDALCCmd == nil {
-		return
-	}
-
 	service := servicemanager.Service{
-		Command:  startDALCCmd,
+		Command:  damanager.GetStartDACmd(),
 		FetchFn:  damanager.GetDAAccData,
 		StatusFn: damanager.GetStatus,
 		UIData:   servicemanager.UIData{Name: "DA Light Client"},

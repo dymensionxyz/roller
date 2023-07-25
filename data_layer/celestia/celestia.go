@@ -62,6 +62,7 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 }
 
 // GetDAAccountAddress implements datalayer.DataLayer.
+// FIXME: should be loaded once and cached
 func (c *Celestia) GetDAAccountAddress() (string, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
@@ -168,4 +169,9 @@ func (c *Celestia) SetRPCEndpoint(rpc string) {
 
 func (c *Celestia) GetNetworkName() string {
 	return DefaultCelestiaNetwork
+}
+
+func (c *Celestia) GetSequencerDAConfig() string {
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
+		LCEndpoint)
 }

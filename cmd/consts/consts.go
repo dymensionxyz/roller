@@ -66,9 +66,11 @@ var AlgoTypes = struct {
 var Denoms = struct {
 	Hub      string
 	Celestia string
+	Avail    string
 }{
 	Hub:      "udym",
 	Celestia: "utia",
+	Avail:    "aAVL",
 }
 
 const (

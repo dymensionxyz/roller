@@ -5,6 +5,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
 )
@@ -16,6 +17,7 @@ type DataLayer interface {
 	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
 	GetLightNodeEndpoint() string
+	GetSequencerDAConfig() string
 	SetRPCEndpoint(string)
 	GetNetworkName() string
 	GetStatus(c config.RollappConfig) string
@@ -36,10 +38,11 @@ func NewDAManager(datype config.DAType, home string) *DAManager {
 		dalayer = &celestia.Celestia{
 			Root: home,
 		}
+	case config.Avail:
+		dalayer = avail.NewAvail(home)
 	case config.Mock:
 		dalayer = &damock.DAMock{}
 	default:
-		//TODO: return error
 		panic("Unknown data layer type")
 	}
 

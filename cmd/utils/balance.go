@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	"math/big"
 	"os/exec"
 	"strings"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type ChainQueryConfig struct {
@@ -90,11 +91,12 @@ func (b *Balance) BiggerDenomStr(cfg config.RollappConfig) string {
 	decimalsMap := map[string]uint{
 		consts.Denoms.Hub:      18,
 		consts.Denoms.Celestia: 6,
+		consts.Denoms.Avail:    18,
 		cfg.Denom:              cfg.Decimals,
 	}
 	decimals, _ := decimalsMap[b.Denom]
 	formattedBalance := formatBalance(b.Amount, decimals)
-	return formattedBalance + biggerDenom
+	return formattedBalance + strings.ToUpper(biggerDenom)
 }
 
 type BalanceResp struct {

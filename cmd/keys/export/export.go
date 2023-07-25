@@ -2,9 +2,10 @@ package export
 
 import (
 	"fmt"
-	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"path/filepath"
 	"strings"
+
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -40,10 +41,13 @@ func Cmd() *cobra.Command {
 				out, err := utils.ExecBashCommand(exportKeyCmd)
 				printKeyOutput(out.String(), err)
 			} else if keyID != "" && keyID == damanager.GetKeyName() {
+				//TODO: avail doesn't need cmd to get the keys, it's stored in the config
 				exportKeyCmd := damanager.GetExportKeyCmd()
 				// TODO: make more generic. need it because cel-key write the output to stderr for some reason
-				out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
-				printKeyOutput(out.String(), err)
+				if exportKeyCmd != nil {
+					out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
+					printKeyOutput(out.String(), err)
+				}
 			} else {
 				utils.PrettifyErrorIfExists(fmt.Errorf("invalid key id: %s. The supported keys are %s", keyID,
 					strings.Join(supportedKeys, ", ")))
