@@ -34,7 +34,7 @@ func Start() *cobra.Command {
 			logFileOption := utils.WithLogging(relayerLogFilePath)
 
 			relayer := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID)
-			relayer.SetLogger(*utils.GetLogger(relayerLogFilePath))
+			relayer.SetLogger(utils.GetLogger(relayerLogFilePath))
 
 			_, _, err = relayer.LoadChannels()
 			utils.PrettifyErrorIfExists(err)
@@ -42,6 +42,7 @@ func Start() *cobra.Command {
 			if relayer.ChannelReady() {
 				fmt.Println("💈 IBC transfer channel is already established!")
 			} else {
+				fmt.Println("💈 Establishing IBC transfer channel")
 				_, err := relayer.CreateIBCChannel(logFileOption)
 				utils.PrettifyErrorIfExists(err)
 			}
@@ -55,25 +56,15 @@ func Start() *cobra.Command {
 				relayer.SrcChannel, relayer.DstChannel)
 
 			select {}
-
-			// utils.RunBashCmdAsync(getRelayerStartRelaying(rollappConfig), printOutput, nil, logFileOption)
 		},
 	}
 
 	return relayerStartCmd
 }
 
-func printOutput() {
-	fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: %s", connectionCh)
-}
-
 func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, "tx", "relay-packets", consts.DefaultRelayerPath, srcChannel,
 		"-l", "1", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
-}
-
-func getRelayerStartRelaying(config config.RollappConfig) *exec.Cmd {
-	return exec.Command(consts.Executables.Relayer, "start", consts.DefaultRelayerPath, "--debug-addr", "", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
 }
 
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {

@@ -34,8 +34,6 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 		}
 	}
 
-	//TODO validate with the connection ID with the path
-
 	r.SrcChannel = stateOpenChannel.ChannelID
 	r.DstChannel = stateOpenChannel.Counterparty.ChannelID
 	return r.SrcChannel, r.DstChannel, nil

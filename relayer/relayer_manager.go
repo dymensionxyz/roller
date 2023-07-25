@@ -12,7 +12,7 @@ type Relayer struct {
 	RollappID  string
 	SrcChannel string
 	DstChannel string
-	logger     log.Logger
+	logger     *log.Logger
 }
 
 func NewRelayer(home, rollappID string) *Relayer {
@@ -22,8 +22,7 @@ func NewRelayer(home, rollappID string) *Relayer {
 	}
 }
 
-// FIXME:
-func (r *Relayer) SetLogger(logger log.Logger) {
+func (r *Relayer) SetLogger(logger *log.Logger) {
 	r.logger = logger
 }
 
