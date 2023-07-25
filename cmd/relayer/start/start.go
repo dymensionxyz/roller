@@ -1,7 +1,7 @@
 package start
 
 import (
-	"fmt"
+	"log"
 	"math/big"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +20,9 @@ type RelayerConfig struct {
 	SrcChannelName string
 }
 
+var connectionCh string
+var logger log.Logger
+
 func Start() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
@@ -31,19 +34,31 @@ func Start() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			logFileOption := utils.WithLogging(relayerLogFilePath)
+
+			logger = *utils.GetLogger(relayerLogFilePath)
+
+			//TODO: check if channels already established
+
 			connectionChannels, err := createIBCChannelIfNeeded(rollappConfig, logFileOption)
 			utils.PrettifyErrorIfExists(err)
-			updateClientsCmd := getUpdateClientsCmd(rollappConfig)
-			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60, logFileOption)
-			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, connectionChannels.Src)
-			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
-			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
+
+			logger.Printf("💈 IBC transfer channel is successfully created! Channels: src, %s <-> %s, dst",
 				connectionChannels.Src, connectionChannels.Dst)
-			select {}
+			connectionCh = connectionChannels.Src
+
+			updateClientsCmd := getUpdateClientsCmd(rollappConfig)
+			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 600, logFileOption)
+
+			logger.Println("BEFORE RUNNING RLY START!!!!")
+			utils.RunBashCmdAsync(getRelayerStartRelaying(rollappConfig), printOutput, nil, logFileOption)
 		},
 	}
 
 	return relayerStartCmd
+}
+
+func printOutput() {
+	logger.Printf("💈 The relayer is running successfully on you local machine! Channels: %s", connectionCh)
 }
 
 func getUpdateClientsCmd(config config.RollappConfig) *exec.Cmd {
@@ -56,6 +71,10 @@ func getUpdateClientsCmd(config config.RollappConfig) *exec.Cmd {
 func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, "tx", "relay-packets", consts.DefaultRelayerPath, srcChannel,
 		"-l", "1", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
+}
+
+func getRelayerStartRelaying(config config.RollappConfig) *exec.Cmd {
+	return exec.Command(consts.Executables.Relayer, "start", consts.DefaultRelayerPath, "--debug-addr", "", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
 }
 
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {

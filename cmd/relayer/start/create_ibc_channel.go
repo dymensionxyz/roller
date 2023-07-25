@@ -2,9 +2,10 @@ package start
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/relayer"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/relayer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -12,8 +13,7 @@ import (
 )
 
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
-func createIBCChannelIfNeeded(rollappConfig config.RollappConfig, logFileOption utils.CommandOption) (
-	relayer.ConnectionChannels, error) {
+func createIBCChannelIfNeeded(rollappConfig config.RollappConfig, logFileOption utils.CommandOption) (relayer.ConnectionChannels, error) {
 	createClientsCmd := getCreateClientsCmd(rollappConfig, rollappConfig.RollappID, rollappConfig.HubData.ID)
 	fmt.Println("Creating clients...")
 	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd, logFileOption); err != nil {

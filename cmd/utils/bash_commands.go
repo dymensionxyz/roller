@@ -19,6 +19,7 @@ func GetRelayerDefaultFlags(root string) []string {
 	}
 }
 
+// TODO: should accept a context and cancel the command if the context is cancelled
 func RunCommandEvery(command string, args []string, intervalSec int, options ...CommandOption) {
 	go func() {
 		for {
@@ -51,6 +52,12 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	for _, option := range options {
 		option(cmd)
 	}
+	if parseError == nil {
+		parseError = func(errMsg string) string {
+			return errMsg
+		}
+	}
+
 	var stderr bytes.Buffer
 	mw := io.MultiWriter(&stderr)
 	if cmd.Stderr != nil {
