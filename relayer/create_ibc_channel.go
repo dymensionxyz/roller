@@ -1,6 +1,7 @@
 package relayer
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -12,31 +13,31 @@ import (
 func (r *Relayer) CreateIBCChannel(logFileOption utils.CommandOption) (ConnectionChannels, error) {
 	//TODO: add support for --override flag
 	createClientsCmd := r.getCreateClientsCmd()
-	r.logger.Println("Creating clients...")
-	if err := utils.ExecBashCmdWithOSOutput(createClientsCmd, logFileOption); err != nil {
+	fmt.Println("💈 Creating clients...")
+	if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	// Before setting up the connection, we need to call update clients
 	updateClientsCmd := r.GetUpdateClientsCmd()
-	r.logger.Println("Updating clients...")
-	if err := utils.ExecBashCmdWithOSOutput(updateClientsCmd, logFileOption); err != nil {
+	fmt.Println("💈 Updating clients...")
+	if err := utils.ExecBashCmd(updateClientsCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	createConnectionCmd := r.getCreateConnectionCmd()
-	r.logger.Println("Creating connection...")
-	if err := utils.ExecBashCmdWithOSOutput(createConnectionCmd, logFileOption); err != nil {
+	fmt.Println("💈 Creating connection...")
+	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	createChannelCmd := r.getCreateChannelCmd()
-	r.logger.Println("Creating channel...")
-	if err := utils.ExecBashCmdWithOSOutput(createChannelCmd, logFileOption); err != nil {
+	fmt.Println("💈 Creating channel...")
+	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
-	r.logger.Println("validating channels...")
+	fmt.Println("💈 Validating channels...")
 	src, dst, err := r.LoadChannels()
 	if err != nil {
 		return ConnectionChannels{}, err

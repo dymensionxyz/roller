@@ -11,36 +11,56 @@ import (
 )
 
 func (r *Relayer) LoadChannels() (string, string, error) {
-	output, err := utils.ExecBashCommand(r.queryChannelsCmd())
+	output, err := utils.ExecBashCommandWithStdout(r.queryChannelsRollappCmd())
 	if err != nil {
 		return "", "", err
 	}
 
-	dec := json.NewDecoder(&output)
-
 	// While there are JSON objects in the stream...
-	var stateOpenChannel Output
-
+	dec := json.NewDecoder(&output)
 	for dec.More() {
-		var outputStruct Output
+		var outputStruct RollappQueryResult
 		err = dec.Decode(&outputStruct)
 		if err != nil {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
 
 		if outputStruct.State == "STATE_OPEN" {
-			//we want the last open channel
-			stateOpenChannel = outputStruct
+			output, err := utils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
+			if err != nil {
+				return "", "", err
+			}
+
+			var res HubQueryResult
+			err = json.Unmarshal(output.Bytes(), &res)
+			if err != nil {
+				return "", "", err
+			}
+
+			if res.Channel.State != "STATE_OPEN" {
+				fmt.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub\n",
+					outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
+				)
+				continue
+			}
+
+			r.SrcChannel = outputStruct.ChannelID
+			r.DstChannel = outputStruct.Counterparty.ChannelID
+			break
 		}
 	}
 
-	r.SrcChannel = stateOpenChannel.ChannelID
-	r.DstChannel = stateOpenChannel.Counterparty.ChannelID
 	return r.SrcChannel, r.DstChannel, nil
 }
 
-func (r *Relayer) queryChannelsCmd() *exec.Cmd {
+func (r *Relayer) queryChannelsRollappCmd() *exec.Cmd {
 	args := []string{"q", "channels", r.RollappID}
+	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
+	return exec.Command(consts.Executables.Relayer, args...)
+}
+
+func (r *Relayer) queryChannelsHubCmd(channelID string) *exec.Cmd {
+	args := []string{"q", "channel", r.HubID, channelID, "transfer"}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }
@@ -60,6 +80,20 @@ type Output struct {
 	Counterparty   Counterparty `json:"counterparty"`
 	ConnectionHops []string     `json:"connection_hops"`
 	Version        string       `json:"version"`
-	PortID         string       `json:"port_id"`
-	ChannelID      string       `json:"channel_id"`
+}
+
+type ProofHeight struct {
+	RevNumber string `json:"revision_number"`
+	RevHeight string `json:"revision_height"`
+}
+type HubQueryResult struct {
+	Channel     Output      `json:"channel"`
+	Proof       string      `json:"proof"`
+	ProofHeight ProofHeight `json:"proof_height"`
+}
+
+type RollappQueryResult struct {
+	Output
+	PortID    string `json:"port_id"`
+	ChannelID string `json:"channel_id"`
 }

@@ -10,15 +10,17 @@ import (
 type Relayer struct {
 	Home       string
 	RollappID  string
+	HubID      string
 	SrcChannel string
 	DstChannel string
 	logger     *log.Logger
 }
 
-func NewRelayer(home, rollappID string) *Relayer {
+func NewRelayer(home, rollappID, hubID string) *Relayer {
 	return &Relayer{
 		Home:      home,
 		RollappID: rollappID,
+		HubID:     hubID,
 	}
 }
 
