@@ -17,38 +17,39 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	}
 
 	// While there are JSON objects in the stream...
+	var outputStruct RollappQueryResult
 	dec := json.NewDecoder(&output)
 	for dec.More() {
-		var outputStruct RollappQueryResult
 		err = dec.Decode(&outputStruct)
 		if err != nil {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
-
-		if outputStruct.State == "STATE_OPEN" {
-			output, err := utils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
-			if err != nil {
-				return "", "", err
-			}
-
-			var res HubQueryResult
-			err = json.Unmarshal(output.Bytes(), &res)
-			if err != nil {
-				return "", "", err
-			}
-
-			if res.Channel.State != "STATE_OPEN" {
-				fmt.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub\n",
-					outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
-				)
-				continue
-			}
-
-			r.SrcChannel = outputStruct.ChannelID
-			r.DstChannel = outputStruct.Counterparty.ChannelID
-		}
+		continue
 	}
 
+	if outputStruct.State != "STATE_OPEN" {
+		return "", "", fmt.Errorf("channel %s is not STATE_OPEN (%s)", outputStruct.ChannelID, outputStruct.State)
+	}
+
+	// Check if the channel is open on the hub
+	var res HubQueryResult
+	outputHub, err := utils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
+	if err != nil {
+		return "", "", err
+	}
+	err = json.Unmarshal(outputHub.Bytes(), &res)
+	if err != nil {
+		return "", "", err
+	}
+
+	if res.Channel.State != "STATE_OPEN" {
+		return "", "", fmt.Errorf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
+			outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
+		)
+	}
+
+	r.SrcChannel = outputStruct.ChannelID
+	r.DstChannel = outputStruct.Counterparty.ChannelID
 	return r.SrcChannel, r.DstChannel, nil
 }
 
