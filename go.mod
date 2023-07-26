@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/briandowns/spinner v1.23.0
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 	github.com/cosmos/go-bip39 v1.0.0
@@ -21,7 +22,6 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/sjson v1.2.5
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"time"
 
+	retry "github.com/avast/retry-go"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
@@ -19,9 +21,21 @@ func (r *Relayer) CreateIBCChannel(logFileOption utils.CommandOption) (Connectio
 	}
 
 	// Before setting up the connection, we need to call update clients
-	updateClientsCmd := r.GetUpdateClientsCmd()
+
 	fmt.Println("💈 Updating clients...")
-	if err := utils.ExecBashCmd(updateClientsCmd, logFileOption); err != nil {
+	err := retry.Do(
+		func() error {
+			updateClientsCmd := r.GetUpdateClientsCmd()
+			return utils.ExecBashCmd(updateClientsCmd, logFileOption)
+		},
+		retry.Delay(time.Duration(10)*time.Second),
+		retry.DelayType(retry.FixedDelay),
+		retry.Attempts(5),
+		retry.OnRetry(func(n uint, err error) {
+			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
+		}),
+	)
+	if err != nil {
 		return ConnectionChannels{}, err
 	}
 
@@ -38,7 +52,26 @@ func (r *Relayer) CreateIBCChannel(logFileOption utils.CommandOption) (Connectio
 	}
 
 	fmt.Println("💈 Validating channels...")
-	src, dst, err := r.LoadChannels()
+	var src, dst string
+	err = retry.Do(
+		func() error {
+			var err error
+			src, dst, err = r.LoadChannels()
+			if err != nil {
+				return err
+			}
+			if src == "" || dst == "" {
+				return fmt.Errorf("could not load channels")
+			}
+			return nil
+		},
+		retry.Delay(time.Duration(10)*time.Second),
+		retry.DelayType(retry.FixedDelay),
+		retry.Attempts(5),
+		retry.OnRetry(func(n uint, err error) {
+			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
+		}),
+	)
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
