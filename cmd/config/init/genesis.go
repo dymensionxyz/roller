@@ -30,7 +30,7 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
 		consts.KeysIds.RollappSequencer, sequencerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
-	_, err := utils.ExecBashCommand(genesisSequencerAccountCmd)
+	_, err := utils.ExecBashCommandWithStdout(genesisSequencerAccountCmd)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	}
 	genesisRelayerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
 		rlyRollappAddress, relayerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
-	_, err = utils.ExecBashCommand(genesisRelayerAccountCmd)
+	_, err = utils.ExecBashCommandWithStdout(genesisRelayerAccountCmd)
 	if err != nil {
 		return err
 	}

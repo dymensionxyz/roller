@@ -33,12 +33,12 @@ func Cmd() *cobra.Command {
 			if keyID == consts.KeysIds.HubSequencer {
 				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
 					consts.Executables.Dymension)
-				out, err := utils.ExecBashCommand(exportKeyCmd)
+				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
 				printKeyOutput(out.String(), err)
 			} else if keyID == consts.KeysIds.RollappSequencer {
 				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
 					rlpCfg.RollappBinary)
-				out, err := utils.ExecBashCommand(exportKeyCmd)
+				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
 				printKeyOutput(out.String(), err)
 			} else if keyID != "" && keyID == damanager.GetKeyName() {
 				//TODO: avail doesn't need cmd to get the keys, it's stored in the config

@@ -69,7 +69,7 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
-	output, err := utils.ExecBashCommand(cmd)
+	output, err := utils.ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}
@@ -77,7 +77,6 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 	return address, err
 }
 
-// TODO: wrap in some DA interfafce to be used for Avail as well
 func (c *Celestia) InitializeLightNodeConfig() error {
 	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
 		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))

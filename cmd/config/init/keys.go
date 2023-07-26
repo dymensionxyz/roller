@@ -1,12 +1,13 @@
 package initconfig
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 func generateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
@@ -79,7 +80,7 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 		args = append(args, "--algo", consts.AlgoTypes.Secp256k1)
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := utils.ExecBashCommand(createKeyCommand)
+	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +92,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 	keys := getRelayerKeysConfig(rollappConfig)
 	createRollappKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.RollappRelayer], rollappConfig.RollappID)
 	createHubKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
-	out, err := utils.ExecBashCommand(createRollappKeyCmd)
+	out, err := utils.ExecBashCommandWithStdout(createRollappKeyCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +104,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 		Addr: relayerRollappAddress,
 		Name: consts.KeysIds.RollappRelayer,
 	})
-	out, err = utils.ExecBashCommand(createHubKeyCmd)
+	out, err = utils.ExecBashCommandWithStdout(createHubKeyCmd)
 	if err != nil {
 		return nil, err
 	}

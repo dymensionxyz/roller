@@ -9,7 +9,6 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// TODO: return error output
 func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",

@@ -77,7 +77,7 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	}
 }
 
-func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecBashCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
@@ -96,7 +96,7 @@ func ExecBashCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
 	return stderr, nil
 }
@@ -113,6 +113,17 @@ func ExecBashCmdWithOSOutput(cmd *exec.Cmd, options ...CommandOption) error {
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+	}
+	return nil
+}
+
+func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
+	for _, option := range options {
+		option(cmd)
+	}
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("command execution failed: %w", err)
 	}
 	return nil
 }
