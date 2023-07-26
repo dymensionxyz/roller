@@ -46,7 +46,6 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 
 			r.SrcChannel = outputStruct.ChannelID
 			r.DstChannel = outputStruct.Counterparty.ChannelID
-			break
 		}
 	}
 
