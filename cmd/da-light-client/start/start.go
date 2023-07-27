@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	rpcEndpointFlag = "--rpc-endpoint"
+	rpcEndpointFlag = "rpc-endpoint"
 )
 
 var LCEndpoint = ""
