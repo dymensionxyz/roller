@@ -15,7 +15,7 @@ PROJECTS=("dymension" "dymension-relayer" "rollapp-evm")
 REPOS=("" "" "")
 VERSIONS=("v1.0.0-rc2" "" "v0.1.0-rc1")
 BUILDCOMMANDS=("" "" "")
-BINARYNAME=("dymd" "rly" "rollapp_evm")
+BINARYNAME=("dymd" "rly" "rollapp-evm")
 
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
