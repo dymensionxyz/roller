@@ -32,6 +32,7 @@ type KeyConfig struct {
 	Dir         string
 	ID          string
 	ChainBinary string
+	Type        config.VMType
 }
 
 func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {

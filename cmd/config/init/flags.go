@@ -17,6 +17,7 @@ const (
 func addFlags(cmd *cobra.Command) error {
 	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
+	cmd.Flags().StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
 	cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
 	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
@@ -59,6 +60,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
+	cfg.VMType = config.VMType(initCmd.Flag(string(FlagNames.VMType)).Value.String())
 
 	return cfg, nil
 }
