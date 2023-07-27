@@ -21,6 +21,7 @@ func NewRelayer(home, rollappID, hubID string) *Relayer {
 		Home:      home,
 		RollappID: rollappID,
 		HubID:     hubID,
+		logger:    log.Default(),
 	}
 }
 
