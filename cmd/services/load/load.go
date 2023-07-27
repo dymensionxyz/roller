@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"text/template"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/spf13/cobra"
 )
 
 type Service struct {
@@ -48,7 +49,7 @@ func Cmd() *cobra.Command {
 				err = writeServiceFile(tpl, service.Name)
 				utils.PrettifyErrorIfExists(err)
 			}
-			_, err := utils.ExecBashCommand(exec.Command("sudo", "systemctl", "daemon-reload"))
+			_, err := utils.ExecBashCommandWithStdout(exec.Command("sudo", "systemctl", "daemon-reload"))
 			utils.PrettifyErrorIfExists(err)
 			fmt.Println("💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully." +
 				" To start them, use 'systemctl start <service>'.")

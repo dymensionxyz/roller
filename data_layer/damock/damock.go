@@ -7,7 +7,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-// todo implemet data layer interface
 type DAMock struct {
 }
 

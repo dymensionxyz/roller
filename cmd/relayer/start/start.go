@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
 )
 
@@ -16,9 +18,7 @@ import (
 var oneDayRelayPriceHub = big.NewInt(1)
 var oneDayRelayPriceRollapp = big.NewInt(1)
 
-type RelayerConfig struct {
-	SrcChannelName string
-}
+var connectionCh string
 
 func Start() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
@@ -27,18 +27,37 @@ func Start() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
-			VerifyRelayerBalances(rollappConfig)
 			utils.PrettifyErrorIfExists(err)
+
+			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			logFileOption := utils.WithLogging(relayerLogFilePath)
-			connectionChannels, err := createIBCChannelIfNeeded(rollappConfig, logFileOption)
+
+			relayer := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
+			relayer.SetLogger(utils.GetLogger(relayerLogFilePath))
+
+			_, _, err = relayer.LoadChannels()
 			utils.PrettifyErrorIfExists(err)
-			updateClientsCmd := getUpdateClientsCmd(rollappConfig)
-			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 60, logFileOption)
-			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, connectionChannels.Src)
-			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 30, logFileOption)
+
+			//TODO: add override flag
+			if relayer.ChannelReady() {
+				fmt.Println("💈 IBC transfer channel is already established!")
+			} else {
+				fmt.Println("💈 Establishing IBC transfer channel")
+
+				//FIXME: wrap in retries
+				_, err := relayer.CreateIBCChannel(logFileOption)
+				utils.PrettifyErrorIfExists(err)
+			}
+
+			updateClientsCmd := relayer.GetUpdateClientsCmd()
+			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 500, logFileOption)
+
+			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, relayer.SrcChannel)
+			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 120, logFileOption)
 			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
-				connectionChannels.Src, connectionChannels.Dst)
+				relayer.SrcChannel, relayer.DstChannel)
+
 			select {}
 		},
 	}
@@ -46,13 +65,7 @@ func Start() *cobra.Command {
 	return relayerStartCmd
 }
 
-func getUpdateClientsCmd(config config.RollappConfig) *exec.Cmd {
-	defaultRlyArgs := getRelayerDefaultArgs(config)
-	args := []string{"tx", "update-clients"}
-	args = append(args, defaultRlyArgs...)
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
+// TODO: move to relayer package
 func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, "tx", "relay-packets", consts.DefaultRelayerPath, srcChannel,
 		"-l", "1", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))

@@ -19,6 +19,7 @@ func GetRelayerDefaultFlags(root string) []string {
 	}
 }
 
+// TODO: should accept a context and cancel the command if the context is cancelled
 func RunCommandEvery(command string, args []string, intervalSec int, options ...CommandOption) {
 	go func() {
 		for {
@@ -31,7 +32,7 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
-				fmt.Println("Cron command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
+				fmt.Println("periodic command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
 			}
 			time.Sleep(time.Duration(intervalSec) * time.Second)
 		}
@@ -51,6 +52,12 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	for _, option := range options {
 		option(cmd)
 	}
+	if parseError == nil {
+		parseError = func(errMsg string) string {
+			return errMsg
+		}
+	}
+
 	var stderr bytes.Buffer
 	mw := io.MultiWriter(&stderr)
 	if cmd.Stderr != nil {
@@ -70,7 +77,7 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	}
 }
 
-func ExecBashCommand(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecBashCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
@@ -106,6 +113,17 @@ func ExecBashCmdWithOSOutput(cmd *exec.Cmd, options ...CommandOption) error {
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+	}
+	return nil
+}
+
+func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
+	for _, option := range options {
+		option(cmd)
+	}
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("command execution failed: %w", err)
 	}
 	return nil
 }

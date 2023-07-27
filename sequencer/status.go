@@ -3,14 +3,15 @@ package sequencer
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type NodeInfo struct {
@@ -62,7 +63,7 @@ type HubResponse struct {
 func getHubHeight(cfg config.RollappConfig) (string, error) {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "rollapp", "state", cfg.RollappID,
 		"--output", "json", "--node", cfg.HubData.RPC_URL)
-	out, err := utils.ExecBashCommand(cmd)
+	out, err := utils.ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}
