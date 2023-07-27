@@ -11,11 +11,11 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 # The list of projects to be installed
-PROJECTS=("dymension" "dymension-relayer" "dymension-rdk")
+PROJECTS=("dymension" "dymension-relayer" "rollapp-evm")
 REPOS=("" "" "")
-VERSIONS=("v1.0.0-rc2" "" "v0.4.0-rc2")
-BUILDCOMMANDS=("" "" "make install_evm")
-BINARYNAME=("dymd" "rly" "rollapp_evm")
+VERSIONS=("v1.0.0-rc2" "" "v0.1.0-rc1")
+BUILDCOMMANDS=("" "" "")
+BINARYNAME=("dymd" "rly" "rollapp-evm")
 
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
@@ -107,7 +107,7 @@ for i in "${!PROJECTS[@]}"; do
     done
 done
 
-sudo mv "$INTERNAL_DIR/rollapp_evm" "$ROLLAPP_EVM_PATH"
+sudo mv "$INTERNAL_DIR/rollapp-evm" "$ROLLAPP_EVM_PATH"
 
 sudo chmod +x "$ROLLAPP_EVM_PATH"
 
