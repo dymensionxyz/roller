@@ -107,7 +107,7 @@ for i in "${!PROJECTS[@]}"; do
     done
 done
 
-sudo mv "$INTERNAL_DIR/rollapp_evm" "$ROLLAPP_EVM_PATH"
+sudo mv "$INTERNAL_DIR/rollapp-evm" "$ROLLAPP_EVM_PATH"
 
 sudo chmod +x "$ROLLAPP_EVM_PATH"
 
