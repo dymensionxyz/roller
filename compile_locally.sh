@@ -11,10 +11,10 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 # The list of projects to be installed
-PROJECTS=("dymension" "dymension-relayer" "dymension-rdk")
+PROJECTS=("dymension" "dymension-relayer" "rollapp-evm")
 REPOS=("" "" "")
 VERSIONS=("v1.0.0-rc2" "" "v0.4.0-rc2")
-BUILDCOMMANDS=("" "" "make install_evm")
+BUILDCOMMANDS=("" "" "")
 BINARYNAME=("dymd" "rly" "rollapp_evm")
 
 if [[ "$ARCH" == "x86_64" ]]; then
