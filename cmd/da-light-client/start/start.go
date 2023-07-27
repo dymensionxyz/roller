@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	rpcEndpointFlag = "rpc-endpoint"
+	rpcEndpointFlag     = "rpc-endpoint"
+	metricsEndpointFlag = "metrics-endpoint"
 )
 
 var LCEndpoint = ""
@@ -26,7 +27,10 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-
+			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
+			if metricsEndpoint != "" && rollappConfig.DA != config.Celestia {
+				utils.PrettifyErrorIfExists(errors.New("metrics endpoint can only be set for celestia"))
+			}
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 			insufficientBalances, err := damanager.CheckDABalance()
 			utils.PrettifyErrorIfExists(err)
@@ -35,6 +39,9 @@ func Cmd() *cobra.Command {
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			if rpcEndpoint != "" {
 				damanager.SetRPCEndpoint(rpcEndpoint)
+			}
+			if metricsEndpoint != "" {
+				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
@@ -53,6 +60,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
+	cmd.Flags().StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }
 
 func printOutput() {

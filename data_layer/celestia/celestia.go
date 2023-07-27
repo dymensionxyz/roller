@@ -27,8 +27,13 @@ var (
 )
 
 type Celestia struct {
-	Root        string
-	rpcEndpoint string
+	Root            string
+	rpcEndpoint     string
+	metricsEndpoint string
+}
+
+func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
+	c2.metricsEndpoint = endpoint
 }
 
 func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
@@ -151,8 +156,8 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 }
 
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
-	return exec.Command(
-		consts.Executables.Celestia, "light", "start",
+	args := []string{
+		"light", "start",
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
@@ -160,6 +165,12 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
 		"--p2p.network", DefaultCelestiaNetwork,
+	}
+	if c.metricsEndpoint != "" {
+		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
+	}
+	return exec.Command(
+		consts.Executables.Celestia, args...,
 	)
 }
 

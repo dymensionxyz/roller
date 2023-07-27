@@ -35,6 +35,9 @@ type Avail struct {
 	accKey *availtypes.StorageKey
 }
 
+func (a *Avail) SetMetricsEndpoint(endpoint string) {
+}
+
 func NewAvail(root string) *Avail {
 	cfgPath := filepath.Join(root, availConfigFileName)
 	availConfig, err := loadConfigFromTOML(cfgPath)
