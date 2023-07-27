@@ -26,6 +26,7 @@ type RollappConfig struct {
 	Decimals      uint
 	HubData       HubData
 	DA            DAType
+	RollerVersion string
 }
 
 type HubData = struct {

@@ -12,6 +12,7 @@ func EnableDymintMetrics(root string) error {
 		return err
 	}
 	config.Set("instrumentation.prometheus", true)
+	config.Set("instrumentation.prometheus_listen_addr", ":2112")
 	file, err := os.Create(dymintTomlPath)
 	if err != nil {
 		return err
