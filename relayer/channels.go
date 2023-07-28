@@ -16,6 +16,10 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 		return "", "", err
 	}
 
+	if output.Len() == 0 {
+		return "", "", nil
+	}
+
 	// While there are JSON objects in the stream...
 	var outputStruct RollappQueryResult
 	dec := json.NewDecoder(&output)
@@ -28,7 +32,8 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	}
 
 	if outputStruct.State != "STATE_OPEN" {
-		return "", "", fmt.Errorf("channel %s is not STATE_OPEN (%s)", outputStruct.ChannelID, outputStruct.State)
+		r.logger.Printf("channel %s is not STATE_OPEN (%s)", outputStruct.ChannelID, outputStruct.State)
+		return "", "", nil
 	}
 
 	// Check if the channel is open on the hub
@@ -43,9 +48,10 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	}
 
 	if res.Channel.State != "STATE_OPEN" {
-		return "", "", fmt.Errorf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
+		r.logger.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
 			outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
 		)
+		return "", "", nil
 	}
 
 	r.SrcChannel = outputStruct.ChannelID

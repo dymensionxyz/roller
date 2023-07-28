@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/dymensionxyz/roller/config"
@@ -21,6 +22,7 @@ func NewRelayer(home, rollappID, hubID string) *Relayer {
 		Home:      home,
 		RollappID: rollappID,
 		HubID:     hubID,
+		logger:    log.New(io.Discard, "", 0),
 	}
 }
 
