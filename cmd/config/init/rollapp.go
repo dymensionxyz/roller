@@ -54,7 +54,7 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	if err = sequencer.EnableDymintMetrics(initConfig.Home); err != nil {
+	if err = sequencer.SetDefaultDymintConfig(initConfig.Home, initConfig); err != nil {
 		return err
 	}
 	return nil
