@@ -1,6 +1,7 @@
 package sequencer
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
@@ -17,7 +18,7 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	}
 	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
 	daConfig := damanager.GetSequencerDAConfig()
-	dymintCfg.Set("da_layer", rlpCfg.DA)
+	dymintCfg.Set("da_layer", string(rlpCfg.DA))
 	if daConfig != "" {
 		dymintCfg.Set("da_config", daConfig)
 	}
@@ -25,7 +26,7 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
-	dymintCfg.Set("block_batch_size", 500)
+	dymintCfg.Set("block_batch_size", "500")
 	dymintCfg.Set("namespace_id", "000000000000ffff")
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
@@ -39,6 +40,8 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	// print the dymintcfg
+	fmt.Println("the dymint config is", dymintCfg.String())
 	_, err = file.WriteString(dymintCfg.String())
 	if err != nil {
 		return err
