@@ -5,7 +5,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/pelletier/go-toml"
-	"os"
 	"path/filepath"
 )
 
@@ -21,8 +20,7 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	if daConfig != "" {
 		dymintCfg.Set("da_config", daConfig)
 	}
-	dymintCfg.Set("instrumentation.prometheus", true)
-	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
+	EnableDymintMetrics(dymintCfg)
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
 	dymintCfg.Set("block_batch_size", "500")
@@ -35,13 +33,10 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
 	dymintCfg.Set("keyring_home_dir", hubKeysDir)
 	dymintCfg.Set("gas_prices", rlpCfg.HubData.GAS_PRICE+consts.Denoms.Hub)
-	file, err := os.Create(dymintTomlPath)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(dymintCfg.String())
-	if err != nil {
-		return err
-	}
-	return nil
+	return config.WriteTomlToFile(dymintTomlPath, dymintCfg)
+}
+
+func EnableDymintMetrics(dymintCfg *toml.Tree) {
+	dymintCfg.Set("instrumentation.prometheus", true)
+	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
 }

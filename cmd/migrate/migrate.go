@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -49,7 +50,13 @@ func Cmd() *cobra.Command {
 func performMigration(version string, rlpCfg config.RollappConfig) error {
 	switch version {
 	case "v0.1.4":
-		return sequencer.EnableDymintMetrics(rlpCfg.Home)
+		dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+		dymintCfg, err := toml.LoadFile(dymintTomlPath)
+		if err != nil {
+			return err
+		}
+		sequencer.EnableDymintMetrics(dymintCfg)
+		return config.WriteTomlToFile(dymintTomlPath, dymintCfg)
 	}
 	return nil
 }

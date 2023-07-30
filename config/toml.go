@@ -2,6 +2,7 @@ package config
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/pelletier/go-toml"
@@ -33,4 +34,16 @@ func LoadConfigFromTOML(root string) (RollappConfig, error) {
 	}
 
 	return config, nil
+}
+
+func WriteTomlToFile(path string, data *toml.Tree) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(data.String())
+	if err != nil {
+		return err
+	}
+	return nil
 }
