@@ -5,15 +5,41 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/version"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 	"strings"
 )
 
+type VersionMigrator interface {
+	PerformMigration(rlpCfg config.RollappConfig) error
+}
+
+func NewVersionMigrator(version string) VersionMigrator {
+	switch version {
+	case "v0.1.4":
+		return &VersionMigratorV014{}
+	default:
+		return nil
+	}
+}
+
 type VersionData struct {
 	Major int
 	Minor int
 	Patch int
+}
+
+type VersionMigratorV014 struct{}
+
+func (v *VersionMigratorV014) PerformMigration(rlpCfg config.RollappConfig) error {
+	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	dymintCfg, err := toml.LoadFile(dymintTomlPath)
+	if err != nil {
+		return err
+	}
+	sequencer.EnableDymintMetrics(dymintCfg)
+	return config.WriteTomlToFile(dymintTomlPath, dymintCfg)
 }
 
 func Cmd() *cobra.Command {
@@ -27,38 +53,27 @@ func Cmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(err)
 				return
 			}
-			versionData, err := GetVersionData(rlpCfg)
+			prevVersionData, err := GetVersionData(rlpCfg)
 			if err != nil {
 				utils.PrettifyErrorIfExists(err)
 				return
 			}
-
-			if versionData.Major == 0 && versionData.Minor < 2 {
-				switch {
-				case versionData.Patch < 4:
-					err := performMigration("v0.1.4", rlpCfg)
-					utils.PrettifyErrorIfExists(err)
+			if prevVersionData.Major < 1 {
+				if prevVersionData.Minor < 2 {
+					if prevVersionData.Patch < 4 {
+						migrator := NewVersionMigrator("v0.1.4")
+						if migrator != nil {
+							err := migrator.PerformMigration(rlpCfg)
+							utils.PrettifyErrorIfExists(err)
+						}
+					}
 				}
 			}
-
-			fmt.Println("💈 Roller has migrated successfully to v0.1.4!")
+			trimmedCurrentVersion := strings.Split(version.BuildVersion, "-")[0]
+			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},
 	}
 	return cmd
-}
-
-func performMigration(version string, rlpCfg config.RollappConfig) error {
-	switch version {
-	case "v0.1.4":
-		dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-		dymintCfg, err := toml.LoadFile(dymintTomlPath)
-		if err != nil {
-			return err
-		}
-		sequencer.EnableDymintMetrics(dymintCfg)
-		return config.WriteTomlToFile(dymintTomlPath, dymintCfg)
-	}
-	return nil
 }
 
 func GetVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
