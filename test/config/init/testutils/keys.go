@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"errors"
+	"github.com/dymensionxyz/roller/sequencer"
 	"io/ioutil"
 
 	"os"
@@ -41,7 +42,7 @@ func SanitizeConfigDir(root string) error {
 }
 
 func SanitizeDymintToml(root string) error {
-	dymintTomlPath := filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "dymint.toml")
+	dymintTomlPath := sequencer.GetDymintFilePath(root)
 	return os.Remove(dymintTomlPath)
 }
 func verifyFileExists(path string) error {

@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/sequencer"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,6 +52,9 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
 	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
 	if err != nil {
+		return err
+	}
+	if err = sequencer.EnableDymintMetrics(initConfig.Home); err != nil {
 		return err
 	}
 	return nil
