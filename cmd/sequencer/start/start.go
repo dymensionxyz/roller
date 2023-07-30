@@ -11,7 +11,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
 
@@ -80,26 +79,13 @@ func parseError(errMsg string) string {
 
 func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-	hubKeysDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
-
-	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
-
-	//TODO(#110): this will be refactored when using config file
-	dastrings := []string{"--dymint.da_layer", string(rollappConfig.DA)}
-	daConfig := damanager.GetSequencerDAConfig()
-	if daConfig != "" {
-		dastrings = append(dastrings, []string{"--dymint.da_config", daConfig}...)
-	}
 	cmd := exec.Command(
 		rollappConfig.RollappBinary,
-		append([]string{
-			"start",
-
-			"--home", rollappConfigDir,
-			"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-			"--log_level", "debug",
-			"--max-log-size", "2000",
-		}, dastrings...)...,
+		"start",
+		"--home", rollappConfigDir,
+		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
+		"--log_level", "debug",
+		"--max-log-size", "2000",
 	)
 	return cmd
 }
