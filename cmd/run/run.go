@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -98,7 +97,7 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 }
 
 func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
-	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig, consts.DefaultDALCRPC)
+	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig)
 	service := servicemanager.Service{
 		Command:  startRollappCmd,
 		FetchFn:  utils.GetSequencerData,

@@ -18,7 +18,6 @@ import (
 var OneDaySequencePrice = big.NewInt(1)
 
 var (
-	RollappBinary  string
 	RollappDirPath string
 	LogPath        string
 )
@@ -31,30 +30,18 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
-			RollappBinary = rollappConfig.RollappBinary
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-
 			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, OneDaySequencePrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
-			LightNodeEndpoint := cmd.Flag(FlagNames.DAEndpoint).Value.String()
-			startRollappCmd := GetStartRollappCmd(rollappConfig, LightNodeEndpoint)
+			startRollappCmd := GetStartRollappCmd(rollappConfig)
 			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 		},
 	}
 
-	runCmd.Flags().StringP(FlagNames.DAEndpoint, "", consts.DefaultDALCRPC,
-		"The data availability light node endpoint.")
 	return runCmd
-}
-
-var FlagNames = struct {
-	DAEndpoint string
-}{
-	DAEndpoint: "da-endpoint",
 }
 
 func printOutput() {
@@ -77,7 +64,7 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func GetStartRollappCmd(rollappConfig config.RollappConfig, lightNodeEndpoint string) *exec.Cmd {
+func GetStartRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 	cmd := exec.Command(
 		rollappConfig.RollappBinary,
