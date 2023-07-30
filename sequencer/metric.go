@@ -3,6 +3,7 @@ package sequencer
 import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/pelletier/go-toml"
 	"os"
 	"path/filepath"
@@ -13,6 +14,12 @@ func SetDefaultDymintConfig(root string, rlpCfg config.RollappConfig) error {
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
+	}
+	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	daConfig := damanager.GetSequencerDAConfig()
+	dymintCfg.Set("da_layer", rlpCfg.DA)
+	if daConfig != "" {
+		dymintCfg.Set("da_config", daConfig)
 	}
 	dymintCfg.Set("instrumentation.prometheus", true)
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
