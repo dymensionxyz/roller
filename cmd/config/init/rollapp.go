@@ -43,7 +43,7 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 		return err
 	}
 
-	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config/app.toml"),
+	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config", "app.toml"),
 		initConfig.Denom)
 	if err != nil {
 		return err
@@ -68,6 +68,7 @@ func setRollappAppConfig(appConfigFilePath string, denom string) error {
 
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
+	config.Set("rpc.laddr", "tcp://0.0.0.0:26657")
 	if config.Has("json-rpc") {
 		config.Set("json-rpc.address", "0.0.0.0:8545")
 		config.Set("json-rpc.ws-address", "0.0.0.0:8546")
