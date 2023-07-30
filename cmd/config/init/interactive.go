@@ -83,15 +83,20 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	_, da, _ := promptDAType.Run()
 	cfg.DA = config.DAType(strings.ToLower(da))
 
+	cfg.VMType = config.EVM_ROLLAPP
 	promptExecutionEnv := promptui.Select{
 		Label: "Choose your rollapp execution environment",
-		Items: []string{"EVM rollapp", "custom"},
+		Items: []string{"EVM rollapp", "custom EVM rollapp", "custom non-EVM rollapp"},
 	}
 	_, env, err := promptExecutionEnv.Run()
 	if err != nil {
 		return err
 	}
-	if env == "custom" {
+
+	if env != "EVM rollapp" {
+		if env == "custom non-EVM rollapp" {
+			cfg.VMType = config.SDK_ROLLAPP
+		}
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
 			Default:   cfg.RollappBinary,

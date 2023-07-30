@@ -46,11 +46,14 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
+			//Eventhough the hub can get evm signitures, we still use the native
+			Type: config.SDK_ROLLAPP,
 		},
 		{
 			Dir:         consts.ConfigDirName.Rollapp,
 			ID:          consts.KeysIds.RollappSequencer,
 			ChainBinary: rollappConfig.RollappBinary,
+			Type:        rollappConfig.VMType,
 		},
 	}
 }
@@ -61,11 +64,13 @@ func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.RollappRelayer,
 			ChainBinary: rollappConfig.RollappBinary,
+			Type:        rollappConfig.VMType,
 		},
 		consts.KeysIds.HubRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.HubRelayer,
 			ChainBinary: consts.Executables.Dymension,
+			Type:        config.SDK_ROLLAPP,
 		},
 	}
 }
@@ -120,9 +125,8 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 }
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	// TODO: Add support for custom EVM rollapp binaries (#196)
 	var coinType = "118"
-	if keyConfig.ChainBinary == consts.Executables.RollappEVM {
+	if keyConfig.Type == config.EVM_ROLLAPP {
 		coinType = "60"
 	}
 	return exec.Command(
