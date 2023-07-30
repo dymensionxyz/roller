@@ -1,12 +1,13 @@
 package initconfig
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 func generateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
@@ -45,11 +46,14 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
+			//Eventhough the hub can get evm signitures, we still use the native
+			Type: config.SDK_ROLLAPP,
 		},
 		{
 			Dir:         consts.ConfigDirName.Rollapp,
 			ID:          consts.KeysIds.RollappSequencer,
 			ChainBinary: rollappConfig.RollappBinary,
+			Type:        rollappConfig.VMType,
 		},
 	}
 }
@@ -60,11 +64,13 @@ func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.RollappRelayer,
 			ChainBinary: rollappConfig.RollappBinary,
+			Type:        rollappConfig.VMType,
 		},
 		consts.KeysIds.HubRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.HubRelayer,
 			ChainBinary: consts.Executables.Dymension,
+			Type:        config.SDK_ROLLAPP,
 		},
 	}
 }
@@ -79,7 +85,7 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 		args = append(args, "--algo", consts.AlgoTypes.Secp256k1)
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := utils.ExecBashCommand(createKeyCommand)
+	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +97,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 	keys := getRelayerKeysConfig(rollappConfig)
 	createRollappKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.RollappRelayer], rollappConfig.RollappID)
 	createHubKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
-	out, err := utils.ExecBashCommand(createRollappKeyCmd)
+	out, err := utils.ExecBashCommandWithStdout(createRollappKeyCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +109,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 		Addr: relayerRollappAddress,
 		Name: consts.KeysIds.RollappRelayer,
 	})
-	out, err = utils.ExecBashCommand(createHubKeyCmd)
+	out, err = utils.ExecBashCommandWithStdout(createHubKeyCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -119,9 +125,8 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 }
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	// TODO: Add support for custom EVM rollapp binaries (#196)
 	var coinType = "118"
-	if keyConfig.ChainBinary == consts.Executables.RollappEVM {
+	if keyConfig.Type == config.EVM_ROLLAPP {
 		coinType = "60"
 	}
 	return exec.Command(

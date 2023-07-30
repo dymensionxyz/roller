@@ -27,8 +27,13 @@ var (
 )
 
 type Celestia struct {
-	Root        string
-	rpcEndpoint string
+	Root            string
+	rpcEndpoint     string
+	metricsEndpoint string
+}
+
+func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
+	c2.metricsEndpoint = endpoint
 }
 
 func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
@@ -69,7 +74,7 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
-	output, err := utils.ExecBashCommand(cmd)
+	output, err := utils.ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}
@@ -77,7 +82,6 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 	return address, err
 }
 
-// TODO: wrap in some DA interfafce to be used for Avail as well
 func (c *Celestia) InitializeLightNodeConfig() error {
 	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
 		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
@@ -151,8 +155,8 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 }
 
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
-	return exec.Command(
-		consts.Executables.Celestia, "light", "start",
+	args := []string{
+		"light", "start",
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
@@ -160,6 +164,12 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--gateway.addr", gatewayAddr,
 		"--gateway.port", gatewayPort,
 		"--p2p.network", DefaultCelestiaNetwork,
+	}
+	if c.metricsEndpoint != "" {
+		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
+	}
+	return exec.Command(
+		consts.Executables.Celestia, args...,
 	)
 }
 
@@ -172,6 +182,6 @@ func (c *Celestia) GetNetworkName() string {
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "fee":20000, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_limit": 20000000, "namespace_id":"000000000000ffff"}`,
 		LCEndpoint)
 }

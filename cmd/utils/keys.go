@@ -32,6 +32,7 @@ type KeyConfig struct {
 	Dir         string
 	ID          string
 	ChainBinary string
+	Type        config.VMType
 }
 
 func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
@@ -39,7 +40,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		binaryPath, "keys", "show", keyConfig.ID, "--keyring-backend", "test", "--keyring-dir", keyConfig.Dir,
 		"--output", "json",
 	)
-	output, err := ExecBashCommand(showKeyCommand)
+	output, err := ExecBashCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +51,7 @@ func GetRelayerAddress(home string, chainID string) (string, error) {
 	showKeyCmd := exec.Command(
 		consts.Executables.Relayer, "keys", "show", chainID, "--home", filepath.Join(home, consts.ConfigDirName.Relayer),
 	)
-	out, err := ExecBashCommand(showKeyCmd)
+	out, err := ExecBashCommandWithStdout(showKeyCmd)
 	return strings.TrimSuffix(out.String(), "\n"), err
 }
 
@@ -90,7 +91,7 @@ func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
 
 func GetAddressPrefix(binaryPath string) (string, error) {
 	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff")
-	out, err := ExecBashCommand(cmd)
+	out, err := ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}

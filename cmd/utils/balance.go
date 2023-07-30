@@ -21,7 +21,7 @@ type ChainQueryConfig struct {
 
 func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error) {
 	cmd := exec.Command(chainConfig.Binary, "query", "bank", "balances", address, "--node", chainConfig.RPC, "--output", "json")
-	out, err := ExecBashCommand(cmd)
+	out, err := ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return Balance{}, err
 	}

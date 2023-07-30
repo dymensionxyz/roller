@@ -19,14 +19,14 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeysIds.HubSequencer, "--chain-id",
 		initConfig.RollappID, "--home", home)
-	_, err := utils.ExecBashCommand(initRollappCmd)
+	_, err := utils.ExecBashCommandWithStdout(initRollappCmd)
 	if err != nil {
 		return err
 	}
 
 	//TODO: This should be removed once https://github.com/dymensionxyz/dymension-rdk/issues/238 is fixed
 	setConfigCmd := exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "test", "--home", home)
-	_, err = utils.ExecBashCommand(setConfigCmd)
+	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 
 	setGentxCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
 		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--home", home)
-	_, err = utils.ExecBashCommand(setGentxCmd)
+	_, err = utils.ExecBashCommandWithStdout(setGentxCmd)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	}
 
 	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
-	_, err = utils.ExecBashCommand(setConfigCmd)
+	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
 	if err != nil {
 		return err
 	}

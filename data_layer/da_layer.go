@@ -19,6 +19,7 @@ type DataLayer interface {
 	GetLightNodeEndpoint() string
 	GetSequencerDAConfig() string
 	SetRPCEndpoint(string)
+	SetMetricsEndpoint(endpoint string)
 	GetNetworkName() string
 	GetStatus(c config.RollappConfig) string
 	GetKeyName() string

@@ -9,6 +9,13 @@ import (
 
 const RollerConfigFileName = "config.toml"
 
+type VMType string
+
+const (
+	SDK_ROLLAPP VMType = "sdk"
+	EVM_ROLLAPP VMType = "evm"
+)
+
 type DAType string
 
 const (
@@ -21,6 +28,7 @@ type RollappConfig struct {
 	Home          string
 	RollappID     string
 	RollappBinary string
+	VMType        VMType
 	Denom         string
 	TokenSupply   string
 	Decimals      uint
@@ -61,12 +69,24 @@ func (c RollappConfig) Validate() error {
 		return fmt.Errorf("invalid DA type: %s", c.DA)
 	}
 
+	if !IsValidVMType(string(c.VMType)) {
+		return fmt.Errorf("invalid VM type: %s", c.VMType)
+	}
+
 	return nil
 }
 
 func IsValidDAType(t string) bool {
 	switch DAType(t) {
 	case Mock, Celestia, Avail:
+		return true
+	}
+	return false
+}
+
+func IsValidVMType(t string) bool {
+	switch VMType(t) {
+	case SDK_ROLLAPP, EVM_ROLLAPP:
 		return true
 	}
 	return false

@@ -7,8 +7,10 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-// todo implemet data layer interface
 type DAMock struct {
+}
+
+func (d *DAMock) SetMetricsEndpoint(endpoint string) {
 }
 
 func (d *DAMock) GetStatus(c config.RollappConfig) string {
