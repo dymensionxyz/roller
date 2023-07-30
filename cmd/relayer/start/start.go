@@ -20,6 +20,10 @@ var oneDayRelayPriceRollapp = big.NewInt(1)
 
 var connectionCh string
 
+const (
+	flagOverride = "override"
+)
+
 func Start() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
@@ -39,14 +43,12 @@ func Start() *cobra.Command {
 			_, _, err = relayer.LoadChannels()
 			utils.PrettifyErrorIfExists(err)
 
-			//TODO: add override flag
-			if relayer.ChannelReady() {
+			override := cmd.Flag(flagOverride).Changed
+			if relayer.ChannelReady() && !override {
 				fmt.Println("💈 IBC transfer channel is already established!")
 			} else {
 				fmt.Println("💈 Establishing IBC transfer channel")
-
-				//FIXME: wrap in retries
-				_, err := relayer.CreateIBCChannel(logFileOption)
+				_, err := relayer.CreateIBCChannel(override, logFileOption)
 				utils.PrettifyErrorIfExists(err)
 			}
 
@@ -62,6 +64,7 @@ func Start() *cobra.Command {
 		},
 	}
 
+	relayerStartCmd.Flags().BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
 	return relayerStartCmd
 }
 

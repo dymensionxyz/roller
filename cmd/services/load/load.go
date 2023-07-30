@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"text/template"
 
@@ -21,10 +20,9 @@ type Service struct {
 }
 
 type ServiceTemplateData struct {
-	Name        string
-	ExecPath    string
-	UserName    string
-	LogFilePath string
+	Name     string
+	ExecPath string
+	UserName string
 }
 
 func Cmd() *cobra.Command {
@@ -35,18 +33,15 @@ func Cmd() *cobra.Command {
 			if runtime.GOOS != "linux" {
 				utils.PrettifyErrorIfExists(errors.New("the services commands are only available on linux machines"))
 			}
-			rollerHome := cmd.Flag(utils.FlagNames.Home).Value.String()
-			services := getRollappServices(rollerHome)
-			for _, service := range services {
+			for _, service := range []string{"sequencer", "da-light-client", "relayer"} {
 				serviceData := ServiceTemplateData{
-					Name:        service.Name,
-					ExecPath:    consts.Executables.Roller,
-					UserName:    os.Getenv("USER"),
-					LogFilePath: service.LogFilePath,
+					Name:     service,
+					ExecPath: consts.Executables.Roller,
+					UserName: os.Getenv("USER"),
 				}
 				tpl, err := generateServiceTemplate(serviceData)
 				utils.PrettifyErrorIfExists(err)
-				err = writeServiceFile(tpl, service.Name)
+				err = writeServiceFile(tpl, service)
 				utils.PrettifyErrorIfExists(err)
 			}
 			_, err := utils.ExecBashCommandWithStdout(exec.Command("sudo", "systemctl", "daemon-reload"))
@@ -80,8 +75,6 @@ Description=Roller {{.Name}} service
 
 [Service]
 ExecStart={{.ExecPath}} {{.Name}} start
-StandardOutput=file:{{.LogFilePath}}
-StandardError=file:{{.LogFilePath}}
 Restart=always
 RestartSec=3s
 User={{.UserName}}
@@ -99,21 +92,4 @@ WantedBy=multi-user.target
 		return nil, err
 	}
 	return &tpl, nil
-}
-
-func getRollappServices(rollerHome string) []Service {
-	return []Service{
-		{
-			Name:        "sequencer",
-			LogFilePath: filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "rollapp.log"),
-		},
-		{
-			Name:        "da-light-client",
-			LogFilePath: filepath.Join(rollerHome, consts.ConfigDirName.DALightNode, "light_client.log"),
-		},
-		{
-			Name:        "relayer",
-			LogFilePath: filepath.Join(rollerHome, consts.ConfigDirName.Relayer, "relayer.log"),
-		},
-	}
 }
