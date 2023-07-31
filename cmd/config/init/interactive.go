@@ -19,7 +19,35 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		return err
 	}
 	cfg.HubData = Hubs[mode]
+	cfg.VMType = config.EVM_ROLLAPP
+	promptExecutionEnv := promptui.Select{
+		Label: "Choose your rollapp execution environment",
+		Items: []string{"EVM rollapp", "custom EVM rollapp", "custom non-EVM rollapp"},
+	}
+	_, env, err := promptExecutionEnv.Run()
+	if err != nil {
+		return err
+	}
 
+	if env != "EVM rollapp" {
+		if env == "custom non-EVM rollapp" {
+			cfg.VMType = config.SDK_ROLLAPP
+		}
+		promptBinaryPath := promptui.Prompt{
+			Label:     "Set your runtime binary",
+			Default:   cfg.RollappBinary,
+			AllowEdit: true,
+			Validate: func(s string) error {
+				_, err := os.Stat(s)
+				return err
+			},
+		}
+		path, err := promptBinaryPath.Run()
+		if err != nil {
+			return err
+		}
+		cfg.RollappBinary = path
+	}
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
 		Default:   "myrollapp_1234-1",
@@ -30,10 +58,12 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		if err != nil {
 			return err
 		}
-		err = config.ValidateRollAppID(chainID)
-		if err != nil {
-			fmt.Println(err)
-			continue
+		if cfg.VMType == config.EVM_ROLLAPP {
+			err = config.ValidateRollAppID(chainID)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 		}
 		err = VerifyUniqueRollappID(chainID, *cfg)
 		if err != nil {
@@ -83,34 +113,5 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	_, da, _ := promptDAType.Run()
 	cfg.DA = config.DAType(strings.ToLower(da))
 
-	cfg.VMType = config.EVM_ROLLAPP
-	promptExecutionEnv := promptui.Select{
-		Label: "Choose your rollapp execution environment",
-		Items: []string{"EVM rollapp", "custom EVM rollapp", "custom non-EVM rollapp"},
-	}
-	_, env, err := promptExecutionEnv.Run()
-	if err != nil {
-		return err
-	}
-
-	if env != "EVM rollapp" {
-		if env == "custom non-EVM rollapp" {
-			cfg.VMType = config.SDK_ROLLAPP
-		}
-		promptBinaryPath := promptui.Prompt{
-			Label:     "Set your runtime binary",
-			Default:   cfg.RollappBinary,
-			AllowEdit: true,
-			Validate: func(s string) error {
-				_, err := os.Stat(s)
-				return err
-			},
-		}
-		path, err := promptBinaryPath.Run()
-		if err != nil {
-			return err
-		}
-		cfg.RollappBinary = path
-	}
 	return nil
 }
