@@ -40,13 +40,12 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 	// Error is ignored because the flag is validated in the cobra preRun hook
-	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
-	cfg.Decimals = decimals
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
 		if err := RunInteractiveMode(&cfg); err != nil {
 			return cfg, err
 		}
+		setDecimals(initCmd, &cfg)
 		return cfg, nil
 	}
 
@@ -60,9 +59,18 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.HubData = Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
-	cfg.VMType = config.VMType(initCmd.Flag(string(FlagNames.VMType)).Value.String())
-
+	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
+	setDecimals(initCmd, &cfg)
 	return cfg, nil
+}
+
+func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
+	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
+	if cfg.VMType == config.EVM_ROLLAPP || initCmd.Flags().Lookup(FlagNames.Decimals).Changed {
+		cfg.Decimals = decimals
+	} else {
+		cfg.Decimals = 6
+	}
 }
 
 func getAvailableHubsMessage() string {
