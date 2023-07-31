@@ -21,7 +21,7 @@ const (
 	availConfigFileName       = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	DeafultRPCEndpoint        = "wss://kate.avail.tools/ws"
+	DeafultRPCEndpoint        = "wss://dymension-devnet.avail.tools/ws"
 	requiredAVL               = 1
 )
 
