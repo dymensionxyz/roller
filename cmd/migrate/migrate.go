@@ -40,17 +40,20 @@ func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 	var major, minor, patch int
 	// Special case for the first version of roller, that didn't have a version field.
 	if rollerPrevVersion == "" {
-		major, minor, patch = 0, 1, 3
-	} else {
-		trimmedVersionStr := strings.Split(rollerPrevVersion, "-")[0]
-		n, err := fmt.Sscanf(trimmedVersionStr, "v%d.%d.%d", &major, &minor, &patch)
-		if err != nil {
-			return nil, err
-		}
-		if n != 3 {
-			return nil, fmt.Errorf("failed to extract all version components from version %s",
-				rollerPrevVersion)
-		}
+		return &VersionData{
+			Major: 0,
+			Minor: 1,
+			Patch: 3,
+		}, nil
+	}
+	trimmedVersionStr := strings.Split(rollerPrevVersion, "-")[0]
+	n, err := fmt.Sscanf(trimmedVersionStr, "v%d.%d.%d", &major, &minor, &patch)
+	if err != nil {
+		return nil, err
+	}
+	if n != 3 {
+		return nil, fmt.Errorf("failed to extract all version components from version %s",
+			rollerPrevVersion)
 	}
 	return &VersionData{
 		Major: major,
