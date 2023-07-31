@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/pelletier/go-toml"
+	"os"
 	"path/filepath"
 )
 
@@ -34,5 +35,10 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	dymintCfg.Set("gas_prices", rlpCfg.HubData.GAS_PRICE+consts.Denoms.Hub)
 	dymintCfg.Set("instrumentation.prometheus", true)
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
-	return config.WriteTomlToFile(dymintTomlPath, dymintCfg)
+	file, err := os.Create(dymintTomlPath)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(dymintCfg.String())
+	return err
 }
