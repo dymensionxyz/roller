@@ -21,7 +21,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rlpCfg, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			prevVersionData, err := GetVersionData(rlpCfg)
+			prevVersionData, err := GetPrevVersionData(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
 			for _, migrator := range migrationsRegistry {
 				if migrator.ShouldMigrate(*prevVersionData) {
@@ -35,9 +35,10 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func GetVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
+func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 	rollerPrevVersion := rlpCfg.RollerVersion
 	var major, minor, patch int
+	// Special case for the first version of roller, that didn't have a version field.
 	if rollerPrevVersion == "" {
 		major, minor, patch = 0, 1, 3
 	} else {
