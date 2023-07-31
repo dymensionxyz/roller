@@ -13,9 +13,9 @@ ifeq (,$(VERSION))
 endif
 
 
-ldflags = -X github.com/dymensionxyz/roller/cmd/version.BuildVersion=$(VERSION) \
-		  -X github.com/dymensionxyz/roller/cmd/version.BuildCommit=$(COMMIT) \
-		  -X github.com/dymensionxyz/roller/cmd/version.BuildTime=$(TIME)"
+ldflags = -X github.com/dymensionxyz/roller/version.BuildVersion=$(VERSION) \
+		  -X github.com/dymensionxyz/roller/version.BuildCommit=$(COMMIT) \
+		  -X github.com/dymensionxyz/roller/version.BuildTime=$(TIME)"
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 # ---------------------------------------------------------------------------- #

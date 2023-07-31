@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/run"
 	"github.com/dymensionxyz/roller/cmd/services"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -33,7 +34,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(config.ConfigCmd())
-	rootCmd.AddCommand(version.VersionCmd())
+	rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(register.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(sequencer.SequencerCmd())
@@ -41,5 +42,6 @@ func init() {
 	rootCmd.AddCommand(keys.Cmd())
 	rootCmd.AddCommand(run.Cmd())
 	rootCmd.AddCommand(services.Cmd())
+	rootCmd.AddCommand(migrate.Cmd())
 	utils.AddGlobalFlags(rootCmd)
 }

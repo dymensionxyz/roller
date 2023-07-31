@@ -12,12 +12,7 @@ func WriteConfigToTOML(InitConfig RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(InitConfig.Home, RollerConfigFileName), tomlBytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(filepath.Join(InitConfig.Home, RollerConfigFileName), tomlBytes, 0644)
 }
 
 // TODO: should be called from root command

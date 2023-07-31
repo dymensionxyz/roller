@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/version"
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -36,7 +37,9 @@ func addFlags(cmd *cobra.Command) error {
 }
 
 func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
-	cfg := config.RollappConfig{}
+	cfg := config.RollappConfig{
+		RollerVersion: version.BuildVersion,
+	}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 	// Error is ignored because the flag is validated in the cobra preRun hook
