@@ -28,11 +28,15 @@ func Cmd() *cobra.Command {
 					utils.PrettifyErrorIfExists(migrator.PerformMigration(rlpCfg))
 				}
 			}
-			trimmedCurrentVersion := strings.Split(version.BuildVersion, "-")[0]
+			trimmedCurrentVersion := trimVersionStr(version.BuildVersion)
 			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},
 	}
 	return cmd
+}
+
+func trimVersionStr(versionStr string) string {
+	return strings.Split(versionStr, "-")[0]
 }
 
 func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
@@ -46,7 +50,7 @@ func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 			Patch: 3,
 		}, nil
 	}
-	trimmedVersionStr := strings.Split(rollerPrevVersion, "-")[0]
+	trimmedVersionStr := trimVersionStr(rollerPrevVersion)
 	n, err := fmt.Sscanf(trimmedVersionStr, "v%d.%d.%d", &major, &minor, &patch)
 	if err != nil {
 		return nil, err
