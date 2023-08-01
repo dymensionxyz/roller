@@ -48,6 +48,9 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	if err = setRollappConfig(initConfig); err != nil {
+		return err
+	}
 
 	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
 	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
