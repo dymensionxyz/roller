@@ -68,16 +68,30 @@ func setRollappAppConfig(appConfigFilePath string, denom string) error {
 
 	config.Set("minimum-gas-prices", "0"+denom)
 	config.Set("api.enable", "true")
-	config.Set("rpc.laddr", "tcp://0.0.0.0:26657")
+
 	if config.Has("json-rpc") {
 		config.Set("json-rpc.address", "0.0.0.0:8545")
 		config.Set("json-rpc.ws-address", "0.0.0.0:8546")
 	}
-	file, err := os.Create(appConfigFilePath)
+	return writeTomlTreeToFile(config, appConfigFilePath)
+}
+
+func setRollappConfig(rlpCfg config.RollappConfig) error {
+	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	var tomlCfg, err = toml.LoadFile(configFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
+	}
+	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
+	return writeTomlTreeToFile(tomlCfg, configFilePath)
+}
+
+func writeTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
+	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	_, err = file.WriteString(config.String())
+	_, err = file.WriteString(tomlConfig.String())
 	if err != nil {
 		return err
 	}
