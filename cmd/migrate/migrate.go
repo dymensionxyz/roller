@@ -11,6 +11,7 @@ import (
 
 var migrationsRegistry = []VersionMigrator{
 	&VersionMigratorV014{},
+	&VersionMigratorV015{},
 }
 
 func Cmd() *cobra.Command {
@@ -75,4 +76,9 @@ type VersionData struct {
 	Major int
 	Minor int
 	Patch int
+}
+
+func UpdateRollerVersionInConfig(rlpCfg config.RollappConfig) error {
+	rlpCfg.RollerVersion = trimVersionStr(version.BuildVersion)
+	return config.WriteConfigToTOML(rlpCfg)
 }
