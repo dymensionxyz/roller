@@ -33,8 +33,12 @@ type Celestia struct {
 }
 
 func (c2 *Celestia) GetPrivateKey() (string, error) {
-	//TODO implement me
-	panic("implement me")
+	exportKeyCmd := c2.GetExportKeyCmd()
+	out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
+	if err != nil {
+		return "", err
+	}
+	return out.String(), nil
 }
 
 func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {

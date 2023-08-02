@@ -34,19 +34,21 @@ func Cmd() *cobra.Command {
 				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
 					consts.Executables.Dymension)
 				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
-				printHexKeyOutput(out.String(), err)
+				utils.PrettifyErrorIfExists(err)
+				printHexKeyOutput(out.String())
 			} else if keyID == consts.KeysIds.RollappSequencer {
 				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
 					rlpCfg.RollappBinary)
 				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
-				printHexKeyOutput(out.String(), err)
+				utils.PrettifyErrorIfExists(err)
+				printHexKeyOutput(out.String())
 			} else if keyID != "" && keyID == damanager.GetKeyName() {
-				//TODO: avail doesn't need cmd to get the keys, it's stored in the config
-				exportKeyCmd := damanager.GetExportKeyCmd()
-				// TODO: make more generic. need it because cel-key write the output to stderr for some reason
-				if exportKeyCmd != nil {
-					out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
-					printHexKeyOutput(out.String(), err)
+				privateKey, err := damanager.GetPrivateKey()
+				utils.PrettifyErrorIfExists(err)
+				if rlpCfg.DA == config.Celestia {
+					printHexKeyOutput(privateKey)
+				} else if rlpCfg.DA == config.Avail {
+					printMnemonicKeyOutput(privateKey)
 				}
 			} else {
 				utils.PrettifyErrorIfExists(fmt.Errorf("invalid key id: %s. The supported keys are %s", keyID,
@@ -59,7 +61,10 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func printHexKeyOutput(output string, err error) {
-	utils.PrettifyErrorIfExists(err)
-	fmt.Printf("🔑 Unarmored Hex Private Key: %s", output)
+func printMnemonicKeyOutput(key string) {
+	fmt.Printf("🔑 Mnemonic: %s\n", key)
+}
+
+func printHexKeyOutput(key string) {
+	fmt.Printf("🔑 Unarmored Hex Private Key: %s", key)
 }
