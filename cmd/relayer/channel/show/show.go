@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 			if srcChannel == "" {
 				fmt.Println("💈 No channel has been created for the relayer yet.")
 			} else {
-				fmt.Printf("💈 Relayer Channels: src, %s <-> %s, dst",
+				fmt.Printf("💈 Relayer Channels: src, %s <-> %s, dst\n",
 					srcChannel, dstChannel)
 			}
 		},
