@@ -32,6 +32,11 @@ type Celestia struct {
 	metricsEndpoint string
 }
 
+func (c2 *Celestia) GetPrivateKey() (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
 	c2.metricsEndpoint = endpoint
 }

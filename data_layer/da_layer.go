@@ -23,7 +23,7 @@ type DataLayer interface {
 	GetNetworkName() string
 	GetStatus(c config.RollappConfig) string
 	GetKeyName() string
-	GetExportKeyCmd() *exec.Cmd
+	GetPrivateKey() (string, error)
 }
 
 type DAManager struct {

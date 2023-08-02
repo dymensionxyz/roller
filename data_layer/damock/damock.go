@@ -10,6 +10,10 @@ import (
 type DAMock struct {
 }
 
+func (d *DAMock) GetPrivateKey() (string, error) {
+	return "", nil
+}
+
 func (d *DAMock) SetMetricsEndpoint(endpoint string) {
 }
 

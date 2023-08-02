@@ -35,6 +35,10 @@ type Avail struct {
 	accKey *availtypes.StorageKey
 }
 
+func (a *Avail) GetPrivateKey() (string, error) {
+	return a.Mnemonic, nil
+}
+
 func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
