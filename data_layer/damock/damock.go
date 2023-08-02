@@ -10,15 +10,15 @@ import (
 type DAMock struct {
 }
 
+func (d *DAMock) GetPrivateKey() (string, error) {
+	return "", nil
+}
+
 func (d *DAMock) SetMetricsEndpoint(endpoint string) {
 }
 
 func (d *DAMock) GetStatus(c config.RollappConfig) string {
 	return "Running mock DA"
-}
-
-func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
-	return nil
 }
 
 func NewDAMock() *DAMock {

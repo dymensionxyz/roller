@@ -35,6 +35,10 @@ type Avail struct {
 	accKey *availtypes.StorageKey
 }
 
+func (a *Avail) GetPrivateKey() (string, error) {
+	return a.Mnemonic, nil
+}
+
 func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
@@ -176,9 +180,4 @@ func (a *Avail) GetStatus(c config.RollappConfig) string {
 
 func (a *Avail) GetKeyName() string {
 	return "avail"
-}
-
-// FIXME: currently can't export the key from avail
-func (a *Avail) GetExportKeyCmd() *exec.Cmd {
-	return nil
 }
