@@ -17,38 +17,23 @@ import (
 
 func initializeRollappConfig(initConfig config.RollappConfig) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-
 	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeysIds.HubSequencer, "--chain-id",
 		initConfig.RollappID, "--home", home)
 	_, err := utils.ExecBashCommandWithStdout(initRollappCmd)
 	if err != nil {
 		return err
 	}
-
 	seqPubKey, err := utils.GetSequencerPubKey(initConfig)
 	if err != nil {
 		return err
 	}
-
 	setGentxCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
 		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", home)
 	_, err = utils.ExecBashCommandWithStdout(setGentxCmd)
 	if err != nil {
 		return err
 	}
-
-	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config", "app.toml"),
-		initConfig.Denom)
-	if err != nil {
-		return err
-	}
-
-	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
-	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
-	if err != nil {
-		return err
-	}
-	if err = sequencer.SetDefaultDymintConfig(initConfig); err != nil {
+	if err = setRollappConfig(initConfig); err != nil {
 		return err
 	}
 	return nil
