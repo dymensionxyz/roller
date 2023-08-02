@@ -33,7 +33,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(config.ConfigCmd())
+	rootCmd.AddCommand(config.Cmd())
 	rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(register.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
