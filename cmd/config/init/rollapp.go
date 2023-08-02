@@ -42,42 +42,63 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-
-	err = setRollappAppConfig(filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp, "config", "app.toml"),
-		initConfig.Denom)
-	if err != nil {
-		return err
-	}
-
 	setConfigCmd = exec.Command(initConfig.RollappBinary, "config", "keyring-backend", "os", "--home", home)
 	_, err = utils.ExecBashCommandWithStdout(setConfigCmd)
 	if err != nil {
 		return err
 	}
-	if err = sequencer.SetDefaultDymintConfig(initConfig); err != nil {
+	if err := setRollappConfig(initConfig); err != nil {
 		return err
 	}
 	return nil
 }
 
-func setRollappAppConfig(appConfigFilePath string, denom string) error {
-	config, err := toml.LoadFile(appConfigFilePath)
+func setRollappConfig(rlpCfg config.RollappConfig) error {
+	if err := setAppConfig(rlpCfg); err != nil {
+		return err
+	}
+	if err := setTMConfig(rlpCfg); err != nil {
+		return err
+	}
+	if err := sequencer.SetDefaultDymintConfig(rlpCfg); err != nil {
+		return err
+	}
+	return nil
+}
+
+func setAppConfig(rlpCfg config.RollappConfig) error {
+	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
 
-	config.Set("minimum-gas-prices", "0"+denom)
-	config.Set("api.enable", "true")
-	config.Set("rpc.laddr", "tcp://0.0.0.0:26657")
-	if config.Has("json-rpc") {
-		config.Set("json-rpc.address", "0.0.0.0:8545")
-		config.Set("json-rpc.ws-address", "0.0.0.0:8546")
+	appCfg.Set("minimum-gas-prices", "0"+rlpCfg.Denom)
+	appCfg.Set("api.enable", "true")
+
+	if appCfg.Has("json-rpc") {
+		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
+		appCfg.Set("json-rpc.ws-address", "0.0.0.0:8546")
 	}
-	file, err := os.Create(appConfigFilePath)
+	return writeTomlTreeToFile(appCfg, appConfigFilePath)
+}
+
+func setTMConfig(rlpCfg config.RollappConfig) error {
+	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	var tomlCfg, err = toml.LoadFile(configFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
+	}
+	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
+	return writeTomlTreeToFile(tomlCfg, configFilePath)
+}
+
+func writeTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
+	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	_, err = file.WriteString(config.String())
+	_, err = file.WriteString(tomlConfig.String())
 	if err != nil {
 		return err
 	}
