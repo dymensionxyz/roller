@@ -7,12 +7,12 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-func WriteConfigToTOML(InitConfig RollappConfig) error {
-	tomlBytes, err := toml.Marshal(InitConfig)
+func WriteConfigToTOML(rlpCfg RollappConfig) error {
+	tomlBytes, err := toml.Marshal(rlpCfg)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(InitConfig.Home, RollerConfigFileName), tomlBytes, 0644)
+	return ioutil.WriteFile(filepath.Join(rlpCfg.Home, RollerConfigFileName), tomlBytes, 0644)
 }
 
 // TODO: should be called from root command

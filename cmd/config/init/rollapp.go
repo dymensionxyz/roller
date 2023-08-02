@@ -1,9 +1,7 @@
 package initconfig
 
 import (
-	"fmt"
 	"github.com/dymensionxyz/roller/sequencer"
-	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -11,7 +9,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	toml "github.com/pelletier/go-toml"
 )
 
 func initializeRollappConfig(initConfig config.RollappConfig) error {
@@ -54,56 +51,13 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 }
 
 func setRollappConfig(rlpCfg config.RollappConfig) error {
-	if err := setAppConfig(rlpCfg); err != nil {
+	if err := sequencer.SetAppConfig(rlpCfg); err != nil {
 		return err
 	}
-	if err := setTMConfig(rlpCfg); err != nil {
+	if err := sequencer.SetTMConfig(rlpCfg); err != nil {
 		return err
 	}
 	if err := sequencer.SetDefaultDymintConfig(rlpCfg); err != nil {
-		return err
-	}
-	return nil
-}
-
-func setAppConfig(rlpCfg config.RollappConfig) error {
-	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	appCfg, err := toml.LoadFile(appConfigFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
-	}
-
-	appCfg.Set("minimum-gas-prices", "0"+rlpCfg.Denom)
-	appCfg.Set("api.enable", "true")
-
-	if appCfg.Has("json-rpc") {
-		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
-		appCfg.Set("json-rpc.ws-address", "0.0.0.0:8546")
-	}
-	return writeTomlTreeToFile(appCfg, appConfigFilePath)
-}
-
-func setTMConfig(rlpCfg config.RollappConfig) error {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
-	var tomlCfg, err = toml.LoadFile(configFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
-	}
-	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
-	return writeTomlTreeToFile(tomlCfg, configFilePath)
-}
-
-func writeTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(tomlConfig.String())
-	if err != nil {
-		return err
-	}
-	err = file.Close()
-	if err != nil {
 		return err
 	}
 	return nil

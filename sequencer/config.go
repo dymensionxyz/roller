@@ -1,7 +1,9 @@
 package sequencer
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/pelletier/go-toml"
@@ -41,4 +43,31 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	}
 	_, err = file.WriteString(dymintCfg.String())
 	return err
+}
+
+func SetAppConfig(rlpCfg config.RollappConfig) error {
+	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	appCfg, err := toml.LoadFile(appConfigFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
+	}
+
+	appCfg.Set("minimum-gas-prices", "0"+rlpCfg.Denom)
+	appCfg.Set("api.enable", "true")
+
+	if appCfg.Has("json-rpc") {
+		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
+		appCfg.Set("json-rpc.ws-address", "0.0.0.0:8546")
+	}
+	return utils.WriteTomlTreeToFile(appCfg, appConfigFilePath)
+}
+
+func SetTMConfig(rlpCfg config.RollappConfig) error {
+	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	var tomlCfg, err = toml.LoadFile(configFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
+	}
+	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
+	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
