@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/dymensionxyz/roller/config"
@@ -30,10 +29,7 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 			var stderr bytes.Buffer
 			errmw := io.MultiWriter(&stderr, cmd.Stderr)
 			cmd.Stderr = errmw
-			err := cmd.Run()
-			if err != nil {
-				fmt.Println("periodic command "+strings.Join(cmd.Args, " ")+" exited with error: ", stderr.String())
-			}
+			_ = cmd.Run()
 			time.Sleep(time.Duration(intervalSec) * time.Second)
 		}
 	}()
