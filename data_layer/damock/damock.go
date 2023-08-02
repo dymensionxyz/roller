@@ -21,10 +21,6 @@ func (d *DAMock) GetStatus(c config.RollappConfig) string {
 	return "Running mock DA"
 }
 
-func (d *DAMock) GetExportKeyCmd() *exec.Cmd {
-	return nil
-}
-
 func NewDAMock() *DAMock {
 	return &DAMock{}
 }

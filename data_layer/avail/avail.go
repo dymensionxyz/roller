@@ -181,8 +181,3 @@ func (a *Avail) GetStatus(c config.RollappConfig) string {
 func (a *Avail) GetKeyName() string {
 	return "avail"
 }
-
-// FIXME: currently can't export the key from avail
-func (a *Avail) GetExportKeyCmd() *exec.Cmd {
-	return nil
-}
