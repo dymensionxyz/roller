@@ -2,11 +2,8 @@ package start
 
 import (
 	"fmt"
-	"math/big"
-	"os/exec"
-	"path/filepath"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"math/big"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -54,9 +51,10 @@ func Start() *cobra.Command {
 
 			updateClientsCmd := relayer.GetUpdateClientsCmd()
 			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 500, logFileOption)
-
-			relayPacketsCmd := getRelayPacketsCmd(rollappConfig, relayer.SrcChannel)
+			relayPacketsCmd := relayer.GetRelayPacketsCmd()
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 120, logFileOption)
+			relayAcksCmd := relayer.GetRelayAcksCmd()
+			utils.RunCommandEvery(relayAcksCmd.Path, relayAcksCmd.Args[1:], 5, logFileOption)
 			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
 				relayer.SrcChannel, relayer.DstChannel)
 
@@ -66,12 +64,6 @@ func Start() *cobra.Command {
 
 	relayerStartCmd.Flags().BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
 	return relayerStartCmd
-}
-
-// TODO: move to relayer package
-func getRelayPacketsCmd(config config.RollappConfig, srcChannel string) *exec.Cmd {
-	return exec.Command(consts.Executables.Relayer, "tx", "relay-packets", consts.DefaultRelayerPath, srcChannel,
-		"-l", "1", "--home", filepath.Join(config.Home, consts.ConfigDirName.Relayer))
 }
 
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {
