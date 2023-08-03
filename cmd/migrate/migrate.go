@@ -12,6 +12,7 @@ import (
 var migrationsRegistry = []VersionMigrator{
 	&VersionMigratorV014{},
 	&VersionMigratorV015{},
+	&VersionMigratorV016{},
 }
 
 func Cmd() *cobra.Command {
