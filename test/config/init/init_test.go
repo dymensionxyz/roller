@@ -1,6 +1,7 @@
 package initconfig_test
 
 import (
+	"github.com/dymensionxyz/roller/config"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -56,10 +57,10 @@ func TestInitCmd(t *testing.T) {
 			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
 			assert.NoError(err)
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
-			assert.NoError(os.Remove(filepath.Join(tempDir, utils.RollerConfigFileName)))
+			assert.NoError(os.Remove(filepath.Join(tempDir, config.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
-			assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
+			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
 			assert.NoError(testutils.SanitizeConfigDir(tempDir))
 			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
 			assert.NoError(err)
