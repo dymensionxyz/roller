@@ -117,7 +117,6 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 
 func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	jsonFileContent, err := ioutil.ReadFile(jsonFilePath)
-
 	if err != nil {
 		return err
 	}

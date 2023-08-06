@@ -36,7 +36,7 @@ func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 	}
 
 	_, _, _ = r.LoadChannels()
-	return fmt.Sprintf("Starting...")
+	return "Starting..."
 }
 
 type Channel struct {
