@@ -9,7 +9,7 @@ on:
 jobs:
 
   build:
-    runs-on: [ "arm-mac" ]
+    runs-on: [ "arm-linux" ]
     env:
       GOPRIVATE: "github.com/dymensionxyz/*"
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
