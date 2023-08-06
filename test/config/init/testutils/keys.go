@@ -35,6 +35,7 @@ func SanitizeConfigDir(root string) error {
 	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
 		return err
 	}
+
 	if err := SanitizeDymintToml(root); err != nil {
 		return err
 	}
