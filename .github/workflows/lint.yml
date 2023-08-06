@@ -1,0 +1,35 @@
+name: Linters
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: "github.com/dymensionxyz/*"
+      GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
+      - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.5.0
+        with:
+          version: v1.49
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v3.2.0
+        with:
+          files: .
+          config-file: .markdownlint.yaml
