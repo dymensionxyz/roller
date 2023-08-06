@@ -9,11 +9,11 @@ chains:
         value:
             key: relayer-hub-key
             chain-id: devnet_304-1
-            rpc-addr: https://dymension.devnet.rpc.silknodes.io:443
+            rpc-addr: https://dymension-devnet.rpc.silknodes.io:443
             account-prefix: dym
             keyring-backend: test
             gas-adjustment: 1.2
-            gas-prices: 0.0udym
+            gas-prices: 0.25udym
             debug: true
             timeout: 10s
             output-format: json
@@ -28,7 +28,7 @@ chains:
             account-prefix: ethm
             keyring-backend: test
             gas-adjustment: 1.2
-            gas-prices: 0.0udym
+            gas-prices: 0udym
             debug: true
             timeout: 10s
             output-format: json

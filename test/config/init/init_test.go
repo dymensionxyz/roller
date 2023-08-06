@@ -1,6 +1,7 @@
 package initconfig_test
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/config"
 	"io/ioutil"
 	"path/filepath"
@@ -39,11 +40,12 @@ func TestInitCmd(t *testing.T) {
 			assert := assert.New(t)
 			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
+			fmt.Println(tc.name, tempDir)
 			assert.NoError(err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				assert.NoError(err)
-			}()
+			//defer func() {
+			//	err := os.RemoveAll(tempDir)
+			//	assert.NoError(err)
+			//}()
 			initCmd := initconfig.InitCmd()
 			utils.AddGlobalFlags(initCmd)
 			denom := "dym"

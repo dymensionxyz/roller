@@ -38,7 +38,7 @@ pruning-keep-recent = "0"
   enable-unsafe-cors = false
 
 [json-rpc]
-  address = "127.0.0.1:8545"
+  address = "0.0.0.0:8545"
   allow-unprotected-txs = false
   api = "eth,net,web3"
   block-range-cap = 10000
@@ -55,7 +55,7 @@ pruning-keep-recent = "0"
   max-open-connections = 0
   metrics-address = "127.0.0.1:6065"
   txfee-cap = 1
-  ws-address = "127.0.0.1:8546"
+  ws-address = "0.0.0.0:8546"
 
 [rosetta]
   address = ":8080"
