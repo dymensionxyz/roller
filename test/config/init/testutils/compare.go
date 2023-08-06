@@ -3,7 +3,7 @@ package testutils
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/google/go-cmp/cmp"
@@ -18,7 +18,7 @@ func dirContent(dirPath string) (map[string]string, error) {
 		}
 
 		if !d.IsDir() {
-			data, err := ioutil.ReadFile(path)
+			data, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}

@@ -3,7 +3,6 @@ package initconfig_test
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/config"
-	"io/ioutil"
 	"path/filepath"
 	"testing"
 
@@ -38,7 +37,7 @@ func TestInitCmd(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert := assert.New(t)
-			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
+			tempDir, err := os.MkdirTemp(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
 			fmt.Println(tc.name, tempDir)
 			assert.NoError(err)

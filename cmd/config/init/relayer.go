@@ -2,7 +2,6 @@ package initconfig
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -53,7 +52,7 @@ func writeTmpChainConfig(chainConfig RelayerFileChainConfig, fileName string) (s
 		return "", err
 	}
 	filePath := filepath.Join(os.TempDir(), fileName)
-	if err := ioutil.WriteFile(filePath, file, 0644); err != nil {
+	if err := os.WriteFile(filePath, file, 0644); err != nil {
 		return "", err
 	}
 	return filePath, nil

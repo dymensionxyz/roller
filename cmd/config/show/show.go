@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 }
 
 func printFileContent(path string) error {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}

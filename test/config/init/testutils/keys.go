@@ -3,8 +3,6 @@ package testutils
 import (
 	"errors"
 	"github.com/dymensionxyz/roller/sequencer"
-	"io/ioutil"
-
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -55,7 +53,7 @@ func verifyFileExists(path string) error {
 }
 
 func FileWithPatternPath(dir, pattern string) (string, error) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return "", err
 	}
