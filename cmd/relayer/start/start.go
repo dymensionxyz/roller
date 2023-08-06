@@ -18,8 +18,6 @@ import (
 var oneDayRelayPriceHub = big.NewInt(1)
 var oneDayRelayPriceRollapp = big.NewInt(1)
 
-var connectionCh string
-
 const (
 	flagOverride = "override"
 )

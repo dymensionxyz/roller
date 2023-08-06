@@ -53,9 +53,6 @@
         }
       ]
     },
-    "authz": {
-      "authorization": []
-    },
     "bank": {
       "params": {
         "send_enabled": [],
@@ -87,7 +84,7 @@
           "amount": "1000000000000000000000"
         }
       ],
-      "denom_metadata": []
+      "denom_metadata": [{"base":"udym","denom_units":[{"aliases":[],"denom":"udym","exponent":0},{"aliases":[],"denom":"dym","exponent":18}],"description":"Denom metadata for dym (udym)","display":"dym","name":"dym","symbol":"DYM"}]
     },
     "capability": {
       "index": "1",
@@ -109,12 +106,6 @@
         ]
       },
       "claims_records": []
-    },
-    "crisis": {
-      "constant_fee": {
-        "denom": "udym",
-        "amount": "1000"
-      }
     },
     "distribution": {
       "params": {
@@ -213,9 +204,6 @@
         "allow_unprotected_txs": false
       }
     },
-    "feegrant": {
-      "allowances": []
-    },
     "feemarket": {
       "params": {
         "no_base_fee": true,
@@ -309,7 +297,37 @@
         "max_sequencers": 1,
         "historical_entries": 10000
       },
-      "sequencers": [],
+      "sequencers": [
+        {
+          "operator_address": "PLACEHOLDER_OPERATOR_ADDRESS",
+          "consensus_pubkey": {
+            "@type": "/cosmos.crypto.ed25519.PubKey",
+            "key": "PLACEHOLDER_CONSENSUS_PUBKEY"
+          },
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "1000000000000000000",
+          "delegator_shares": "0.000000000000000000",
+          "description": {
+            "moniker": "",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.000000000000000000",
+              "max_rate": "0.000000000000000000",
+              "max_change_rate": "0.000000000000000000"
+            },
+            "update_time": "1970-01-01T00:00:00Z"
+          },
+          "min_self_delegation": "1"
+        }
+      ],
       "exported": false
     },
     "staking": {
@@ -339,5 +357,5 @@
     },
     "upgrade": {},
     "vesting": {}
-  }
+  ,"crisis":{"constant_fee":{"denom":"udym"}}}
 }

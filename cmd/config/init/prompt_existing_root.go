@@ -2,7 +2,6 @@ package initconfig
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/manifoldco/promptui"
@@ -21,7 +20,7 @@ func dirNotEmpty(path string) (bool, error) {
 		return false, fmt.Errorf("%s is not a directory", path)
 	}
 
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	return len(files) > 0, err
 }
 func promptOverwriteConfig(home string) (bool, error) {

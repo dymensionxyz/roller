@@ -2,8 +2,8 @@ package initconfig
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
+	"os"
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -52,7 +52,8 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 }
 
 func GetGenesisFilePath(root string) string {
-	return filepath.Join(RollappConfigDir(root), "genesis.json")
+	return filepath.Join(RollappConfigDir(root),
+		"genesis.json")
 }
 
 type PathValue struct {
@@ -116,7 +117,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 }
 
 func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
-	jsonFileContent, err := ioutil.ReadFile(jsonFilePath)
+	jsonFileContent, err := os.ReadFile(jsonFilePath)
 	if err != nil {
 		return err
 	}
@@ -127,7 +128,7 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 			return err
 		}
 	}
-	err = ioutil.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0644)
+	err = os.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0644)
 	if err != nil {
 		return err
 	}

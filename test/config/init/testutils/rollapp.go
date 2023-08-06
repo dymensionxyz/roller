@@ -3,7 +3,6 @@ package testutils
 import (
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 
 	"errors"
@@ -87,6 +86,13 @@ func SanitizeGenesis(genesisPath string) error {
 			Path:  "app_state.bank.balances.1.coins.0.amount",
 			Value: "PLACEHOLDER_RELAYER_BALANCE",
 		},
+		{
+			Path:  "app_state.sequencers.sequencers.0.operator_address",
+			Value: "PLACEHOLDER_OPERATOR_ADDRESS",
+		}, {
+			Path:  "app_state.sequencers.sequencers.0.consensus_pubkey.key",
+			Value: "PLACEHOLDER_CONSENSUS_PUBKEY",
+		},
 	}
 
 	err := initconfig.UpdateJSONParams(genesisPath, params)
@@ -97,7 +103,7 @@ func SanitizeGenesis(genesisPath string) error {
 }
 
 func VerifyRollerConfig(rollappConfig config.RollappConfig) error {
-	existingConfig, err := utils.LoadConfigFromTOML(rollappConfig.Home)
+	existingConfig, err := config.LoadConfigFromTOML(rollappConfig.Home)
 	if err != nil {
 		return err
 	}

@@ -1,3 +1,7 @@
+[Node]
+  StartupTimeout = "20s"
+  ShutdownTimeout = "20s"
+
 [Core]
   IP = "0.0.0.0"
   RPCPort = "0"

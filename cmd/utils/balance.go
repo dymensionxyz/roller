@@ -94,7 +94,7 @@ func (b *Balance) BiggerDenomStr(cfg config.RollappConfig) string {
 		consts.Denoms.Avail:    18,
 		cfg.Denom:              cfg.Decimals,
 	}
-	decimals, _ := decimalsMap[b.Denom]
+	decimals := decimalsMap[b.Denom]
 	formattedBalance := formatBalance(b.Amount, decimals)
 	return formattedBalance + strings.ToUpper(biggerDenom)
 }

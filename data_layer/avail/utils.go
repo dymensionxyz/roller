@@ -1,7 +1,7 @@
 package avail
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/pelletier/go-toml"
 )
@@ -11,7 +11,7 @@ func writeConfigToTOML(path string, c Avail) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path, tomlBytes, 0644)
+	err = os.WriteFile(path, tomlBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -21,7 +21,7 @@ func writeConfigToTOML(path string, c Avail) error {
 
 func loadConfigFromTOML(path string) (Avail, error) {
 	var config Avail
-	tomlBytes, err := ioutil.ReadFile(path)
+	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
 		return config, err
 	}

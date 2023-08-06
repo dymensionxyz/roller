@@ -3,8 +3,6 @@ package testutils
 import (
 	"errors"
 	"github.com/dymensionxyz/roller/sequencer"
-	"io/ioutil"
-
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -35,6 +33,7 @@ func SanitizeConfigDir(root string) error {
 	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
 		return err
 	}
+
 	if err := SanitizeDymintToml(root); err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func verifyFileExists(path string) error {
 }
 
 func FileWithPatternPath(dir, pattern string) (string, error) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return "", err
 	}
@@ -92,9 +91,10 @@ func getLightNodeKeysDir(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 }
 
-func VerifyLightNodeKeys(root string) error {
+func VerifyCelestiaLightNodeKeys(root string) error {
 	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
-	infoFilePath := filepath.Join(lightNodeKeysDir, consts.KeysIds.DALightNode+".info")
+
+	infoFilePath := filepath.Join(lightNodeKeysDir, "my_celes_key"+".info")
 	err := verifyFileExists(infoFilePath)
 	if err != nil {
 		return err

@@ -1,7 +1,8 @@
 package initconfig_test
 
 import (
-	"io/ioutil"
+	"fmt"
+	"github.com/dymensionxyz/roller/config"
 	"path/filepath"
 	"testing"
 
@@ -36,13 +37,14 @@ func TestInitCmd(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert := assert.New(t)
-			tempDir, err := ioutil.TempDir(os.TempDir(), "test")
+			tempDir, err := os.MkdirTemp(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
+			fmt.Println(tc.name, tempDir)
 			assert.NoError(err)
-			defer func() {
-				err := os.RemoveAll(tempDir)
-				assert.NoError(err)
-			}()
+			//defer func() {
+			//	err := os.RemoveAll(tempDir)
+			//	assert.NoError(err)
+			//}()
 			initCmd := initconfig.InitCmd()
 			utils.AddGlobalFlags(initCmd)
 			denom := "dym"
@@ -56,10 +58,10 @@ func TestInitCmd(t *testing.T) {
 			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
 			assert.NoError(err)
 			assert.NoError(testutils.VerifyRollerConfig(initConfig))
-			assert.NoError(os.Remove(filepath.Join(tempDir, utils.RollerConfigFileName)))
+			assert.NoError(os.Remove(filepath.Join(tempDir, config.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
-			assert.NoError(testutils.VerifyLightNodeKeys(tempDir))
+			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
 			assert.NoError(testutils.SanitizeConfigDir(tempDir))
 			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
 			assert.NoError(err)

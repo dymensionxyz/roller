@@ -1,0 +1,27 @@
+run:
+  concurrency: 4
+  timeout: 5m
+  modules-download-mode: readonly
+  # mempool and indexer code is borrowed from Tendermint
+  skip-dirs:
+    - mempool
+    - state/indexer
+    - state/txindex
+  skip-files:
+    - da/celestia/mock/server.go
+    - ./*_test.go
+
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gocyclo
+
+issues:
+  exclude-use-default: false

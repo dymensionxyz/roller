@@ -32,7 +32,6 @@ type Avail struct {
 	RpcEndpoint string
 
 	client *gsrpc.SubstrateAPI
-	accKey *availtypes.StorageKey
 }
 
 func (a *Avail) GetPrivateKey() (string, error) {

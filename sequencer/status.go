@@ -3,7 +3,7 @@ package sequencer
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os/exec"
 	"path/filepath"
@@ -37,7 +37,7 @@ func getRollappHeight(rollappID string) (string, error) {
 		return "-1", err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "-1", err
 	}
