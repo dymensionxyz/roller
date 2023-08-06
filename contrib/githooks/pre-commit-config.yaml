@@ -93,7 +93,9 @@ repos:
     #
     # -   id: golangci-lint
     -   id: golangci-lint-mod
+        args: ["-v", "v1.49"]
     -   id: golangci-lint-repo-mod
+        args: ["-v", "v1.49"]
     #
     # # Invoking Custom Go Tools
     # # - Configured *entirely* through the `args` attribute, ie:
