@@ -14,14 +14,17 @@ import (
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
 	createClientsCmd := r.getCreateClientsCmd(override)
-	fmt.Println("💈 Creating clients...")
+	status := "Creating clients..."
+	r.Status = status
+	fmt.Printf("💈 %s\n", status)
 	if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	// Before setting up the connection, we need to call update clients
-
-	fmt.Println("💈 Updating clients...")
+	status = "Updating clients..."
+	r.Status = status
+	fmt.Printf("💈 %s\n", status)
 	err := retry.Do(
 		func() error {
 			updateClientsCmd := r.GetUpdateClientsCmd()
@@ -39,18 +42,24 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	createConnectionCmd := r.getCreateConnectionCmd(override)
-	fmt.Println("💈 Creating connection...")
+	status = "Creating connection..."
+	r.Status = status
+	fmt.Printf("💈 %s\n", status)
 	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	createChannelCmd := r.getCreateChannelCmd(override)
-	fmt.Println("💈 Creating channel...")
+	status = "Creating channel..."
+	r.Status = status
+	fmt.Printf("💈 %s\n", status)
 	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
-	fmt.Println("💈 Validating channels...")
+	status = "Validating channels..."
+	r.Status = status
+	fmt.Printf("💈 %s\n", status)
 	var src, dst string
 	err = retry.Do(
 		func() error {

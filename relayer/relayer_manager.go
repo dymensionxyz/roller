@@ -14,6 +14,7 @@ type Relayer struct {
 	HubID      string
 	SrcChannel string
 	DstChannel string
+	Status     string
 	logger     *log.Logger
 }
 
@@ -23,6 +24,7 @@ func NewRelayer(home, rollappID, hubID string) *Relayer {
 		RollappID: rollappID,
 		HubID:     hubID,
 		logger:    log.New(io.Discard, "", 0),
+		Status:    "Starting...",
 	}
 }
 
@@ -36,7 +38,7 @@ func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 	}
 
 	_, _, _ = r.LoadChannels()
-	return "Starting..."
+	return r.Status
 }
 
 type Channel struct {
