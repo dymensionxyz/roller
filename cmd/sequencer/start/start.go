@@ -71,8 +71,6 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 		"start",
 		"--home", rollappConfigDir,
 		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-		"--log_level", "debug",
-		"--max-log-size", "2000",
 	)
 	return cmd
 }
