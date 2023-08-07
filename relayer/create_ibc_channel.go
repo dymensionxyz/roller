@@ -14,14 +14,21 @@ import (
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
 	createClientsCmd := r.getCreateClientsCmd(override)
-	fmt.Println("💈 Creating clients...")
+	status := "Creating clients..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	// Before setting up the connection, we need to call update clients
-
-	fmt.Println("💈 Updating clients...")
+	status = "Updating clients..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	err := retry.Do(
 		func() error {
 			updateClientsCmd := r.GetUpdateClientsCmd()
@@ -39,18 +46,29 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	createConnectionCmd := r.getCreateConnectionCmd(override)
-	fmt.Println("💈 Creating connection...")
+	status = "Creating connection..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	createChannelCmd := r.getCreateChannelCmd(override)
-	fmt.Println("💈 Creating channel...")
+	status = "Creating channel..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
-
-	fmt.Println("💈 Validating channels...")
+	status = "Updating clients..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	var src, dst string
 	err = retry.Do(
 		func() error {
@@ -74,7 +92,10 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
-
+	status = fmt.Sprintf("Active src, %s <-> %s, dst", src, dst)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 	return ConnectionChannels{
 		Src: src,
 		Dst: dst,
