@@ -69,6 +69,7 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}
 	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
+	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
