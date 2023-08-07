@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"io"
 	"log"
@@ -34,6 +35,9 @@ func (r *Relayer) SetLogger(logger *log.Logger) {
 }
 
 func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
+	if r.ChannelReady() {
+		return fmt.Sprintf("Active src, %s <-> %s, dst", r.SrcChannel, r.DstChannel)
+	}
 	bytes, err := os.ReadFile(r.statusFilePath())
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
