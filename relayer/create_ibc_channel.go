@@ -129,12 +129,6 @@ func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func (r *Relayer) GetUpdateClientsCmd() *exec.Cmd {
-	args := []string{"tx", "update-clients"}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
 func (r *Relayer) getRelayerDefaultArgs() []string {
 	return []string{consts.DefaultRelayerPath, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
 }
