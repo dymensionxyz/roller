@@ -70,6 +70,7 @@ func GetStartRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 		rollappConfig.RollappBinary,
 		"start",
 		"--home", rollappConfigDir,
+		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 	)
 	return cmd
 }
