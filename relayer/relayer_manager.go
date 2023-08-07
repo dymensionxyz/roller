@@ -1,9 +1,13 @@
 package relayer
 
 import (
+	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"io"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/dymensionxyz/roller/config"
 )
@@ -34,9 +38,21 @@ func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 	if r.ChannelReady() {
 		return fmt.Sprintf("Active src, %s <-> %s, dst", r.SrcChannel, r.DstChannel)
 	}
+	bytes, err := os.ReadFile(r.statusFilePath())
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "Starting..."
+		}
+	}
+	return string(bytes)
+}
 
-	_, _, _ = r.LoadChannels()
-	return "Starting..."
+func (r *Relayer) WriteRelayerStatus(status string) error {
+	return os.WriteFile(r.statusFilePath(), []byte(status), 0644)
+}
+
+func (r *Relayer) statusFilePath() string {
+	return filepath.Join(r.Home, consts.ConfigDirName.Relayer, "relayer_status.txt")
 }
 
 type Channel struct {
