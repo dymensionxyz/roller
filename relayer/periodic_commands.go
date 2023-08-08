@@ -19,7 +19,7 @@ func (r *Relayer) GetRelayAcksCmd() *exec.Cmd {
 }
 
 func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
-	args := []string{"tx", "relay-packets", "-l", "1"}
+	args := []string{"tx", "relay-packets"}
 	args = append(args, r.getArgsWithSrcChannel()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
