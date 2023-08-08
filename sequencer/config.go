@@ -19,7 +19,10 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 		return err
 	}
 	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig := damanager.GetSequencerDAConfig()
+	daConfig, err := damanager.GetSequencerDAConfig()
+	if err != nil {
+		return err
+	}
 	dymintCfg.Set("da_layer", string(rlpCfg.DA))
 	if daConfig != "" {
 		dymintCfg.Set("da_config", daConfig)

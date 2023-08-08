@@ -16,8 +16,8 @@ type DataLayer interface {
 	CheckDABalance() ([]utils.NotFundedAddressData, error)
 	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
-	GetLightNodeEndpoint() string
-	GetSequencerDAConfig() string
+	GetLightNodeEndpoint() (string, error)
+	GetSequencerDAConfig() (string, error)
 	SetRPCEndpoint(string)
 	SetMetricsEndpoint(endpoint string)
 	GetNetworkName() string

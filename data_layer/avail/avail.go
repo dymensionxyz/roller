@@ -157,16 +157,16 @@ func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error
 	}, nil
 }
 
-func (a *Avail) GetSequencerDAConfig() string {
-	return fmt.Sprintf(`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`, a.Mnemonic, a.RpcEndpoint)
+func (a *Avail) GetSequencerDAConfig() (string, error) {
+	return fmt.Sprintf(`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`, a.Mnemonic, a.RpcEndpoint), nil
 }
 
 func (a *Avail) SetRPCEndpoint(rpc string) {
 	a.RpcEndpoint = rpc
 }
 
-func (a *Avail) GetLightNodeEndpoint() string {
-	return ""
+func (a *Avail) GetLightNodeEndpoint() (string, error) {
+	return "", nil
 }
 
 func (a *Avail) GetNetworkName() string {
