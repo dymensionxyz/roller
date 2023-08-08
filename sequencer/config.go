@@ -9,6 +9,7 @@ import (
 	"github.com/pelletier/go-toml"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
@@ -80,7 +81,10 @@ func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}
-	return tomlCfg.Get("rpc.laddr").(string), nil
+	addr := tomlCfg.Get("rpc.laddr").(string)
+	parts := strings.Split(addr, ":")
+	port := parts[len(parts)-1]
+	return port, nil
 }
 
 func GetRPCEndpoint(rlpCfg config.RollappConfig) (string, error) {
