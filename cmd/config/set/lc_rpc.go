@@ -8,6 +8,9 @@ import (
 )
 
 func setLCRPC(cfg config.RollappConfig, value string) error {
+	if err := validatePort(value); err != nil {
+		return err
+	}
 	if cfg.DA != config.Celestia {
 		return errors.New("setting the LC RPC port is only supported for Celestia")
 	}
