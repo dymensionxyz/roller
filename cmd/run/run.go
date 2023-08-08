@@ -62,13 +62,13 @@ func Cmd() *cobra.Command {
 func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
 
-	relayer := relayer.NewRelayer(cfg.Home, cfg.RollappID, cfg.HubData.ID)
+	rly := relayer.NewRelayer(cfg.Home, cfg.RollappID, cfg.HubData.ID)
 
 	service := servicemanager.Service{
 		Command:  startRelayerCmd,
-		FetchFn:  sequencer.GetRelayerAccountsData,
+		FetchFn:  relayer.GetRelayerAccountsData,
 		UIData:   servicemanager.UIData{Name: "Relayer"},
-		StatusFn: relayer.GetRelayerStatus,
+		StatusFn: rly.GetRelayerStatus,
 	}
 	serviceConfig.AddService("Relayer", service)
 	serviceConfig.RunServiceWithRestart("Relayer")

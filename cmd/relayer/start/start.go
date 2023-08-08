@@ -3,7 +3,6 @@ package start
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -103,7 +102,7 @@ func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFun
 	if err != nil {
 		return insufficientBalances, err
 	}
-	rolRlyData, err := sequencer.GetRolRlyAccData(config)
+	rolRlyData, err := relayer.GetRolRlyAccData(config)
 	if err != nil {
 		return insufficientBalances, err
 	}
