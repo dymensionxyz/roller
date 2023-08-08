@@ -14,7 +14,7 @@ import (
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	gatewayAddr             = "0.0.0.0"
+	gatewayAddr             = "127.0.0.1"
 	gatewayPort             = "26659"
 	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
 	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
@@ -170,8 +170,6 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		"--gateway.deprecated-endpoints",
-		"--gateway.addr", gatewayAddr,
-		"--gateway.port", gatewayPort,
 		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {

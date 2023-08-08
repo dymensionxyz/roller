@@ -3,9 +3,9 @@ package sequencer
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
 	"os"
 	"path/filepath"
@@ -77,11 +77,10 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 
 func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
 	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
-	var tomlCfg, err = toml.LoadFile(configFilePath)
+	addr, err := utils.GetKeyFromTomlFile(configFilePath, "rpc.laddr")
 	if err != nil {
-		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
+		return "", err
 	}
-	addr := tomlCfg.Get("rpc.laddr").(string)
 	parts := strings.Split(addr, ":")
 	port := parts[len(parts)-1]
 	return port, nil

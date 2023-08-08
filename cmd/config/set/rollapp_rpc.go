@@ -3,8 +3,8 @@ package set
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
 	"gopkg.in/yaml.v2"
 	"os"

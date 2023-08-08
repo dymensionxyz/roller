@@ -20,3 +20,11 @@ func WriteTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
 	}
 	return nil
 }
+
+func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
+	tomlTree, err := toml.LoadFile(tmlFilePath)
+	if err != nil {
+		return "", err
+	}
+	return tomlTree.Get(key).(string), nil
+}
