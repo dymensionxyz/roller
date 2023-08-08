@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/pelletier/go-toml"
 	"os"
 )
@@ -27,4 +28,13 @@ func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
 		return "", err
 	}
 	return tomlTree.Get(key).(string), nil
+}
+
+func UpdateFieldInToml(tmlFilePath, key, value string) error {
+	var tomlCfg, err = toml.LoadFile(tmlFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)
+	}
+	tomlCfg.Set(key, value)
+	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
 }

@@ -3,6 +3,7 @@ package testutils
 import (
 	"errors"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -42,7 +43,7 @@ func SanitizeConfigDir(root string) error {
 
 func SanitizeDymintToml(root string) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(root)
-	return os.Remove(dymintTomlPath)
+	return utils.UpdateFieldInToml(dymintTomlPath, "keyring_home_dir", "PLACEHOLDER_KEYRING_HOME_DIR")
 }
 func verifyFileExists(path string) error {
 	_, err := os.Stat(path)
