@@ -49,6 +49,21 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	return err
 }
 
+func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
+	dymintTomlPath := GetDymintFilePath(rlpCfg.Home)
+	dymintCfg, err := toml.LoadFile(dymintTomlPath)
+	if err != nil {
+		return err
+	}
+	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	daConfig, err := damanager.GetSequencerDAConfig()
+	if err != nil {
+		return err
+	}
+	dymintCfg.Set("da_config", daConfig)
+	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
+}
+
 func SetAppConfig(rlpCfg config.RollappConfig) error {
 	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
 	appCfg, err := toml.LoadFile(appConfigFilePath)
