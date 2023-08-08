@@ -2,6 +2,7 @@ package sequnecer_start
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,9 @@ func StartCmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
 			startRollappCmd := GetStartRollappCmd(rollappConfig)
-			utils.RunBashCmdAsync(startRollappCmd, printOutput, parseError,
+			utils.RunBashCmdAsync(startRollappCmd, func() {
+				printOutput(rollappConfig)
+			}, parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 		},
 	}
@@ -44,12 +47,14 @@ func StartCmd() *cobra.Command {
 	return runCmd
 }
 
-func printOutput() {
+func printOutput(rlpCfg config.RollappConfig) {
+	rpcPort, err := sequencer.GetRPCPort(rlpCfg)
+	utils.PrettifyErrorIfExists(err)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
-	fmt.Println("💈 Default endpoints:")
+	fmt.Println("💈 Endpoints:")
 
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
-	fmt.Println("💈 Node RPC: http://0.0.0.0:26657")
+	fmt.Printf("💈 Node RPC: http://0.0.0.0:%v\n", rpcPort)
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 
 	fmt.Println("💈 Log file path: ", LogPath)

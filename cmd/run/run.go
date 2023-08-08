@@ -66,7 +66,7 @@ func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemana
 
 	service := servicemanager.Service{
 		Command:  startRelayerCmd,
-		FetchFn:  utils.GetRelayerAccountsData,
+		FetchFn:  sequencer.GetRelayerAccountsData,
 		UIData:   servicemanager.UIData{Name: "Relayer"},
 		StatusFn: relayer.GetRelayerStatus,
 	}

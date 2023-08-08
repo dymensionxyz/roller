@@ -73,3 +73,20 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
+
+func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
+	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	var tomlCfg, err = toml.LoadFile(configFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
+	}
+	return tomlCfg.Get("rpc.laddr").(string), nil
+}
+
+func GetRPCEndpoint(rlpCfg config.RollappConfig) (string, error) {
+	rpcPort, err := GetRPCPort(rlpCfg)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("http://localhost:%s", rpcPort), nil
+}

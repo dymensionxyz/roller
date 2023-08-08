@@ -22,6 +22,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/sjson v1.2.5
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

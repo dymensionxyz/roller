@@ -31,8 +31,12 @@ type Response struct {
 	Result Result `json:"result"`
 }
 
-func getRollappHeight(rollappID string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/status", consts.DefaultRollappRPC))
+func getRollappHeight(rlpCfg config.RollappConfig) (string, error) {
+	rollappRPCEndpoint, err := GetRPCEndpoint(rlpCfg)
+	if err != nil {
+		return "-1", err
+	}
+	resp, err := http.Get(fmt.Sprintf("%s/status", rollappRPCEndpoint))
 	if err != nil {
 		return "-1", err
 	}
@@ -45,11 +49,11 @@ func getRollappHeight(rollappID string) (string, error) {
 	if err := json.Unmarshal(body, &response); err != nil {
 		return "-1", err
 	}
-	if response.Result.NodeInfo.Network == rollappID {
+	if response.Result.NodeInfo.Network == rlpCfg.RollappID {
 		return response.Result.SyncInfo.LatestBlockHeight, nil
 	} else {
 		return "-1", fmt.Errorf("wrong sequencer is running on the machine. Expected network ID %s,"+
-			" got %s", rollappID, response.Result.NodeInfo.Network)
+			" got %s", rlpCfg.RollappID, response.Result.NodeInfo.Network)
 	}
 }
 
@@ -84,7 +88,7 @@ func getHubHeight(cfg config.RollappConfig) (string, error) {
 func GetSequencerStatus(cfg config.RollappConfig) string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
 	logger := utils.GetLogger(filepath.Join(cfg.Home, "roller.log"))
-	rolHeight, err := getRollappHeight(cfg.RollappID)
+	rolHeight, err := getRollappHeight(cfg)
 	if err != nil {
 		logger.Println(err)
 	}
