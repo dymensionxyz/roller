@@ -75,8 +75,8 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
-func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
-	rpcAddr, err := GetRollappConfigValue(rlpCfg, "rpc.laddr")
+func (seq *Sequencer) ReadRPCPort() (string, error) {
+	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
 	if err != nil {
 		return "", err
 	}
@@ -85,8 +85,8 @@ func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
 	return port, nil
 }
 
-func GetRollappConfigValue(rlpCfg config.RollappConfig, key string) (string, error) {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+func (seq *Sequencer) GetConfigValue(key string) (string, error) {
+	configFilePath := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -98,10 +98,6 @@ func GetRollappConfigValue(rlpCfg config.RollappConfig, key string) (string, err
 	return fmt.Sprint(value), nil
 }
 
-func GetRPCEndpoint(rlpCfg config.RollappConfig) (string, error) {
-	rpcPort, err := GetRPCPort(rlpCfg)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("http://localhost:%s", rpcPort), nil
+func (seq *Sequencer) GetRPCEndpoint() string {
+	return "http://localhost:" + seq.RPCPort
 }
