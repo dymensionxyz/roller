@@ -16,7 +16,8 @@ func setRollappRPC(rlpCfg config.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
-	if err := updateRlyConfig(rlpCfg, value); err != nil {
+	if err := updateRlyConfigValue(rlpCfg, []string{"chains", rlpCfg.RollappID, "value", "rpc-addr"}, "http://localhost:"+
+		value); err != nil {
 		return err
 	}
 	if err := updateRlpCfg(rlpCfg, value); err != nil {
@@ -33,7 +34,7 @@ func validatePort(portStr string) error {
 	return nil
 }
 
-func updateRlyConfig(rlpCfg config.RollappConfig, newRpcPort string) error {
+func updateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValue string) error {
 	rlyConfigPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer, "config", "config.yaml")
 	data, err := os.ReadFile(rlyConfigPath)
 	if err != nil {
@@ -44,29 +45,29 @@ func updateRlyConfig(rlpCfg config.RollappConfig, newRpcPort string) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal yaml: %v", err)
 	}
-	chains, ok := rlyCfg["chains"].(map[interface{}]interface{})
-	if !ok {
-		return fmt.Errorf("failed to parse chains from config")
-	}
-	for k, v := range chains {
-		key := fmt.Sprint(k)
-		if key == rlpCfg.RollappID {
-			chain, ok := v.(map[interface{}]interface{})
-			if !ok {
-				return fmt.Errorf("failed to parse chain config for key: %s", key)
-			}
-			value, ok := chain["value"].(map[interface{}]interface{})
-			if !ok {
-				return fmt.Errorf("failed to parse chain value for key: %s", key)
-			}
-			value["rpc-addr"] = "http://localhost:" + newRpcPort
-		}
+	if err := setNestedValue(rlyCfg, keyPath, newValue); err != nil {
+		return err
 	}
 	newData, err := yaml.Marshal(rlyCfg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal updated config: %v", err)
 	}
 	return os.WriteFile(rlyConfigPath, newData, 0644)
+}
+
+func setNestedValue(data map[interface{}]interface{}, keyPath []string, value string) error {
+	if len(keyPath) == 0 {
+		return fmt.Errorf("empty key path")
+	}
+	if len(keyPath) == 1 {
+		data[keyPath[0]] = value
+		return nil
+	}
+	nextMap, ok := data[keyPath[0]].(map[interface{}]interface{})
+	if !ok {
+		return fmt.Errorf("failed to get nested map for key: %s", keyPath[0])
+	}
+	return setNestedValue(nextMap, keyPath[1:], value)
 }
 
 func updateRlpClientCfg(rlpCfg config.RollappConfig, newRpcPort string) error {
