@@ -76,15 +76,26 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 }
 
 func GetRPCPort(rlpCfg config.RollappConfig) (string, error) {
+	rpcAddr, err := GetRollappConfigValue(rlpCfg, "rpc.laddr")
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(rpcAddr, ":")
+	port := parts[len(parts)-1]
+	return port, nil
+}
+
+func GetRollappConfigValue(rlpCfg config.RollappConfig, key string) (string, error) {
 	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}
-	addr := tomlCfg.Get("rpc.laddr").(string)
-	parts := strings.Split(addr, ":")
-	port := parts[len(parts)-1]
-	return port, nil
+	value := tomlCfg.Get(key)
+	if value == nil {
+		return "", fmt.Errorf("failed to get value for key: %s", key)
+	}
+	return fmt.Sprint(value), nil
 }
 
 func GetRPCEndpoint(rlpCfg config.RollappConfig) (string, error) {
