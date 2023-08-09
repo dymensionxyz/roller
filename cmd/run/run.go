@@ -40,8 +40,10 @@ func Cmd() *cobra.Command {
 			verifyBalances(rollappConfig)
 
 			/* ------------------------------ run processes ----------------------------- */
+			seq := sequencer.GetInstance(rollappConfig)
+			utils.PrettifyErrorIfExists(err)
+			runSequencerWithRestarts(seq, serviceConfig)
 			runDaWithRestarts(rollappConfig, serviceConfig)
-			runSequencerWithRestarts(rollappConfig, serviceConfig)
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
 
 			/* ------------------------------ render output ----------------------------- */
@@ -62,13 +64,13 @@ func Cmd() *cobra.Command {
 func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
 
-	relayer := relayer.NewRelayer(cfg.Home, cfg.RollappID, cfg.HubData.ID)
+	rly := relayer.NewRelayer(cfg.Home, cfg.RollappID, cfg.HubData.ID)
 
 	service := servicemanager.Service{
 		Command:  startRelayerCmd,
-		FetchFn:  utils.GetRelayerAccountsData,
+		FetchFn:  relayer.GetRelayerAccountsData,
 		UIData:   servicemanager.UIData{Name: "Relayer"},
-		StatusFn: relayer.GetRelayerStatus,
+		StatusFn: rly.GetRelayerStatus,
 	}
 	serviceConfig.AddService("Relayer", service)
 	serviceConfig.RunServiceWithRestart("Relayer")
@@ -96,16 +98,17 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 	serviceConfig.RunServiceWithRestart("DA Light Client", utils.WithLogging(daLogFilePath))
 }
 
-func runSequencerWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
-	startRollappCmd := sequnecer_start.GetStartRollappCmd(rollappConfig)
+func runSequencerWithRestarts(seq *sequencer.Sequencer, serviceConfig *servicemanager.ServiceConfig) {
+	startRollappCmd := seq.GetStartCmd()
+
 	service := servicemanager.Service{
 		Command:  startRollappCmd,
 		FetchFn:  utils.GetSequencerData,
-		StatusFn: sequencer.GetSequencerStatus,
+		StatusFn: seq.GetSequencerStatus,
 		UIData:   servicemanager.UIData{Name: "Sequencer"},
 	}
 	serviceConfig.AddService("Sequencer", service)
-	serviceConfig.RunServiceWithRestart("Sequencer", utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
+	serviceConfig.RunServiceWithRestart("Sequencer", utils.WithLogging(utils.GetSequencerLogPath(seq.RlpCfg)))
 }
 
 func verifyBalances(rollappConfig config.RollappConfig) {

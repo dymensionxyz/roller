@@ -1,8 +1,10 @@
 package run
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
@@ -16,9 +18,10 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	table.Title = "Services Info"
 	table.FillRow = true
 	table.ColumnWidths = []int{termWidth / 6, termWidth / 2, termWidth / 3}
+	seq := sequencer.GetInstance(rollappConfig)
 	table.Rows = [][]string{
 		{"Name", "Log File", "Ports"},
-		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), "26657, 8545, 1317"},
+		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, 8545, 1317", seq.RPCPort)},
 		{"Relayer", utils.GetRelayerLogPath(rollappConfig), ""},
 	}
 

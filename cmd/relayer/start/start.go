@@ -102,7 +102,7 @@ func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFun
 	if err != nil {
 		return insufficientBalances, err
 	}
-	rolRlyData, err := utils.GetRolRlyAccData(config)
+	rolRlyData, err := relayer.GetRolRlyAccData(config)
 	if err != nil {
 		return insufficientBalances, err
 	}

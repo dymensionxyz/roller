@@ -9,6 +9,7 @@ import (
 	"github.com/pelletier/go-toml"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
@@ -72,4 +73,31 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
+}
+
+func (seq *Sequencer) ReadRPCPort() (string, error) {
+	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(rpcAddr, ":")
+	port := parts[len(parts)-1]
+	return port, nil
+}
+
+func (seq *Sequencer) GetConfigValue(key string) (string, error) {
+	configFilePath := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	var tomlCfg, err = toml.LoadFile(configFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
+	}
+	value := tomlCfg.Get(key)
+	if value == nil {
+		return "", fmt.Errorf("failed to get value for key: %s", key)
+	}
+	return fmt.Sprint(value), nil
+}
+
+func (seq *Sequencer) GetRPCEndpoint() string {
+	return "http://localhost:" + seq.RPCPort
 }
