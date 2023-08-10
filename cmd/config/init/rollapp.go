@@ -1,9 +1,10 @@
 package initconfig
 
 import (
-	"github.com/dymensionxyz/roller/sequencer"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -23,9 +24,9 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	setGentxCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
+	gentxSeqCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
 		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", home)
-	_, err = utils.ExecBashCommandWithStdout(setGentxCmd)
+	_, err = utils.ExecBashCommandWithStdout(gentxSeqCmd)
 	if err != nil {
 		return err
 	}
