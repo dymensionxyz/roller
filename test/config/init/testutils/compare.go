@@ -9,12 +9,22 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func dirContent(dirPath string) (map[string]string, error) {
+func dirContent(dirPath string, excludeDirs ...string) (map[string]string, error) {
 	content := make(map[string]string)
+
+	excluded := make(map[string]bool)
+	for _, dir := range excludeDirs {
+		excluded[dir] = true
+	}
 
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+
+		// If the directory is in the excluded list, skip it
+		if d.IsDir() && excluded[d.Name()] {
+			return fs.SkipDir
 		}
 
 		if !d.IsDir() {
@@ -35,13 +45,13 @@ func dirContent(dirPath string) (map[string]string, error) {
 	return content, err
 }
 
-func CompareDirs(dir1, dir2 string) (bool, error) {
-	content1, err := dirContent(dir1)
+func CompareDirs(dir1, dir2 string, excludeDirs ...string) (bool, error) {
+	content1, err := dirContent(dir1, excludeDirs...)
 	if err != nil {
 		return false, err
 	}
 
-	content2, err := dirContent(dir2)
+	content2, err := dirContent(dir2, excludeDirs...)
 	if err != nil {
 		return false, err
 	}
