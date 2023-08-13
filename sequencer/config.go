@@ -19,10 +19,7 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 		return err
 	}
 	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig, err := damanager.GetSequencerDAConfig()
-	if err != nil {
-		return err
-	}
+	daConfig := damanager.GetSequencerDAConfig()
 	dymintCfg.Set("da_layer", string(rlpCfg.DA))
 	if daConfig != "" {
 		dymintCfg.Set("da_config", daConfig)
@@ -56,10 +53,7 @@ func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
 		return err
 	}
 	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig, err := damanager.GetSequencerDAConfig()
-	if err != nil {
-		return err
-	}
+	daConfig := damanager.GetSequencerDAConfig()
 	dymintCfg.Set("da_config", daConfig)
 	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
 }

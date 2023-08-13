@@ -49,8 +49,8 @@ func (d *DAMock) GetLightNodeEndpoint() string {
 	return ""
 }
 
-func (d *DAMock) GetSequencerDAConfig() (string, error) {
-	return "", nil
+func (d *DAMock) GetSequencerDAConfig() string {
+	return ""
 }
 func (d *DAMock) SetRPCEndpoint(string) {
 }

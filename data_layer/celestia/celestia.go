@@ -218,10 +218,10 @@ func (c *Celestia) GetNetworkName() string {
 	return DefaultCelestiaNetwork
 }
 
-func (c *Celestia) GetSequencerDAConfig() (string, error) {
+func (c *Celestia) GetSequencerDAConfig() string {
 	lcEndpoint := c.GetLightNodeEndpoint()
 	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"000000000000ffff"}`,
-		lcEndpoint), nil
+		lcEndpoint)
 }
 
 // UnsafeResetInstance resets the singleton instance. Use only in tests.
