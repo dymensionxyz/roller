@@ -27,8 +27,7 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	}
 
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
-	lcEndPoint, err := damanager.GetLightNodeEndpoint()
-	utils.PrettifyErrorIfExists(err)
+	lcEndPoint := damanager.GetLightNodeEndpoint()
 	if lcEndPoint != "" {
 		parts := strings.Split(lcEndPoint, ":")
 		port := parts[len(parts)-1]

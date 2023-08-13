@@ -127,7 +127,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
-	err = damanager.InitializeLightNodeConfig()
 	if err != nil {
 		return err
 	}

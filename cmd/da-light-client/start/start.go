@@ -49,8 +49,7 @@ func Cmd() *cobra.Command {
 			}
 
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
-			LCEndpoint, err = damanager.GetLightNodeEndpoint()
-			utils.PrettifyErrorIfExists(err)
+			LCEndpoint = damanager.GetLightNodeEndpoint()
 			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
 		},
 	}

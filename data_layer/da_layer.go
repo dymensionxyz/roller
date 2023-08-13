@@ -16,7 +16,7 @@ type DataLayer interface {
 	CheckDABalance() ([]utils.NotFundedAddressData, error)
 	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
-	GetLightNodeEndpoint() (string, error)
+	GetLightNodeEndpoint() string
 	GetSequencerDAConfig() (string, error)
 	SetRPCEndpoint(string)
 	SetMetricsEndpoint(endpoint string)
@@ -36,9 +36,7 @@ func NewDAManager(datype config.DAType, home string) *DAManager {
 
 	switch datype {
 	case config.Celestia:
-		dalayer = &celestia.Celestia{
-			Root: home,
-		}
+		dalayer = celestia.GetInstance(home)
 	case config.Avail:
 		dalayer = avail.NewAvail(home)
 	case config.Mock:
