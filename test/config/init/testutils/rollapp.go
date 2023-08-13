@@ -93,6 +93,30 @@ func SanitizeGenesis(genesisPath string) error {
 			Path:  "app_state.sequencers.sequencers.0.consensus_pubkey.key",
 			Value: "PLACEHOLDER_CONSENSUS_PUBKEY",
 		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.body.messages.0.delegator_address",
+			Value: "PLACEHOLDER_SEQUENCER_ADDRESS",
+		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.body.messages.0.pubkey.key",
+			Value: "PLACEHOLDER_SEQUENCER_PUBKEY",
+		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.body.messages.0.validator_address",
+			Value: "PLACEHOLDER_SEQUENCER_GOVERNER_ADDRESS",
+		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.signatures.0",
+			Value: "PLACEHOLDER_SEQUENCER_SIGNATURE",
+		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.body.memo",
+			Value: "PLACEHOLDER_GENTX_MEMO",
+		},
+		{
+			Path:  "app_state.genutil.gen_txs.0.auth_info.signer_infos.0.public_key.key",
+			Value: "PLACEHOLDER_SEQUENCER_PUBKEY",
+		},
 	}
 
 	err := initconfig.UpdateJSONParams(genesisPath, params)

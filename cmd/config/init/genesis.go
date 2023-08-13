@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -14,6 +15,10 @@ import (
 	"path/filepath"
 
 	"github.com/tidwall/sjson"
+)
+
+const (
+	totalSupplyToStakingRatio = 2
 )
 
 func initializeRollappGenesis(initConfig config.RollappConfig) error {
@@ -41,6 +46,10 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	genesisRelayerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
 		rlyRollappAddress, relayerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 	_, err = utils.ExecBashCommandWithStdout(genesisRelayerAccountCmd)
+	if err != nil {
+		return err
+	}
+	err = generateGenesisTx(initConfig)
 	if err != nil {
 		return err
 	}
@@ -138,4 +147,43 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 func updateGenesisParams(genesisFilePath string, denom string, decimals uint) error {
 	params := getDefaultGenesisParams(denom, decimals)
 	return UpdateJSONParams(genesisFilePath, params)
+}
+
+func generateGenesisTx(initConfig config.RollappConfig) error {
+	err := registerSequencerAsGoverner(initConfig)
+	if err != nil {
+		return err
+	}
+	// collect gentx
+	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+	collectGentx := exec.Command(initConfig.RollappBinary, "collect-gentxs", "--home", rollappConfigDirPath)
+	_, err = utils.ExecBashCommandWithStdout(collectGentx)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+// registerSequencerAsGoverner registers the sequencer as a governor of the rollapp chain.
+// currently it sets the staking amount to half of the total token supply.
+// TODO: make the staking amount configurable
+func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
+	totalSupply, err := strconv.Atoi(initConfig.TokenSupply)
+	if err != nil {
+		return fmt.Errorf("Error converting string to integer: %w", err)
+	}
+	// Convert to token supply with decimals
+	stakedSupply := big.NewInt(int64(totalSupply / totalSupplyToStakingRatio))
+	multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(initConfig.Decimals)), nil)
+	stakedSupply.Mul(stakedSupply, multiplier)
+	// Build and run the gentx command
+	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+	gentxCmd := exec.Command(initConfig.RollappBinary, "gentx", consts.KeysIds.RollappSequencer,
+		fmt.Sprint(stakedSupply, initConfig.Denom), "--chain-id", initConfig.RollappID, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
+	if err != nil {
+		return err
+	}
+	return nil
 }
