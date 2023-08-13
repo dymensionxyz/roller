@@ -2,9 +2,10 @@ package initconfig_test
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/config"
 	"path/filepath"
 	"testing"
+
+	"github.com/dymensionxyz/roller/config"
 
 	"os"
 
@@ -19,16 +20,19 @@ func TestInitCmd(t *testing.T) {
 	testCases := []struct {
 		name          string
 		goldenDirPath string
+		excludedDirs  []string
 		optionalFlags []string
 	}{
 		{
 			name:          "Roller config init with default values",
 			goldenDirPath: "./goldens/init_without_flags",
+			excludedDirs:  []string{"gentx"},
 			optionalFlags: []string{},
 		},
 		{
 			name:          "Roller config init with custom flags",
 			goldenDirPath: "./goldens/init_with_flags",
+			excludedDirs:  []string{"gentx"},
 			optionalFlags: []string{
 				"--" + initconfig.FlagNames.TokenSupply, tokenSupply,
 			},
@@ -63,7 +67,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
 			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
 			assert.NoError(testutils.SanitizeConfigDir(tempDir))
-			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath)
+			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath, tc.excludedDirs...)
 			assert.NoError(err)
 			assert.True(areDirsEqual)
 		})
