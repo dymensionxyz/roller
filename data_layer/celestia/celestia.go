@@ -43,9 +43,7 @@ func GetInstance(home string) *Celestia {
 		err := cel.InitializeLightNodeConfig()
 		utils.PrettifyErrorIfExists(err)
 		rpcPort, err := cel.ReadLightNodePort()
-		if err != nil {
-			panic(err)
-		}
+		utils.PrettifyErrorIfExists(err)
 		cel.RPCPort = rpcPort
 		instance = cel
 	})
