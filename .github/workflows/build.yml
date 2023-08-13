@@ -21,6 +21,7 @@ jobs:
           go-version: 1.19
       - name: Run the roller installation script
         run: |
+          [ -f ~/.zshrc ] && source ~/.zshrc
           chmod +x ./compile_locally.sh
           yes | ./compile_locally.sh
       - name: Install Roller binary
