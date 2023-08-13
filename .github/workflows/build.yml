@@ -10,64 +10,21 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-20.04, arm-mac, amd-mac, arm-linux ]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           ref: ${{ github.ref }}
-      - name: Create .zshrc
-        run: |
-          if [ ! -f ~/.zshrc ]; then
-            touch ~/.zshrc
-          fi
-      - name: Install GVM
-        run: |
-          source ~/.zshrc
-          if ! command -v gvm &> /dev/null
-          then
-            echo "GVM could not be found, Installing now"
-            bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-            echo "source ~/.gvm/scripts/gvm" >> ~/.zshrc
-          fi
-      - name: Install initial Go version for GVM Bootstrap
-        run: |
-          source ~/.zshrc
-          if ! command -v go &> /dev/null
-          then
-            echo "Go could not be found, Installing now"
-            OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-            ARCH=$(uname -m)
-            if [ "$ARCH" = "aarch64" ]; then
-              ARCH="arm64"
-            fi
-            DOWNLOAD_URL="https://golang.org/dl/go1.19.10.$OS-$ARCH.tar.gz"
-            curl -LO "$DOWNLOAD_URL"
-            sudo tar -C /usr/local -xzf go1.19.10.$OS-$ARCH.tar.gz
-            echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
-            echo "export GOROOT_BOOTSTRAP=\$(go env GOROOT)" >> ~/.zshrc
-          fi
-      - name: Install the different go versions needed for compiling roller
-        run: |
-          source ~/.zshrc
-          if ! gvm list | grep -q 'go1.19'; then
-            echo "Go 1.19 not found, Installing now"
-            gvm install go1.19
-          fi
-          if ! gvm list | grep -q 'go1.20'; then
-            echo "Go 1.20 not found, Installing now"
-            gvm install go1.20
-          fi
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
       - name: Run the roller installation script
         run: |
-          source ~/.zshrc
-          gvm use go1.19
           chmod +x ./compile_locally.sh
           yes | ./compile_locally.sh
       - name: Install Roller binary
         run: |
-          source ~/.zshrc
-          gvm use go1.19
           make build
           sudo cp ./build/roller /usr/local/bin/roller
       - name: Get the latest version of Celestia Node
@@ -80,10 +37,12 @@ jobs:
             cd celestia-node
           fi
           git checkout tags/v0.11.0-rc6
+      - name: Set up Go 1.20
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20
       - name: Build Celestia Node
         run: |
-          source ~/.zshrc
-          gvm use go1.20
           cd ./celestia-node
           make build
           make go-install
