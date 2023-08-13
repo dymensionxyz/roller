@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
-	"os/exec"
 	"path/filepath"
 
 	"strings"
@@ -36,7 +35,8 @@ func StartCmd() *cobra.Command {
 			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, OneDaySequencePrice)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
-			startRollappCmd := GetStartRollappCmd(rollappConfig)
+			seq := sequencer.GetInstance(rollappConfig)
+			startRollappCmd := seq.GetStartCmd()
 			utils.RunBashCmdAsync(startRollappCmd, func() {
 				printOutput(rollappConfig)
 			}, parseError,
@@ -48,13 +48,12 @@ func StartCmd() *cobra.Command {
 }
 
 func printOutput(rlpCfg config.RollappConfig) {
-	rpcPort, err := sequencer.GetRPCPort(rlpCfg)
-	utils.PrettifyErrorIfExists(err)
+	seq := sequencer.GetInstance(rlpCfg)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 	fmt.Println("💈 Endpoints:")
 
 	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
-	fmt.Printf("💈 Node RPC: http://0.0.0.0:%v\n", rpcPort)
+	fmt.Printf("💈 Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
 	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
 
 	fmt.Println("💈 Log file path: ", LogPath)
@@ -67,15 +66,4 @@ func parseError(errMsg string) string {
 		return "The Rollapp sequencer is already running on your local machine. Only one sequencer can run at any given time."
 	}
 	return errMsg
-}
-
-func GetStartRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
-	rollappConfigDir := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-	cmd := exec.Command(
-		rollappConfig.RollappBinary,
-		"start",
-		"--home", rollappConfigDir,
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
-	)
-	return cmd
 }

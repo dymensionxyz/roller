@@ -9,15 +9,12 @@ import (
 
 func GetRolRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
 	RollappRlyAddr, err := utils.GetRelayerAddress(cfg.Home, cfg.RollappID)
-	if err != nil {
-		return nil, err
-	}
-	rollappRPCEndpoint, err := sequencer.GetRPCEndpoint(cfg)
+	seq := sequencer.GetInstance(cfg)
 	if err != nil {
 		return nil, err
 	}
 	RollappRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
-		RPC:    rollappRPCEndpoint,
+		RPC:    seq.GetRPCEndpoint(),
 		Denom:  cfg.Denom,
 		Binary: cfg.RollappBinary,
 	}, RollappRlyAddr)

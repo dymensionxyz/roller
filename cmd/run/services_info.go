@@ -19,13 +19,10 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	table.Title = "Services Info"
 	table.FillRow = true
 	table.ColumnWidths = []int{termWidth / 6, termWidth / 2, termWidth / 3}
-	rollappRPCPort, err := sequencer.GetRPCPort(rollappConfig)
-	if err != nil {
-		utils.PrettifyErrorIfExists(err)
-	}
+	seq := sequencer.GetInstance(rollappConfig)
 	table.Rows = [][]string{
 		{"Name", "Log File", "Ports"},
-		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, 8545, 1317", rollappRPCPort)},
+		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, 8545, 1317", seq.RPCPort)},
 		{"Relayer", utils.GetRelayerLogPath(rollappConfig), ""},
 	}
 
