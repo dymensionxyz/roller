@@ -3,6 +3,7 @@ package initconfig
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/dymensionxyz/roller/config"
 )
@@ -37,6 +38,11 @@ func IsRollappIDUnique(rollappID string, initConfig config.RollappConfig) (bool,
 func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) error {
 	isUniqueRollapp, err := IsRollappIDUnique(rollappID, initConfig)
 	if err != nil {
+		_, ok := err.(*url.Error)
+		if ok && initConfig.HubData.ID == LocalHubID {
+			// When using a local hub and the hub is not yet running, we assume the rollapp ID is unique
+			return nil
+		}
 		return err
 	}
 	if !isUniqueRollapp {
