@@ -19,10 +19,10 @@ var Executables = struct {
 }{
 	Roller:     fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
+	Dymension:  fmt.Sprintf("%s/dymd", binsDir),
 	Celestia:   fmt.Sprintf("%s/celestia", internalBinsDir),
 	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
 	Relayer:    fmt.Sprintf("%s/rly", internalBinsDir),
-	Dymension:  fmt.Sprintf("%s/dymd", internalBinsDir),
 }
 
 var KeysIds = struct {

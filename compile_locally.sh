@@ -23,15 +23,15 @@ elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
     ARCH="arm64"
 fi
 
-# Create internal dir
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
-ROLLAPP_EVM_PATH="/usr/local/bin/rollapp_evm"  # The path where rollapp_evm will be installed
+ROLLAPP_EVM_PATH="/usr/local/bin/rollapp_evm"
+DYMD_PATH="/usr/local/bin/dymd"
 
-# Check if Roller and rollapp_evm binaries already exist or the internal directory exists
-if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
+if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$DYMD_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
     sudo rm -f "$ROLLER_BIN_PATH"
     sudo rm -f "$ROLLAPP_EVM_PATH"
+    sudo rm -f "$DYMD_PATH"
     sudo rm -rf "$INTERNAL_DIR"
 fi
 
@@ -108,8 +108,10 @@ for i in "${!PROJECTS[@]}"; do
 done
 
 sudo mv "$INTERNAL_DIR/rollapp-evm" "$ROLLAPP_EVM_PATH"
+sudo mv "$INTERNAL_DIR/dymd" "$DYMD_PATH"
 
 sudo chmod +x "$ROLLAPP_EVM_PATH"
+sudo chmod +x "$DYMD_PATH"
 
 # Cleanup temporary directory
 sudo rm -rf "/tmp/roller_tmp"
