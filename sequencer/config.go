@@ -3,9 +3,9 @@ package sequencer
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
 	"os"
 	"path/filepath"
@@ -44,6 +44,18 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	}
 	_, err = file.WriteString(dymintCfg.String())
 	return err
+}
+
+func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
+	dymintTomlPath := GetDymintFilePath(rlpCfg.Home)
+	dymintCfg, err := toml.LoadFile(dymintTomlPath)
+	if err != nil {
+		return err
+	}
+	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	daConfig := damanager.GetSequencerDAConfig()
+	dymintCfg.Set("da_config", daConfig)
+	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
 }
 
 func SetAppConfig(rlpCfg config.RollappConfig) error {

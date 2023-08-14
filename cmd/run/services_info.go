@@ -7,6 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"strings"
 
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
@@ -26,8 +27,11 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	}
 
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
-	if damanager.GetLightNodeEndpoint() != "" {
-		table.Rows = append(table.Rows, []string{"DA Light Client", utils.GetDALogFilePath(rollappConfig.Home), "26659"})
+	lcEndPoint := damanager.GetLightNodeEndpoint()
+	if lcEndPoint != "" {
+		parts := strings.Split(lcEndPoint, ":")
+		port := parts[len(parts)-1]
+		table.Rows = append(table.Rows, []string{"DA Light Client", utils.GetDALogFilePath(rollappConfig.Home), port})
 	}
 	return table
 }

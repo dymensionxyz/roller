@@ -131,7 +131,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
 	daAddress, err := damanager.GetDAAccountAddress()
 	if err != nil {
 		return err

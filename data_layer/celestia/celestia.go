@@ -3,19 +3,17 @@ package celestia
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"os/exec"
-	"path/filepath"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	globalutils "github.com/dymensionxyz/roller/utils"
+	"math/big"
+	"os/exec"
+	"path/filepath"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	gatewayAddr             = "0.0.0.0"
-	gatewayPort             = "26659"
 	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
 	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
 	DefaultCelestiaNetwork  = "arabica"
@@ -23,13 +21,19 @@ const (
 
 var (
 	lcMinBalance = big.NewInt(1)
-	LCEndpoint   = fmt.Sprintf("http://%s:%s", gatewayAddr, gatewayPort)
 )
 
 type Celestia struct {
 	Root            string
 	rpcEndpoint     string
 	metricsEndpoint string
+	RPCPort         string
+}
+
+func NewCelestia(home string) *Celestia {
+	return &Celestia{
+		Root: home,
+	}
 }
 
 func (c2 *Celestia) GetPrivateKey() (string, error) {
@@ -45,9 +49,10 @@ func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
 	c2.metricsEndpoint = endpoint
 }
 
-func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
-	logger := utils.GetRollerLogger(c.Home)
-	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", consts.DefaultDALCRPC))
+func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
+	logger := utils.GetRollerLogger(rlpCfg.Home)
+	lcEndpoint := c.GetLightNodeEndpoint()
+	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", lcEndpoint))
 	const stoppedMsg = "Stopped, Restarting..."
 	if err != nil {
 		logger.Println("Error querying balance", err)
@@ -71,8 +76,21 @@ func (c2 *Celestia) GetStatus(c config.RollappConfig) string {
 	}
 }
 
+func (c *Celestia) getRPCPort() string {
+	if c.RPCPort != "" {
+		return c.RPCPort
+	}
+	port, err := globalutils.GetKeyFromTomlFile(filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
+		"Gateway.Port")
+	if err != nil {
+		panic(err)
+	}
+	c.RPCPort = port
+	return port
+}
+
 func (c *Celestia) GetLightNodeEndpoint() string {
-	return LCEndpoint
+	return fmt.Sprintf("http://localhost:%s", c.getRPCPort())
 }
 
 // GetDAAccountAddress implements datalayer.DataLayer.
@@ -170,8 +188,6 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		"--gateway.deprecated-endpoints",
-		"--gateway.addr", gatewayAddr,
-		"--gateway.port", gatewayPort,
 		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
@@ -191,6 +207,7 @@ func (c *Celestia) GetNetworkName() string {
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
+	lcEndpoint := c.GetLightNodeEndpoint()
 	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"000000000000ffff"}`,
-		LCEndpoint)
+		lcEndpoint)
 }

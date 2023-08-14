@@ -3,9 +3,8 @@ package set
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/pelletier/go-toml"
+	"github.com/dymensionxyz/roller/utils"
 	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
@@ -72,19 +71,10 @@ func setNestedValue(data map[interface{}]interface{}, keyPath []string, value st
 
 func updateRlpClientCfg(rlpCfg config.RollappConfig, newRpcPort string) error {
 	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "client.toml")
-	return updateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
+	return utils.UpdateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
 }
 
 func updateRlpCfg(rlpCfg config.RollappConfig, newRpc string) error {
 	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
-	return updateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
-}
-
-func updateFieldInToml(tmlFilePath, key, value string) error {
-	var tomlCfg, err = toml.LoadFile(tmlFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)
-	}
-	tomlCfg.Set(key, value)
-	return utils.WriteTomlTreeToFile(tomlCfg, tmlFilePath)
+	return utils.UpdateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
 }
