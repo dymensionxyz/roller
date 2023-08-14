@@ -3,15 +3,13 @@ package celestia
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"os/exec"
-	"path/filepath"
-	"sync"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"math/big"
+	"os/exec"
+	"path/filepath"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
@@ -32,22 +30,10 @@ type Celestia struct {
 	RPCPort         string
 }
 
-var instance *Celestia
-var once sync.Once
-
-func GetInstance(home string) *Celestia {
-	once.Do(func() {
-		cel := &Celestia{
-			Root: home,
-		}
-		err := cel.InitializeLightNodeConfig()
-		utils.PrettifyErrorIfExists(err)
-		rpcPort, err := cel.ReadLightNodePort()
-		utils.PrettifyErrorIfExists(err)
-		cel.RPCPort = rpcPort
-		instance = cel
-	})
-	return instance
+func NewCelestia(home string) *Celestia {
+	return &Celestia{
+		Root: home,
+	}
 }
 
 func (c2 *Celestia) GetPrivateKey() (string, error) {
@@ -90,17 +76,21 @@ func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
 	}
 }
 
-func (c *Celestia) GetLightNodeEndpoint() string {
-	return fmt.Sprintf("http://localhost:%s", c.RPCPort)
-}
-
-func (c *Celestia) ReadLightNodePort() (string, error) {
+func (c *Celestia) getRPCPort() string {
+	if c.RPCPort != "" {
+		return c.RPCPort
+	}
 	port, err := globalutils.GetKeyFromTomlFile(filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
 		"Gateway.Port")
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return port, nil
+	c.RPCPort = port
+	return port
+}
+
+func (c *Celestia) GetLightNodeEndpoint() string {
+	return fmt.Sprintf("http://localhost:%s", c.getRPCPort())
 }
 
 // GetDAAccountAddress implements datalayer.DataLayer.
@@ -220,10 +210,4 @@ func (c *Celestia) GetSequencerDAConfig() string {
 	lcEndpoint := c.GetLightNodeEndpoint()
 	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"000000000000ffff"}`,
 		lcEndpoint)
-}
-
-// UnsafeResetInstance resets the singleton instance. Use only in tests.
-func UnsafeResetInstance() {
-	instance = nil
-	once = sync.Once{}
 }

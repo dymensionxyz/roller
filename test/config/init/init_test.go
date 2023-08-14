@@ -2,7 +2,6 @@ package initconfig_test
 
 import (
 	"github.com/dymensionxyz/roller/config"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"path/filepath"
 	"testing"
 
@@ -39,7 +38,6 @@ func TestInitCmd(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			celestia.UnsafeResetInstance()
 			assert := assert.New(t)
 			tempDir, err := os.MkdirTemp(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
