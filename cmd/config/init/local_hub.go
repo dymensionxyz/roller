@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 )
 
+const validatorKeyID = "local-user"
+
 func initLocalHub(rlpCfg config.RollappConfig) error {
 	initBashCmd := getInitDymdCmd(rlpCfg)
 	_, err := utils.ExecBashCommandWithStdout(initBashCmd)
@@ -35,7 +37,7 @@ func initLocalHub(rlpCfg config.RollappConfig) error {
 	}
 	addr, err := createAddressBinary(utils.KeyConfig{
 		Dir:         consts.ConfigDirName.LocalHub,
-		ID:          "local-user",
+		ID:          validatorKeyID,
 		ChainBinary: consts.Executables.Dymension,
 		Type:        config.SDK_ROLLAPP,
 	}, rlpCfg.Home)
@@ -48,7 +50,7 @@ func initLocalHub(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	genTxCmd := exec.Command(consts.Executables.Dymension, "gentx", "local-user", "670000000000000000000000"+consts.Denoms.Hub,
+	genTxCmd := exec.Command(consts.Executables.Dymension, "gentx", validatorKeyID, "670000000000000000000000"+consts.Denoms.Hub,
 		"--home", localHubPath, "--chain-id", rlpCfg.HubData.ID, "--keyring-backend", "test")
 	_, err = utils.ExecBashCommandWithStdout(genTxCmd)
 	if err != nil {
