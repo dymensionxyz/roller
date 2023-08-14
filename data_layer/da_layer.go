@@ -36,9 +36,7 @@ func NewDAManager(datype config.DAType, home string) *DAManager {
 
 	switch datype {
 	case config.Celestia:
-		dalayer = &celestia.Celestia{
-			Root: home,
-		}
+		dalayer = celestia.GetInstance(home)
 	case config.Avail:
 		dalayer = avail.NewAvail(home)
 	case config.Mock:

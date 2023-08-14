@@ -48,11 +48,13 @@ var ConfigDirName = struct {
 	Relayer     string
 	DALightNode string
 	HubKeys     string
+	LocalHub    string
 }{
 	Rollapp:     "rollapp",
 	Relayer:     "relayer",
 	DALightNode: "da-light-node",
 	HubKeys:     "hub-keys",
+	LocalHub:    "local-hub",
 }
 
 var AlgoTypes = struct {
@@ -77,7 +79,6 @@ const (
 	KeysDirName        = "keys"
 	DefaultRelayerPath = "hub-rollapp"
 	DefaultRollappRPC  = "http://localhost:26657"
-	DefaultDALCRPC     = "http://localhost:26659"
 )
 
 // TODO: Check DA LC write price on arabica and update this value.

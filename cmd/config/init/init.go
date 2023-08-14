@@ -127,11 +127,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
-	err = damanager.InitializeLightNodeConfig()
-	if err != nil {
-		return err
-	}
-
 	daAddress, err := damanager.GetDAAccountAddress()
 	if err != nil {
 		return err
@@ -158,6 +153,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 	err = config.WriteConfigToTOML(initConfig)
 	if err != nil {
 		return err
+	}
+
+	/* ------------------------------ Initialize Local Hub ---------------------------- */
+	hub := cmd.Flag(FlagNames.HubID).Value.String()
+	if hub == LocalHubName {
+		err := initLocalHub(initConfig)
+		utils.PrettifyErrorIfExists(err)
 	}
 
 	/* ------------------------------ Print output ------------------------------ */

@@ -23,6 +23,7 @@ var FlagNames = struct {
 const (
 	StagingHubName = "devnet"
 	LocalHubName   = "local"
+	LocalHubID     = "dymension_100-1"
 )
 
 // TODO(#112): The avaialble hub networks should be read from YAML file
@@ -35,7 +36,7 @@ var Hubs = map[string]config.HubData{
 	},
 	LocalHubName: {
 		API_URL:   "http://localhost:1318",
-		ID:        "dymension_100-1",
+		ID:        LocalHubID,
 		RPC_URL:   "http://localhost:36657",
 		GAS_PRICE: "0",
 	},
