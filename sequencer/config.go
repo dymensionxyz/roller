@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
 	"os"
@@ -27,7 +28,13 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
 	dymintCfg.Set("block_batch_size", "500")
-	dymintCfg.Set("namespace_id", "000000000000ffff")
+	if rlpCfg.DA == config.Celestia {
+		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
+		if !ok {
+			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
+		}
+		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
+	}
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
 	dymintCfg.Set("empty_blocks_max_time", "10s")
