@@ -2,8 +2,9 @@ package start
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -39,6 +40,9 @@ func Start() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 
 			override := cmd.Flag(flagOverride).Changed
+			if override {
+				fmt.Println("💈 Overriding the existing relayer channel")
+			}
 			if relayer.ChannelReady() && !override {
 				fmt.Println("💈 IBC transfer channel is already established!")
 			} else {
