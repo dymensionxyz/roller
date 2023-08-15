@@ -90,9 +90,8 @@ func UpdateTendermintConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", tendermintConfigFilePath, err)
 	}
-	tmCfg.Set("rpc.laddr", "tcp://0.0.0.0:36657")
-	tmCfg.Set("p2p.laddr", "tcp://0.0.0.0:36656")
-	tmCfg.Set("cors_allowed_origins", []string{"*"})
+	tmCfg.Set("rpc.laddr", "tcp://127.0.0.1:36657")
+	tmCfg.Set("p2p.laddr", "tcp://127.0.0.1:36656")
 	return global_utils.WriteTomlTreeToFile(tmCfg, tendermintConfigFilePath)
 }
 
@@ -102,12 +101,12 @@ func UpdateAppConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
-	appCfg.Set("grpc.address", "0.0.0.0:8090")
-	appCfg.Set("grpc-web.address", "0.0.0.0:8091")
-	appCfg.Set("json-rpc.address", "0.0.0.0:9545")
-	appCfg.Set("json-rpc.ws-address", "0.0.0.0:9546")
+	appCfg.Set("grpc.address", "127.0.0.1:8090")
+	appCfg.Set("grpc-web.address", "127.0.0.1:8091")
+	appCfg.Set("json-rpc.address", "127.0.0.1:9545")
+	appCfg.Set("json-rpc.ws-address", "127.0.0.1:9546")
 	appCfg.Set("api.enable", true)
-	appCfg.Set("api.address", "tcp://0.0.0.0:1318")
+	appCfg.Set("api.address", "tcp://127.0.0.1:1318")
 	appCfg.Set("minimum-gas-prices", "0"+consts.Denoms.Hub)
 	return global_utils.WriteTomlTreeToFile(appCfg, appConfigFilePath)
 }
@@ -119,6 +118,6 @@ func UpdateClientConfig(rlpCfg config.RollappConfig) error {
 		return fmt.Errorf("failed to load %s: %v", clientConfigFilePath, err)
 	}
 	clientCfg.Set("chain-id", rlpCfg.HubData.ID)
-	clientCfg.Set("node", "tcp://0.0.0.0:36657")
+	clientCfg.Set("node", "tcp://127.0.0.1:36657")
 	return global_utils.WriteTomlTreeToFile(clientCfg, clientConfigFilePath)
 }
