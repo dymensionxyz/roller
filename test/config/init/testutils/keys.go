@@ -2,8 +2,10 @@ package testutils
 
 import (
 	"errors"
+	"fmt"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/pelletier/go-toml"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -43,7 +45,14 @@ func SanitizeConfigDir(root string) error {
 
 func SanitizeDymintToml(root string) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(root)
-	return utils.UpdateFieldInToml(dymintTomlPath, "keyring_home_dir", "PLACEHOLDER_KEYRING_HOME_DIR")
+	var tomlCfg, err = toml.LoadFile(dymintTomlPath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", dymintTomlPath, err)
+	}
+	tomlCfg.Set("keyring_home_dir", "PLACEHOLDER_KEYRING_HOME_DIR")
+	tomlCfg.Set("namespace_id", "PLACEHOLDER_NAMESPACE_ID")
+	tomlCfg.Set("da_config", "PLACEHOLDER_DA_CONFIG")
+	return utils.WriteTomlTreeToFile(tomlCfg, dymintTomlPath)
 }
 func verifyFileExists(path string) error {
 	_, err := os.Stat(path)
