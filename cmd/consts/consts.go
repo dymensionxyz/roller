@@ -77,6 +77,7 @@ const (
 	KeysDirName        = "keys"
 	DefaultRelayerPath = "hub-rollapp"
 	DefaultRollappRPC  = "http://localhost:26657"
+	DefaultDALCRPC     = "http://localhost:26659"
 )
 
 // TODO: Check DA LC write price on arabica and update this value.

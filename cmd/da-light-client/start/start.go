@@ -32,7 +32,6 @@ func Cmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(errors.New("metrics endpoint can only be set for celestia"))
 			}
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
-
 			insufficientBalances, err := damanager.CheckDABalance()
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
