@@ -30,7 +30,7 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	dymintCfg.Set("namespace_id", "000000000000ffff")
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
-	dymintCfg.Set("empty_blocks_max_time", "10s")
+	dymintCfg.Set("empty_blocks_max_time", "60s")
 	dymintCfg.Set("rollapp_id", rlpCfg.RollappID)
 	dymintCfg.Set("node_address", rlpCfg.HubData.RPC_URL)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
