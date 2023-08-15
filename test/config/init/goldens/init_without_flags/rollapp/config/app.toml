@@ -14,8 +14,8 @@ pruning-keep-recent = "6048000"
 
 [api]
   address = "tcp://0.0.0.0:1317"
-  enable = "true"
-  enabled-unsafe-cors = false
+  enable = true
+  enabled-unsafe-cors = true
   max-open-connections = 1000
   rpc-max-body-bytes = 1000000
   rpc-read-timeout = 10

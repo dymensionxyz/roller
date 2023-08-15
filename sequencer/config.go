@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
 	"os"
@@ -27,10 +28,16 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
 	dymintCfg.Set("block_batch_size", "500")
-	dymintCfg.Set("namespace_id", "000000000000ffff")
+	if rlpCfg.DA == config.Celestia {
+		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
+		if !ok {
+			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
+		}
+		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
+	}
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
-	dymintCfg.Set("empty_blocks_max_time", "10s")
+	dymintCfg.Set("empty_blocks_max_time", "60s")
 	dymintCfg.Set("rollapp_id", rlpCfg.RollappID)
 	dymintCfg.Set("node_address", rlpCfg.HubData.RPC_URL)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
@@ -66,7 +73,8 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 	}
 
 	appCfg.Set("minimum-gas-prices", "0"+rlpCfg.Denom)
-	appCfg.Set("api.enable", "true")
+	appCfg.Set("api.enable", true)
+	appCfg.Set("api.enabled-unsafe-cors", true)
 
 	if appCfg.Has("json-rpc") {
 		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
