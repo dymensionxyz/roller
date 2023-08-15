@@ -72,9 +72,6 @@ func getInitDymdCmd(rlpCfg config.RollappConfig) *exec.Cmd {
 
 func getHubGenesisParams() []PathValue {
 	return []PathValue{
-		{"app_state.gov.deposit_params.min_deposit.0.denom", consts.Denoms.Hub},
-		{"app_state.gov.deposit_params.min_deposit.0.amount", "10000000000"},
-		{"app_state.gov.voting_params.voting_period", "30s"},
 		{"app_state.rollapp.params.dispute_period_in_blocks", "2"},
 		{"app_state.staking.params.max_validators", "110"},
 		{"consensus_params.block.max_gas", "40000000"},
@@ -95,7 +92,6 @@ func UpdateTendermintConfig(rlpCfg config.RollappConfig) error {
 	}
 	tmCfg.Set("rpc.laddr", "tcp://0.0.0.0:36657")
 	tmCfg.Set("p2p.laddr", "tcp://0.0.0.0:36656")
-	tmCfg.Set("prometheus", true)
 	tmCfg.Set("cors_allowed_origins", []string{"*"})
 	return global_utils.WriteTomlTreeToFile(tmCfg, tendermintConfigFilePath)
 }
@@ -113,9 +109,6 @@ func UpdateAppConfig(rlpCfg config.RollappConfig) error {
 	appCfg.Set("api.enable", true)
 	appCfg.Set("api.address", "tcp://0.0.0.0:1318")
 	appCfg.Set("minimum-gas-prices", "0"+consts.Denoms.Hub)
-	appCfg.Set("telemetry.enabled", true)
-	appCfg.Set("prometheus-retention-time", "31104000")
-	appCfg.Set("enabled-unsafe-cors", true)
 	return global_utils.WriteTomlTreeToFile(appCfg, appConfigFilePath)
 }
 
@@ -126,7 +119,6 @@ func UpdateClientConfig(rlpCfg config.RollappConfig) error {
 		return fmt.Errorf("failed to load %s: %v", clientConfigFilePath, err)
 	}
 	clientCfg.Set("chain-id", rlpCfg.HubData.ID)
-	clientCfg.Set("keyring-backend", "test")
 	clientCfg.Set("node", "tcp://0.0.0.0:36657")
 	return global_utils.WriteTomlTreeToFile(clientCfg, clientConfigFilePath)
 }
