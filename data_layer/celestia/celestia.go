@@ -28,6 +28,7 @@ type Celestia struct {
 	rpcEndpoint     string
 	metricsEndpoint string
 	RPCPort         string
+	NamespaceID     string
 }
 
 func NewCelestia(home string) *Celestia {
@@ -207,7 +208,10 @@ func (c *Celestia) GetNetworkName() string {
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
+	if c.NamespaceID == "" {
+		c.NamespaceID = generateRandNamespaceID()
+	}
 	lcEndpoint := c.GetLightNodeEndpoint()
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"000000000000ffff"}`,
-		lcEndpoint)
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
+		lcEndpoint, c.NamespaceID)
 }
