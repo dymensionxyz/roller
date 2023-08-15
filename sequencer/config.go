@@ -73,7 +73,8 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 	}
 
 	appCfg.Set("minimum-gas-prices", "0"+rlpCfg.Denom)
-	appCfg.Set("api.enable", "true")
+	appCfg.Set("api.enable", true)
+	appCfg.Set("api.enabled-unsafe-cors", true)
 
 	if appCfg.Has("json-rpc") {
 		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
