@@ -15,10 +15,12 @@ TGZ_URL=$(curl -s $API_URL \
     | tr -d ' ' )
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
+DYMD_BIN_PATH="/usr/local/bin/dymd"
 ROLLAPP_EVM_PATH="/usr/local/bin/rollapp_evm"  # The path where rollapp_evm will be installed
-if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
+if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -f "$DYMD_BIN_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
     sudo rm -f "$ROLLER_BIN_PATH"
     sudo rm -f "$ROLLAPP_EVM_PATH"
+    sudo rm -f "$DYMD_BIN_PATH"
     sudo rm -rf "$INTERNAL_DIR"
 fi
 sudo mkdir -p "$INTERNAL_DIR"
@@ -28,8 +30,10 @@ sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp"
 echo "💈 Installing roller..."
 sudo mv "/tmp/roller_tmp/roller_bins/lib"/* "$INTERNAL_DIR"
 sudo mv "/tmp/roller_tmp/roller_bins/roller" "$ROLLER_BIN_PATH"
-sudo mv "/tmp/roller_tmp/roller_bins/rollapp_evm" "$ROLLAPP_EVM_PATH"  # move the rollapp_evm binary
+sudo mv "/tmp/roller_tmp/roller_bins/rollapp_evm" "$ROLLAPP_EVM_PATH"
+sudo mv "/tmp/roller_tmp/roller_bins/dymd" "$DYMD_BIN_PATH"
 sudo chmod +x "$ROLLER_BIN_PATH"
 sudo chmod +x "$ROLLAPP_EVM_PATH"
+sudo chmod +x "$DYMD_BIN_PATH"
 sudo rm -rf "/tmp/roller_tmp"
 echo "💈 Installation complete! You can now use roller from your terminal."
