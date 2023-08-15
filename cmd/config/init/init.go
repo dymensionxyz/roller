@@ -159,6 +159,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	/* ------------------------------ Initialize Local Hub ---------------------------- */
+	hub := cmd.Flag(FlagNames.HubID).Value.String()
+	if hub == LocalHubName {
+		err := initLocalHub(initConfig)
+		utils.PrettifyErrorIfExists(err)
+	}
+
 	/* ------------------------------ Print output ------------------------------ */
 	spin.Stop()
 	printInitOutput(initConfig, addresses, initConfig.RollappID)
