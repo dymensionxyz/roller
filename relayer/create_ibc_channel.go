@@ -64,7 +64,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
-	status = "Updating clients..."
+	status = "Waiting for channel finalization..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
@@ -86,7 +86,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		retry.DelayType(retry.FixedDelay),
 		retry.Attempts(5),
 		retry.OnRetry(func(n uint, err error) {
-			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
+			r.logger.Printf("error validating clients created. attempt %d, error %s", n, err)
 		}),
 	)
 	if err != nil {
@@ -121,7 +121,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "300s", "--override"}
+	args := []string{"tx", "channel", "-t", "300s"}
 	if override {
 		args = append(args, "--override")
 	}

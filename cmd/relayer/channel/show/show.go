@@ -1,7 +1,10 @@
 package show
 
 import (
+	"errors"
 	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
@@ -17,14 +20,17 @@ func Cmd() *cobra.Command {
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			rly := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
-			srcChannel, dstChannel, err := rly.LoadChannels()
-			utils.PrettifyErrorIfExists(err)
-			if srcChannel == "" {
-				fmt.Println("💈 No channel has been created for the relayer yet.")
+
+			bytes, err := os.ReadFile(rly.StatusFilePath())
+			if err != nil {
+				if errors.Is(err, os.ErrNotExist) {
+					fmt.Println("💈 Starting...")
+					return
+				}
 			} else {
-				fmt.Printf("💈 Relayer Channels: src, %s <-> %s, dst\n",
-					srcChannel, dstChannel)
+				utils.PrettifyErrorIfExists(err)
 			}
+			fmt.Println(string(bytes))
 		},
 	}
 	return cmd
