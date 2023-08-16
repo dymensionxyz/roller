@@ -10,6 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flagNames = struct {
+	outputType string
+}{
+	outputType: "output",
+}
+
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -62,6 +68,6 @@ func Cmd() *cobra.Command {
 			utils.PrintAddresses(addresses)
 		},
 	}
-
+	cmd.Flags().StringP(flagNames.outputType, "", "text", "Output format (text|json)")
 	return cmd
 }
