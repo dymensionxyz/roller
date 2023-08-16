@@ -19,6 +19,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flagNames = struct {
+	NoOutput string
+}{
+	NoOutput: "no-output",
+}
+
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -47,7 +53,13 @@ func Cmd() *cobra.Command {
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
 
 			/* ------------------------------ render output ----------------------------- */
-			RenderUI(rollappConfig, serviceConfig)
+			noOutput, err := cmd.Flags().GetBool(flagNames.NoOutput)
+			utils.PrettifyErrorIfExists(err)
+			if noOutput {
+				select {}
+			} else {
+				RenderUI(rollappConfig, serviceConfig)
+			}
 			cancel()
 			spin := utils.GetLoadingSpinner()
 			spin.Suffix = " Stopping rollapp services, please wait..."
@@ -57,7 +69,7 @@ func Cmd() *cobra.Command {
 			spin.Stop()
 		},
 	}
-
+	cmd.Flags().BoolP(flagNames.NoOutput, "", false, "Run the rollapp without rendering the UI.")
 	return cmd
 }
 
