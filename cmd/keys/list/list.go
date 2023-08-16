@@ -1,6 +1,8 @@
 package list
 
 import (
+	"encoding/json"
+	"fmt"
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -9,6 +11,12 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/spf13/cobra"
 )
+
+var flagNames = struct {
+	outputType string
+}{
+	outputType: "output",
+}
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -59,9 +67,27 @@ func Cmd() *cobra.Command {
 				Addr: rollappRlyAddr,
 				Name: consts.KeysIds.RollappRelayer,
 			})
-			utils.PrintAddresses(addresses)
+			outputType := cmd.Flag(flagNames.outputType).Value.String()
+			if outputType == "json" {
+				utils.PrettifyErrorIfExists(printAsJSON(addresses))
+			} else if outputType == "text" {
+				utils.PrintAddresses(addresses)
+			}
 		},
 	}
-
+	cmd.Flags().StringP(flagNames.outputType, "", "text", "Output format (text|json)")
 	return cmd
+}
+
+func printAsJSON(addresses []utils.AddressData) error {
+	addrMap := make(map[string]string)
+	for _, addrData := range addresses {
+		addrMap[addrData.Name] = addrData.Addr
+	}
+	data, err := json.MarshalIndent(addrMap, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshalling data %s", err)
+	}
+	fmt.Println(string(data))
+	return nil
 }
