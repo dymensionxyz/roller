@@ -41,7 +41,7 @@ func Start() *cobra.Command {
 
 			override := cmd.Flag(flagOverride).Changed
 			if override {
-				fmt.Println("💈 Overriding the existing rly channel")
+				fmt.Println("💈 Overriding the existing relayer channel")
 			}
 			if rly.ChannelReady() && !override {
 				fmt.Println("💈 IBC transfer channel is already established!")
@@ -57,7 +57,7 @@ func Start() *cobra.Command {
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 5, logFileOption)
 			relayAcksCmd := rly.GetRelayAcksCmd()
 			utils.RunCommandEvery(relayAcksCmd.Path, relayAcksCmd.Args[1:], 5, logFileOption)
-			fmt.Printf("💈 The rly is running successfully on you local machine! Channels: src, %s <-> %s, dst",
+			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
 				rly.SrcChannel, rly.DstChannel)
 
 			select {}
