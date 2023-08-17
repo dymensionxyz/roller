@@ -1,6 +1,6 @@
 {
   "genesis_time": "PLACEHOLDER_TIMESTAMP",
-  "chain_id": "mars_1-1",
+  "chain_id": "mars_1238-1",
   "initial_height": "1",
   "consensus_params": {
     "block": {
