@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/exec"
 	"regexp"
+	"strings"
 )
 
 // TODO(#150): roller should use RPC for queries instead of REST
@@ -92,7 +93,13 @@ func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) er
 		return err
 	}
 	if !isUniqueRollapp {
-		return fmt.Errorf("Rollapp ID \"%s\" already exists on the hub. Please use a unique ID.", rollappID)
+		if initConfig.VMType == config.SDK_ROLLAPP {
+			return fmt.Errorf("rollapp ID \"%s\" already exists on the hub. Please use a unique ID", rollappID)
+		} else {
+			ethID := getEthID(rollappID)
+			return fmt.Errorf("ethereum ID \"%s\" already exists on the hub (%s). Please use a unique ethereum ID",
+				ethID, strings.Replace(rollappID, ethID, fmt.Sprintf("*%s*", ethID), 1))
+		}
 	}
 	return nil
 }
