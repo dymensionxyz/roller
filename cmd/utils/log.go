@@ -23,6 +23,13 @@ func WithLogging(logFile string) CommandOption {
 	}
 }
 
+func WithLoggerLogging(logger *log.Logger) CommandOption {
+	return func(cmd *exec.Cmd) {
+		cmd.Stdout = logger.Writer()
+		cmd.Stderr = logger.Writer()
+	}
+}
+
 func GetLogger(filepath string) *log.Logger {
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   filepath,

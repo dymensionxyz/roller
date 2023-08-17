@@ -31,34 +31,34 @@ func Start() *cobra.Command {
 
 			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
-			logFileOption := utils.WithLogging(relayerLogFilePath)
+			logger := utils.GetLogger(relayerLogFilePath)
+			logFileOption := utils.WithLoggerLogging(logger)
+			rly := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
+			rly.SetLogger(logger)
 
-			relayer := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
-			relayer.SetLogger(utils.GetLogger(relayerLogFilePath))
-
-			_, _, err = relayer.LoadChannels()
+			_, _, err = rly.LoadChannels()
 			utils.PrettifyErrorIfExists(err)
 
 			override := cmd.Flag(flagOverride).Changed
 			if override {
 				fmt.Println("💈 Overriding the existing relayer channel")
 			}
-			if relayer.ChannelReady() && !override {
+			if rly.ChannelReady() && !override {
 				fmt.Println("💈 IBC transfer channel is already established!")
 			} else {
 				fmt.Println("💈 Establishing IBC transfer channel")
-				_, err := relayer.CreateIBCChannel(override, logFileOption)
+				_, err := rly.CreateIBCChannel(override, logFileOption)
 				utils.PrettifyErrorIfExists(err)
 			}
 
-			updateClientsCmd := relayer.GetUpdateClientsCmd()
+			updateClientsCmd := rly.GetUpdateClientsCmd()
 			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 5, logFileOption)
-			relayPacketsCmd := relayer.GetRelayPacketsCmd()
+			relayPacketsCmd := rly.GetRelayPacketsCmd()
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 5, logFileOption)
-			relayAcksCmd := relayer.GetRelayAcksCmd()
+			relayAcksCmd := rly.GetRelayAcksCmd()
 			utils.RunCommandEvery(relayAcksCmd.Path, relayAcksCmd.Args[1:], 5, logFileOption)
 			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
-				relayer.SrcChannel, relayer.DstChannel)
+				rly.SrcChannel, rly.DstChannel)
 
 			select {}
 		},
