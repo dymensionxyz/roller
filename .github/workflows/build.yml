@@ -58,6 +58,7 @@ jobs:
           sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
           sudo cp /usr/local/bin/roller ./roller_bins/roller
           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
+          sudo cp /usr/local/bin/dymd ./roller_bins/dymd
       - name: Set up filenames
         run: |
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
