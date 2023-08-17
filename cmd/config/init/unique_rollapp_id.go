@@ -97,7 +97,7 @@ func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) er
 			return fmt.Errorf("rollapp ID \"%s\" already exists on the hub. Please use a unique ID", rollappID)
 		} else {
 			ethID := getEthID(rollappID)
-			return fmt.Errorf("ethereum ID \"%s\" already exists on the hub (%s). Please use a unique ethereum ID",
+			return fmt.Errorf("EIP155 ID \"%s\" already exists on the hub (%s). Please use a unique EIP155 ID",
 				ethID, strings.Replace(rollappID, ethID, fmt.Sprintf("*%s*", ethID), 1))
 		}
 	}
