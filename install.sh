@@ -8,11 +8,15 @@ elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
     ARCH="arm64"
 fi
 API_URL="https://api.github.com/repos/dymensionxyz/roller/releases/latest"
-TGZ_URL=$(curl -s $API_URL \
-    | grep "browser_download_url.*_${OS}_${ARCH}.tar.gz" \
-    | cut -d : -f 2,3 \
-    | tr -d \" \
-    | tr -d ' ' )
+if [ -z "$ROLLER_RELEASE_TAG" ]; then
+  TGZ_URL=$(curl -s $API_URL \
+      | grep "browser_download_url.*_${OS}_${ARCH}.tar.gz" \
+      | cut -d : -f 2,3 \
+      | tr -d \" \
+      | tr -d ' ' )
+else
+  TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/$ROLLER_RELEASE_TAG/roller_${ROLLER_RELEASE_TAG}_${OS}_${ARCH}.tar.gz"
+fi
 INTERNAL_DIR="/usr/local/bin/roller_bins"
 ROLLER_BIN_PATH="/usr/local/bin/roller"
 DYMD_BIN_PATH="/usr/local/bin/dymd"
