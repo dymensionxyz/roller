@@ -29,7 +29,10 @@ func RunCommandEvery(command string, args []string, intervalSec int, options ...
 			var stderr bytes.Buffer
 			errmw := io.MultiWriter(&stderr, cmd.Stderr)
 			cmd.Stderr = errmw
-			_ = cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				fmt.Printf("Failed to execute command: %s, err: %s\n", command, stderr.String())
+			}
 			time.Sleep(time.Duration(intervalSec) * time.Second)
 		}
 	}()
