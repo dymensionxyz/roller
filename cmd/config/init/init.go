@@ -55,15 +55,21 @@ A valid denom should consist of 3-6 English alphabet letters, for example, 'btc'
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
+	noOutput, err := cmd.Flags().GetBool(FlagNames.NoOutput)
+	if err != nil {
+		return err
+	}
 	initConfig, err := GetInitConfig(cmd, args)
 	if err != nil {
 		return err
 	}
 	spin := utils.GetLoadingSpinner()
-	spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
-	utils.RunOnInterrupt(spin.Stop)
-	spin.Start()
-	defer spin.Stop()
+	if !noOutput {
+		spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
+		utils.RunOnInterrupt(spin.Stop)
+		spin.Start()
+		defer spin.Stop()
+	}
 	err = initConfig.Validate()
 	if err != nil {
 		return err
@@ -77,10 +83,15 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if isRootExist {
-		spin.Stop()
-		shouldOverwrite, err := promptOverwriteConfig(initConfig.Home)
-		if err != nil {
-			return err
+		if !noOutput {
+			spin.Stop()
+		}
+		shouldOverwrite := true
+		if !noOutput {
+			shouldOverwrite, err = promptOverwriteConfig(initConfig.Home)
+			if err != nil {
+				return err
+			}
 		}
 		if shouldOverwrite {
 			err = os.RemoveAll(initConfig.Home)
@@ -90,15 +101,19 @@ func runInit(cmd *cobra.Command, args []string) error {
 		} else {
 			os.Exit(0)
 		}
-		spin.Start()
+		if !noOutput {
+			spin.Start()
+		}
 	}
 	err = os.MkdirAll(initConfig.Home, 0755)
 	if err != nil {
 		return err
 	}
 	//TODO: create all dirs here
-	spin.Suffix = " Initializing RollApp configuration files..."
-	spin.Restart()
+	if !noOutput {
+		spin.Suffix = " Initializing RollApp configuration files..."
+		spin.Restart()
+	}
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
 	utils.PrettifyErrorIfExists(err)
@@ -167,8 +182,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
-	spin.Stop()
-	printInitOutput(initConfig, addresses, initConfig.RollappID)
+	if !noOutput {
+		spin.Stop()
+		printInitOutput(initConfig, addresses, initConfig.RollappID)
+	}
 
 	return nil
 }
