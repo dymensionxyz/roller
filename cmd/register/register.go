@@ -19,9 +19,13 @@ import (
 // TODO: Test registration on 35-C and update the price
 var registerUdymPrice = big.NewInt(1)
 
-const (
-	flagForceSeqRegistration = "force"
-)
+var flagNames = struct {
+	NoOutput             string
+	forceSeqRegistration string
+}{
+	NoOutput:             "no-output",
+	forceSeqRegistration: "force",
+}
 
 func Cmd() *cobra.Command {
 	registerCmd := &cobra.Command{
@@ -32,16 +36,23 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	registerCmd.Flags().BoolP(flagForceSeqRegistration, "f", false, "force sequencer registration even if the rollapp is already registered")
+	registerCmd.Flags().BoolP(flagNames.forceSeqRegistration, "f", false, "force sequencer registration even if the rollapp is already registered")
+	registerCmd.Flags().BoolP(flagNames.NoOutput, "", false, "Register the rollapp without output.")
 	return registerCmd
 }
 
 func register(cmd *cobra.Command, args []string) error {
 	spin := utils.GetLoadingSpinner()
-	spin.Suffix = consts.SpinnerMsgs.BalancesVerification
-	spin.Start()
-	defer spin.Stop()
-	utils.RunOnInterrupt(spin.Stop)
+	noOutput, err := cmd.Flags().GetBool(flagNames.NoOutput)
+	if err != nil {
+		return err
+	}
+	if !noOutput {
+		spin.Suffix = consts.SpinnerMsgs.BalancesVerification
+		spin.Start()
+		defer spin.Stop()
+		utils.RunOnInterrupt(spin.Stop)
+	}
 	home := cmd.Flag(utils.FlagNames.Home).Value.String()
 	rollappConfig, err := config.LoadConfigFromTOML(home)
 	if err != nil {
@@ -52,15 +63,18 @@ func register(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if len(notFundedAddrs) > 0 {
-		spin.Stop()
+		if !noOutput {
+			spin.Stop()
+		}
 		utils.PrintInsufficientBalancesIfAny(notFundedAddrs, rollappConfig)
 	}
-
-	spin.Suffix = " Registering RollApp to hub...\n"
-	spin.Restart()
+	if !noOutput {
+		spin.Suffix = " Registering RollApp to hub...\n"
+		spin.Restart()
+	}
 	registerRollappCmd := getRegisterRollappCmd(rollappConfig)
 	if err := runcCommandWithErrorChecking(registerRollappCmd); err != nil {
-		if cmd.Flag(flagForceSeqRegistration).Changed {
+		if cmd.Flag(flagNames.forceSeqRegistration).Changed {
 			fmt.Println("RollApp is already registered. Attempting to register sequencer anyway...")
 		} else {
 			return err
@@ -70,13 +84,17 @@ func register(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	spin.Suffix = " Registering RollApp sequencer...\n"
-	spin.Restart()
+	if !noOutput {
+		spin.Suffix = " Registering RollApp sequencer...\n"
+		spin.Restart()
+	}
 	err = runcCommandWithErrorChecking(registerSequencerCmd)
 	if err != nil {
 		return err
 	}
-	spin.Stop()
+	if !noOutput {
+		spin.Stop()
+	}
 	printRegisterOutput(rollappConfig)
 	return nil
 }
