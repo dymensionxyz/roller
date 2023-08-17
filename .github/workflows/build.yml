@@ -3,6 +3,9 @@ name: Create Roller Release Assets
 on:
   release:
     types: [ created ]
+  push:
+    branches:
+      - itaylevyofficial/415-fix-cd-bug
 
 jobs:
   build:
