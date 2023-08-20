@@ -55,3 +55,39 @@ type NotFundedAddressData struct {
 func GetLoadingSpinner() *spinner.Spinner {
 	return spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 }
+
+type OutputHandler struct {
+	NoOutput bool
+	spinner  *spinner.Spinner
+}
+
+func NewOutputHandler(noOutput bool) *OutputHandler {
+	if noOutput {
+		return &OutputHandler{
+			NoOutput: noOutput,
+		}
+	}
+	return &OutputHandler{
+		NoOutput: noOutput,
+		spinner:  GetLoadingSpinner(),
+	}
+}
+
+func (o *OutputHandler) DisplayMessage(msg string) {
+	if !o.NoOutput {
+		fmt.Println(msg)
+	}
+}
+
+func (o *OutputHandler) StartSpinner(suffix string) {
+	if !o.NoOutput {
+		o.spinner.Suffix = suffix
+		o.spinner.Restart()
+	}
+}
+
+func (o *OutputHandler) StopSpinner() {
+	if !o.NoOutput {
+		o.spinner.Stop()
+	}
+}

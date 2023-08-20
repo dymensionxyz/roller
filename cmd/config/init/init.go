@@ -63,13 +63,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	spin := utils.GetLoadingSpinner()
-	if !noOutput {
-		spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
-		utils.RunOnInterrupt(spin.Stop)
-		spin.Start()
-		defer spin.Stop()
-	}
+	outputHandler := NewOutputHandler(noOutput)
+	defer outputHandler.StopSpinner()
+	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
 		return err
@@ -83,15 +80,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if isRootExist {
-		if !noOutput {
-			spin.Stop()
-		}
-		shouldOverwrite := true
-		if !noOutput {
-			shouldOverwrite, err = promptOverwriteConfig(initConfig.Home)
-			if err != nil {
-				return err
-			}
+		outputHandler.StopSpinner()
+		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(initConfig.Home)
+		if err != nil {
+			return err
 		}
 		if shouldOverwrite {
 			err = os.RemoveAll(initConfig.Home)
@@ -101,19 +93,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 		} else {
 			os.Exit(0)
 		}
-		if !noOutput {
-			spin.Start()
-		}
 	}
 	err = os.MkdirAll(initConfig.Home, 0755)
 	if err != nil {
 		return err
 	}
 	//TODO: create all dirs here
-	if !noOutput {
-		spin.Suffix = " Initializing RollApp configuration files..."
-		spin.Restart()
-	}
+	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
 	utils.PrettifyErrorIfExists(err)
@@ -182,10 +168,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
-	if !noOutput {
-		spin.Stop()
-		printInitOutput(initConfig, addresses, initConfig.RollappID)
-	}
+	outputHandler.StopSpinner()
+	outputHandler.printInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
 }

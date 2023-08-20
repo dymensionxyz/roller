@@ -42,17 +42,14 @@ func Cmd() *cobra.Command {
 }
 
 func register(cmd *cobra.Command, args []string) error {
-	spin := utils.GetLoadingSpinner()
 	noOutput, err := cmd.Flags().GetBool(flagNames.NoOutput)
+	outputHandler := utils.NewOutputHandler(noOutput)
 	if err != nil {
 		return err
 	}
-	if !noOutput {
-		spin.Suffix = consts.SpinnerMsgs.BalancesVerification
-		spin.Start()
-		defer spin.Stop()
-		utils.RunOnInterrupt(spin.Stop)
-	}
+	defer outputHandler.StopSpinner()
+	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	outputHandler.StartSpinner(consts.SpinnerMsgs.BalancesVerification)
 	home := cmd.Flag(utils.FlagNames.Home).Value.String()
 	rollappConfig, err := config.LoadConfigFromTOML(home)
 	if err != nil {
@@ -63,15 +60,10 @@ func register(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if len(notFundedAddrs) > 0 {
-		if !noOutput {
-			spin.Stop()
-		}
+		outputHandler.StopSpinner()
 		utils.PrintInsufficientBalancesIfAny(notFundedAddrs, rollappConfig)
 	}
-	if !noOutput {
-		spin.Suffix = " Registering RollApp to hub...\n"
-		spin.Restart()
-	}
+	outputHandler.StartSpinner(" Registering RollApp to hub...\n")
 	registerRollappCmd := getRegisterRollappCmd(rollappConfig)
 	if err := runcCommandWithErrorChecking(registerRollappCmd); err != nil {
 		if cmd.Flag(flagNames.forceSeqRegistration).Changed {
@@ -84,18 +76,13 @@ func register(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !noOutput {
-		spin.Suffix = " Registering RollApp sequencer...\n"
-		spin.Restart()
-	}
+	outputHandler.StartSpinner(" Registering RollApp sequencer...\n")
 	err = runcCommandWithErrorChecking(registerSequencerCmd)
 	if err != nil {
 		return err
 	}
-	if !noOutput {
-		spin.Stop()
-	}
-	printRegisterOutput(rollappConfig)
+	outputHandler.StopSpinner()
+	outputHandler.DisplayMessage(fmt.Sprintf("💈 Rollapp '%s' has been successfully registered on the hub.", rollappConfig.RollappID))
 	return nil
 }
 
@@ -135,8 +122,4 @@ func handleStdOut(stdout bytes.Buffer) error {
 	}
 
 	return nil
-}
-
-func printRegisterOutput(rollappConfig config.RollappConfig) {
-	fmt.Printf("💈 Rollapp '%s' has been successfully registered on the hub.\n", rollappConfig.RollappID)
 }
