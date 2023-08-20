@@ -52,7 +52,7 @@ func Start() *cobra.Command {
 			}
 
 			updateClientsCmd := rly.GetUpdateClientsCmd()
-			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 5, logFileOption)
+			utils.RunCommandEvery(updateClientsCmd.Path, updateClientsCmd.Args[1:], 3600, logFileOption)
 			relayPacketsCmd := rly.GetRelayPacketsCmd()
 			utils.RunCommandEvery(relayPacketsCmd.Path, relayPacketsCmd.Args[1:], 5, logFileOption)
 			relayAcksCmd := rly.GetRelayAcksCmd()
