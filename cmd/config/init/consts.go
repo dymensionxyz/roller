@@ -10,6 +10,7 @@ var FlagNames = struct {
 	Interactive   string
 	DAType        string
 	VMType        string
+	NoOutput      string
 }{
 	TokenSupply:   "token-supply",
 	RollappBinary: "rollapp-binary",
@@ -18,6 +19,7 @@ var FlagNames = struct {
 	Decimals:      "decimals",
 	DAType:        "da",
 	VMType:        "vm-type",
+	NoOutput:      "no-output",
 }
 
 const (
