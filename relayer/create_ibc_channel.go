@@ -96,6 +96,9 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		}, retry.Delay(time.Duration(30)*time.Second),
 		retry.DelayType(retry.FixedDelay),
 		retry.Attempts(5),
+		retry.OnRetry(func(n uint, err error) {
+			r.logger.Printf("failed to create channels. attempt %d, error %s", n, err)
+		}),
 	)
 	if err != nil {
 		return ConnectionChannels{}, err
