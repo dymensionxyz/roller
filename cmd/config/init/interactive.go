@@ -12,7 +12,7 @@ import (
 func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",
-		Items: []string{"devnet", "local"},
+		Items: []string{"froopyland", "devnet", "local"},
 	}
 	_, mode, err := promptNetwork.Run()
 	if err != nil {
