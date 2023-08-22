@@ -2,8 +2,9 @@ package initconfig
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/version"
 	"strings"
+
+	"github.com/dymensionxyz/roller/version"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -16,7 +17,7 @@ const (
 )
 
 func addFlags(cmd *cobra.Command) error {
-	cmd.Flags().StringP(FlagNames.HubID, "", StagingHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
@@ -77,5 +78,5 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s' or '%s'", StagingHubName, LocalHubName)
+	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", FroopylandHubName, StagingHubName, LocalHubName)
 }
