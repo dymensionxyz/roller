@@ -55,15 +55,18 @@ A valid denom should consist of 3-6 English alphabet letters, for example, 'btc'
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
+	noOutput, err := cmd.Flags().GetBool(FlagNames.NoOutput)
+	if err != nil {
+		return err
+	}
 	initConfig, err := GetInitConfig(cmd, args)
 	if err != nil {
 		return err
 	}
-	spin := utils.GetLoadingSpinner()
-	spin.Suffix = consts.SpinnerMsgs.UniqueIdVerification
-	utils.RunOnInterrupt(spin.Stop)
-	spin.Start()
-	defer spin.Stop()
+	outputHandler := NewOutputHandler(noOutput)
+	defer outputHandler.StopSpinner()
+	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
 		return err
@@ -77,8 +80,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if isRootExist {
-		spin.Stop()
-		shouldOverwrite, err := promptOverwriteConfig(initConfig.Home)
+		outputHandler.StopSpinner()
+		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(initConfig.Home)
 		if err != nil {
 			return err
 		}
@@ -90,15 +93,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 		} else {
 			os.Exit(0)
 		}
-		spin.Start()
 	}
 	err = os.MkdirAll(initConfig.Home, 0755)
 	if err != nil {
 		return err
 	}
 	//TODO: create all dirs here
-	spin.Suffix = " Initializing RollApp configuration files..."
-	spin.Restart()
+	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
 	utils.PrettifyErrorIfExists(err)
@@ -167,8 +168,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
-	spin.Stop()
-	printInitOutput(initConfig, addresses, initConfig.RollappID)
+	outputHandler.StopSpinner()
+	outputHandler.printInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
 }
