@@ -13,7 +13,7 @@ ARCH=$(uname -m)
 # The list of projects to be installed
 PROJECTS=("dymension" "dymension-relayer" "rollapp-evm")
 REPOS=("" "" "")
-VERSIONS=("v1.0.0-rc2" "v0.1.0-relayer-v0.2.0-rc3" "v0.1.0-rc5")
+VERSIONS=("v1.0.0-rc2" "v0.1.0-relayer-v0.2.0-rc3" "v0.1.0-rc6")
 BUILDCOMMANDS=("" "" "")
 BINARYNAME=("dymd" "rly" "rollapp-evm")
 
