@@ -25,7 +25,9 @@ func TestInitCmd(t *testing.T) {
 			name:          "Roller config init with default values",
 			goldenDirPath: "./goldens/init_without_flags",
 			excludedDirs:  []string{"gentx"},
-			optionalFlags: []string{},
+			optionalFlags: []string{
+				"--" + initconfig.FlagNames.HubID, "devnet",
+			},
 		},
 		{
 			name:          "Roller config init with custom flags",
@@ -33,6 +35,7 @@ func TestInitCmd(t *testing.T) {
 			excludedDirs:  []string{"gentx"},
 			optionalFlags: []string{
 				"--" + initconfig.FlagNames.TokenSupply, tokenSupply,
+				"--" + initconfig.FlagNames.HubID, "devnet",
 			},
 		},
 	}
