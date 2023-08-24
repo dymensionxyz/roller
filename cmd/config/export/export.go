@@ -2,6 +2,7 @@ package export
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -29,8 +30,7 @@ func Cmd() *cobra.Command {
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			srcChannel, hubChannel, err := rly.LoadChannels()
 			if err != nil || srcChannel == "" || hubChannel == "" {
-				//utils.PrettifyErrorIfExists(errors.New("no relayer channels found, please create a channel before listing" +
-				//	" your rollapp on the portal"))
+				utils.PrettifyErrorIfExists(errors.New("no relayer channel was found on your local machine. Please create a channel before listing your rollapp on the portal"))
 			}
 			networkJson := NetworkJson{
 				ChainId:      rlpCfg.RollappID,
@@ -71,12 +71,22 @@ func Cmd() *cobra.Command {
 			} else {
 				networkJson.Da = Celestia
 			}
-
-			jsonString, err := json.MarshalIndent(networkJson, "", "  ")
-			if err != nil {
-				panic(err)
+			currency := Currency{
+				CoinDenom:        baseDenom[1:],
+				CoinMinimalDenom: baseDenom,
+				CoinDecimals:     rlpCfg.Decimals,
+				Logo:             "",
 			}
-			println(string(jsonString))
+
+			networkJsonString, err := json.MarshalIndent(networkJson, "", "  ")
+			utils.PrettifyErrorIfExists(err)
+			currencyJsonString, err := json.MarshalIndent(currency, "", "  ")
+			utils.PrettifyErrorIfExists(err)
+			println("💈 networks.json:")
+			println(string(networkJsonString))
+			println()
+			println("💈 tokens.json:")
+			println(string(currencyJsonString))
 		},
 	}
 	return cmd
