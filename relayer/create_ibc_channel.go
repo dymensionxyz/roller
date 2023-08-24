@@ -53,15 +53,21 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
 
-	//don't allow overriding the connection
-	createConnectionCmd := r.getCreateConnectionCmd(false)
-	status = "Creating connection..."
-	fmt.Printf("💈 %s\n", status)
-	if err := r.WriteRelayerStatus(status); err != nil {
+	connectionReady, err := r.IsConnectionOpen()
+	if err != nil {
 		return ConnectionChannels{}, err
 	}
-	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
-		return ConnectionChannels{}, err
+
+	if !connectionReady {
+		createConnectionCmd := r.getCreateConnectionCmd(override)
+		status = "Creating connection..."
+		fmt.Printf("💈 %s\n", status)
+		if err := r.WriteRelayerStatus(status); err != nil {
+			return ConnectionChannels{}, err
+		}
+		if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
+			return ConnectionChannels{}, err
+		}
 	}
 
 	var src, dst string
@@ -136,6 +142,7 @@ func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
 		args = append(args, "--override")
 	}
 	args = append(args, r.getRelayerDefaultArgs()...)
+	args = append(args, "-d")
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 

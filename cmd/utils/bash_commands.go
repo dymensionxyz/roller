@@ -29,7 +29,7 @@ func RunCommandEvery(ctx context.Context, command string, args []string, interva
 			}
 			err := cmd.Run()
 			if err != nil {
-				fmt.Printf("Failed to execute command: %s, err: %s\n", command, err)
+				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", command, err)))
 			}
 
 			if ctx.Err() != nil {
