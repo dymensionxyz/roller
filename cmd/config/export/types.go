@@ -70,28 +70,9 @@ type NetworkJson struct {
 	Analytics                 bool             `json:"analytics"`
 }
 
-//func main() {
-//	// Example usage
-//	data := &NetworkJson{
-//		// Populate fields here
-//	}
-//	jsonString, err := json.Marshal(data)
-//	if err != nil {
-//		panic(err)
-//	}
-//	println(string(jsonString))
-//}
-
 type Currency struct {
 	CoinDenom        string `json:"coinDenom"`
 	CoinMinimalDenom string `json:"coinMinimalDenom"`
 	CoinDecimals     uint   `json:"coinDecimals"`
 	Logo             string `json:"logo"`
 }
-
-//{
-//"coinDenom": "DYM",
-//"coinMinimalDenom": "udym",
-//"coinDecimals": 18,
-//"logo": "/logos/dymension-logo.svg"
-//}
