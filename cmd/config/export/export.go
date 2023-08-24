@@ -7,6 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
+	"math/big"
 )
 
 func Cmd() *cobra.Command {
@@ -52,15 +53,38 @@ func Cmd() *cobra.Command {
 					Channel:    srcChannel,
 					Timeout:    172800000,
 				},
-				Evm:         nil,
-				Type:        RollApp,
-				Da:          nil,
+				Type: RollApp,
+				//Da:          nil,
 				Description: nil,
 				Analytics:   false,
+			}
+			if rlpCfg.VMType == config.EVM_ROLLAPP {
+				evmID := config.GetEthID(rlpCfg.RollappID)
+				hexEvmID, err := decimalToHexStr(evmID)
+				utils.PrettifyErrorIfExists(err)
+				networkJson.Evm = &EvmConfig{
+					ChainId: hexEvmID,
+					Rpc:     "",
+				}
+			}
+			if rlpCfg.DA == config.Avail {
+				networkJson.Da = Avail
+			} else {
+				networkJson.Da = Celestia
 			}
 
 			fmt.Println(rlpCfg)
 		},
 	}
 	return cmd
+}
+
+func decimalToHexStr(decimalStr string) (string, error) {
+	num := new(big.Int)
+	num, ok := num.SetString(decimalStr, 10)
+	if !ok {
+		return "", fmt.Errorf("Failed to parse the decimal string: %s", decimalStr)
+	}
+	hexStr := fmt.Sprintf("0x%x", num)
+	return hexStr, nil
 }
