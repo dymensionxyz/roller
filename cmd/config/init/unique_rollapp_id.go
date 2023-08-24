@@ -8,7 +8,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	"net/http"
 	"os/exec"
-	"regexp"
 	"strings"
 )
 
@@ -67,20 +66,11 @@ func verifyUniqueEthIdentifier(rollappID string, rlpCfg config.RollappConfig) (b
 		return false, err
 	}
 	for _, rollapp := range rollappsListResponse.Rollapps {
-		if getEthID(rollapp.ID) == getEthID(rollappID) {
+		if config.GetEthID(rollapp.ID) == config.GetEthID(rollappID) {
 			return false, nil
 		}
 	}
 	return true, nil
-}
-
-func getEthID(rollappID string) string {
-	re := regexp.MustCompile(`_(\d+)-`)
-	matches := re.FindStringSubmatch(rollappID)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
 }
 
 func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) error {
@@ -96,7 +86,7 @@ func VerifyUniqueRollappID(rollappID string, initConfig config.RollappConfig) er
 		if initConfig.VMType == config.SDK_ROLLAPP {
 			return fmt.Errorf("rollapp ID \"%s\" already exists on the hub. Please use a unique ID", rollappID)
 		} else {
-			ethID := getEthID(rollappID)
+			ethID := config.GetEthID(rollappID)
 			return fmt.Errorf("EIP155 ID \"%s\" already exists on the hub (%s). Please use a unique EIP155 ID",
 				ethID, strings.Replace(rollappID, ethID, fmt.Sprintf("*%s*", ethID), 1))
 		}
