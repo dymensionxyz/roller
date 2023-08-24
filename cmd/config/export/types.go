@@ -1,8 +1,8 @@
 package export
 
 type IbcConfig struct {
-	HubChannel    *string  `json:"hubChannel,omitempty"`
-	Channel       *string  `json:"channel,omitempty"`
+	HubChannel    string   `json:"hubChannel"`
+	Channel       string   `json:"channel"`
 	Timeout       int      `json:"timeout"`
 	EnabledTokens []string `json:"enabledTokens,omitempty"`
 }

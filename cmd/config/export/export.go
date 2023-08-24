@@ -1,9 +1,11 @@
 package export
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +25,12 @@ func Cmd() *cobra.Command {
 			if rlpCfg.VMType == config.EVM_ROLLAPP {
 				coinType = 60
 			}
+			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
+			srcChannel, hubChannel, err := rly.LoadChannels()
+			if err != nil {
+				utils.PrettifyErrorIfExists(errors.New("no relayer channels found, please create a channel before listing" +
+					" your rollapp on the portal"))
+			}
 			networkJson := NetworkJson{
 				ChainId:      rlpCfg.RollappID,
 				ChainName:    rlpCfg.RollappID,
@@ -39,12 +47,16 @@ func Cmd() *cobra.Command {
 				FaucetUrl:      defaultFaucetUrl,
 				Website:        "",
 				Logo:           "",
-				Ibc:            IbcConfig{},
-				Evm:            nil,
-				Type:           RollApp,
-				Da:             nil,
-				Description:    nil,
-				Analytics:      false,
+				Ibc: IbcConfig{
+					HubChannel: hubChannel,
+					Channel:    srcChannel,
+					Timeout:    172800000,
+				},
+				Evm:         nil,
+				Type:        RollApp,
+				Da:          nil,
+				Description: nil,
+				Analytics:   false,
 			}
 
 			fmt.Println(rlpCfg)
