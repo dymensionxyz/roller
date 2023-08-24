@@ -142,7 +142,6 @@ func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
 		args = append(args, "--override")
 	}
 	args = append(args, r.getRelayerDefaultArgs()...)
-	args = append(args, "-d")
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
