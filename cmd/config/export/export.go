@@ -17,31 +17,34 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
+			const defaultFaucetUrl = "https://discord.com/channels/956961633165529098/1125047988247593010"
+			baseDenom := "u" + rlpCfg.Denom
+			coinType := 118
+			if rlpCfg.VMType == config.EVM_ROLLAPP {
+				coinType = 60
+			}
 			networkJson := NetworkJson{
-				ChainId:                   rlpCfg.RollappID,
-				ChainName:                 rlpCfg.RollappID,
-				Rpc:                       "",
-				Rest:                      "",
-				Bech32Prefix:              bech32,
-				Currencies:                nil,
-				NativeCurrency:            "",
-				StakeCurrency:             "",
-				FeeCurrency:               "",
-				CoinType:                  0,
-				FaucetUrl:                 "",
-				Website:                   nil,
-				ValidatorsLogosStorageDir: nil,
-				Logo:                      "",
-				Disabled:                  nil,
-				Custom:                    nil,
-				Ibc:                       IbcConfig{},
-				Evm:                       nil,
-				Type:                      "",
-				Da:                        nil,
-				Apps:                      nil,
-				Description:               nil,
-				IsValidator:               nil,
-				Analytics:                 false,
+				ChainId:      rlpCfg.RollappID,
+				ChainName:    rlpCfg.RollappID,
+				Rpc:          "",
+				Rest:         "",
+				Bech32Prefix: bech32,
+				Currencies: []string{
+					baseDenom,
+				},
+				NativeCurrency: baseDenom,
+				StakeCurrency:  baseDenom,
+				FeeCurrency:    baseDenom,
+				CoinType:       coinType,
+				FaucetUrl:      defaultFaucetUrl,
+				Website:        "",
+				Logo:           "",
+				Ibc:            IbcConfig{},
+				Evm:            nil,
+				Type:           RollApp,
+				Da:             nil,
+				Description:    nil,
+				Analytics:      false,
 			}
 
 			fmt.Println(rlpCfg)

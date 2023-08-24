@@ -54,8 +54,8 @@ type NetworkJson struct {
 	CoinType                  int               `json:"coinType"`
 	ExplorerUrl               *string           `json:"explorerUrl,omitempty"`
 	ExploreTxUrl              *string           `json:"exploreTxUrl,omitempty"`
-	FaucetUrl                 *string           `json:"faucetUrl,omitempty"`
-	Website                   *string           `json:"website,omitempty"`
+	FaucetUrl                 string            `json:"faucetUrl,omitempty"`
+	Website                   string            `json:"website,omitempty"`
 	ValidatorsLogosStorageDir *string           `json:"validatorsLogosStorageDir,omitempty"`
 	Logo                      string            `json:"logo"`
 	Disabled                  *bool             `json:"disabled,omitempty"`
