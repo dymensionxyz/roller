@@ -33,14 +33,14 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	updateClientsCmd := r.GetUpdateClientsCmd()
 	err := retry.Do(
 		func() error {
+			updateClientsCmd := r.GetUpdateClientsCmd()
 			return utils.ExecBashCmd(updateClientsCmd, logFileOption)
 		},
-		retry.Delay(time.Duration(30)*time.Second),
+		retry.Delay(time.Duration(100)*time.Second),
 		retry.DelayType(retry.FixedDelay),
-		retry.Attempts(5),
+		retry.Attempts(3),
 		retry.OnRetry(func(n uint, err error) {
 			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
 		}),
@@ -50,7 +50,8 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	//after succesfull update clients, keep running in the background
-	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, logFileOption)
+	updateClientsCmd := r.GetUpdateClientsCmd()
+	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, []utils.CommandOption{}...)
 
 	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
@@ -63,49 +64,38 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	var src, dst string
+	createChannelCmd := r.getCreateChannelCmd(override)
+	status = "Creating channel..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
+	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
+		return ConnectionChannels{}, err
+	}
+	status = "Waiting for channel finalization..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
+
 	err = retry.Do(
 		func() error {
-			createChannelCmd := r.getCreateChannelCmd(override)
-			status = "Creating channel..."
-			fmt.Printf("💈 %s\n", status)
-			if err := r.WriteRelayerStatus(status); err != nil {
+			var err error
+			src, dst, err = r.LoadChannels()
+			if err != nil {
 				return err
 			}
-			if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
-				return err
+			if src == "" || dst == "" {
+				return fmt.Errorf("could not load channels")
 			}
-			status = "Waiting for channel finalization..."
-			fmt.Printf("💈 %s\n", status)
-			if err := r.WriteRelayerStatus(status); err != nil {
-				return err
-			}
-
-			err = retry.Do(
-				func() error {
-					var err error
-					src, dst, err = r.LoadChannels()
-					if err != nil {
-						return err
-					}
-					if src == "" || dst == "" {
-						return fmt.Errorf("could not load channels")
-					}
-					return nil
-				},
-				retry.Delay(time.Duration(30)*time.Second),
-				retry.DelayType(retry.FixedDelay),
-				retry.Attempts(3),
-				retry.OnRetry(func(n uint, err error) {
-					r.logger.Printf("error validating clients created. attempt %d, error %s", n, err)
-				}),
-			)
-			return err
-		}, retry.Delay(time.Duration(30)*time.Second),
+			return nil
+		},
+		retry.Delay(time.Duration(30)*time.Second),
 		retry.DelayType(retry.FixedDelay),
-		retry.Attempts(5),
+		retry.Attempts(3),
 		retry.OnRetry(func(n uint, err error) {
-			override = false
-			r.logger.Printf("failed to create channels. attempt %d, error %s", n, err)
+			r.logger.Printf("error validating clients created. attempt %d, error %s", n, err)
 		}),
 	)
 	if err != nil {
@@ -140,7 +130,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "30s", "-r", "20"}
+	args := []string{"tx", "channel", "-t", "300s", "-r", "5"}
 	if override {
 		args = append(args, "--override")
 	}

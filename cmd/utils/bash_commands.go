@@ -27,12 +27,9 @@ func RunCommandEvery(ctx context.Context, command string, args []string, interva
 			for _, option := range options {
 				option(cmd)
 			}
-			var stderr bytes.Buffer
-			errmw := io.MultiWriter(&stderr, cmd.Stderr)
-			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
-				fmt.Printf("Failed to execute command: %s, err: %s\n", command, stderr.String())
+				fmt.Printf("Failed to execute command: %s, err: %s\n", command, err)
 			}
 
 			if ctx.Err() != nil {
