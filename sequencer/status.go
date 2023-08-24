@@ -43,7 +43,7 @@ func (seq *Sequencer) getRollappHeight() (string, error) {
 	}
 	var response Response
 	if err := json.Unmarshal(body, &response); err != nil {
-		return "-1", err
+		return "-2", err
 	}
 	if response.Result.NodeInfo.Network == seq.RlpCfg.RollappID {
 		return response.Result.SyncInfo.LatestBlockHeight, nil
@@ -89,6 +89,8 @@ func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	}
 	if rolHeight == "-1" {
 		return "Stopped, Restarting..."
+	} else if rolHeight == "-2" {
+		return "Unhealthy"
 	} else {
 		hubHeight, err := seq.getHubHeight()
 		if err != nil {
