@@ -1,4 +1,4 @@
-package show
+package export
 
 type IbcConfig struct {
 	HubChannel    *string  `json:"hubChannel,omitempty"`
@@ -42,8 +42,8 @@ type App struct {
 type NetworkJson struct {
 	ChainId                   string            `json:"chainId"`
 	ChainName                 string            `json:"chainName"`
-	Rpc                       *string           `json:"rpc,omitempty"`
-	Rest                      *string           `json:"rest,omitempty"`
+	Rpc                       string            `json:"rpc"`
+	Rest                      string            `json:"rest"`
 	Bech32Prefix              string            `json:"bech32Prefix"`
 	Currencies                []string          `json:"currencies"`
 	NativeCurrency            string            `json:"nativeCurrency"`
