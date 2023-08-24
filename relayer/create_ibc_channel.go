@@ -38,9 +38,9 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 			updateClientsCmd := r.GetUpdateClientsCmd()
 			return utils.ExecBashCmd(updateClientsCmd, logFileOption)
 		},
-		retry.Delay(time.Duration(100)*time.Second),
+		retry.Delay(time.Duration(30)*time.Second),
 		retry.DelayType(retry.FixedDelay),
-		retry.Attempts(3),
+		retry.Attempts(6),
 		retry.OnRetry(func(n uint, err error) {
 			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
 		}),
@@ -53,7 +53,8 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, []utils.CommandOption{}...)
 
-	createConnectionCmd := r.getCreateConnectionCmd(override)
+	//don't allow overriding the connection
+	createConnectionCmd := r.getCreateConnectionCmd(false)
 	status = "Creating connection..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
@@ -121,7 +122,7 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection", "-t", "30s", "-r", "20"}
+	args := []string{"tx", "connection", "-t", "200s", "-r", "5"}
 	if override {
 		args = append(args, "--override")
 	}
@@ -130,7 +131,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "300s", "-r", "5"}
+	args := []string{"tx", "channel", "-t", "200s", "-r", "5"}
 	if override {
 		args = append(args, "--override")
 	}

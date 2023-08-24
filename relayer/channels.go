@@ -22,40 +22,53 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 
 	// While there are JSON objects in the stream...
 	var outputStruct RollappQueryResult
+	var foundOpenChannel RollappQueryResult
+	var latestConnectionID string
+
 	dec := json.NewDecoder(&output)
 	for dec.More() {
 		err = dec.Decode(&outputStruct)
 		if err != nil {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
+		if latestConnectionID != "" &&
+			outputStruct.ConnectionHops[0] != latestConnectionID {
+			r.logger.Printf("more than one IBC connection detected! using latest connection")
+			//clearing the result as we don't want to use it, as it's on old connection
+			foundOpenChannel = RollappQueryResult{}
+		}
+		latestConnectionID = outputStruct.ConnectionHops[0]
+
+		if outputStruct.State != "STATE_OPEN" {
+			continue
+		}
+
+		// found STATE_OPEN channel
+		// Check if the channel is open on the hub
+		var res HubQueryResult
+		outputHub, err := utils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
+		if err != nil {
+			return "", "", err
+		}
+		err = json.Unmarshal(outputHub.Bytes(), &res)
+		if err != nil {
+			return "", "", err
+		}
+
+		if res.Channel.State != "STATE_OPEN" {
+			r.logger.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
+				outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
+			)
+			continue
+		}
+
+		// Found open channel on both ends
+		foundOpenChannel = outputStruct
 		continue
 	}
 
-	if outputStruct.State != "STATE_OPEN" {
-		r.logger.Printf("channel %s is not STATE_OPEN (%s)", outputStruct.ChannelID, outputStruct.State)
-		return "", "", nil
-	}
-
-	// Check if the channel is open on the hub
-	var res HubQueryResult
-	outputHub, err := utils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
-	if err != nil {
-		return "", "", err
-	}
-	err = json.Unmarshal(outputHub.Bytes(), &res)
-	if err != nil {
-		return "", "", err
-	}
-
-	if res.Channel.State != "STATE_OPEN" {
-		r.logger.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
-			outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
-		)
-		return "", "", nil
-	}
-
-	r.SrcChannel = outputStruct.ChannelID
-	r.DstChannel = outputStruct.Counterparty.ChannelID
+	r.SrcChannel = foundOpenChannel.ChannelID
+	r.DstChannel = foundOpenChannel.Counterparty.ChannelID
 	return r.SrcChannel, r.DstChannel, nil
 }
 
