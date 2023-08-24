@@ -53,7 +53,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
 
-	connectionReady, err := r.IsConnectionOpen()
+	connectionReady, _, err := r.IsLatestConnectionOpen()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
@@ -128,7 +128,7 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection", "-t", "200s", "-r", "5"}
+	args := []string{"tx", "connection", "-t", "300s"}
 	if override {
 		args = append(args, "--override")
 	}
@@ -137,7 +137,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "200s", "-r", "5"}
+	args := []string{"tx", "channel", "-t", "300s"}
 	if override {
 		args = append(args, "--override")
 	}

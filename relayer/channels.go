@@ -25,6 +25,8 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	var foundOpenChannel RollappQueryResult
 	var latestConnectionID string
 
+	_, latestConnectionID, _ = r.IsLatestConnectionOpen()
+
 	dec := json.NewDecoder(&output)
 	for dec.More() {
 		err = dec.Decode(&outputStruct)
@@ -33,11 +35,11 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 		}
 		if latestConnectionID != "" &&
 			outputStruct.ConnectionHops[0] != latestConnectionID {
-			r.logger.Printf("more than one IBC connection detected! using latest connection")
+			r.logger.Printf("skipping channel %s as it's not on the latest connection %s",
+				outputStruct.ChannelID, latestConnectionID)
 			//clearing the result as we don't want to use it, as it's on old connection
-			foundOpenChannel = RollappQueryResult{}
+			continue
 		}
-		latestConnectionID = outputStruct.ConnectionHops[0]
 
 		if outputStruct.State != "STATE_OPEN" {
 			continue
@@ -64,7 +66,7 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 
 		// Found open channel on both ends
 		foundOpenChannel = outputStruct
-		continue
+		break
 	}
 
 	r.SrcChannel = foundOpenChannel.ChannelID

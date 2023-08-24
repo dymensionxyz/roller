@@ -50,14 +50,14 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) IsConnectionOpen() (bool, error) {
+func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionsRollappCmd())
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	if output.Len() == 0 {
-		return false, nil
+		return false, "", nil
 	}
 
 	// While there are JSON objects in the stream...
@@ -67,33 +67,31 @@ func (r *Relayer) IsConnectionOpen() (bool, error) {
 	for dec.More() {
 		err = dec.Decode(&outputStruct)
 		if err != nil {
-			return false, fmt.Errorf("error while decoding JSON: %v", err)
+			return false, "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
-
-		if outputStruct.State != "STATE_OPEN" {
-			continue
-		}
-
-		// Check if the connection is open on the hub
-		var res HubConnectionQueryResult
-		outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(outputStruct.ID))
-		if err != nil {
-			return false, err
-		}
-		err = json.Unmarshal(outputHub.Bytes(), &res)
-		if err != nil {
-			return false, err
-		}
-
-		if res.Connection.State != "STATE_OPEN" {
-			r.logger.Printf("connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
-				outputStruct.ID, outputStruct.Counterparty.ConnectionID, res.Connection.State,
-			)
-			continue
-		}
-
-		return true, nil
 	}
 
-	return false, nil
+	if outputStruct.State != "STATE_OPEN" {
+		return false, "", nil
+	}
+
+	// Check if the connection is open on the hub
+	var res HubConnectionQueryResult
+	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(outputStruct.Counterparty.ConnectionID))
+	if err != nil {
+		return false, "", err
+	}
+	err = json.Unmarshal(outputHub.Bytes(), &res)
+	if err != nil {
+		return false, "", err
+	}
+
+	if res.Connection.State != "STATE_OPEN" {
+		r.logger.Printf("connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
+			outputStruct.ID, outputStruct.Counterparty.ConnectionID, res.Connection.State,
+		)
+		return false, "", nil
+	}
+
+	return true, outputStruct.ID, nil
 }
