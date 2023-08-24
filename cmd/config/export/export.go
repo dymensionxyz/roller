@@ -1,7 +1,7 @@
 package export
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -21,16 +21,16 @@ func Cmd() *cobra.Command {
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
 			const defaultFaucetUrl = "https://discord.com/channels/956961633165529098/1125047988247593010"
-			baseDenom := "u" + rlpCfg.Denom
+			baseDenom := rlpCfg.Denom
 			coinType := 118
 			if rlpCfg.VMType == config.EVM_ROLLAPP {
 				coinType = 60
 			}
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			srcChannel, hubChannel, err := rly.LoadChannels()
-			if err != nil {
-				utils.PrettifyErrorIfExists(errors.New("no relayer channels found, please create a channel before listing" +
-					" your rollapp on the portal"))
+			if err != nil || srcChannel == "" || hubChannel == "" {
+				//utils.PrettifyErrorIfExists(errors.New("no relayer channels found, please create a channel before listing" +
+				//	" your rollapp on the portal"))
 			}
 			networkJson := NetworkJson{
 				ChainId:      rlpCfg.RollappID,
@@ -53,8 +53,7 @@ func Cmd() *cobra.Command {
 					Channel:    srcChannel,
 					Timeout:    172800000,
 				},
-				Type: RollApp,
-				//Da:          nil,
+				Type:        RollApp,
 				Description: nil,
 				Analytics:   false,
 			}
@@ -73,7 +72,11 @@ func Cmd() *cobra.Command {
 				networkJson.Da = Celestia
 			}
 
-			fmt.Println(rlpCfg)
+			jsonString, err := json.MarshalIndent(networkJson, "", "  ")
+			if err != nil {
+				panic(err)
+			}
+			println(string(jsonString))
 		},
 	}
 	return cmd

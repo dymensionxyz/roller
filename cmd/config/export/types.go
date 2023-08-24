@@ -9,7 +9,7 @@ type IbcConfig struct {
 
 type EvmConfig struct {
 	ChainId string `json:"chainId"`
-	Rpc     string `json:"rpc,omitempty"`
+	Rpc     string `json:"rpc"`
 }
 
 type NetworkType string
