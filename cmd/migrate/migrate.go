@@ -2,11 +2,12 @@ package migrate
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/version"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var migrationsRegistry = []VersionMigrator{
@@ -14,6 +15,7 @@ var migrationsRegistry = []VersionMigrator{
 	&VersionMigratorV015{},
 	&VersionMigratorV016{},
 	&VersionMigratorV018{},
+	&VersionMigratorV0111{},
 }
 
 func Cmd() *cobra.Command {
