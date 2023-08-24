@@ -1,6 +1,7 @@
 package relayer
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -13,6 +14,9 @@ import (
 
 // Creates an IBC channel between the hub and the client, and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	createClientsCmd := r.getCreateClientsCmd(override)
 	status := "Creating clients..."
 	fmt.Printf("💈 %s\n", status)
@@ -29,9 +33,9 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
+	updateClientsCmd := r.GetUpdateClientsCmd()
 	err := retry.Do(
 		func() error {
-			updateClientsCmd := r.GetUpdateClientsCmd()
 			return utils.ExecBashCmd(updateClientsCmd, logFileOption)
 		},
 		retry.Delay(time.Duration(30)*time.Second),
@@ -44,6 +48,9 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
+
+	//after succesfull update clients, keep running in the background
+	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, logFileOption)
 
 	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
