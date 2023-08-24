@@ -51,7 +51,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 
 	//after succesfull update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
-	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, []utils.CommandOption{}...)
+	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
 
 	//don't allow overriding the connection
 	createConnectionCmd := r.getCreateConnectionCmd(false)

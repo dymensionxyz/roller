@@ -30,6 +30,13 @@ func WithLoggerLogging(logger *log.Logger) CommandOption {
 	}
 }
 
+func WithDiscardLogging() CommandOption {
+	return func(cmd *exec.Cmd) {
+		cmd.Stdout = io.Discard
+		cmd.Stderr = io.Discard
+	}
+}
+
 func GetLogger(filepath string) *log.Logger {
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   filepath,
