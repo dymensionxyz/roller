@@ -10,7 +10,6 @@ require (
 
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
-	github.com/bradfitz/slice v0.0.0-20180809154707-2b758aa73013
 	github.com/briandowns/spinner v1.23.0
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 	github.com/cosmos/go-bip39 v1.0.0
@@ -52,10 +51,9 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
-	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
 	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/term v0.1.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
