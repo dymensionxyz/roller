@@ -19,7 +19,7 @@ const (
 type DAType string
 
 const (
-	Mock     DAType = "mock"
+	Local    DAType = "local"
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
 )
@@ -80,7 +80,7 @@ func (c RollappConfig) Validate() error {
 
 func IsValidDAType(t string) bool {
 	switch DAType(t) {
-	case Mock, Celestia, Avail:
+	case Local, Celestia, Avail:
 		return true
 	}
 	return false

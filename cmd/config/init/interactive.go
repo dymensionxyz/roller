@@ -102,7 +102,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	}
 	cfg.TokenSupply = supply
 
-	availableDAs := []config.DAType{config.Celestia, config.Avail, config.Mock}
+	availableDAs := []config.DAType{config.Celestia, config.Avail, config.Local}
 	promptDAType := promptui.Select{
 		Label: "Choose your data layer",
 		Items: availableDAs,
