@@ -40,6 +40,8 @@ func Cmd() *cobra.Command {
 				return setLCRPCPort(rlpCfg, value)
 			case "da":
 				return setDA(rlpCfg, config.DAType(value))
+			case "rollapp-jsonrpc-port":
+				return setJsonRpcPort(rlpCfg, value)
 			default:
 				return fmt.Errorf("invalid key. Supported keys are: %v", supportedKeys)
 			}
