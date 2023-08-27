@@ -1,7 +1,5 @@
 name: Run E2E tests
 on:
-  release:
-    types: [ created ]
   workflow_dispatch:
 jobs:
   end_to_end_test:
@@ -63,7 +61,7 @@ jobs:
       - name: Execute IBC relay tester
         run: |
           chmod +x ./scripts/ibc_relay_tester.sh
-          DEST_ADDR=$HUB_SEQ_ADDR ROLLAPP_ID=$ROLLAPP_ID ROLLER_CONFIG_PATH=$ROLLER_CONFIG_PATH ./scripts/ibc_relay_tester.sh
+          DEST_ADDR=$HUB_SEQ_ADDR ROLLAPP_ID=$ROLLAPP_ID ROLLER_CONFIG_PATH=$ROLLER_CONFIG_PATH ./scripts/ibc_relay_tester.sh 2> script_errors.log
 
       - name: Terminate the rollapp
         if: always()
