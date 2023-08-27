@@ -11,9 +11,11 @@ import (
 )
 
 type Sequencer struct {
-	RlpCfg  config.RollappConfig
-	RPCPort string
-	logger  *log.Logger
+	RlpCfg      config.RollappConfig
+	RPCPort     string
+	APIPort     string
+	JsonRPCPort string
+	logger      *log.Logger
 }
 
 var instance *Sequencer
@@ -25,11 +27,9 @@ func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
 			logger: log.New(io.Discard, "", 0),
 			RlpCfg: rlpCfg,
 		}
-		rpcPort, err := seq.ReadRPCPort()
-		if err != nil {
+		if err := seq.ReadPorts(); err != nil {
 			panic(err)
 		}
-		seq.RPCPort = rpcPort
 		instance = seq
 	})
 	return instance
