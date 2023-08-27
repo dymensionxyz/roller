@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/sequencer"
 	"os"
 	"path/filepath"
 )
@@ -31,6 +32,9 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 		return err
 	}
 	rlpCfg.DA = newDa
+	if err := sequencer.UpdateDymintDAConfig(rlpCfg); err != nil {
+		return err
+	}
 	return config.WriteConfigToTOML(rlpCfg)
 }
 
