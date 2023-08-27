@@ -14,13 +14,11 @@ func setDA(rlpCfg config.RollappConfig, value config.DAType) error {
 	if value == rlpCfg.DA {
 		return nil
 	}
-	supportedDas := []config.DAType{config.Celestia, config.Avail, config.Mock}
-	for _, da := range supportedDas {
-		if da == value {
-			return updateDaConfig(rlpCfg, value)
-		}
+	supportedDas := []config.DAType{config.Celestia, config.Avail, config.Local}
+	if !config.IsValidDAType(string(value)) {
+		return fmt.Errorf("invalid DA type. Supported types are: %v", supportedDas)
 	}
-	return fmt.Errorf("invalid DA type. Supported types are: %v", supportedDas)
+	return updateDaConfig(rlpCfg, value)
 }
 
 func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
