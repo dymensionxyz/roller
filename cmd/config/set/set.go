@@ -9,8 +9,13 @@ import (
 
 var supportedKeys = []string{
 	"rollapp-rpc-port",
-	"lc-rpc-port",
+	"lc-gateway-port",
 	"da",
+	"lc-rpc-port",
+	"rollapp-jsonrpc-port",
+	"rollapp-ws-port",
+	"rollapp-grpc-port",
+	"rollapp-api-port",
 }
 
 func Cmd() *cobra.Command {
@@ -29,8 +34,10 @@ func Cmd() *cobra.Command {
 			switch key {
 			case "rollapp-rpc-port":
 				return setRollappRPC(rlpCfg, value)
+			case "lc-gateway-port":
+				return setLCGatewayPort(rlpCfg, value)
 			case "lc-rpc-port":
-				return setLCRPC(rlpCfg, value)
+				return setLCRPCPort(rlpCfg, value)
 			case "da":
 				return setDA(rlpCfg, config.DAType(value))
 			default:
