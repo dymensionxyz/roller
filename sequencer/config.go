@@ -20,22 +20,12 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig := damanager.GetSequencerDAConfig()
-	dymintCfg.Set("da_layer", string(rlpCfg.DA))
-	if daConfig != "" {
-		dymintCfg.Set("da_config", daConfig)
+	if err := updateDaConfigInToml(rlpCfg, dymintCfg); err != nil {
+		return err
 	}
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
 	dymintCfg.Set("block_batch_size", "500")
-	if rlpCfg.DA == config.Celestia {
-		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
-		if !ok {
-			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
-		}
-		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
-	}
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
 	dymintCfg.Set("empty_blocks_max_time", "3600s")
@@ -60,10 +50,25 @@ func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	if err := updateDaConfigInToml(rlpCfg, dymintCfg); err != nil {
+		return err
+	}
+	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
+}
+
+func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) error {
 	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	dymintCfg.Set("da_layer", string(rlpCfg.DA))
 	daConfig := damanager.GetSequencerDAConfig()
 	dymintCfg.Set("da_config", daConfig)
-	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
+	if rlpCfg.DA == config.Celestia {
+		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
+		if !ok {
+			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
+		}
+		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
+	}
+	return nil
 }
 
 func SetAppConfig(rlpCfg config.RollappConfig) error {
