@@ -101,16 +101,6 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
-func (seq *Sequencer) ReadRPCPort() (string, error) {
-	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
-	if err != nil {
-		return "", err
-	}
-	parts := strings.Split(rpcAddr, ":")
-	port := parts[len(parts)-1]
-	return port, nil
-}
-
 func (seq *Sequencer) ReadPorts() error {
 	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
 	if err != nil {
