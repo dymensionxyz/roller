@@ -212,6 +212,6 @@ func (c *Celestia) GetSequencerDAConfig() string {
 		c.NamespaceID = generateRandNamespaceID()
 	}
 	lcEndpoint := c.GetLightNodeEndpoint()
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.1, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
 		lcEndpoint, c.NamespaceID)
 }
