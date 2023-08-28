@@ -35,4 +35,31 @@ To run Roller, use:
 ./build/roller
 ```
 
+## Testing
+
+To run the all the tests, run:
+
+```bash
+go test ./...
+```
+
+## Creating a New Release
+
+Roller has a handy CD flow that automatically creates all the necessary assets
+after creating a new release.
+Simply create a new release on GitHub and the rest will be taken care of.
+By default, when installing Roller with
+
+```bash
+curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+```
+
+It will install the latest release.
+To install a specific version, use:
+
+```bash
+export ROLLER_RELEASE_TAG="<RELEASE_TAG>"
+curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+```
+
 For more information about Roller and its usage, please refer to [the documentation](https://docs.dymension.xyz/build/roller).
