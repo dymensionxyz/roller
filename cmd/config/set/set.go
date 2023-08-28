@@ -11,8 +11,10 @@ var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) err
 	"rollapp-rpc-port":     setRollappRPC,
 	"lc-gateway-port":      setLCGatewayPort,
 	"lc-rpc-port":          setLCRPCPort,
-	"da":                   setDA,
 	"rollapp-jsonrpc-port": setJsonRpcPort,
+	"rollapp-ws-port":      setWSPort,
+	"rollapp-grpc-port":    setGRPCPort,
+	"da":                   setDA,
 }
 
 func Cmd() *cobra.Command {

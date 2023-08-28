@@ -86,3 +86,19 @@ func setJsonRpcPort(cfg config.RollappConfig, value string) error {
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
 	return utils.UpdateFieldInToml(appCfgFilePath, "json-rpc.address", "0.0.0.0:"+value)
 }
+
+func setWSPort(cfg config.RollappConfig, value string) error {
+	if err := validatePort(value); err != nil {
+		return err
+	}
+	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	return utils.UpdateFieldInToml(appCfgFilePath, "json-rpc.ws-address", "0.0.0.0:"+value)
+}
+
+func setGRPCPort(cfg config.RollappConfig, value string) error {
+	if err := validatePort(value); err != nil {
+		return err
+	}
+	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	return utils.UpdateFieldInToml(appCfgFilePath, "grpc.address", "0.0.0.0:"+value)
+}
