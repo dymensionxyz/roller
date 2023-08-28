@@ -68,6 +68,11 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 		}
 		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
 	}
+
+	if rlpCfg.DA == config.Local {
+		dymintCfg.Set("da_layer", "mock")
+	}
+
 	return nil
 }
 
