@@ -31,7 +31,7 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 		return err
 	}
 	if dirExist {
-		if yes, err := global_utils.PromptBool("Changing DA will remove the old DA keys permanently. Are you sure you want to proceed"); err != nil {
+		if yes, err := utils.PromptBool("Changing DA will remove the old DA keys permanently. Are you sure you want to proceed"); err != nil {
 			return err
 		} else if !yes {
 			return nil

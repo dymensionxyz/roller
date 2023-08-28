@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	global_utils "github.com/dymensionxyz/roller/utils"
 )
 
 type OutputHandler struct {
@@ -32,5 +31,5 @@ func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
 	if o.NoOutput {
 		return true, nil
 	}
-	return global_utils.PromptBool(fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home))
+	return utils.PromptBool(fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home))
 }
