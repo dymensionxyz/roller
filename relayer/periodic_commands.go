@@ -1,9 +1,10 @@
 package relayer
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func (r *Relayer) GetUpdateClientsCmd() *exec.Cmd {
