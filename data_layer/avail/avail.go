@@ -42,7 +42,7 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewAvail(root string) *Avail {
-	cfgPath := filepath.Join(root, availConfigFileName)
+	cfgPath := filepath.Join(root, consts.ConfigDirName.DALightNode, availConfigFileName)
 	availConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
