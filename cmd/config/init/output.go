@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/manifoldco/promptui"
+	global_utils "github.com/dymensionxyz/roller/utils"
 )
 
 type OutputHandler struct {
@@ -32,16 +32,5 @@ func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
 	if o.NoOutput {
 		return true, nil
 	}
-	prompt := promptui.Prompt{
-		Label:     fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home),
-		IsConfirm: true,
-	}
-	_, err := prompt.Run()
-	if err != nil {
-		if err == promptui.ErrAbort {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
+	return global_utils.PromptBool(fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home))
 }

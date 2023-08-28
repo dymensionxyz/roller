@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
+	global_utils "github.com/dymensionxyz/roller/utils"
 	"os"
 	"path/filepath"
 )
@@ -23,7 +24,19 @@ func setDA(rlpCfg config.RollappConfig, value string) error {
 }
 
 func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
-	if err := cleanDADir(rlpCfg); err != nil {
+	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
+	dirExist, err := global_utils.DirNotEmpty(daCfgDirPath)
+	if err != nil {
+		return err
+	}
+	if dirExist {
+		if yes, err := global_utils.PromptBool("Changing DA will remove the old DA keys permanently. Are you sure you want to proceed"); err != nil {
+			return err
+		} else if !yes {
+			return nil
+		}
+	}
+	if err := os.RemoveAll(daCfgDirPath); err != nil {
 		return err
 	}
 	daManager := datalayer.NewDAManager(newDa, rlpCfg.Home)
@@ -35,8 +48,4 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 		return err
 	}
 	return config.WriteConfigToTOML(rlpCfg)
-}
-
-func cleanDADir(cfg config.RollappConfig) error {
-	return os.RemoveAll(filepath.Join(cfg.Home, consts.ConfigDirName.DALightNode))
 }
