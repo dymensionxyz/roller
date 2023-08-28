@@ -3,6 +3,7 @@ package set
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
@@ -47,5 +48,24 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 	if err := sequencer.UpdateDymintDAConfig(rlpCfg); err != nil {
 		return err
 	}
-	return config.WriteConfigToTOML(rlpCfg)
+	if err := config.WriteConfigToTOML(rlpCfg); err != nil {
+		return err
+	}
+	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
+	if newDa != config.Local {
+		addresses := make([]utils.AddressData, 0)
+		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home)
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return err
+		}
+		addresses = append(addresses, utils.AddressData{
+			Name: damanager.GetKeyName(),
+			Addr: daAddress,
+		})
+		fmt.Printf("🔑 Address:\n\n")
+		utils.PrintAddresses(addresses)
+		fmt.Printf("\n🔔 Please fund this address to run the DA light client.\n")
+	}
+	return nil
 }

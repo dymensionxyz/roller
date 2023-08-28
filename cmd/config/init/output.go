@@ -24,7 +24,7 @@ func (o *OutputHandler) printInitOutput(rollappConfig config.RollappConfig, addr
 	fmt.Printf("💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n", rollappId)
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
-	utils.PrintAddresses(formatAddresses(rollappConfig, addresses))
+	utils.PrintAddressesWithTitle(formatAddresses(rollappConfig, addresses))
 	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
 }
 

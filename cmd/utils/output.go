@@ -39,7 +39,7 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config
 		fmt.Println()
 		fmt.Println("💈 Please fund these addresses and try again.")
 	}
-	PrettifyErrorIfExists(errors.New("The following addresses have insufficient balance to perform this operation"),
+	PrettifyErrorIfExists(errors.New("the following addresses have insufficient balance to perform this operation"),
 		printAddresses)
 }
 
