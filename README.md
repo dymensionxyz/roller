@@ -48,7 +48,8 @@ go test ./...
 Roller features a convenient Continuous Deployment (CD) workflow that
 automatically generates all required assets after a new release is
 created. To use it, simply create a new release on GitHub, and the
-process will handle everything else for you.
+process will build and upload the release assets for you.
+(works also for pre-releases)
 By default, when installing Roller with
 
 ```bash
