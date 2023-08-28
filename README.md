@@ -45,9 +45,10 @@ go test ./...
 
 ## Creating a New Release
 
-Roller has a handy CD flow that automatically creates all the necessary assets
-after creating a new release.
-Simply create a new release on GitHub and the rest will be taken care of.
+Roller features a convenient Continuous Deployment (CD) workflow that
+automatically generates all required assets after a new release is
+created. To use it, simply create a new release on GitHub, and the
+process will handle everything else for you.
 By default, when installing Roller with
 
 ```bash
