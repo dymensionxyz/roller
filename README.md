@@ -10,4 +10,25 @@ It allows developers to effortlessly spin up and run RollApps, simplifying the
 development process and making the Dymension Hub
 more accessible.
 
-To learn more about roller and how to use it please visit [the docs](https://docs.dymension.xyz/build/roller).
+## Local Development
+
+To build and test the latest version from the main branch:
+
+First, install all the necessary dependencies using the following command:
+```bash
+curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+```
+
+Next, clone this repository. Once cloned, navigate to the root directory and execute:
+```bash
+make build
+```
+
+This command builds the latest version of Roller and places the executable in the `./build` directory.
+
+To run Roller, use:
+```bash
+./build/roller
+```
+
+For more information about Roller and its usage, please refer to [the documentation](https://docs.dymension.xyz/build/roller).
