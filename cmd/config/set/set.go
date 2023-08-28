@@ -20,7 +20,7 @@ var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) err
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
-		Short: fmt.Sprintf("Updates the specified key in all relevant places within the roller configuration files."),
+		Short: "Updates the specified key in all relevant places within the roller configuration files.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
