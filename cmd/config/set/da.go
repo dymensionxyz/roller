@@ -10,15 +10,16 @@ import (
 	"path/filepath"
 )
 
-func setDA(rlpCfg config.RollappConfig, value config.DAType) error {
-	if value == rlpCfg.DA {
+func setDA(rlpCfg config.RollappConfig, value string) error {
+	daValue := config.DAType(value)
+	if daValue == rlpCfg.DA {
 		return nil
 	}
 	supportedDas := []config.DAType{config.Celestia, config.Avail, config.Local}
-	if !config.IsValidDAType(string(value)) {
+	if !config.IsValidDAType(value) {
 		return fmt.Errorf("invalid DA type. Supported types are: %v", supportedDas)
 	}
-	return updateDaConfig(rlpCfg, value)
+	return updateDaConfig(rlpCfg, daValue)
 }
 
 func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
