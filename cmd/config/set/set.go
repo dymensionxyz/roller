@@ -7,21 +7,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var supportedKeys = []string{
-	"rollapp-rpc-port",
-	"lc-gateway-port",
-	"da",
-	"lc-rpc-port",
-	"rollapp-jsonrpc-port",
-	"rollapp-ws-port",
-	"rollapp-grpc-port",
-	"rollapp-api-port",
+var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) error{
+	"rollapp-rpc-port":     setRollappRPC,
+	"lc-gateway-port":      setLCGatewayPort,
+	"lc-rpc-port":          setLCRPCPort,
+	"da":                   setDA,
+	"rollapp-jsonrpc-port": setJsonRpcPort,
 }
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
-		Short: fmt.Sprintf("Updates the specified key (supported keys: %v) in all relevant places within the roller configuration files.", supportedKeys),
+		Short: fmt.Sprintf("Updates the specified key in all relevant places within the roller configuration files."),
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
@@ -31,21 +28,19 @@ func Cmd() *cobra.Command {
 			}
 			key := args[0]
 			value := args[1]
-			switch key {
-			case "rollapp-rpc-port":
-				return setRollappRPC(rlpCfg, value)
-			case "lc-gateway-port":
-				return setLCGatewayPort(rlpCfg, value)
-			case "lc-rpc-port":
-				return setLCRPCPort(rlpCfg, value)
-			case "da":
-				return setDA(rlpCfg, config.DAType(value))
-			case "rollapp-jsonrpc-port":
-				return setJsonRpcPort(rlpCfg, value)
-			default:
-				return fmt.Errorf("invalid key. Supported keys are: %v", supportedKeys)
+			if updateFunc, exists := keyUpdateFuncs[key]; exists {
+				return updateFunc(rlpCfg, value)
 			}
+			return fmt.Errorf("invalid key. Supported keys are: %v", getSupportedKeys())
 		},
 	}
 	return cmd
+}
+
+func getSupportedKeys() []string {
+	keys := make([]string, 0, len(keyUpdateFuncs))
+	for key := range keyUpdateFuncs {
+		keys = append(keys, key)
+	}
+	return keys
 }
