@@ -52,9 +52,9 @@ func printOutput(rlpCfg config.RollappConfig) {
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 	fmt.Println("💈 Endpoints:")
 
-	fmt.Println("💈 EVM RPC: http://0.0.0.0:8545")
+	fmt.Printf("💈 EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
 	fmt.Printf("💈 Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
-	fmt.Println("💈 Rest API: http://0.0.0.0:1317")
+	fmt.Printf("💈 Rest API: http://0.0.0.0:%v\n", seq.APIPort)
 
 	fmt.Println("💈 Log file path: ", LogPath)
 	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)

@@ -22,7 +22,7 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	seq := sequencer.GetInstance(rollappConfig)
 	table.Rows = [][]string{
 		{"Name", "Log File", "Ports"},
-		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, 8545, 1317", seq.RPCPort)},
+		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, %v, %v", seq.RPCPort, seq.JsonRPCPort, seq.APIPort)},
 		{"Relayer", utils.GetRelayerLogPath(rollappConfig), ""},
 	}
 

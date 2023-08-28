@@ -72,7 +72,7 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 }
 
 func SetAppConfig(rlpCfg config.RollappConfig) error {
-	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	appConfigFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "app.toml")
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
@@ -90,7 +90,7 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 }
 
 func SetTMConfig(rlpCfg config.RollappConfig) error {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -101,18 +101,25 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
-func (seq *Sequencer) ReadRPCPort() (string, error) {
+func (seq *Sequencer) ReadPorts() error {
 	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
 	if err != nil {
-		return "", err
+		return err
 	}
-	parts := strings.Split(rpcAddr, ":")
-	port := parts[len(parts)-1]
-	return port, nil
+	seq.RPCPort = getPortFromAddress(rpcAddr)
+	appCfg, err := toml.LoadFile(filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "app.toml"))
+	if err != nil {
+		return err
+	}
+	jsonRpcAddr := appCfg.Get("json-rpc.address")
+	seq.JsonRPCPort = getPortFromAddress(fmt.Sprint(jsonRpcAddr))
+	apiAddr := appCfg.Get("api.address")
+	seq.APIPort = getPortFromAddress(fmt.Sprint(apiAddr))
+	return nil
 }
 
 func (seq *Sequencer) GetConfigValue(key string) (string, error) {
-	configFilePath := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	configFilePath := filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -126,4 +133,13 @@ func (seq *Sequencer) GetConfigValue(key string) (string, error) {
 
 func (seq *Sequencer) GetRPCEndpoint() string {
 	return "http://localhost:" + seq.RPCPort
+}
+
+func getSequencerConfigDir(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
+}
+
+func getPortFromAddress(addr string) string {
+	parts := strings.Split(addr, ":")
+	return parts[len(parts)-1]
 }
