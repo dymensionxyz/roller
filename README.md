@@ -37,7 +37,7 @@ To run Roller, use:
 
 ## Testing
 
-To run the all the tests, run:
+To run the all the tests, run from the root directory:
 
 ```bash
 go test ./...
