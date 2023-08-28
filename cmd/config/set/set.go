@@ -10,6 +10,7 @@ import (
 var supportedKeys = []string{
 	"rollapp-rpc-port",
 	"lc-rpc-port",
+	"da",
 }
 
 func Cmd() *cobra.Command {
@@ -30,6 +31,8 @@ func Cmd() *cobra.Command {
 				return setRollappRPC(rlpCfg, value)
 			case "lc-rpc-port":
 				return setLCRPC(rlpCfg, value)
+			case "da":
+				return setDA(rlpCfg, config.DAType(value))
 			default:
 				return fmt.Errorf("invalid key. Supported keys are: %v", supportedKeys)
 			}
