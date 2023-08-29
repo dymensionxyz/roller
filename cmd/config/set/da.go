@@ -3,9 +3,11 @@ package set
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
+	global_utils "github.com/dymensionxyz/roller/utils"
 	"os"
 	"path/filepath"
 )
@@ -23,7 +25,19 @@ func setDA(rlpCfg config.RollappConfig, value string) error {
 }
 
 func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
-	if err := cleanDADir(rlpCfg); err != nil {
+	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
+	dirExist, err := global_utils.DirNotEmpty(daCfgDirPath)
+	if err != nil {
+		return err
+	}
+	if dirExist {
+		if yes, err := utils.PromptBool("Changing DA will remove the old DA keys permanently. Are you sure you want to proceed"); err != nil {
+			return err
+		} else if !yes {
+			return nil
+		}
+	}
+	if err := os.RemoveAll(daCfgDirPath); err != nil {
 		return err
 	}
 	daManager := datalayer.NewDAManager(newDa, rlpCfg.Home)
@@ -34,9 +48,24 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 	if err := sequencer.UpdateDymintDAConfig(rlpCfg); err != nil {
 		return err
 	}
-	return config.WriteConfigToTOML(rlpCfg)
-}
-
-func cleanDADir(cfg config.RollappConfig) error {
-	return os.RemoveAll(filepath.Join(cfg.Home, consts.ConfigDirName.DALightNode))
+	if err := config.WriteConfigToTOML(rlpCfg); err != nil {
+		return err
+	}
+	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
+	if newDa != config.Local {
+		addresses := make([]utils.AddressData, 0)
+		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home)
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return err
+		}
+		addresses = append(addresses, utils.AddressData{
+			Name: damanager.GetKeyName(),
+			Addr: daAddress,
+		})
+		fmt.Printf("🔑 Address:\n\n")
+		utils.PrintAddresses(addresses)
+		fmt.Printf("\n🔔 Please fund this address to run the DA light client.\n")
+	}
+	return nil
 }

@@ -1,7 +1,9 @@
 package avail
 
 import (
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml"
 )
@@ -9,6 +11,10 @@ import (
 func writeConfigToTOML(path string, c Avail) error {
 	tomlBytes, err := toml.Marshal(c)
 	if err != nil {
+		return err
+	}
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 	err = os.WriteFile(path, tomlBytes, 0644)
@@ -31,4 +37,8 @@ func loadConfigFromTOML(path string) (Avail, error) {
 	}
 
 	return config, nil
+}
+
+func GetCfgFilePath(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.DALightNode, ConfigFileName)
 }

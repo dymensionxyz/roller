@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/manifoldco/promptui"
 	"math/big"
 	"os"
 	"time"
@@ -39,7 +40,7 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config
 		fmt.Println()
 		fmt.Println("💈 Please fund these addresses and try again.")
 	}
-	PrettifyErrorIfExists(errors.New("The following addresses have insufficient balance to perform this operation"),
+	PrettifyErrorIfExists(errors.New("the following addresses have insufficient balance to perform this operation"),
 		printAddresses)
 }
 
@@ -59,6 +60,21 @@ func GetLoadingSpinner() *spinner.Spinner {
 type OutputHandler struct {
 	NoOutput bool
 	spinner  *spinner.Spinner
+}
+
+func PromptBool(msg string) (bool, error) {
+	prompt := promptui.Prompt{
+		Label:     msg,
+		IsConfirm: true,
+	}
+	_, err := prompt.Run()
+	if err != nil {
+		if err == promptui.ErrAbort {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func NewOutputHandler(noOutput bool) *OutputHandler {

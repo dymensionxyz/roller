@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	global_utils "github.com/dymensionxyz/roller/utils"
 	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -75,7 +76,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	isRootExist, err := dirNotEmpty(initConfig.Home)
+	isRootExist, err := global_utils.DirNotEmpty(initConfig.Home)
 	if err != nil {
 		return err
 	}
