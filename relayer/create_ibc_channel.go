@@ -29,7 +29,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	//after successfull update clients, keep running in the background
+	//after successful update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
 	status = "Creating block..."
@@ -93,6 +93,14 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	if err != nil {
 		return err
 	}
+	initialRollappHeightStr, err := seq.GetRollappHeight()
+	if err != nil {
+		return err
+	}
+	initialRollappHeight, err := strconv.Atoi(initialRollappHeightStr)
+	if err != nil {
+		return err
+	}
 	for {
 		time.Sleep(30 * time.Second)
 		hubHeightStr, err := seq.GetHubHeight()
@@ -111,8 +119,22 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 		}
 		if hubHeight <= initialHubHeight {
 			fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
-				" initial height: %d,current height: %d\n", hubHeight, initialHubHeight)
+				" initial height: %d,current height: %d\n", initialHubHeight, hubHeight)
 			continue
+		}
+		rollappHeightStr, err := seq.GetRollappHeight()
+		if err != nil {
+			fmt.Printf("💈 Error getting rollapp height, %s", err.Error())
+			continue
+		}
+		rollappHeight, err := strconv.Atoi(rollappHeightStr)
+		if err != nil {
+			fmt.Printf("💈 Error converting rollapp height to int, %s", err.Error())
+			continue
+		}
+		if rollappHeight <= initialRollappHeight {
+			fmt.Printf("💈 Waiting for rollapp height to be greater than initial height,"+
+				" initial height: %d,current height: %d\n", initialRollappHeight, rollappHeight)
 		}
 		return nil
 	}

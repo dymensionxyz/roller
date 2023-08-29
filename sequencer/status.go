@@ -30,7 +30,7 @@ type Response struct {
 	Result Result `json:"result"`
 }
 
-func (seq *Sequencer) getRollappHeight() (string, error) {
+func (seq *Sequencer) GetRollappHeight() (string, error) {
 	rollappRPCEndpoint := seq.GetRPCEndpoint()
 	resp, err := http.Get(fmt.Sprintf("%s/status", rollappRPCEndpoint))
 	if err != nil {
@@ -83,7 +83,7 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 }
 func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
-	rolHeight, err := seq.getRollappHeight()
+	rolHeight, err := seq.GetRollappHeight()
 	if err != nil {
 		seq.logger.Println(err)
 	}
