@@ -37,8 +37,16 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
+	initialHubHeightStr, err := seq.GetHubHeight()
+	if err != nil {
+		return ConnectionChannels{}, err
+	}
+	initialHubHeight, err := strconv.Atoi(initialHubHeightStr)
+	if err != nil {
+		return ConnectionChannels{}, err
+	}
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(30 * time.Second)
 		hubHeightStr, err := seq.GetHubHeight()
 		if err != nil {
 			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
@@ -49,7 +57,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
 			continue
 		}
-		if hubHeight > 2 {
+		if hubHeight > 2 && hubHeight > initialHubHeight {
 			break
 		}
 		fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
