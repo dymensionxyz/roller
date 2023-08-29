@@ -3,11 +3,11 @@ package relayer
 import (
 	"context"
 	"fmt"
-	"github.com/dymensionxyz/roller/sequencer"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"time"
+
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -32,12 +32,12 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	//after successful update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
-	status = "Creating block..."
+	status = "Clients created. Waiting for state update on the hub..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	if err := waitForValidRollappHeight(seq); err != nil {
+	if err := waitForValidRollappHeight(ctx, seq); err != nil {
 		return ConnectionChannels{}, err
 	}
 	status = "Creating connection..."
@@ -84,59 +84,50 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}, nil
 }
 
-func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
-	initialHubHeightStr, err := seq.GetHubHeight()
+func waitForValidRollappHeight(ctx context.Context, seq *sequencer.Sequencer) error {
+	initialHubHeight, err := seq.GetHubHeight()
 	if err != nil {
 		return err
 	}
-	initialHubHeight, err := strconv.Atoi(initialHubHeightStr)
+	initialRollappHeight, err := seq.GetRollappHeight()
 	if err != nil {
 		return err
 	}
-	initialRollappHeightStr, err := seq.GetRollappHeight()
-	if err != nil {
-		return err
-	}
-	initialRollappHeight, err := strconv.Atoi(initialRollappHeightStr)
-	if err != nil {
-		return err
-	}
+
+	pollTimer := time.NewTicker(30 * time.Second)
+	defer pollTimer.Stop()
 	for {
-		time.Sleep(30 * time.Second)
-		hubHeightStr, err := seq.GetHubHeight()
-		if err != nil {
-			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
-			continue
+		//TODO: use context
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("context cancelled")
+
+		case <-pollTimer.C:
+			hubHeight, err := seq.GetHubHeight()
+			if err != nil {
+				fmt.Printf("💈 Error getting rollapp height on hub, %s", err.Error())
+				continue
+			}
+			if hubHeight < 3 {
+				fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
+				continue
+			}
+			if hubHeight <= initialHubHeight {
+				fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
+					" initial height: %d,current height: %d\n", initialHubHeight, hubHeight)
+				continue
+			}
+			rollappHeight, err := seq.GetRollappHeight()
+			if err != nil {
+				fmt.Printf("💈 Error getting rollapp height, %s", err.Error())
+				continue
+			}
+			if rollappHeight <= initialRollappHeight {
+				fmt.Printf("💈 Waiting for rollapp height to be greater than initial height,"+
+					" initial height: %d,current height: %d\n", initialRollappHeight, rollappHeight)
+			}
+			return nil
 		}
-		hubHeight, err := strconv.Atoi(hubHeightStr)
-		if err != nil {
-			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
-			continue
-		}
-		if hubHeight < 3 {
-			fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
-			continue
-		}
-		if hubHeight <= initialHubHeight {
-			fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
-				" initial height: %d,current height: %d\n", initialHubHeight, hubHeight)
-			continue
-		}
-		rollappHeightStr, err := seq.GetRollappHeight()
-		if err != nil {
-			fmt.Printf("💈 Error getting rollapp height, %s", err.Error())
-			continue
-		}
-		rollappHeight, err := strconv.Atoi(rollappHeightStr)
-		if err != nil {
-			fmt.Printf("💈 Error converting rollapp height to int, %s", err.Error())
-			continue
-		}
-		if rollappHeight <= initialRollappHeight {
-			fmt.Printf("💈 Waiting for rollapp height to be greater than initial height,"+
-				" initial height: %d,current height: %d\n", initialRollappHeight, rollappHeight)
-		}
-		return nil
 	}
 }
 
