@@ -1,18 +1,24 @@
 package relayer
 
 import (
+	"context"
 	"fmt"
+	"github.com/dymensionxyz/roller/sequencer"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 
-	retry "github.com/avast/retry-go"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
-// Creates an IBC channel between the hub and the client, and return the source channel ID.
-func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
+// CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
+func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption, seq *sequencer.Sequencer,
+) (ConnectionChannels, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	createClientsCmd := r.getCreateClientsCmd(override)
 	status := "Creating clients..."
 	fmt.Printf("💈 %s\n", status)
@@ -23,87 +29,51 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	// Before setting up the connection, we need to call update clients
-	status = "Updating clients..."
+	//after successful update clients, keep running in the background
+	updateClientsCmd := r.GetUpdateClientsCmd()
+	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
+	status = "Creating block..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	err := retry.Do(
-		func() error {
-			updateClientsCmd := r.GetUpdateClientsCmd()
-			return utils.ExecBashCmd(updateClientsCmd, logFileOption)
-		},
-		retry.Delay(time.Duration(30)*time.Second),
-		retry.DelayType(retry.FixedDelay),
-		retry.Attempts(5),
-		retry.OnRetry(func(n uint, err error) {
-			r.logger.Printf("error updating clients. attempt %d, error %s", n, err)
-		}),
-	)
-	if err != nil {
+	if err := waitForValidRollappHeight(seq); err != nil {
 		return ConnectionChannels{}, err
 	}
-
-	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
+	createConnectionCmd := r.getCreateConnectionCmd(override)
 	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 
 	var src, dst string
-	err = retry.Do(
-		func() error {
-			createChannelCmd := r.getCreateChannelCmd(override)
-			status = "Creating channel..."
-			fmt.Printf("💈 %s\n", status)
-			if err := r.WriteRelayerStatus(status); err != nil {
-				return err
-			}
-			if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
-				return err
-			}
-			status = "Waiting for channel finalization..."
-			fmt.Printf("💈 %s\n", status)
-			if err := r.WriteRelayerStatus(status); err != nil {
-				return err
-			}
+	createChannelCmd := r.getCreateChannelCmd(override)
+	status = "Creating channel..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
+	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
+		return ConnectionChannels{}, err
+	}
+	status = "Validating channel established..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
 
-			err = retry.Do(
-				func() error {
-					var err error
-					src, dst, err = r.LoadChannels()
-					if err != nil {
-						return err
-					}
-					if src == "" || dst == "" {
-						return fmt.Errorf("could not load channels")
-					}
-					return nil
-				},
-				retry.Delay(time.Duration(30)*time.Second),
-				retry.DelayType(retry.FixedDelay),
-				retry.Attempts(3),
-				retry.OnRetry(func(n uint, err error) {
-					r.logger.Printf("error validating clients created. attempt %d, error %s", n, err)
-				}),
-			)
-			return err
-		}, retry.Delay(time.Duration(30)*time.Second),
-		retry.DelayType(retry.FixedDelay),
-		retry.Attempts(5),
-		retry.OnRetry(func(n uint, err error) {
-			override = false
-			r.logger.Printf("failed to create channels. attempt %d, error %s", n, err)
-		}),
-	)
+	src, dst, err := r.LoadChannels()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
+	if src == "" || dst == "" {
+		return ConnectionChannels{}, fmt.Errorf("could not load channels")
+	}
+
 	status = fmt.Sprintf("Active src, %s <-> %s, dst", src, dst)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
@@ -112,6 +82,62 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		Src: src,
 		Dst: dst,
 	}, nil
+}
+
+func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
+	initialHubHeightStr, err := seq.GetHubHeight()
+	if err != nil {
+		return err
+	}
+	initialHubHeight, err := strconv.Atoi(initialHubHeightStr)
+	if err != nil {
+		return err
+	}
+	initialRollappHeightStr, err := seq.GetRollappHeight()
+	if err != nil {
+		return err
+	}
+	initialRollappHeight, err := strconv.Atoi(initialRollappHeightStr)
+	if err != nil {
+		return err
+	}
+	for {
+		time.Sleep(30 * time.Second)
+		hubHeightStr, err := seq.GetHubHeight()
+		if err != nil {
+			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
+			continue
+		}
+		hubHeight, err := strconv.Atoi(hubHeightStr)
+		if err != nil {
+			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
+			continue
+		}
+		if hubHeight < 3 {
+			fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
+			continue
+		}
+		if hubHeight <= initialHubHeight {
+			fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
+				" initial height: %d,current height: %d\n", initialHubHeight, hubHeight)
+			continue
+		}
+		rollappHeightStr, err := seq.GetRollappHeight()
+		if err != nil {
+			fmt.Printf("💈 Error getting rollapp height, %s", err.Error())
+			continue
+		}
+		rollappHeight, err := strconv.Atoi(rollappHeightStr)
+		if err != nil {
+			fmt.Printf("💈 Error converting rollapp height to int, %s", err.Error())
+			continue
+		}
+		if rollappHeight <= initialRollappHeight {
+			fmt.Printf("💈 Waiting for rollapp height to be greater than initial height,"+
+				" initial height: %d,current height: %d\n", initialRollappHeight, rollappHeight)
+		}
+		return nil
+	}
 }
 
 func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
@@ -124,7 +150,7 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection", "-t", "30s", "-r", "20"}
+	args := []string{"tx", "connection", "-t", "300s", "-d"}
 	if override {
 		args = append(args, "--override")
 	}
@@ -133,7 +159,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "30s", "-r", "20"}
+	args := []string{"tx", "channel", "-t", "300s", "-r", "5", "-d"}
 	if override {
 		args = append(args, "--override")
 	}

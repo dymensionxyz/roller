@@ -124,7 +124,7 @@ func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome str
 	if err := setSettlementCmd.Run(); err != nil {
 		return err
 	}
-	args := []string{"paths", "new", rollappConfig.ID, hubConfig.ID, consts.DefaultRelayerPath}
+	args := []string{"paths", "new", hubConfig.ID, rollappConfig.ID, consts.DefaultRelayerPath}
 	args = append(args, utils.GetRelayerDefaultFlags(relayerHome)...)
 	newPathCmd := exec.Command(consts.Executables.Relayer, args...)
 	if err := newPathCmd.Run(); err != nil {

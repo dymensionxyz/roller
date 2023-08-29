@@ -20,25 +20,15 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig := damanager.GetSequencerDAConfig()
-	dymintCfg.Set("da_layer", string(rlpCfg.DA))
-	if daConfig != "" {
-		dymintCfg.Set("da_config", daConfig)
+	if err := updateDaConfigInToml(rlpCfg, dymintCfg); err != nil {
+		return err
 	}
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("settlement_layer", "dymension")
 	dymintCfg.Set("block_batch_size", "500")
-	if rlpCfg.DA == config.Celestia {
-		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
-		if !ok {
-			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
-		}
-		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
-	}
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
-	dymintCfg.Set("empty_blocks_max_time", "3600s")
+	dymintCfg.Set("empty_blocks_max_time", "90s")
 	dymintCfg.Set("rollapp_id", rlpCfg.RollappID)
 	dymintCfg.Set("node_address", rlpCfg.HubData.RPC_URL)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
@@ -60,14 +50,34 @@ func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	daConfig := damanager.GetSequencerDAConfig()
-	dymintCfg.Set("da_config", daConfig)
+	if err := updateDaConfigInToml(rlpCfg, dymintCfg); err != nil {
+		return err
+	}
 	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
 }
 
+func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) error {
+	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	dymintCfg.Set("da_layer", string(rlpCfg.DA))
+	daConfig := damanager.GetSequencerDAConfig()
+	dymintCfg.Set("da_config", daConfig)
+	if rlpCfg.DA == config.Celestia {
+		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
+		if !ok {
+			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
+		}
+		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
+	}
+
+	if rlpCfg.DA == config.Local {
+		dymintCfg.Set("da_layer", "mock")
+	}
+
+	return nil
+}
+
 func SetAppConfig(rlpCfg config.RollappConfig) error {
-	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
+	appConfigFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "app.toml")
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
@@ -85,7 +95,7 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 }
 
 func SetTMConfig(rlpCfg config.RollappConfig) error {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -96,18 +106,25 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
-func (seq *Sequencer) ReadRPCPort() (string, error) {
+func (seq *Sequencer) ReadPorts() error {
 	rpcAddr, err := seq.GetConfigValue("rpc.laddr")
 	if err != nil {
-		return "", err
+		return err
 	}
-	parts := strings.Split(rpcAddr, ":")
-	port := parts[len(parts)-1]
-	return port, nil
+	seq.RPCPort = getPortFromAddress(rpcAddr)
+	appCfg, err := toml.LoadFile(filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "app.toml"))
+	if err != nil {
+		return err
+	}
+	jsonRpcAddr := appCfg.Get("json-rpc.address")
+	seq.JsonRPCPort = getPortFromAddress(fmt.Sprint(jsonRpcAddr))
+	apiAddr := appCfg.Get("api.address")
+	seq.APIPort = getPortFromAddress(fmt.Sprint(apiAddr))
+	return nil
 }
 
 func (seq *Sequencer) GetConfigValue(key string) (string, error) {
-	configFilePath := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	configFilePath := filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "config.toml")
 	var tomlCfg, err = toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -121,4 +138,13 @@ func (seq *Sequencer) GetConfigValue(key string) (string, error) {
 
 func (seq *Sequencer) GetRPCEndpoint() string {
 	return "http://localhost:" + seq.RPCPort
+}
+
+func getSequencerConfigDir(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
+}
+
+func getPortFromAddress(addr string) string {
+	parts := strings.Split(addr, ":")
+	return parts[len(parts)-1]
 }

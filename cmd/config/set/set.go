@@ -7,15 +7,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var supportedKeys = []string{
-	"rollapp-rpc-port",
-	"lc-rpc-port",
+var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) error{
+	"rollapp-rpc-port":     setRollappRPC,
+	"lc-gateway-port":      setLCGatewayPort,
+	"lc-rpc-port":          setLCRPCPort,
+	"rollapp-jsonrpc-port": setJsonRpcPort,
+	"rollapp-ws-port":      setWSPort,
+	"rollapp-grpc-port":    setGRPCPort,
+	"da":                   setDA,
 }
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
-		Short: fmt.Sprintf("Updates the specified key (supported keys: %v) in all relevant places within the roller configuration files.", supportedKeys),
+		Short: "Updates the specified key in all relevant places within the roller configuration files.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
@@ -25,15 +30,19 @@ func Cmd() *cobra.Command {
 			}
 			key := args[0]
 			value := args[1]
-			switch key {
-			case "rollapp-rpc-port":
-				return setRollappRPC(rlpCfg, value)
-			case "lc-rpc-port":
-				return setLCRPC(rlpCfg, value)
-			default:
-				return fmt.Errorf("invalid key. Supported keys are: %v", supportedKeys)
+			if updateFunc, exists := keyUpdateFuncs[key]; exists {
+				return updateFunc(rlpCfg, value)
 			}
+			return fmt.Errorf("invalid key. Supported keys are: %v", getSupportedKeys())
 		},
 	}
 	return cmd
+}
+
+func getSupportedKeys() []string {
+	keys := make([]string, 0, len(keyUpdateFuncs))
+	for key := range keyUpdateFuncs {
+		keys = append(keys, key)
+	}
+	return keys
 }

@@ -14,5 +14,5 @@ func (v *VersionMigratorV0111) ShouldMigrate(prevVersion VersionData) bool {
 
 func (v *VersionMigratorV0111) PerformMigration(rlpCfg config.RollappConfig) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	return utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "3600s")
+	return utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "90s")
 }

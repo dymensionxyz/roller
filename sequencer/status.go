@@ -30,7 +30,7 @@ type Response struct {
 	Result Result `json:"result"`
 }
 
-func (seq *Sequencer) getRollappHeight() (string, error) {
+func (seq *Sequencer) GetRollappHeight() (string, error) {
 	rollappRPCEndpoint := seq.GetRPCEndpoint()
 	resp, err := http.Get(fmt.Sprintf("%s/status", rollappRPCEndpoint))
 	if err != nil {
@@ -43,7 +43,7 @@ func (seq *Sequencer) getRollappHeight() (string, error) {
 	}
 	var response Response
 	if err := json.Unmarshal(body, &response); err != nil {
-		return "-1", err
+		return "-2", err
 	}
 	if response.Result.NodeInfo.Network == seq.RlpCfg.RollappID {
 		return response.Result.SyncInfo.LatestBlockHeight, nil
@@ -60,7 +60,7 @@ type HubResponse struct {
 	} `json:"stateInfo"`
 }
 
-func (seq *Sequencer) getHubHeight() (string, error) {
+func (seq *Sequencer) GetHubHeight() (string, error) {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
 		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL)
 	out, err := utils.ExecBashCommandWithStdout(cmd)
@@ -83,14 +83,16 @@ func (seq *Sequencer) getHubHeight() (string, error) {
 }
 func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
-	rolHeight, err := seq.getRollappHeight()
+	rolHeight, err := seq.GetRollappHeight()
 	if err != nil {
 		seq.logger.Println(err)
 	}
 	if rolHeight == "-1" {
 		return "Stopped, Restarting..."
+	} else if rolHeight == "-2" {
+		return "Unhealthy"
 	} else {
-		hubHeight, err := seq.getHubHeight()
+		hubHeight, err := seq.GetHubHeight()
 		if err != nil {
 			seq.logger.Println(err)
 			return fmt.Sprintf("Active, Height: %s", rolHeight)

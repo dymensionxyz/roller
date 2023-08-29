@@ -77,7 +77,7 @@ var Denoms = struct {
 
 const (
 	KeysDirName        = "keys"
-	DefaultRelayerPath = "hub-rollapp"
+	DefaultRelayerPath = "rollapp-hub"
 	DefaultRollappRPC  = "http://localhost:26657"
 )
 

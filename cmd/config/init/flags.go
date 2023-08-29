@@ -27,7 +27,7 @@ func addFlags(cmd *cobra.Command) error {
 		"The precision level of the RollApp's token defined by the number of decimal places. "+
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
 			"Note: EVM RollApps must set this value to 18.")
-	cmd.Flags().StringP(FlagNames.DAType, "", "Celestia", "The DA layer for the RollApp. Can be one of 'Celestia, Avail, Mock'")
+	cmd.Flags().StringP(FlagNames.DAType, "", "Celestia", "The DA layer for the RollApp. Can be one of 'Celestia, Avail, Local'")
 
 	// TODO: Expose when supporting custom sdk rollapps.
 	err := cmd.Flags().MarkHidden(FlagNames.Decimals)

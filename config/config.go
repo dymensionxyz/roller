@@ -19,10 +19,12 @@ const (
 type DAType string
 
 const (
-	Mock     DAType = "mock"
+	Local    DAType = "local"
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
 )
+
+var SupportedDas = []DAType{Celestia, Avail, Local}
 
 type RollappConfig struct {
 	Home          string
@@ -68,7 +70,7 @@ func (c RollappConfig) Validate() error {
 	}
 
 	if !IsValidDAType(string(c.DA)) {
-		return fmt.Errorf("invalid DA type: %s", c.DA)
+		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
 	}
 
 	if !IsValidVMType(string(c.VMType)) {
@@ -80,7 +82,7 @@ func (c RollappConfig) Validate() error {
 
 func IsValidDAType(t string) bool {
 	switch DAType(t) {
-	case Mock, Celestia, Avail:
+	case Local, Celestia, Avail:
 		return true
 	}
 	return false
