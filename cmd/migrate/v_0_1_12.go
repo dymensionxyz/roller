@@ -3,8 +3,10 @@ package migrate
 import (
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	"path/filepath"
 )
 
 type VersionMigratorV0112 struct{}
@@ -20,5 +22,14 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) err
 	if sequencerDaConfig == "" {
 		return nil
 	}
-	return utils.UpdateFieldInToml(dymintTomlPath, "da_config", sequencerDaConfig)
+	if err := utils.UpdateFieldInToml(dymintTomlPath, "da_config", sequencerDaConfig); err != nil {
+		return err
+	}
+	if rlpCfg.DA == config.Avail {
+		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
+		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
+			return err
+		}
+	}
+	return nil
 }

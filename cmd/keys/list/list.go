@@ -71,7 +71,7 @@ func Cmd() *cobra.Command {
 			if outputType == "json" {
 				utils.PrettifyErrorIfExists(printAsJSON(addresses))
 			} else if outputType == "text" {
-				utils.PrintAddresses(addresses)
+				utils.PrintAddressesWithTitle(addresses)
 			}
 		},
 	}

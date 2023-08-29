@@ -60,8 +60,11 @@ type AddressData struct {
 	Addr string
 }
 
-func PrintAddresses(addresses []AddressData) {
+func PrintAddressesWithTitle(addresses []AddressData) {
 	fmt.Printf("🔑 Addresses:\n\n")
+	PrintAddresses(addresses)
+}
+func PrintAddresses(addresses []AddressData) {
 	data := make([][]string, 0, len(addresses))
 	for _, address := range addresses {
 		data = append(data, []string{address.Name, address.Addr})

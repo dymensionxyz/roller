@@ -2,13 +2,11 @@ package avail
 
 import (
 	"fmt"
-	"math/big"
-	"os/exec"
-	"path/filepath"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"math/big"
+	"os/exec"
 
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -18,7 +16,7 @@ import (
 )
 
 const (
-	availConfigFileName       = "avail.toml"
+	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
 	DeafultRPCEndpoint        = "wss://dymension-devnet.avail.tools/ws"
@@ -42,7 +40,7 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewAvail(root string) *Avail {
-	cfgPath := filepath.Join(root, availConfigFileName)
+	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
