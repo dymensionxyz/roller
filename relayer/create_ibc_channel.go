@@ -88,7 +88,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	src, dst, err := r.LoadChannels()
+	src, dst, err = r.LoadChannels()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
