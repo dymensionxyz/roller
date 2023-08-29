@@ -14,7 +14,7 @@ func writeConfigToTOML(path string, c Avail) error {
 		return err
 	}
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0644); err != nil {
+	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 	err = os.WriteFile(path, tomlBytes, 0644)
