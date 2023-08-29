@@ -60,7 +60,7 @@ type HubResponse struct {
 	} `json:"stateInfo"`
 }
 
-func (seq *Sequencer) getHubHeight() (string, error) {
+func (seq *Sequencer) GetHubHeight() (string, error) {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
 		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL)
 	out, err := utils.ExecBashCommandWithStdout(cmd)
@@ -92,7 +92,7 @@ func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	} else if rolHeight == "-2" {
 		return "Unhealthy"
 	} else {
-		hubHeight, err := seq.getHubHeight()
+		hubHeight, err := seq.GetHubHeight()
 		if err != nil {
 			seq.logger.Println(err)
 			return fmt.Sprintf("Active, Height: %s", rolHeight)

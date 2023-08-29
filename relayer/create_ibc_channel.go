@@ -3,8 +3,10 @@ package relayer
 import (
 	"context"
 	"fmt"
+	"github.com/dymensionxyz/roller/sequencer"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -12,7 +14,8 @@ import (
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
-func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
+func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption, seq *sequencer.Sequencer,
+) (ConnectionChannels, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -29,12 +32,28 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	//after successfull update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
-	status = "Waiting for block creation..."
+	status = "Creating block..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	time.Sleep(60 * time.Second)
+	for {
+		time.Sleep(60 * time.Second)
+		hubHeightStr, err := seq.GetHubHeight()
+		if err != nil {
+			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
+			continue
+		}
+		hubHeight, err := strconv.Atoi(hubHeightStr)
+		if err != nil {
+			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
+			continue
+		}
+		if hubHeight > 2 {
+			break
+		}
+		fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
+	}
 	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
 	fmt.Printf("💈 %s\n", status)
