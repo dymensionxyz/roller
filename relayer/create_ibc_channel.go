@@ -37,37 +37,15 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	initialHubHeightStr, err := seq.GetHubHeight()
-	if err != nil {
+	if err := waitForValidRollappHeight(seq); err != nil {
 		return ConnectionChannels{}, err
 	}
-	initialHubHeight, err := strconv.Atoi(initialHubHeightStr)
-	if err != nil {
-		return ConnectionChannels{}, err
-	}
-	for {
-		time.Sleep(30 * time.Second)
-		hubHeightStr, err := seq.GetHubHeight()
-		if err != nil {
-			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
-			continue
-		}
-		hubHeight, err := strconv.Atoi(hubHeightStr)
-		if err != nil {
-			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
-			continue
-		}
-		if hubHeight > 2 && hubHeight > initialHubHeight {
-			break
-		}
-		fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
-	}
-	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
+	createConnectionCmd := r.getCreateConnectionCmd(override)
 	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
@@ -88,7 +66,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	src, dst, err = r.LoadChannels()
+	src, dst, err := r.LoadChannels()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
@@ -104,6 +82,40 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		Src: src,
 		Dst: dst,
 	}, nil
+}
+
+func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
+	initialHubHeightStr, err := seq.GetHubHeight()
+	if err != nil {
+		return err
+	}
+	initialHubHeight, err := strconv.Atoi(initialHubHeightStr)
+	if err != nil {
+		return err
+	}
+	for {
+		time.Sleep(30 * time.Second)
+		hubHeightStr, err := seq.GetHubHeight()
+		if err != nil {
+			fmt.Printf("💈 Error getting rollapp hub height, %s", err.Error())
+			continue
+		}
+		hubHeight, err := strconv.Atoi(hubHeightStr)
+		if err != nil {
+			fmt.Printf("💈 Error converting hub height to int, %s", err.Error())
+			continue
+		}
+		if hubHeight < 3 {
+			fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
+			continue
+		}
+		if hubHeight <= initialHubHeight {
+			fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
+				" initial height: %d,current height: %d\n", hubHeight, initialHubHeight)
+			continue
+		}
+		return nil
+	}
 }
 
 func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
