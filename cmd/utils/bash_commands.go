@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -19,20 +20,22 @@ func GetRelayerDefaultFlags(root string) []string {
 }
 
 // TODO: should accept a context and cancel the command if the context is cancelled
-func RunCommandEvery(command string, args []string, intervalSec int, options ...CommandOption) {
+func RunCommandEvery(ctx context.Context, command string, args []string, intervalSec int, options ...CommandOption) {
 	go func() {
 		for {
-			cmd := exec.Command(command, args...)
+			cmd := exec.CommandContext(ctx, command, args...)
 			for _, option := range options {
 				option(cmd)
 			}
-			var stderr bytes.Buffer
-			errmw := io.MultiWriter(&stderr, cmd.Stderr)
-			cmd.Stderr = errmw
 			err := cmd.Run()
 			if err != nil {
-				fmt.Printf("Failed to execute command: %s, err: %s\n", command, stderr.String())
+				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", command, err)))
 			}
+
+			if ctx.Err() != nil {
+				return
+			}
+
 			time.Sleep(time.Duration(intervalSec) * time.Second)
 		}
 	}()

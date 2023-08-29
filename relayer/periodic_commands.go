@@ -1,9 +1,10 @@
 package relayer
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func (r *Relayer) GetUpdateClientsCmd() *exec.Cmd {
@@ -25,5 +26,5 @@ func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
 }
 
 func (r *Relayer) getArgsWithSrcChannel() []string {
-	return []string{consts.DefaultRelayerPath, r.SrcChannel, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
+	return []string{consts.DefaultRelayerPath, r.DstChannel, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
 }
