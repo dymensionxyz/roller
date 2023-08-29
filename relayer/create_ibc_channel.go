@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
-// Creates an IBC channel between the hub and the client, and return the source channel ID.
+// CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption) (ConnectionChannels, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -25,10 +26,15 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	//after succesfull update clients, keep running in the background
+	//after successfull update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
-
+	status = "Waiting for block creation..."
+	fmt.Printf("💈 %s\n", status)
+	if err := r.WriteRelayerStatus(status); err != nil {
+		return ConnectionChannels{}, err
+	}
+	time.Sleep(60 * time.Second)
 	createConnectionCmd := r.getCreateConnectionCmd(override)
 	status = "Creating connection..."
 	fmt.Printf("💈 %s\n", status)
