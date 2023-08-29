@@ -3,6 +3,7 @@ package start
 import (
 	"context"
 	"fmt"
+	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -48,7 +49,8 @@ func Start() *cobra.Command {
 				fmt.Println("💈 IBC transfer channel is already established!")
 			} else {
 				fmt.Println("💈 Establishing IBC transfer channel")
-				_, err := rly.CreateIBCChannel(override, logFileOption)
+				seq := sequencer.GetInstance(rollappConfig)
+				_, err := rly.CreateIBCChannel(override, logFileOption, seq)
 				utils.PrettifyErrorIfExists(err)
 			}
 

@@ -24,6 +24,8 @@ const (
 	Avail    DAType = "avail"
 )
 
+var SupportedDas = []DAType{Celestia, Avail, Local}
+
 type RollappConfig struct {
 	Home          string
 	RollappID     string
@@ -68,7 +70,7 @@ func (c RollappConfig) Validate() error {
 	}
 
 	if !IsValidDAType(string(c.DA)) {
-		return fmt.Errorf("invalid DA type: %s", c.DA)
+		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
 	}
 
 	if !IsValidVMType(string(c.VMType)) {
