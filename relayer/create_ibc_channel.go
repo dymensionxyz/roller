@@ -75,6 +75,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	status = fmt.Sprintf("Active src, %s <-> %s, dst", src, dst)
+	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
