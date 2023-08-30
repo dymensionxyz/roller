@@ -6,3 +6,11 @@ ENV ROLLER_RELEASE_TAG=v0.1.12-beta-rc2
 RUN curl -L -o install.sh https://dymensionxyz.github.io/roller/install.sh
 RUN chmod +x install.sh
 RUN ./install.sh
+WORKDIR /app
+COPY . .
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Define the script we want run once the container boots up
+ENTRYPOINT ["/app/entrypoint.sh"]
+
