@@ -39,16 +39,24 @@ type App struct {
 	Logo string `json:"logo"`
 }
 
+type Currency struct {
+	DisplayDenom string `json:"displayDenom"`
+	BaseDenom    string `json:"baseDenom"`
+	Decimals     uint   `json:"decimals"`
+	Logo         string `json:"logo"`
+	CurrencyType string `json:"type"`
+}
+
 type NetworkJson struct {
-	ChainId                   string           `json:"chainId"`
-	ChainName                 string           `json:"chainName"`
-	Rpc                       string           `json:"rpc"`
-	Rest                      string           `json:"rest"`
-	Bech32Prefix              string           `json:"bech32Prefix"`
-	Currencies                []string         `json:"currencies"`
-	NativeCurrency            string           `json:"nativeCurrency"`
-	StakeCurrency             string           `json:"stakeCurrency"`
-	FeeCurrency               string           `json:"feeCurrency"`
+	ChainId      string     `json:"chainId"`
+	ChainName    string     `json:"chainName"`
+	Rpc          string     `json:"rpc"`
+	Rest         string     `json:"rest"`
+	Bech32Prefix string     `json:"bech32Prefix"`
+	Currencies   []Currency `json:"currencies"`
+	//NativeCurrency            string           `json:"nativeCurrency"`
+	//StakeCurrency             string           `json:"stakeCurrency"`
+	//FeeCurrency               string           `json:"feeCurrency"`
 	GasPriceSteps             *GasPriceSteps   `json:"gasPriceSteps,omitempty"`
 	GasAdjustment             *float64         `json:"gasAdjustment,omitempty"`
 	CoinType                  int              `json:"coinType"`
@@ -68,11 +76,4 @@ type NetworkJson struct {
 	Description               *string          `json:"description,omitempty"`
 	IsValidator               *bool            `json:"isValidator,omitempty"`
 	Analytics                 bool             `json:"analytics"`
-}
-
-type Currency struct {
-	CoinDenom        string `json:"coinDenom"`
-	CoinMinimalDenom string `json:"coinMinimalDenom"`
-	CoinDecimals     uint   `json:"coinDecimals"`
-	Logo             string `json:"logo"`
 }
