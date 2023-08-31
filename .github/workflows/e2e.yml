@@ -51,7 +51,7 @@ jobs:
 
       - name: Register the rollapp
         run: |
-          go run . register --home $ROLLER_CONFIG_PATH --no-output
+          go run . tx register --home $ROLLER_CONFIG_PATH --no-output
 
       - name: Run the rollapp
         run: |
