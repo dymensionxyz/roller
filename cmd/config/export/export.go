@@ -34,6 +34,7 @@ func Cmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(errors.New("failed to export rollapp json." +
 					" Please verify that the rollapp is running on your local machine and a relayer channel has been established"))
 			}
+			logoDefaultPath := fmt.Sprintf("/logos/%s.png", rlpCfg.RollappID)
 			networkJson := NetworkJson{
 				ChainId:      rlpCfg.RollappID,
 				ChainName:    rlpCfg.RollappID,
@@ -45,14 +46,14 @@ func Cmd() *cobra.Command {
 						DisplayDenom: baseDenom[1:],
 						BaseDenom:    baseDenom,
 						Decimals:     rlpCfg.Decimals,
-						Logo:         "",
+						Logo:         logoDefaultPath,
 						CurrencyType: "main",
 					},
 				},
 				CoinType:  coinType,
 				FaucetUrl: defaultFaucetUrl,
 				Website:   "",
-				Logo:      "",
+				Logo:      logoDefaultPath,
 				Ibc: IbcConfig{
 					HubChannel: hubChannel,
 					Channel:    srcChannel,
