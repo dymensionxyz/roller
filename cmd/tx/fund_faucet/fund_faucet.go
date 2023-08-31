@@ -47,7 +47,7 @@ func Cmd() *cobra.Command {
 			fundFaucetCmd := exec.Command(rlpCfg.RollappBinary, "tx", "ibc-transfer", "transfer", "transfer",
 				srcChannel, faucetAddr, actualFaucetAmount.String()+rlpCfg.Denom, "--from",
 				consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", filepath.Join(rlpCfg.Home,
-					consts.ConfigDirName.Rollapp), "--broadcast-mode", "block", "-y")
+					consts.ConfigDirName.Rollapp), "--broadcast-mode", "block", "-y", "--output", "json")
 			stdout, err := utils.ExecBashCommandWithStdout(fundFaucetCmd)
 			utils.PrettifyErrorIfExists(err)
 			err = tx_utils.CheckTxStdOut(stdout)
