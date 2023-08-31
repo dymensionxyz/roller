@@ -48,15 +48,12 @@ type Currency struct {
 }
 
 type NetworkJson struct {
-	ChainId      string     `json:"chainId"`
-	ChainName    string     `json:"chainName"`
-	Rpc          string     `json:"rpc"`
-	Rest         string     `json:"rest"`
-	Bech32Prefix string     `json:"bech32Prefix"`
-	Currencies   []Currency `json:"currencies"`
-	//NativeCurrency            string           `json:"nativeCurrency"`
-	//StakeCurrency             string           `json:"stakeCurrency"`
-	//FeeCurrency               string           `json:"feeCurrency"`
+	ChainId                   string           `json:"chainId"`
+	ChainName                 string           `json:"chainName"`
+	Rpc                       string           `json:"rpc"`
+	Rest                      string           `json:"rest"`
+	Bech32Prefix              string           `json:"bech32Prefix"`
+	Currencies                []Currency       `json:"currencies"`
 	GasPriceSteps             *GasPriceSteps   `json:"gasPriceSteps,omitempty"`
 	GasAdjustment             *float64         `json:"gasAdjustment,omitempty"`
 	CoinType                  int              `json:"coinType"`
