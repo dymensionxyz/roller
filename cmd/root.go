@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/dymensionxyz/roller/cmd/fund_faucet"
 	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/run"
 	"github.com/dymensionxyz/roller/cmd/services"
@@ -43,5 +44,6 @@ func init() {
 	rootCmd.AddCommand(run.Cmd())
 	rootCmd.AddCommand(services.Cmd())
 	rootCmd.AddCommand(migrate.Cmd())
+	rootCmd.AddCommand(fund_faucet.Cmd())
 	utils.AddGlobalFlags(rootCmd)
 }
