@@ -6,18 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"time"
 
 	"github.com/dymensionxyz/roller/config"
 )
-
-func GetRelayerDefaultFlags(root string) []string {
-	return []string{
-		"--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1", "--home", root,
-	}
-}
 
 // TODO: should accept a context and cancel the command if the context is cancelled
 func RunCommandEvery(ctx context.Context, command string, args []string, intervalSec int, options ...CommandOption) {
@@ -101,22 +94,6 @@ func ExecBashCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
 		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
 	return stderr, nil
-}
-
-func ExecBashCmdWithOSOutput(cmd *exec.Cmd, options ...CommandOption) error {
-	for _, option := range options {
-		option(cmd)
-	}
-	var stderr bytes.Buffer
-	outmw := io.MultiWriter(cmd.Stdout, os.Stdout)
-	cmd.Stdout = outmw
-	errmw := io.MultiWriter(os.Stderr, &stderr, cmd.Stderr)
-	cmd.Stderr = errmw
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
-	}
-	return nil
 }
 
 func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {

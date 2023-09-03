@@ -2,11 +2,11 @@ package initconfig
 
 import (
 	"encoding/json"
+	"github.com/dymensionxyz/roller/relayer"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -31,16 +31,8 @@ type RelayerFileChainConfigValue struct {
 	ClientType     string  `json:"client-type"`
 }
 
-type ChainConfig struct {
-	ID            string
-	RPC           string
-	Denom         string
-	AddressPrefix string
-	GasPrices     string
-}
-
 type RelayerChainConfig struct {
-	ChainConfig ChainConfig
+	ChainConfig relayer.ChainConfig
 	GasPrices   string
 	ClientType  string
 	KeyName     string
@@ -95,7 +87,7 @@ func initRelayer(relayerHome string) error {
 	return initRelayerConfigCmd.Run()
 }
 
-func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome string) error {
+func addChainsConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainConfig, relayerHome string) error {
 	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: rollappConfig,
 		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
@@ -119,21 +111,7 @@ func addChainsConfig(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHo
 	return nil
 }
 
-func setupPath(rollappConfig ChainConfig, hubConfig ChainConfig, relayerHome string) error {
-	setSettlementCmd := exec.Command(consts.Executables.Relayer, "chains", "set-settlement", hubConfig.ID, "--home", relayerHome)
-	if err := setSettlementCmd.Run(); err != nil {
-		return err
-	}
-	args := []string{"paths", "new", hubConfig.ID, rollappConfig.ID, consts.DefaultRelayerPath}
-	args = append(args, utils.GetRelayerDefaultFlags(relayerHome)...)
-	newPathCmd := exec.Command(consts.Executables.Relayer, args...)
-	if err := newPathCmd.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, initConfig config.RollappConfig) error {
+func initializeRelayerConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainConfig, initConfig config.RollappConfig) error {
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err
@@ -141,7 +119,7 @@ func initializeRelayerConfig(rollappConfig ChainConfig, hubConfig ChainConfig, i
 	if err := addChainsConfig(rollappConfig, hubConfig, relayerHome); err != nil {
 		return err
 	}
-	if err := setupPath(rollappConfig, hubConfig, relayerHome); err != nil {
+	if err := relayer.CreatePath(initConfig); err != nil {
 		return err
 	}
 	return nil
