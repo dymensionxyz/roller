@@ -43,21 +43,9 @@ To run the all the tests, run from the root directory:
 go test ./...
 ```
 
-## Creating a New Release
+## Installing a Pre Release
 
-Roller features a convenient Continuous Deployment (CD) workflow that
-automatically generates all required assets after a new release is
-created. To use it, simply create a new release on GitHub, and the
-process will build and upload the release assets for you.
-(works also for pre-releases)
-By default, when installing Roller with
-
-```bash
-curl -L https://dymensionxyz.github.io/roller/install.sh | bash
-```
-
-It will install the latest release.
-To install a specific version, use:
+To install a specific pre-release version, use:
 
 ```bash
 export ROLLER_RELEASE_TAG="<RELEASE_TAG>"
