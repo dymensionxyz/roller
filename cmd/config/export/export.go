@@ -23,6 +23,7 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			const defaultFaucetUrl = "https://discord.com/channels/956961633165529098/1125047988247593010"
 			baseDenom := rlpCfg.Denom
+
 			coinType := 118
 			if rlpCfg.VMType == config.EVM_ROLLAPP {
 				coinType = 60
@@ -30,24 +31,29 @@ func Cmd() *cobra.Command {
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			srcChannel, hubChannel, err := rly.LoadChannels()
 			if err != nil || srcChannel == "" || hubChannel == "" {
-				utils.PrettifyErrorIfExists(errors.New("no relayer channel was found on your local machine. Please create a channel before listing your rollapp on the portal"))
+				utils.PrettifyErrorIfExists(errors.New("failed to export rollapp json." +
+					" Please verify that the rollapp is running on your local machine and a relayer channel has been established"))
 			}
+			logoDefaultPath := fmt.Sprintf("/logos/%s.png", rlpCfg.RollappID)
 			networkJson := NetworkJson{
 				ChainId:      rlpCfg.RollappID,
 				ChainName:    rlpCfg.RollappID,
 				Rpc:          "",
 				Rest:         "",
 				Bech32Prefix: bech32,
-				Currencies: []string{
-					baseDenom,
+				Currencies: []Currency{
+					{
+						DisplayDenom: baseDenom[1:],
+						BaseDenom:    baseDenom,
+						Decimals:     rlpCfg.Decimals,
+						Logo:         logoDefaultPath,
+						CurrencyType: "main",
+					},
 				},
-				NativeCurrency: baseDenom,
-				StakeCurrency:  baseDenom,
-				FeeCurrency:    baseDenom,
-				CoinType:       coinType,
-				FaucetUrl:      defaultFaucetUrl,
-				Website:        "",
-				Logo:           "",
+				CoinType:  coinType,
+				FaucetUrl: defaultFaucetUrl,
+				Website:   "",
+				Logo:      logoDefaultPath,
 				Ibc: IbcConfig{
 					HubChannel: hubChannel,
 					Channel:    srcChannel,
@@ -71,22 +77,11 @@ func Cmd() *cobra.Command {
 			} else {
 				networkJson.Da = Celestia
 			}
-			currency := Currency{
-				CoinDenom:        baseDenom[1:],
-				CoinMinimalDenom: baseDenom,
-				CoinDecimals:     rlpCfg.Decimals,
-				Logo:             "",
-			}
 
 			networkJsonString, err := json.MarshalIndent(networkJson, "", "  ")
 			utils.PrettifyErrorIfExists(err)
-			currencyJsonString, err := json.MarshalIndent(currency, "", "  ")
-			utils.PrettifyErrorIfExists(err)
 			println("💈 networks.json:")
 			println(string(networkJsonString))
-			println()
-			println("💈 tokens.json:")
-			println(string(currencyJsonString))
 		},
 	}
 	return cmd
