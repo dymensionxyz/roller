@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/relayer"
 	global_utils "github.com/dymensionxyz/roller/utils"
 	"os"
 
@@ -104,13 +105,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
 	utils.PrettifyErrorIfExists(err)
-	err = initializeRelayerConfig(ChainConfig{
+	err = initializeRelayerConfig(relayer.ChainConfig{
 		ID:            initConfig.RollappID,
 		RPC:           consts.DefaultRollappRPC,
 		Denom:         initConfig.Denom,
 		AddressPrefix: rollappPrefix,
 		GasPrices:     "0",
-	}, ChainConfig{
+	}, relayer.ChainConfig{
 		ID:            initConfig.HubData.ID,
 		RPC:           initConfig.HubData.RPC_URL,
 		Denom:         consts.Denoms.Hub,
