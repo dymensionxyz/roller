@@ -2,14 +2,12 @@ package register
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"math/big"
 	"os/exec"
-	"strings"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -99,27 +97,8 @@ func runcCommandWithErrorChecking(cmd *exec.Cmd) error {
 	if cmdExecErr != nil {
 		return cmdExecErr
 	}
-	if err := handleStdOut(stdout); err != nil {
+	if err := tx_utils.CheckTxStdOut(stdout); err != nil {
 		return err
 	}
-	return nil
-}
-
-type Response struct {
-	RawLog string `json:"raw_log"`
-}
-
-func handleStdOut(stdout bytes.Buffer) error {
-	var response Response
-
-	err := json.NewDecoder(&stdout).Decode(&response)
-	if err != nil {
-		return err
-	}
-
-	if strings.Contains(response.RawLog, "fail") || strings.Contains(response.RawLog, "error") {
-		return errors.New(response.RawLog)
-	}
-
 	return nil
 }
