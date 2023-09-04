@@ -10,8 +10,7 @@ import (
 type VersionMigratorV0113 struct{}
 
 func (v *VersionMigratorV0113) ShouldMigrate(prevVersion VersionData) bool {
-	return true
-	//return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 13
+	return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 13
 }
 
 func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) error {
