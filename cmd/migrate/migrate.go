@@ -86,7 +86,3 @@ type VersionData struct {
 	Minor int
 	Patch int
 }
-
-func UpdateRollerVersionInConfig(rlpCfg config.RollappConfig) error {
-
-}
