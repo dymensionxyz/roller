@@ -36,6 +36,8 @@ func Cmd() *cobra.Command {
 				}
 			}
 			trimmedCurrentVersion := trimVersionStr(version.BuildVersion)
+			err = UpdateRollerVersionInConfig(rlpCfg)
+			utils.PrettifyErrorIfExists(err)
 			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},
 	}

@@ -12,8 +12,5 @@ func (v *VersionMigratorV016) ShouldMigrate(prevVersion VersionData) bool {
 }
 
 func (v *VersionMigratorV016) PerformMigration(rlpCfg config.RollappConfig) error {
-	if err := sequencer.SetTMConfig(rlpCfg); err != nil {
-		return err
-	}
-	return UpdateRollerVersionInConfig(rlpCfg)
+	return sequencer.SetTMConfig(rlpCfg)
 }

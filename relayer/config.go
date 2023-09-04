@@ -59,7 +59,11 @@ func SetNestedValue(data map[interface{}]interface{}, keyPath []string, value in
 		return fmt.Errorf("empty key path")
 	}
 	if len(keyPath) == 1 {
-		data[keyPath[0]] = value
+		if value == nil {
+			delete(data, keyPath[0])
+		} else {
+			data[keyPath[0]] = value
+		}
 		return nil
 	}
 	nextMap, ok := data[keyPath[0]].(map[interface{}]interface{})
