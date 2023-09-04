@@ -27,29 +27,29 @@ func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) err
 	//paths:
 	//	hub-rollapp:
 	//		src:
-	srcData, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "src"})
+	srcData, err := utils.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "src"})
 	if err != nil {
 		return err
 	}
-	dstData, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "dst"})
+	dstData, err := utils.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "dst"})
 	if err != nil {
 		return err
 	}
-	pathCfg, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"})
+	pathCfg, err := utils.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"})
 	if err != nil {
 		return err
 	}
 	pathCfgMap := pathCfg.(map[interface{}]interface{})
-	if err := relayer.SetNestedValue(pathCfgMap, []string{"src"}, dstData); err != nil {
+	if err := utils.SetNestedValue(pathCfgMap, []string{"src"}, dstData); err != nil {
 		return err
 	}
-	if err := relayer.SetNestedValue(pathCfgMap, []string{"dst"}, srcData); err != nil {
+	if err := utils.SetNestedValue(pathCfgMap, []string{"dst"}, srcData); err != nil {
 		return err
 	}
-	if err := relayer.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub"}, pathCfgMap); err != nil {
+	if err := utils.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub"}, pathCfgMap); err != nil {
 		return err
 	}
-	if err := relayer.SetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"}, nil); err != nil {
+	if err := utils.SetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"}, nil); err != nil {
 		return err
 	}
 	return relayer.WriteRlyConfig(rlpCfg, rlyCfg)
