@@ -16,7 +16,9 @@ func (v *VersionMigratorV0113) ShouldMigrate(prevVersion VersionData) bool {
 func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) error {
 	// Update block time to 1 hour.
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "3600s")
+	if err := utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "3600s"); err != nil {
+		return err
+	}
 	// Update relayer config path.
 	if err := relayer.DeletePath(rlpCfg, "hub-rollapp"); err != nil {
 		return err

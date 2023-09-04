@@ -33,7 +33,7 @@ func validatePort(portStr string) error {
 	return nil
 }
 
-func updateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValue string) error {
+func updateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValue interface{}) error {
 	rlyConfigPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer, "config", "config.yaml")
 	data, err := os.ReadFile(rlyConfigPath)
 	if err != nil {
@@ -54,7 +54,7 @@ func updateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValu
 	return os.WriteFile(rlyConfigPath, newData, 0644)
 }
 
-func setNestedValue(data map[interface{}]interface{}, keyPath []string, value string) error {
+func setNestedValue(data map[interface{}]interface{}, keyPath []string, value interface{}) error {
 	if len(keyPath) == 0 {
 		return fmt.Errorf("empty key path")
 	}
