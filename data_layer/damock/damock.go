@@ -60,5 +60,5 @@ func (c *DAMock) GetKeyName() string {
 }
 
 func (d *DAMock) GetNetworkName() string {
-	return "mock"
+	return "local"
 }
