@@ -24,9 +24,6 @@ func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) err
 	if err != nil {
 		return err
 	}
-	//paths:
-	//	hub-rollapp:
-	//		src:
 	srcData, err := utils.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "src"})
 	if err != nil {
 		return err
