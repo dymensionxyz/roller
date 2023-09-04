@@ -19,6 +19,7 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) err
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	if rlpCfg.DA == "mock" {
 		rlpCfg.DA = config.Local
+		return config.WriteConfigToTOML(rlpCfg)
 	}
 	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
 	sequencerDaConfig := da.GetSequencerDAConfig()
