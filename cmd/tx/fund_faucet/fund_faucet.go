@@ -51,7 +51,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	}
 	defer outputHandler.StopSpinner()
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
-	outputHandler.StartSpinner("Getting relayer channel...")
+	outputHandler.StartSpinner(" Loading relayer channel...")
 	rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 	srcChannel, _, err := rly.LoadChannels()
 	if err != nil || srcChannel == "" {
@@ -69,7 +69,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 		srcChannel, faucetAddr, actualFaucetAmount.String()+rlpCfg.Denom, "--from",
 		consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", filepath.Join(rlpCfg.Home,
 			consts.ConfigDirName.Rollapp), "--broadcast-mode", "block", "-y", "--output", "json")
-	outputHandler.StartSpinner("Funding faucet...")
+	outputHandler.StartSpinner(" Funding faucet...")
 	stdout, err := utils.ExecBashCommandWithStdout(fundFaucetCmd)
 	if err != nil {
 		return err
