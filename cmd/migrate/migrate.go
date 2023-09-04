@@ -87,6 +87,5 @@ type VersionData struct {
 }
 
 func UpdateRollerVersionInConfig(rlpCfg config.RollappConfig) error {
-	rlpCfg.RollerVersion = trimVersionStr(version.BuildVersion)
 	return config.WriteConfigToTOML(rlpCfg)
 }
