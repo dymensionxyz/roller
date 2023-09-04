@@ -10,7 +10,8 @@ import (
 type VersionMigratorV0113 struct{}
 
 func (v *VersionMigratorV0113) ShouldMigrate(prevVersion VersionData) bool {
-	return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 13
+	return true
+	//return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 13
 }
 
 func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) error {
@@ -19,9 +20,37 @@ func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) err
 	if err := utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "3600s"); err != nil {
 		return err
 	}
-	// Update relayer config path.
-	if err := relayer.DeletePath(rlpCfg, "hub-rollapp"); err != nil {
+	rlyCfg, err := relayer.ReadRlyConfig(rlpCfg)
+	if err != nil {
 		return err
 	}
-	return relayer.CreatePath(rlpCfg)
+	//paths:
+	//	hub-rollapp:
+	//		src:
+	srcData, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "src"})
+	if err != nil {
+		return err
+	}
+	dstData, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp", "dst"})
+	if err != nil {
+		return err
+	}
+	pathCfg, err := relayer.GetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"})
+	if err != nil {
+		return err
+	}
+	pathCfgMap := pathCfg.(map[interface{}]interface{})
+	if err := relayer.SetNestedValue(pathCfgMap, []string{"src"}, dstData); err != nil {
+		return err
+	}
+	if err := relayer.SetNestedValue(pathCfgMap, []string{"dst"}, srcData); err != nil {
+		return err
+	}
+	if err := relayer.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub"}, pathCfgMap); err != nil {
+		return err
+	}
+	if err := relayer.SetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"}, nil); err != nil {
+		return err
+	}
+	return relayer.WriteRlyConfig(rlpCfg, rlyCfg)
 }
