@@ -36,7 +36,8 @@ func Cmd() *cobra.Command {
 				}
 			}
 			trimmedCurrentVersion := trimVersionStr(version.BuildVersion)
-			err = UpdateRollerVersionInConfig(rlpCfg)
+			rlpCfg.RollerVersion = trimmedCurrentVersion
+			err = config.WriteConfigToTOML(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
 			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},
@@ -87,5 +88,5 @@ type VersionData struct {
 }
 
 func UpdateRollerVersionInConfig(rlpCfg config.RollappConfig) error {
-	return config.WriteConfigToTOML(rlpCfg)
+
 }
