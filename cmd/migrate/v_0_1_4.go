@@ -12,9 +12,5 @@ func (v *VersionMigratorV014) ShouldMigrate(prevVersion VersionData) bool {
 }
 
 func (v *VersionMigratorV014) PerformMigration(rlpCfg config.RollappConfig) error {
-	err := sequencer.SetDefaultDymintConfig(rlpCfg)
-	if err != nil {
-		return err
-	}
-	return UpdateRollerVersionInConfig(rlpCfg)
+	return sequencer.SetDefaultDymintConfig(rlpCfg)
 }
