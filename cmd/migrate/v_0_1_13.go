@@ -19,10 +19,10 @@ func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) err
 	if err := utils.UpdateFieldInToml(dymintTomlPath, "empty_blocks_max_time", "3600s"); err != nil {
 		return err
 	}
-	return revertRlyPath(rlpCfg)
+	return flipRlyPath(rlpCfg)
 }
 
-func revertRlyPath(rlpCfg config.RollappConfig) error {
+func flipRlyPath(rlpCfg config.RollappConfig) error {
 	rlyCfg, err := relayer.ReadRlyConfig(rlpCfg)
 	if err != nil {
 		return err
