@@ -1,20 +1,19 @@
-package show
+package status
 
 import (
 	"errors"
 	"fmt"
-	"os"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show",
-		Short: "Show the channel data of the relayer on the local machine.",
+		Use:   "status",
+		Short: "Show the status of the relayer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
