@@ -51,7 +51,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	}
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
-		Default:   "myrollapp_1234-1",
+		Default:   "myrollapp",
 		AllowEdit: true,
 	}
 	for {
