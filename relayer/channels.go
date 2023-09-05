@@ -74,18 +74,6 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	return r.SrcChannel, r.DstChannel, nil
 }
 
-func (r *Relayer) queryConnectionsRollappCmd() *exec.Cmd {
-	args := []string{"q", "connections", r.RollappID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
-func (r *Relayer) queryConnectionsHubCmd(connectionID string) *exec.Cmd {
-	args := []string{"q", "connection", r.HubID, connectionID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
 func (r *Relayer) queryChannelsRollappCmd() *exec.Cmd {
 	args := []string{"q", "channels", r.RollappID}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))

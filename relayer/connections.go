@@ -3,8 +3,12 @@ package relayer
 import (
 	"encoding/json"
 	"fmt"
+	"os/exec"
+	"path/filepath"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	roller_utils "github.com/dymensionxyz/roller/utils"
 )
 
 type RollappConnectionQueryResult struct {
@@ -51,13 +55,26 @@ type PrefixInfo struct {
 }
 
 func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
-	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionsRollappCmd())
+
+	//get connection from the config
+	rlyCfg, err := ReadRlyConfig(r.Home)
+	if err != nil {
+		return false, "", err
+
+	}
+	connectionIDraw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"})
 	if err != nil {
 		return false, "", err
 	}
 
-	if output.Len() == 0 {
+	connectionID := connectionIDraw.(string)
+	if connectionID == "" {
 		return false, "", nil
+	}
+
+	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionRollappCmd(connectionID))
+	if err != nil {
+		return false, "", err
 	}
 
 	// While there are JSON objects in the stream...
@@ -94,4 +111,16 @@ func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 	}
 
 	return true, outputStruct.ID, nil
+}
+
+func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
+	args := []string{"q", "connection", r.RollappID, connectionID}
+	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
+	return exec.Command(consts.Executables.Relayer, args...)
+}
+
+func (r *Relayer) queryConnectionsHubCmd(connectionID string) *exec.Cmd {
+	args := []string{"q", "connection", r.HubID, connectionID}
+	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
+	return exec.Command(consts.Executables.Relayer, args...)
 }
