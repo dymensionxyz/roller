@@ -45,7 +45,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	connectionID, _ := r.GetActiveConnection()
-	if connectionID == "" {
+	if connectionID == "" || override {
 		status = "Creating connection..."
 		fmt.Printf("💈 %s\n", status)
 		if err := r.WriteRelayerStatus(status); err != nil {
