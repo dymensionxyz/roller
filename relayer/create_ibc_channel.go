@@ -32,7 +32,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 
 	//after successful update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
-	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
+	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 20, utils.WithDiscardLogging())
 
 	//wait for block to be created
 	status = "Creating block..."
