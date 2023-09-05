@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
-func (r *Relayer) LoadChannels() (string, string, error) {
+func (r *Relayer) LoadActiveChannel() (string, string, error) {
 	output, err := utils.ExecBashCommandWithStdout(r.queryChannelsRollappCmd())
 	if err != nil {
 		return "", "", err
@@ -23,9 +23,15 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 	// While there are JSON objects in the stream...
 	var outputStruct RollappQueryResult
 	var foundOpenChannel RollappQueryResult
-	var latestConnectionID string
+	var activeConnectionID string
 
-	_, latestConnectionID, _ = r.IsLatestConnectionOpen()
+	activeConnectionID, err = r.GetActiveConnection()
+	if err != nil {
+		return "", "", err
+	}
+	if activeConnectionID == "" {
+		return "", "", nil
+	}
 
 	dec := json.NewDecoder(&output)
 	for dec.More() {
@@ -33,11 +39,9 @@ func (r *Relayer) LoadChannels() (string, string, error) {
 		if err != nil {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
-		if latestConnectionID != "" &&
-			outputStruct.ConnectionHops[0] != latestConnectionID {
-			r.logger.Printf("skipping channel %s as it's not on the latest connection %s",
-				outputStruct.ChannelID, latestConnectionID)
-			//clearing the result as we don't want to use it, as it's on old connection
+		if outputStruct.ConnectionHops[0] != activeConnectionID {
+			r.logger.Printf("skipping channel %s as it's not on the active connection %s",
+				outputStruct.ChannelID, activeConnectionID)
 			continue
 		}
 

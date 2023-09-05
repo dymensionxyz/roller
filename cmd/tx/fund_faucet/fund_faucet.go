@@ -3,15 +3,16 @@ package fund_faucet
 import (
 	"errors"
 	"fmt"
+	"math/big"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
-	"math/big"
-	"os/exec"
-	"path/filepath"
 )
 
 var flagNames = struct {
@@ -53,7 +54,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
 	outputHandler.StartSpinner(" Loading relayer channel...")
 	rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
-	srcChannel, _, err := rly.LoadChannels()
+	srcChannel, _, err := rly.LoadActiveChannel()
 	if err != nil || srcChannel == "" {
 		return errors.New("failed to load relayer channel. Please make sure that the rollapp is " +
 			"running on your local machine and a relayer channel has been established")

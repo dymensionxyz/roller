@@ -3,11 +3,12 @@ package relayer
 import (
 	"context"
 	"fmt"
-	"github.com/dymensionxyz/roller/sequencer"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -32,6 +33,8 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	//after successful update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 10, utils.WithDiscardLogging())
+
+	//wait for block to be created
 	status = "Creating block..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
@@ -40,14 +43,18 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	if err := waitForValidRollappHeight(seq); err != nil {
 		return ConnectionChannels{}, err
 	}
-	status = "Creating connection..."
-	fmt.Printf("💈 %s\n", status)
-	if err := r.WriteRelayerStatus(status); err != nil {
-		return ConnectionChannels{}, err
-	}
-	createConnectionCmd := r.getCreateConnectionCmd(override)
-	if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
-		return ConnectionChannels{}, err
+
+	connectionID, _ := r.GetActiveConnection()
+	if connectionID == "" {
+		status = "Creating connection..."
+		fmt.Printf("💈 %s\n", status)
+		if err := r.WriteRelayerStatus(status); err != nil {
+			return ConnectionChannels{}, err
+		}
+		createConnectionCmd := r.getCreateConnectionCmd(override)
+		if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
+			return ConnectionChannels{}, err
+		}
 	}
 
 	var src, dst string
@@ -66,7 +73,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	src, dst, err := r.LoadChannels()
+	src, dst, err := r.LoadActiveChannel()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
