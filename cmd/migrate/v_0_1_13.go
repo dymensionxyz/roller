@@ -23,7 +23,7 @@ func (v *VersionMigratorV0113) PerformMigration(rlpCfg config.RollappConfig) err
 }
 
 func flipRlyPath(rlpCfg config.RollappConfig) error {
-	rlyCfg, err := relayer.ReadRlyConfig(rlpCfg)
+	rlyCfg, err := relayer.ReadRlyConfig(rlpCfg.Home)
 	if err != nil {
 		return err
 	}
@@ -52,5 +52,5 @@ func flipRlyPath(rlpCfg config.RollappConfig) error {
 	if err := utils.SetNestedValue(rlyCfg, []string{"paths", "hub-rollapp"}, nil); err != nil {
 		return err
 	}
-	return relayer.WriteRlyConfig(rlpCfg, rlyCfg)
+	return relayer.WriteRlyConfig(rlpCfg.Home, rlyCfg)
 }
