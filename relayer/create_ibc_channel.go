@@ -58,7 +58,8 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	}
 
 	var src, dst string
-	createChannelCmd := r.getCreateChannelCmd(override)
+	// we ran create channel with override, as it not recovarable anyway
+	createChannelCmd := r.getCreateChannelCmd(true)
 	status = "Creating channel..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
