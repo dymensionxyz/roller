@@ -73,10 +73,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = VerifyUniqueRollappID(initConfig.RollappID, initConfig)
-	if err != nil {
-		return err
-	}
 	isRootExist, err := global_utils.DirNotEmpty(initConfig.Home)
 	if err != nil {
 		return err

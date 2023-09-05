@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
@@ -58,16 +59,8 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		if err != nil {
 			return err
 		}
-		if cfg.VMType == config.EVM_ROLLAPP {
-			err = config.ValidateRollAppID(chainID)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-		}
-		err = VerifyUniqueRollappID(chainID, *cfg)
-		if err != nil {
-			fmt.Println(err)
+		if !isAlphanumeric(chainID) {
+			fmt.Println("RollApp ID must be alphanumeric")
 			continue
 		}
 		cfg.RollappID = chainID
@@ -111,4 +104,13 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	cfg.DA = config.DAType(strings.ToLower(da))
 
 	return nil
+}
+
+func isAlphanumeric(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }
