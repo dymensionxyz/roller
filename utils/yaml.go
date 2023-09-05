@@ -27,7 +27,7 @@ func GetNestedValue(data map[interface{}]interface{}, keyPath []string) (interfa
 	}
 	value, ok := data[keyPath[0]]
 	if !ok {
-		return nil, fmt.Errorf("key not found: %s", keyPath[0])
+		return nil, &KeyNotFoundError{Key: keyPath[0]}
 	}
 	if len(keyPath) == 1 {
 		return value, nil
