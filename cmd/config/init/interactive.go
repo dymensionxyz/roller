@@ -60,7 +60,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 			return err
 		}
 		if !isAlphanumeric(chainID) {
-			fmt.Println("RollApp ID must be alphanumeric")
+			fmt.Println(validRollappIDMsg)
 			continue
 		}
 		cfg.RollappID = chainID

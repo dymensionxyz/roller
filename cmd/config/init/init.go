@@ -46,11 +46,13 @@ func InitCmd() *cobra.Command {
 	return initCmd
 }
 
-func requiredFlagsUsage() string {
-	return `
-A valid RollApp ID should contain only alphanumeric characters, for example, 'mars', 'venus', 'earth', etc.
+const validRollappIDMsg = "A valid RollApp ID should contain only alphanumeric characters, for example, 'mars', 'venus', 'earth', etc."
 
-A valid denom should consist of 3-6 English alphabet letters, for example, 'btc', 'eth', 'pepe', etc.`
+func requiredFlagsUsage() string {
+	return fmt.Sprintf(`
+%s
+
+A valid denom should consist of 3-6 English alphabet letters, for example, 'btc', 'eth', 'pepe', etc.`, validRollappIDMsg)
 }
 
 func runInit(cmd *cobra.Command, args []string) error {

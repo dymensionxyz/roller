@@ -63,7 +63,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	rollappId := args[0]
 	denom := args[1]
 	if !isAlphanumeric(rollappId) {
-		return cfg, fmt.Errorf("rollapp id must contain only alphanumeric characters")
+		return cfg, fmt.Errorf("invalid rollapp id %s. %s", rollappId, validRollappIDMsg)
 	}
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
