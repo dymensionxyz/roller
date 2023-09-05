@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"os"
 	"strings"
 
@@ -18,7 +19,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg.HubData = Hubs[mode]
+	cfg.HubData = consts.Hubs[mode]
 	cfg.VMType = config.EVM_ROLLAPP
 	promptExecutionEnv := promptui.Select{
 		Label: "Choose your rollapp execution environment",

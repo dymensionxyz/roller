@@ -2,6 +2,7 @@ package consts
 
 import (
 	"fmt"
+	"github.com/dymensionxyz/roller/config"
 	"math/big"
 )
 
@@ -91,3 +92,31 @@ var SpinnerMsgs = struct {
 	UniqueIdVerification: " Verifying unique RollApp ID...\n",
 	BalancesVerification: " Verifying balances...\n",
 }
+
+// TODO(#112): The avaialble hub networks should be read from YAML file
+var Hubs = map[string]config.HubData{
+	StagingHubName: {
+		API_URL:   "https://dymension-devnet.api.silknodes.io:443",
+		ID:        "devnet_304-1",
+		RPC_URL:   "https://dymension-devnet.rpc.silknodes.io:443",
+		GAS_PRICE: "0.25",
+	},
+	FroopylandHubName: {
+		API_URL:   "https://froopyland.api.silknodes.io:443",
+		ID:        "froopyland_100-1",
+		RPC_URL:   "https://froopyland.rpc.silknodes.io:443",
+		GAS_PRICE: "0.25",
+	},
+	LocalHubName: {
+		API_URL:   "http://localhost:1318",
+		ID:        "dymension_100-1",
+		RPC_URL:   "http://localhost:36657",
+		GAS_PRICE: "0",
+	},
+}
+
+const (
+	StagingHubName    = "devnet"
+	FroopylandHubName = "froopyland"
+	LocalHubName      = "local"
+)

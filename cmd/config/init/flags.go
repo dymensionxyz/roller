@@ -17,7 +17,7 @@ const (
 )
 
 func addFlags(cmd *cobra.Command) error {
-	cmd.Flags().StringP(FlagNames.HubID, "", FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", consts.FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
@@ -60,7 +60,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.RollappID = rollappId
 	cfg.Denom = "u" + denom
-	cfg.HubData = Hubs[hubID]
+	cfg.HubData = consts.Hubs[hubID]
 	cfg.TokenSupply = tokenSupply
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
@@ -78,5 +78,5 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", FroopylandHubName, StagingHubName, LocalHubName)
+	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", consts.FroopylandHubName, consts.StagingHubName, consts.LocalHubName)
 }
