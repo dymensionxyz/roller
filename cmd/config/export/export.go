@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
-	"math/big"
 )
 
 func Cmd() *cobra.Command {
@@ -29,7 +30,7 @@ func Cmd() *cobra.Command {
 				coinType = 60
 			}
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
-			srcChannel, hubChannel, err := rly.LoadChannels()
+			srcChannel, hubChannel, err := rly.LoadActiveChannel()
 			if err != nil || srcChannel == "" || hubChannel == "" {
 				utils.PrettifyErrorIfExists(errors.New("failed to export rollapp json." +
 					" Please verify that the rollapp is running on your local machine and a relayer channel has been established"))

@@ -54,20 +54,20 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
+func (r *Relayer) GetActiveConnection() (string, error) {
 	rlyCfg, err := ReadRlyConfig(r.Home)
 	if err != nil {
-		return false, "", err
+		return "", err
 
 	}
 	connectionIDRollapp_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"})
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	connectionIDHub_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "src", "connection-id"})
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	connectionIDRollapp := connectionIDRollapp_raw.(string)
@@ -75,12 +75,12 @@ func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 
 	if connectionIDRollapp == "" || connectionIDHub == "" {
 		r.logger.Printf("can't find active connection in the config")
-		return false, "", nil
+		return "", nil
 	}
 
 	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionRollappCmd(connectionIDRollapp))
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	// While there are JSON objects in the stream...
@@ -90,33 +90,33 @@ func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 	for dec.More() {
 		err = dec.Decode(&outputStruct)
 		if err != nil {
-			return false, "", fmt.Errorf("error while decoding JSON: %v", err)
+			return "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
 	}
 
 	if outputStruct.Connection.State != "STATE_OPEN" {
-		return false, "", nil
+		return "", nil
 	}
 
 	// Check if the connection is open on the hub
 	var res ConnectionQueryResult
 	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(connectionIDHub))
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 	err = json.Unmarshal(outputHub.Bytes(), &res)
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 
 	if res.Connection.State != "STATE_OPEN" {
 		r.logger.Printf("connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
 			connectionIDRollapp, connectionIDHub, res.Connection.State,
 		)
-		return false, "", nil
+		return "", nil
 	}
 
-	return true, connectionIDRollapp, nil
+	return connectionIDRollapp, nil
 }
 
 func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {

@@ -3,8 +3,9 @@ package start
 import (
 	"context"
 	"fmt"
-	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
+
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 
@@ -38,7 +39,7 @@ func Start() *cobra.Command {
 			rly := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
 			rly.SetLogger(logger)
 
-			_, _, err = rly.LoadChannels()
+			_, _, err = rly.LoadActiveChannel()
 			utils.PrettifyErrorIfExists(err)
 
 			override := cmd.Flag(flagOverride).Changed
