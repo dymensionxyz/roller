@@ -51,13 +51,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 		if err := RunInteractiveMode(&cfg); err != nil {
 			return cfg, err
 		}
-		setDecimals(initCmd, &cfg)
-		formattedRollappId, err := generateRollappId(cfg)
-		if err != nil {
-			return cfg, err
-		}
-		cfg.RollappID = formattedRollappId
-		return cfg, nil
+		return formatBaseCfg(cfg, initCmd), nil
 	}
 
 	rollappId := args[0]
@@ -73,13 +67,17 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.TokenSupply = tokenSupply
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
+	return formatBaseCfg(cfg, initCmd), nil
+}
+
+func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) config.RollappConfig {
 	setDecimals(initCmd, &cfg)
 	formattedRollappId, err := generateRollappId(cfg)
 	if err != nil {
-		return cfg, err
+		return cfg
 	}
 	cfg.RollappID = formattedRollappId
-	return cfg, nil
+	return cfg
 }
 
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
