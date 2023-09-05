@@ -2,7 +2,9 @@ package initconfig
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/dymensionxyz/roller/version"
 
@@ -50,7 +52,11 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 			return cfg, err
 		}
 		setDecimals(initCmd, &cfg)
-		return cfg, nil
+		formattedRollappId, err := generateRollappId(cfg)
+		if err != nil {
+			return cfg, err
+		}
+		cfg.RollappID = formattedRollappId
 	}
 
 	rollappId := args[0]
@@ -65,7 +71,31 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
 	setDecimals(initCmd, &cfg)
+	formattedRollappId, err := generateRollappId(cfg)
+	if err != nil {
+		return cfg, err
+	}
+	cfg.RollappID = formattedRollappId
 	return cfg, nil
+}
+
+func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
+	for {
+		RandEthId := generateRandEthId()
+		isUnique, err := isEthIdentifierUnique(RandEthId, rlpCfg)
+		if err != nil {
+			return "", err
+		}
+		if isUnique {
+			return RandEthId, nil
+		}
+	}
+}
+
+func generateRandEthId() string {
+	rand.Seed(time.Now().UnixNano())
+	randomNumber := rand.Intn(9000000) + 1000000
+	return fmt.Sprintf("%d", randomNumber)
 }
 
 func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {

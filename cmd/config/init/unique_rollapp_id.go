@@ -38,7 +38,7 @@ func IsRollappIDUnique(rollappID string, initConfig config.RollappConfig) (bool,
 			return false, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		}
 	} else {
-		return verifyUniqueEthIdentifier(rollappID, initConfig)
+		return isEthIdentifierUnique(rollappID, initConfig)
 	}
 }
 
@@ -50,7 +50,7 @@ type RollappsListResponse struct {
 	Rollapps []Rollapp `json:"rollapp"`
 }
 
-func verifyUniqueEthIdentifier(rollappID string, rlpCfg config.RollappConfig) (bool, error) {
+func isEthIdentifierUnique(ethID string, rlpCfg config.RollappConfig) (bool, error) {
 	commonDymdFlags := utils.GetCommonDymdFlags(rlpCfg)
 	// TODO: Move the filtering by ethereum rollapp ID logic to the hub
 	args := []string{"q", "rollapp", "list", "--limit", "1000000"}
@@ -66,7 +66,7 @@ func verifyUniqueEthIdentifier(rollappID string, rlpCfg config.RollappConfig) (b
 		return false, err
 	}
 	for _, rollapp := range rollappsListResponse.Rollapps {
-		if config.GetEthID(rollapp.ID) == config.GetEthID(rollappID) {
+		if config.GetEthID(rollapp.ID) == ethID {
 			return false, nil
 		}
 	}
