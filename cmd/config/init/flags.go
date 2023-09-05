@@ -57,11 +57,14 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 			return cfg, err
 		}
 		cfg.RollappID = formattedRollappId
+		return cfg, nil
 	}
 
 	rollappId := args[0]
 	denom := args[1]
-
+	if !isAlphanumeric(rollappId) {
+		return cfg, fmt.Errorf("rollapp id must contain only alphanumeric characters")
+	}
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
 	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.RollappID = rollappId
@@ -87,7 +90,7 @@ func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 			return "", err
 		}
 		if isUnique {
-			return RandEthId, nil
+			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
 		}
 	}
 }
