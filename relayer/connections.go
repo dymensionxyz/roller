@@ -11,7 +11,7 @@ import (
 	roller_utils "github.com/dymensionxyz/roller/utils"
 )
 
-type RollappConnectionQueryResult struct {
+type ConnectionsQueryResult struct {
 	ID           string           `json:"id"`
 	ClientID     string           `json:"client_id"`
 	Versions     []VersionInfo    `json:"versions"`
@@ -20,7 +20,7 @@ type RollappConnectionQueryResult struct {
 	DelayPeriod  string           `json:"delay_period"`
 }
 
-type HubConnectionQueryResult struct {
+type ConnectionQueryResult struct {
 	Connection  ConnectionInfo  `json:"connection"`
 	Proof       string          `json:"proof"`
 	ProofHeight ProofHeightInfo `json:"proof_height"`
@@ -55,30 +55,36 @@ type PrefixInfo struct {
 }
 
 func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
-
-	//get connection from the config
 	rlyCfg, err := ReadRlyConfig(r.Home)
 	if err != nil {
 		return false, "", err
 
 	}
-	connectionIDraw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"})
+	connectionIDRollapp_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"})
 	if err != nil {
 		return false, "", err
 	}
 
-	connectionID := connectionIDraw.(string)
-	if connectionID == "" {
+	connectionIDHub_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "src", "connection-id"})
+	if err != nil {
+		return false, "", err
+	}
+
+	connectionIDRollapp := connectionIDRollapp_raw.(string)
+	connectionIDHub := connectionIDHub_raw.(string)
+
+	if connectionIDRollapp == "" || connectionIDHub == "" {
+		r.logger.Printf("can't find active connection in the config")
 		return false, "", nil
 	}
 
-	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionRollappCmd(connectionID))
+	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionRollappCmd(connectionIDRollapp))
 	if err != nil {
 		return false, "", err
 	}
 
 	// While there are JSON objects in the stream...
-	var outputStruct RollappConnectionQueryResult
+	var outputStruct ConnectionQueryResult
 
 	dec := json.NewDecoder(&output)
 	for dec.More() {
@@ -88,13 +94,13 @@ func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 		}
 	}
 
-	if outputStruct.State != "STATE_OPEN" {
+	if outputStruct.Connection.State != "STATE_OPEN" {
 		return false, "", nil
 	}
 
 	// Check if the connection is open on the hub
-	var res HubConnectionQueryResult
-	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(outputStruct.Counterparty.ConnectionID))
+	var res ConnectionQueryResult
+	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(connectionIDHub))
 	if err != nil {
 		return false, "", err
 	}
@@ -105,12 +111,12 @@ func (r *Relayer) IsLatestConnectionOpen() (bool, string, error) {
 
 	if res.Connection.State != "STATE_OPEN" {
 		r.logger.Printf("connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
-			outputStruct.ID, outputStruct.Counterparty.ConnectionID, res.Connection.State,
+			connectionIDRollapp, connectionIDHub, res.Connection.State,
 		)
 		return false, "", nil
 	}
 
-	return true, outputStruct.ID, nil
+	return true, connectionIDRollapp, nil
 }
 
 func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
