@@ -55,15 +55,15 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		AllowEdit: true,
 	}
 	for {
-		chainID, err := promptChainID.Run()
+		rollappID, err := promptChainID.Run()
 		if err != nil {
 			return err
 		}
-		if !isAlphanumeric(chainID) {
-			fmt.Println(validRollappIDMsg)
+		if !isAlphanumeric(rollappID) {
+			fmt.Printf("invalid rollapp id %s. %s\n", rollappID, validRollappIDMsg)
 			continue
 		}
-		cfg.RollappID = chainID
+		cfg.RollappID = rollappID
 		break
 	}
 
