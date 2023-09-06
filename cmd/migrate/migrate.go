@@ -2,8 +2,6 @@ package migrate
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/version"
@@ -35,7 +33,7 @@ func Cmd() *cobra.Command {
 					utils.PrettifyErrorIfExists(migrator.PerformMigration(rlpCfg))
 				}
 			}
-			trimmedCurrentVersion := trimVersionStr(version.BuildVersion)
+			trimmedCurrentVersion := version.TrimVersionStr(version.BuildVersion)
 			rlpCfg.RollerVersion = trimmedCurrentVersion
 			err = config.WriteConfigToTOML(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
@@ -43,10 +41,6 @@ func Cmd() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-func trimVersionStr(versionStr string) string {
-	return strings.Split(versionStr, "-")[0]
 }
 
 func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
@@ -60,7 +54,7 @@ func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 			Patch: 3,
 		}, nil
 	}
-	trimmedVersionStr := trimVersionStr(rollerPrevVersion)
+	trimmedVersionStr := version.TrimVersionStr(rollerPrevVersion)
 	n, err := fmt.Sscanf(trimmedVersionStr, "v%d.%d.%d", &major, &minor, &patch)
 	if err != nil {
 		return nil, err

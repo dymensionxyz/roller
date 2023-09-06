@@ -30,6 +30,7 @@ func StartCmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			utils.RequireMigrateIfNeeded(rollappConfig)
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, OneDaySequencePrice)

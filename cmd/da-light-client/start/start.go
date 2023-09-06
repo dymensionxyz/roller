@@ -27,6 +27,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			utils.RequireMigrateIfNeeded(rollappConfig)
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
 			if metricsEndpoint != "" && rollappConfig.DA != config.Celestia {
 				utils.PrettifyErrorIfExists(errors.New("metrics endpoint can only be set for celestia"))

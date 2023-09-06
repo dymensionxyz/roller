@@ -21,6 +21,12 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) err
 		rlpCfg.DA = config.Local
 		return config.WriteConfigToTOML(rlpCfg)
 	}
+	if rlpCfg.DA == config.Avail {
+		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
+		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
+			return err
+		}
+	}
 	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
 	sequencerDaConfig := da.GetSequencerDAConfig()
 	if sequencerDaConfig == "" {
@@ -28,12 +34,6 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) err
 	}
 	if err := utils.UpdateFieldInToml(dymintTomlPath, "da_config", sequencerDaConfig); err != nil {
 		return err
-	}
-	if rlpCfg.DA == config.Avail {
-		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
-		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
-			return err
-		}
 	}
 	return nil
 }

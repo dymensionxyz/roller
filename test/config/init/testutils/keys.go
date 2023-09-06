@@ -19,8 +19,9 @@ const innerKeysDirName = "keyring-test"
 const addressPattern = `.*\.address`
 
 func SanitizeConfigDir(root string) error {
-	keyDirs := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root), getHubKeysDir(root)}
-	for _, dir := range keyDirs {
+	dirsToClean := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root),
+		getHubKeysDir(root), filepath.Join(root, consts.ConfigDirName.LocalHub)}
+	for _, dir := range dirsToClean {
 		if err := os.RemoveAll(dir); err != nil {
 			return err
 		}

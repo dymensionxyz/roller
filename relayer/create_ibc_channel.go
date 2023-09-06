@@ -122,12 +122,12 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 			continue
 		}
 		if hubHeight < 3 {
-			fmt.Printf("💈 Waiting for hub height to be greater than 2, current height: %d\n", hubHeight)
+			fmt.Printf("💈 Waiting for the rollapp height on the hub to be greater than 2, current height: %d\n", hubHeight)
 			continue
 		}
 		if hubHeight <= initialHubHeight {
-			fmt.Printf("💈 Waiting for hub height to be greater than initial height,"+
-				" initial height: %d,current height: %d\n", initialHubHeight, hubHeight)
+			fmt.Printf("💈 Waiting for the rollapp height on the hub to be greater than initial height,"+
+				" initial height: %d, current height: %d\n", initialHubHeight, hubHeight)
 			continue
 		}
 		rollappHeightStr, err := seq.GetRollappHeight()

@@ -62,7 +62,7 @@ func Cmd() *cobra.Command {
 				},
 				Type:        RollApp,
 				Description: nil,
-				Analytics:   false,
+				Analytics:   true,
 			}
 			if rlpCfg.VMType == config.EVM_ROLLAPP {
 				evmID := config.GetEthID(rlpCfg.RollappID)

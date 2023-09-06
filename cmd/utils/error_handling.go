@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/version"
 	"github.com/fatih/color"
 	"os"
 	"os/signal"
@@ -20,6 +22,17 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 		}
 
 		panic(err)
+	}
+}
+
+func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
+	currentRollerVersion := version.TrimVersionStr(version.BuildVersion)
+	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
+	if configRollerVersion != currentRollerVersion {
+		color.New(color.FgRed, color.Bold).Printf("💈 Your rollapp config version ('%s') is older than your"+
+			" installed roller version ('%s'),"+
+			" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion)
+		os.Exit(1)
 	}
 }
 
