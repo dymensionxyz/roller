@@ -1,6 +1,7 @@
 package initconfig_test
 
 import (
+	"fmt"
 	"github.com/dymensionxyz/roller/config"
 	"path/filepath"
 	"testing"
@@ -26,7 +27,7 @@ func TestInitCmd(t *testing.T) {
 			goldenDirPath: "./goldens/init_without_flags",
 			excludedDirs:  []string{"gentx"},
 			optionalFlags: []string{
-				"--" + initconfig.FlagNames.HubID, "devnet",
+				"--" + initconfig.FlagNames.HubID, "local",
 			},
 		},
 		{
@@ -35,7 +36,7 @@ func TestInitCmd(t *testing.T) {
 			excludedDirs:  []string{"gentx"},
 			optionalFlags: []string{
 				"--" + initconfig.FlagNames.TokenSupply, tokenSupply,
-				"--" + initconfig.FlagNames.HubID, "devnet",
+				"--" + initconfig.FlagNames.HubID, "local",
 			},
 		},
 	}
@@ -44,6 +45,7 @@ func TestInitCmd(t *testing.T) {
 			assert := assert.New(t)
 			tempDir, err := os.MkdirTemp(os.TempDir(), "test")
 			tempDir = filepath.Join(tempDir, ".roller")
+			fmt.Println(tempDir, tc.name)
 			assert.NoError(err)
 			defer func() {
 				err := os.RemoveAll(tempDir)
