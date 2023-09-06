@@ -55,12 +55,6 @@ func (c RollappConfig) Validate() error {
 	if err != nil {
 		return err
 	}
-	if c.VMType == EVM_ROLLAPP {
-		err = ValidateRollAppID(c.RollappID)
-		if err != nil {
-			return err
-		}
-	}
 	err = IsValidDenom(c.Denom)
 	if err != nil {
 		return err

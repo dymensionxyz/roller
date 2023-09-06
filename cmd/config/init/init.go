@@ -18,7 +18,7 @@ func InitCmd() *cobra.Command {
 		Use:     "init <rollapp-id> <denom> | --interactive",
 		Short:   "Initialize a RollApp configuration on your local machine.",
 		Long:    "Initialize a RollApp configuration on your local machine\n" + requiredFlagsUsage(),
-		Example: `init mars_9721-1 btc`,
+		Example: `init mars btc`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			interactive, _ := cmd.Flags().GetBool(FlagNames.Interactive)
 			if interactive {
@@ -46,14 +46,13 @@ func InitCmd() *cobra.Command {
 	return initCmd
 }
 
-func requiredFlagsUsage() string {
-	return `
-A valid RollApp ID should follow the format 'name_uniqueID-revision', where
-- 'name' is made up of lowercase English letters
-- 'uniqueID' is a number up to the length of 5 digits representing the unique ID EIP155 rollapp ID
-- 'revision' is a number up to the length of 5 digits representing the revision number for this rollapp
+const validRollappIDMsg = "A valid RollApp ID should contain only alphanumeric characters, for example, 'mars', 'venus', 'earth', etc."
 
-A valid denom should consist of 3-6 English alphabet letters, for example, 'btc', 'eth', 'pepe', etc.`
+func requiredFlagsUsage() string {
+	return fmt.Sprintf(`
+%s
+
+A valid denom should consist of 3-6 English alphabet letters, for example, 'btc', 'eth', 'pepe', etc.`, validRollappIDMsg)
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
@@ -70,10 +69,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
 	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
-	if err != nil {
-		return err
-	}
-	err = VerifyUniqueRollappID(initConfig.RollappID, initConfig)
 	if err != nil {
 		return err
 	}
