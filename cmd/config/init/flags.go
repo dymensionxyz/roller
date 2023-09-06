@@ -39,7 +39,7 @@ func addFlags(cmd *cobra.Command) error {
 
 func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
 	cfg := config.RollappConfig{
-		RollerVersion: version.BuildVersion,
+		RollerVersion: version.TrimVersionStr(version.BuildVersion),
 	}
 	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()

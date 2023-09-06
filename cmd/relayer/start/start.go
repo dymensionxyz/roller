@@ -31,6 +31,7 @@ func Start() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			utils.RequireMigrateIfNeeded(rollappConfig)
 
 			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
