@@ -59,7 +59,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		if err != nil {
 			return err
 		}
-		if !isAlphanumeric(rollappID) {
+		if !isLowercaseAlphabetical(rollappID) {
 			fmt.Printf("invalid rollapp id %s. %s\n", rollappID, validRollappIDMsg)
 			continue
 		}
@@ -106,9 +106,9 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	return nil
 }
 
-func isAlphanumeric(s string) bool {
+func isLowercaseAlphabetical(s string) bool {
 	for _, r := range s {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+		if !unicode.IsLetter(r) || !unicode.IsLower(r) {
 			return false
 		}
 	}
