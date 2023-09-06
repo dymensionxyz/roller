@@ -33,6 +33,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
+			utils.RequireMigrateIfNeeded(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
 
 			ctx, cancel := context.WithCancel(context.Background())
