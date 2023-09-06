@@ -3,7 +3,7 @@ package version
 import "strings"
 
 var (
-	BuildVersion = "v0.1.13-rc03-afbhsdbh"
+	BuildVersion = "<version>"
 	BuildTime    = "<build-time>"
 	BuildCommit  = "<build-commit>"
 )
