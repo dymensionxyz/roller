@@ -172,7 +172,7 @@ func (a *Avail) GetNetworkName() string {
 }
 
 func (a *Avail) GetStatus(c config.RollappConfig) string {
-	return "Running"
+	return "Active"
 }
 
 func (a *Avail) GetKeyName() string {
