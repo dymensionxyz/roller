@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
@@ -50,27 +51,19 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	}
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
-		Default:   "myrollapp_1234-1",
+		Default:   "myrollapp",
 		AllowEdit: true,
 	}
 	for {
-		chainID, err := promptChainID.Run()
+		rollappID, err := promptChainID.Run()
 		if err != nil {
 			return err
 		}
-		if cfg.VMType == config.EVM_ROLLAPP {
-			err = config.ValidateRollAppID(chainID)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-		}
-		err = VerifyUniqueRollappID(chainID, *cfg)
-		if err != nil {
-			fmt.Println(err)
+		if !isAlphanumeric(rollappID) {
+			fmt.Printf("invalid rollapp id %s. %s\n", rollappID, validRollappIDMsg)
 			continue
 		}
-		cfg.RollappID = chainID
+		cfg.RollappID = rollappID
 		break
 	}
 
@@ -111,4 +104,13 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	cfg.DA = config.DAType(strings.ToLower(da))
 
 	return nil
+}
+
+func isAlphanumeric(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }
