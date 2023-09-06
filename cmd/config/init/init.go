@@ -46,7 +46,7 @@ func InitCmd() *cobra.Command {
 	return initCmd
 }
 
-const validRollappIDMsg = "A valid RollApp ID should contain only alphanumeric characters, for example, 'mars', 'venus', 'earth', etc."
+const validRollappIDMsg = "A valid RollApp ID should contain only lowercase alphabetical characters, for example, 'mars', 'venus', 'earth', etc."
 
 func requiredFlagsUsage() string {
 	return fmt.Sprintf(`
