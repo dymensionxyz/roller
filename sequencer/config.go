@@ -102,7 +102,7 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	}
 	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
 	tomlCfg.Set("rpc.timeout_broadcast_tx_commit", "30s")
-	tomlCfg.Set("rpc.max_subscriptions_per_client", 10)
+	tomlCfg.Set("rpc.max_subscriptions_per_client", "10")
 	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
 	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
