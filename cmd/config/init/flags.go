@@ -74,7 +74,6 @@ func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) (*config.Ro
 	setDecimals(initCmd, &cfg)
 	formattedRollappId, err := generateRollappId(cfg)
 	if err != nil {
-		fmt.Println("Error generating rollapp id", err)
 		return nil, err
 	}
 	cfg.RollappID = formattedRollappId
