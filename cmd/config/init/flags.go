@@ -83,11 +83,11 @@ func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) (*config.Ro
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	for {
 		RandEthId := generateRandEthId()
+		if rlpCfg.HubData.ID == LocalHubID {
+			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
+		}
 		isUnique, err := isEthIdentifierUnique(RandEthId, rlpCfg)
 		if err != nil {
-			if rlpCfg.HubData.ID == LocalHubID {
-				return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
-			}
 			return "", err
 		}
 		if isUnique {
