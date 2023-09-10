@@ -63,7 +63,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(initCmd.Execute())
 			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
 			assert.NoError(err)
-			assert.NoError(testutils.VerifyRollerConfig(initConfig))
+			assert.NoError(testutils.VerifyRollerConfig(*initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, config.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
