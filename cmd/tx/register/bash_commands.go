@@ -14,7 +14,7 @@ import (
 
 func getRegisterRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 	cmdArgs := []string{
-		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "stamp1", "genesis-path/1", "3", "3", `{"Addresses":[]}`,
+		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "3", `{"Addresses":[]}`, "tokenmetadata.json",
 	}
 	cmdArgs = append(cmdArgs, getCommonDymdTxFlags(rollappConfig)...)
 	return exec.Command(
