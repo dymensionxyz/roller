@@ -3,6 +3,7 @@ package initconfig
 import (
 	"fmt"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 
@@ -40,33 +41,42 @@ func addFlags(cmd *cobra.Command) error {
 }
 
 func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
-	cfg := config.RollappConfig{
-		RollerVersion: version.TrimVersionStr(version.BuildVersion),
+	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
+
+	//load initial config if exists
+	cfg, err := config.LoadConfigFromTOML(home)
+	if err != nil {
+		//load from flags
+		cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
+		cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
+		cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
+		decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
+		cfg.Decimals = decimals
+		cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
+		hubID := initCmd.Flag(FlagNames.HubID).Value.String()
+		if hub, ok := Hubs[hubID]; ok {
+			cfg.HubData = hub
+		}
 	}
-	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
-	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
+
+	if len(args) > 0 {
+		cfg.RollappID = args[0]
+	}
+	if len(args) > 1 {
+		cfg.Denom = "u" + args[1]
+	}
+
+	//set version
+	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
+
 	// Error is ignored because the flag is validated in the cobra preRun hook
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
 		if err := RunInteractiveMode(&cfg); err != nil {
 			return cfg, err
 		}
-		return formatBaseCfg(cfg, initCmd), nil
 	}
 
-	rollappId := args[0]
-	denom := args[1]
-	if !isLowercaseAlphabetical(rollappId) {
-		return cfg, fmt.Errorf("invalid rollapp id %s. %s", rollappId, validRollappIDMsg)
-	}
-	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
-	cfg.RollappID = rollappId
-	cfg.Denom = "u" + denom
-	cfg.HubData = Hubs[hubID]
-	cfg.TokenSupply = tokenSupply
-	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
-	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
 	return formatBaseCfg(cfg, initCmd), nil
 }
 
@@ -110,4 +120,9 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", FroopylandHubName, StagingHubName, LocalHubName)
+}
+
+func isLowercaseAlphabetical(s string) bool {
+	match, _ := regexp.MatchString("^[a-z]+$", s)
+	return match
 }
