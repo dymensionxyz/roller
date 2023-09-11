@@ -57,6 +57,12 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+
+	err = createTokenMetadaJSON(filepath.Join(RollappConfigDir(initConfig.Home), "tokenmetadata.json"), initConfig.Denom, initConfig.Decimals)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -85,10 +91,34 @@ type BankDenomUnitMetadata struct {
 	Exponent uint     `json:"exponent"`
 }
 
-// TODO(#130): fix to support epochs
-func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
+func getBankDenomMetadata(denom string, decimals uint) []BankDenomMetadata {
 	displayDenom := denom[1:]
 
+	return []BankDenomMetadata{
+		{
+			Base: denom,
+			DenomUnits: []BankDenomUnitMetadata{
+				{
+					Aliases:  []string{},
+					Denom:    denom,
+					Exponent: 0,
+				},
+				{
+					Aliases:  []string{},
+					Denom:    displayDenom,
+					Exponent: decimals,
+				},
+			},
+			Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
+			Display:     displayDenom,
+			Name:        displayDenom,
+			Symbol:      strings.ToUpper(displayDenom),
+		},
+	}
+}
+
+// TODO(#130): fix to support epochs
+func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
@@ -101,27 +131,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.staking.params.unbonding_time", "3628800s"},
-		{"app_state.bank.denom_metadata", []BankDenomMetadata{
-			{
-				Base: denom,
-				DenomUnits: []BankDenomUnitMetadata{
-					{
-						Aliases:  []string{},
-						Denom:    denom,
-						Exponent: 0,
-					},
-					{
-						Aliases:  []string{},
-						Denom:    displayDenom,
-						Exponent: decimals,
-					},
-				},
-				Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
-				Display:     displayDenom,
-				Name:        displayDenom,
-				Symbol:      strings.ToUpper(displayDenom),
-			},
-		}},
+		{"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
 	}
 }
 
@@ -147,6 +157,23 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 func updateGenesisParams(genesisFilePath string, denom string, decimals uint) error {
 	params := getDefaultGenesisParams(denom, decimals)
 	return UpdateJSONParams(genesisFilePath, params)
+}
+func createTokenMetadaJSON(metadataPath string, denom string, decimals uint) error {
+	metadata := getBankDenomMetadata(denom, decimals)
+	if len(metadata) == 0 {
+		return nil
+	}
+
+	file, err := os.Create(metadataPath)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(metadata[0].String())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func generateGenesisTx(initConfig config.RollappConfig) error {
