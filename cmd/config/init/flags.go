@@ -45,21 +45,19 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 
 	//load initial config if exists
-	cfg, err := config.LoadConfigFromTOML(home)
-	if err != nil || !interactive {
-		//load from flags
-		cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
-		cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
-		cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
-		decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
-		cfg.Decimals = decimals
-		cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
-		hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-		if hub, ok := Hubs[hubID]; ok {
-			cfg.HubData = hub
-		}
+	var cfg config.RollappConfig
+	//load from flags
+	cfg.Home = home
+	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
+	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
+	cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
+	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
+	cfg.Decimals = decimals
+	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
+	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
+	if hub, ok := Hubs[hubID]; ok {
+		cfg.HubData = hub
 	}
-	//set version
 	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
 
 	if len(args) > 0 {
