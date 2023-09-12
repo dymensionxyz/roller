@@ -65,10 +65,11 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	initConfig, err := GetInitConfig(cmd, args)
+	initConfigPtr, err := GetInitConfig(cmd, args)
 	if err != nil {
 		return err
 	}
+	initConfig := *initConfigPtr
 	outputHandler := NewOutputHandler(noOutput)
 	defer outputHandler.StopSpinner()
 	utils.RunOnInterrupt(outputHandler.StopSpinner)

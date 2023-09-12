@@ -40,7 +40,7 @@ func addFlags(cmd *cobra.Command) error {
 	return nil
 }
 
-func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
+func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig, error) {
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 
@@ -71,26 +71,29 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 
 	if interactive {
 		if err := RunInteractiveMode(&cfg); err != nil {
-			return cfg, err
+			return nil, err
 		}
 	}
 
-	return formatBaseCfg(cfg, initCmd), nil
+	return formatBaseCfg(cfg, initCmd)
 }
 
-func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) config.RollappConfig {
+func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) (*config.RollappConfig, error) {
 	setDecimals(initCmd, &cfg)
 	formattedRollappId, err := generateRollappId(cfg)
 	if err != nil {
-		return cfg
+		return nil, err
 	}
 	cfg.RollappID = formattedRollappId
-	return cfg
+	return &cfg, nil
 }
 
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	for {
 		RandEthId := generateRandEthId()
+		if rlpCfg.HubData.ID == LocalHubID {
+			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
+		}
 		isUnique, err := isEthIdentifierUnique(RandEthId, rlpCfg)
 		if err != nil {
 			return "", err
