@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"unicode"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/manifoldco/promptui"
 )
@@ -14,26 +14,51 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptNetwork := promptui.Select{
 		Label: "Select your network",
 		Items: []string{"froopyland", "devnet", "local"},
+		CursorPos: func() int {
+			switch cfg.HubData.ID {
+			case Hubs[FroopylandHubName].ID:
+				return 0
+			case Hubs[StagingHubName].ID:
+				return 1
+			case Hubs[LocalHubName].ID:
+				return 2
+			default:
+				return 0
+			}
+		}(),
 	}
 	_, mode, err := promptNetwork.Run()
 	if err != nil {
 		return err
 	}
 	cfg.HubData = Hubs[mode]
-	cfg.VMType = config.EVM_ROLLAPP
+
 	promptExecutionEnv := promptui.Select{
 		Label: "Choose your rollapp execution environment",
 		Items: []string{"EVM rollapp", "custom EVM rollapp", "custom non-EVM rollapp"},
+		CursorPos: func() int {
+			if cfg.RollappBinary == consts.Executables.RollappEVM {
+				return 0
+			} else if cfg.VMType == config.EVM_ROLLAPP {
+				return 1
+			} else {
+				return 2
+			}
+		}(),
 	}
 	_, env, err := promptExecutionEnv.Run()
 	if err != nil {
 		return err
 	}
 
+	if env == "custom non-EVM rollapp" {
+		cfg.VMType = config.SDK_ROLLAPP
+	} else {
+		cfg.VMType = config.EVM_ROLLAPP
+	}
+
+	//if custom binary, get the binary path
 	if env != "EVM rollapp" {
-		if env == "custom non-EVM rollapp" {
-			cfg.VMType = config.SDK_ROLLAPP
-		}
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",
 			Default:   cfg.RollappBinary,
@@ -51,7 +76,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	}
 	promptChainID := promptui.Prompt{
 		Label:     "Enter your RollApp ID",
-		Default:   "myrollapp",
+		Default:   strings.Split(cfg.RollappID, "_")[0],
 		AllowEdit: true,
 	}
 	for {
@@ -69,7 +94,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 
 	promptDenom := promptui.Prompt{
 		Label:     "Specify your RollApp denom",
-		Default:   "RAX",
+		Default:   strings.TrimPrefix(cfg.Denom, "u"),
 		AllowEdit: true,
 		Validate: func(s string) error {
 			if !config.IsValidTokenSymbol(s) {
@@ -86,7 +111,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 
 	promptTokenSupply := promptui.Prompt{
 		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",
-		Default:  "1000000000",
+		Default:  cfg.TokenSupply,
 		Validate: config.VerifyTokenSupply,
 	}
 	supply, err := promptTokenSupply.Run()
@@ -99,18 +124,21 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	promptDAType := promptui.Select{
 		Label: "Choose your data layer",
 		Items: availableDAs,
+		CursorPos: func() int {
+			switch cfg.DA {
+			case config.Celestia:
+				return 0
+			case config.Avail:
+				return 1
+			case config.Local:
+				return 2
+			default:
+				return 0
+			}
+		}(),
 	}
 	_, da, _ := promptDAType.Run()
 	cfg.DA = config.DAType(strings.ToLower(da))
 
 	return nil
-}
-
-func isLowercaseAlphabetical(s string) bool {
-	for _, r := range s {
-		if !unicode.IsLetter(r) || !unicode.IsLower(r) {
-			return false
-		}
-	}
-	return true
 }

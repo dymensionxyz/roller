@@ -2,9 +2,10 @@ package initconfig
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/relayer"
 	global_utils "github.com/dymensionxyz/roller/utils"
-	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -27,6 +28,10 @@ func InitCmd() *cobra.Command {
 
 			if len(args) < 2 {
 				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
+			}
+
+			if !isLowercaseAlphabetical(args[0]) {
+				return fmt.Errorf("invalid rollapp id %s. %s", args[0], validRollappIDMsg)
 			}
 
 			//TODO: parse the config here instead of GetInitConfig in Run command
