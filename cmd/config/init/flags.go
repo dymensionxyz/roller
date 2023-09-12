@@ -42,10 +42,11 @@ func addFlags(cmd *cobra.Command) error {
 
 func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
+	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 
 	//load initial config if exists
 	cfg, err := config.LoadConfigFromTOML(home)
-	if err != nil {
+	if err != nil || !interactive {
 		//load from flags
 		cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 		cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
@@ -58,6 +59,8 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 			cfg.HubData = hub
 		}
 	}
+	//set version
+	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
 
 	if len(args) > 0 {
 		cfg.RollappID = args[0]
@@ -66,11 +69,6 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig,
 		cfg.Denom = "u" + args[1]
 	}
 
-	//set version
-	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
-
-	// Error is ignored because the flag is validated in the cobra preRun hook
-	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 	if interactive {
 		if err := RunInteractiveMode(&cfg); err != nil {
 			return cfg, err
