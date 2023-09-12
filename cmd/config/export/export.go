@@ -60,9 +60,8 @@ func Cmd() *cobra.Command {
 					Channel:    srcChannel,
 					Timeout:    172800000,
 				},
-				Type:        RollApp,
-				Description: nil,
-				Analytics:   true,
+				Type:      RollApp,
+				Analytics: true,
 			}
 			if rlpCfg.VMType == config.EVM_ROLLAPP {
 				evmID := config.GetEthID(rlpCfg.RollappID)

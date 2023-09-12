@@ -49,6 +49,9 @@ func Start() *cobra.Command {
 			}
 			if rly.ChannelReady() && !override {
 				fmt.Println("💈 IBC transfer channel is already established!")
+				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
+				err := rly.WriteRelayerStatus(status)
+				utils.PrettifyErrorIfExists(err)
 			} else {
 				fmt.Println("💈 Establishing IBC transfer channel")
 				seq := sequencer.GetInstance(rollappConfig)
