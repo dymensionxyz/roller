@@ -20,7 +20,7 @@ const (
 )
 
 func addFlags(cmd *cobra.Command) error {
-	cmd.Flags().StringP(FlagNames.HubID, "", FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", consts.FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
@@ -55,7 +55,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig
 	cfg.Decimals = decimals
 	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	if hub, ok := Hubs[hubID]; ok {
+	if hub, ok := consts.Hubs[hubID]; ok {
 		cfg.HubData = hub
 	}
 	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
@@ -89,7 +89,7 @@ func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) (*config.Ro
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	for {
 		RandEthId := generateRandEthId()
-		if rlpCfg.HubData.ID == LocalHubID {
+		if rlpCfg.HubData.ID == consts.LocalHubID {
 			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
 		}
 		isUnique, err := isEthIdentifierUnique(RandEthId, rlpCfg)
@@ -118,7 +118,7 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", FroopylandHubName, StagingHubName, LocalHubName)
+	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", consts.FroopylandHubName, consts.StagingHubName, consts.LocalHubName)
 }
 
 func isLowercaseAlphabetical(s string) bool {

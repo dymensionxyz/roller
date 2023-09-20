@@ -165,7 +165,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	/* ------------------------------ Initialize Local Hub ---------------------------- */
 	hub := cmd.Flag(FlagNames.HubID).Value.String()
-	if hub == LocalHubName {
+	if hub == consts.LocalHubName {
 		err := initLocalHub(initConfig)
 		utils.PrettifyErrorIfExists(err)
 	}
