@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -22,7 +23,11 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
-			const defaultFaucetUrl = "https://discord.com/channels/956961633165529098/1125047988247593010"
+			var faucetUrls = map[string]string{
+				consts.LocalHubID:      "",
+				consts.StagingHubID:    "https://discord.com/channels/956961633165529098/1125047988247593010",
+				consts.FroopylandHubID: "https://discord.com/channels/956961633165529098/1143231362468434022",
+			}
 			baseDenom := rlpCfg.Denom
 
 			coinType := 118
@@ -52,7 +57,7 @@ func Cmd() *cobra.Command {
 					},
 				},
 				CoinType:  coinType,
-				FaucetUrl: defaultFaucetUrl,
+				FaucetUrl: faucetUrls[rlpCfg.HubData.ID],
 				Website:   "",
 				Logo:      logoDefaultPath,
 				Ibc: IbcConfig{
