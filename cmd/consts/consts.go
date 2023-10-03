@@ -58,14 +58,6 @@ var ConfigDirName = struct {
 	LocalHub:    "local-hub",
 }
 
-var AlgoTypes = struct {
-	Secp256k1    string
-	Ethsecp256k1 string
-}{
-	Secp256k1:    "secp256k1",
-	Ethsecp256k1: "eth_secp256k1",
-}
-
 var Denoms = struct {
 	Hub      string
 	Celestia string
