@@ -68,7 +68,7 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
 			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
 			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
-			assert.NoError(testutils.SanitizeConfigDir(tempDir))
+			assert.NoError(testutils.SanitizeConfigDir(tempDir, initConfig))
 			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath, tc.excludedDirs...)
 			assert.NoError(err)
 			assert.True(areDirsEqual)

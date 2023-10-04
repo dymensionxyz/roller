@@ -60,6 +60,10 @@ func getPrivValKeyPath(root string) string {
 func SanitizeGenesis(genesisPath string) error {
 	params := []initconfig.PathValue{
 		{
+			Path:  "chain_id",
+			Value: "PLACEHOLDER_ROLLAPP_ID",
+		},
+		{
 			Path:  "genesis_time",
 			Value: "PLACEHOLDER_TIMESTAMP",
 		},
