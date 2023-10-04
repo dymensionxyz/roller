@@ -16,11 +16,11 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		Items: []string{"froopyland", "devnet", "local"},
 		CursorPos: func() int {
 			switch cfg.HubData.ID {
-			case Hubs[FroopylandHubName].ID:
+			case consts.Hubs[consts.FroopylandHubName].ID:
 				return 0
-			case Hubs[StagingHubName].ID:
+			case consts.Hubs[consts.StagingHubName].ID:
 				return 1
-			case Hubs[LocalHubName].ID:
+			case consts.Hubs[consts.LocalHubName].ID:
 				return 2
 			default:
 				return 0
@@ -31,7 +31,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg.HubData = Hubs[mode]
+	cfg.HubData = consts.Hubs[mode]
 
 	promptExecutionEnv := promptui.Select{
 		Label: "Choose your rollapp execution environment",
