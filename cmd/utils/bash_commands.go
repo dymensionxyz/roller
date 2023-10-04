@@ -20,9 +20,9 @@ func RunCommandEvery(ctx context.Context, command string, args []string, interva
 			for _, option := range options {
 				option(cmd)
 			}
-			err := cmd.Run()
+			_, err := ExecBashCommandWithStdout(cmd)
 			if err != nil {
-				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", command, err)))
+				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", cmd.String(), err)))
 			}
 
 			if ctx.Err() != nil {
