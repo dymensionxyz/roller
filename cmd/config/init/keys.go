@@ -81,9 +81,6 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
 	}
-	if keyConfig.ChainBinary == consts.Executables.Dymension {
-		args = append(args, "--algo", consts.AlgoTypes.Secp256k1)
-	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
 	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
