@@ -54,7 +54,7 @@ func TestInitCmd(t *testing.T) {
 			initCmd := initconfig.InitCmd()
 			utils.AddGlobalFlags(initCmd)
 			denom := "dym"
-			rollappID := "mars_1238-1"
+			rollappID := "mars"
 			initCmd.SetArgs(append([]string{
 				rollappID,
 				denom,

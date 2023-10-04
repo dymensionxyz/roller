@@ -19,11 +19,11 @@ chains:
             output-format: json
             sign-mode: direct
             client-type: 07-tendermint
-    mars_1238-1:
+    PLACEHOLDER_ROLLAPP_ID:
         type: cosmos
         value:
             key: relayer-rollapp-key
-            chain-id: mars_1238-1
+            chain-id: PLACEHOLDER_ROLLAPP_ID
             rpc-addr: http://localhost:26657
             account-prefix: ethm
             keyring-backend: test
@@ -39,7 +39,7 @@ paths:
         src:
             chain-id: dymension_100-1
         dst:
-            chain-id: mars_1238-1
+            chain-id: PLACEHOLDER_ROLLAPP_ID
         src-channel-filter:
             rule: ""
             channel-list: []
