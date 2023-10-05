@@ -3,6 +3,7 @@ package testutils
 import (
 	"errors"
 	"fmt"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
@@ -18,7 +19,7 @@ import (
 const innerKeysDirName = "keyring-test"
 const addressPattern = `.*\.address`
 
-func SanitizeConfigDir(root string) error {
+func SanitizeConfigDir(root string, rlpCfg *config.RollappConfig) error {
 	dirsToClean := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root),
 		getHubKeysDir(root), filepath.Join(root, consts.ConfigDirName.LocalHub)}
 	for _, dir := range dirsToClean {
@@ -35,6 +36,9 @@ func SanitizeConfigDir(root string) error {
 		return err
 	}
 	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
+		return err
+	}
+	if err := SanitizeRlyConfig(rlpCfg); err != nil {
 		return err
 	}
 
