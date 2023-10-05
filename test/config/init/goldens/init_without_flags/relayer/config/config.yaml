@@ -1,24 +1,4 @@
-global:
-    api-listen-addr: :5183
-    timeout: 10s
-    memo: ""
-    light-cache-size: 20
 chains:
-    dymension_100-1:
-        type: cosmos
-        value:
-            key: relayer-hub-key
-            chain-id: dymension_100-1
-            rpc-addr: http://localhost:36657
-            account-prefix: dym
-            keyring-backend: test
-            gas-adjustment: 1.2
-            gas-prices: 0udym
-            debug: true
-            timeout: 10s
-            output-format: json
-            sign-mode: direct
-            client-type: 07-tendermint
     PLACEHOLDER_ROLLAPP_ID:
         type: cosmos
         value:
@@ -34,12 +14,33 @@ chains:
             output-format: json
             sign-mode: direct
             client-type: 01-dymint
+    dymension_100-1:
+        type: cosmos
+        value:
+            key: relayer-hub-key
+            chain-id: dymension_100-1
+            rpc-addr: http://localhost:36657
+            account-prefix: dym
+            keyring-backend: test
+            gas-adjustment: 1.2
+            gas-prices: 0udym
+            debug: true
+            timeout: 10s
+            output-format: json
+            sign-mode: direct
+            client-type: 07-tendermint
+
+global:
+    api-listen-addr: :5183
+    timeout: 10s
+    memo: ""
+    light-cache-size: 20
 paths:
     rollapp-hub:
-        src:
-            chain-id: dymension_100-1
         dst:
             chain-id: PLACEHOLDER_ROLLAPP_ID
+        src:
+            chain-id: dymension_100-1
         src-channel-filter:
             rule: ""
             channel-list: []

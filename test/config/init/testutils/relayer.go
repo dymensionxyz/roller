@@ -1,9 +1,11 @@
 package testutils
 
 import (
+	"errors"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils"
+	"reflect"
 )
 
 func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
@@ -30,4 +32,19 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 	}
 	err = utils.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub", "dst", "chain-id"}, placeholderRollappID)
 	return relayer.WriteRlyConfig(rlpCfg.Home, rlyCfg)
+}
+
+func VerifyRlyConfig(rollappConfig config.RollappConfig, goldenDirPath string) error {
+	goldenRlyCfg, err := relayer.ReadRlyConfig(goldenDirPath)
+	if err != nil {
+		return err
+	}
+	rlyCfg, err := relayer.ReadRlyConfig(rollappConfig.Home)
+	if err != nil {
+		return err
+	}
+	if reflect.DeepEqual(rlyCfg, goldenRlyCfg) {
+		return nil
+	}
+	return errors.New("rly config does not match golden config")
 }

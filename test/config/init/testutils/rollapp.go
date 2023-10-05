@@ -3,10 +3,6 @@ package testutils
 import (
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/config"
-
-	"errors"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -128,15 +124,4 @@ func SanitizeGenesis(genesisPath string) error {
 		return err
 	}
 	return nil
-}
-
-func VerifyRollerConfig(rollappConfig config.RollappConfig) error {
-	existingConfig, err := config.LoadConfigFromTOML(rollappConfig.Home)
-	if err != nil {
-		return err
-	}
-	if existingConfig == rollappConfig {
-		return nil
-	}
-	return errors.New("roller config does not match")
 }
