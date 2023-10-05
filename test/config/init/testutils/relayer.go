@@ -31,6 +31,9 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 		return err
 	}
 	err = utils.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub", "dst", "chain-id"}, placeholderRollappID)
+	if err != nil {
+		return err
+	}
 	return relayer.WriteRlyConfig(rlpCfg.Home, rlyCfg)
 }
 
