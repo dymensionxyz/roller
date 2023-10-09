@@ -14,7 +14,7 @@ keyring_backend = "test"
 keyring_home_dir = "PLACEHOLDER_KEYRING_HOME_DIR"
 namespace_id = "PLACEHOLDER_NAMESPACE_ID"
 node_address = "http://localhost:36657"
-rollapp_id = "mars_1238-1"
+rollapp_id = "PLACEHOLDER_ROLLAPP_ID"
 settlement_layer = "dymension"
 
 [instrumentation]

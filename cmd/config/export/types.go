@@ -71,6 +71,6 @@ type NetworkJson struct {
 	Da                        DataAvailability `json:"da,omitempty"`
 	Apps                      []App            `json:"apps,omitempty"`
 	Description               string           `json:"description"`
-	IsValidator               *bool            `json:"isValidator,omitempty"`
+	IsValidator               *bool            `json:"validator,omitempty"`
 	Analytics                 bool             `json:"analytics"`
 }

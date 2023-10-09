@@ -3,10 +3,6 @@ package testutils
 import (
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/config"
-
-	"errors"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -59,6 +55,10 @@ func getPrivValKeyPath(root string) string {
 
 func SanitizeGenesis(genesisPath string) error {
 	params := []initconfig.PathValue{
+		{
+			Path:  "chain_id",
+			Value: "PLACEHOLDER_ROLLAPP_ID",
+		},
 		{
 			Path:  "genesis_time",
 			Value: "PLACEHOLDER_TIMESTAMP",
@@ -124,15 +124,4 @@ func SanitizeGenesis(genesisPath string) error {
 		return err
 	}
 	return nil
-}
-
-func VerifyRollerConfig(rollappConfig config.RollappConfig) error {
-	existingConfig, err := config.LoadConfigFromTOML(rollappConfig.Home)
-	if err != nil {
-		return err
-	}
-	if existingConfig == rollappConfig {
-		return nil
-	}
-	return errors.New("roller config does not match")
 }
