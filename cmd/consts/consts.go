@@ -106,7 +106,7 @@ var Hubs = map[string]config.HubData{
 		GAS_PRICE: "0",
 	},
 	// TODO: Add mainnet hub data
-	"mainnet": FroopylandHubData,
+	MainnetHubName: FroopylandHubData,
 }
 
 const (
