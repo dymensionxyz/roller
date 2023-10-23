@@ -58,7 +58,7 @@ jobs:
             cd cosmos-sdk
           fi
           git checkout tags/v0.47.5
-      - name: Build Celestia Node
+      - name: Build cosmos-sdk
         run: |
           cd ./cosmos-sdk
           make build
