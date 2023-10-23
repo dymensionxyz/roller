@@ -46,7 +46,7 @@ func Cmd() *cobra.Command {
 			// Calculated by sending a tx on Froopyland and see how much fees were paid
 			txGasPrice := big.NewInt(50000)
 			totalBalanceMinusFees := new(big.Int).Sub(sequencerBalance.Amount, txGasPrice)
-			if totalBalanceMinusFees.Cmp(big.NewInt(0)) == -1 {
+			if totalBalanceMinusFees.Cmp(big.NewInt(0)) != 1 {
 				return fmt.Errorf("no rewards to claim for the address associated with the given private key: %s"+
 					"please try to import the private key to keplr and claim the rewards from there",
 					sequencerAddr)
