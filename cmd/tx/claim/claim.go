@@ -16,8 +16,6 @@ func Cmd() *cobra.Command {
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: Replace with mainnet hub RPC
-			mainnetRPC := consts.Hubs[consts.FroopylandHubName].RPC_URL
 			tempDir, err := os.MkdirTemp(os.TempDir(), "hub_sequencer")
 			if err != nil {
 				return err
@@ -35,10 +33,11 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			mainnetHub := consts.Hubs[consts.MainnetHubName]
 			sequencerBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
 				Binary: consts.Executables.Dymension,
 				Denom:  consts.Denoms.Hub,
-				RPC:    mainnetRPC,
+				RPC:    mainnetHub.RPC_URL,
 			}, sequencerAddr)
 			if err != nil {
 				return err
@@ -51,6 +50,15 @@ func Cmd() *cobra.Command {
 					"please try to import the private key to keplr and claim the rewards from there",
 					sequencerAddr)
 			}
+			rewardsAmountStr := totalBalanceMinusFees.String() + consts.Denoms.Hub
+			sendAllFundsCmd := exec.Command(consts.Executables.Dymension, "tx", "send", consts.KeysIds.HubSequencer,
+				args[1], rewardsAmountStr, "--node", mainnetHub.RPC_URL, "--chain-id", mainnetHub.ID,
+				"--fees", txGasPrice.String()+consts.Denoms.Hub, "-b", "block", "--yes")
+			_, err = utils.ExecBashCommandWithStdout(sendAllFundsCmd)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("💈 Successfully claimed %s to %s!\n", rewardsAmountStr, args[1])
 			return nil
 		},
 	}

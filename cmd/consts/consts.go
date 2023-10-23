@@ -3,7 +3,6 @@ package consts
 import (
 	"fmt"
 	"github.com/dymensionxyz/roller/config"
-	"math/big"
 )
 
 const binsDir = "/usr/local/bin"
@@ -76,15 +75,19 @@ const (
 	DefaultRollappRPC  = "http://localhost:26657"
 )
 
-// TODO: Check DA LC write price on arabica and update this value.
-var OneDAWritePrice = big.NewInt(1)
-
 var SpinnerMsgs = struct {
 	UniqueIdVerification string
 	BalancesVerification string
 }{
 	UniqueIdVerification: " Verifying unique RollApp ID...\n",
 	BalancesVerification: " Verifying balances...\n",
+}
+
+var FroopylandHubData = config.HubData{
+	API_URL:   "https://froopyland.api.silknodes.io:443",
+	ID:        FroopylandHubID,
+	RPC_URL:   "https://froopyland.rpc.silknodes.io:443",
+	GAS_PRICE: "0.25",
 }
 
 // TODO(#112): The avaialble hub networks should be read from YAML file
@@ -95,24 +98,22 @@ var Hubs = map[string]config.HubData{
 		RPC_URL:   "https://dymension-devnet.rpc.silknodes.io:443",
 		GAS_PRICE: "0.25",
 	},
-	FroopylandHubName: {
-		API_URL:   "https://froopyland.api.silknodes.io:443",
-		ID:        FroopylandHubID,
-		RPC_URL:   "https://froopyland.rpc.silknodes.io:443",
-		GAS_PRICE: "0.25",
-	},
+	FroopylandHubName: FroopylandHubData,
 	LocalHubName: {
 		API_URL:   "http://localhost:1318",
 		ID:        LocalHubID,
 		RPC_URL:   "http://localhost:36657",
 		GAS_PRICE: "0",
 	},
+	// TODO: Add mainnet hub data
+	"mainnet": FroopylandHubData,
 }
 
 const (
 	StagingHubName    = "devnet"
 	FroopylandHubName = "froopyland"
 	LocalHubName      = "local"
+	MainnetHubName    = "mainnet"
 	LocalHubID        = "dymension_100-1"
 	StagingHubID      = "devnet_304-1"
 	FroopylandHubID   = "froopyland_100-1"
