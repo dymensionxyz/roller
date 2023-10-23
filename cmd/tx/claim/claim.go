@@ -51,9 +51,9 @@ func Cmd() *cobra.Command {
 					sequencerAddr)
 			}
 			rewardsAmountStr := totalBalanceMinusFees.String() + consts.Denoms.Hub
-			sendAllFundsCmd := exec.Command(consts.Executables.Dymension, "tx", "send", consts.KeysIds.HubSequencer,
+			sendAllFundsCmd := exec.Command(consts.Executables.Dymension, "tx", "bank", "send", consts.KeysIds.HubSequencer,
 				args[1], rewardsAmountStr, "--node", mainnetHub.RPC_URL, "--chain-id", mainnetHub.ID,
-				"--fees", txGasPrice.String()+consts.Denoms.Hub, "-b", "block", "--yes")
+				"--fees", txGasPrice.String()+consts.Denoms.Hub, "-b", "block", "--yes", "--home", tempDir)
 			_, err = utils.ExecBashCommandWithStdout(sendAllFundsCmd)
 			if err != nil {
 				return err
