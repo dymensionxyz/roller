@@ -12,7 +12,7 @@ import (
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "claim-rewards <private-key> <destination address>",
+		Use:   "claim-rewards <private-key> <destination-address>",
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
