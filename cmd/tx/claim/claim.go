@@ -16,6 +16,15 @@ func Cmd() *cobra.Command {
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			shouldProceed, err := utils.PromptBool(fmt.Sprintf(
+				"This command will transfer all Rollapp rewards on the mainnet to %s. Please note that once"+
+					" initiated, this action cannot be undone. Do you wish to proceed", args[1]))
+			if err != nil {
+				return err
+			}
+			if !shouldProceed {
+				return nil
+			}
 			tempDir, err := os.MkdirTemp(os.TempDir(), "hub_sequencer")
 			if err != nil {
 				return err
