@@ -85,7 +85,14 @@ var SpinnerMsgs = struct {
 	BalancesVerification: " Verifying balances...\n",
 }
 
-// TODO(#112): The avaialble hub networks should be read from YAML file
+var FroopylandHubData = config.HubData{
+	API_URL:   "https://froopyland.api.silknodes.io:443",
+	ID:        FroopylandHubID,
+	RPC_URL:   "https://froopyland.rpc.silknodes.io:443",
+	GAS_PRICE: "0.25",
+}
+
+// TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
 	StagingHubName: {
 		API_URL:   "https://dymension-devnet.api.silknodes.io:443",

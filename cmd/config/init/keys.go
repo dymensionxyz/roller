@@ -46,7 +46,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
-			//Eventhough the hub can get evm signitures, we still use the native
+			//Eventhough the hub can get evm signatures, we still use the native
 			Type: config.SDK_ROLLAPP,
 		},
 		{
