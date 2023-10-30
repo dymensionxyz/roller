@@ -114,7 +114,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		GasPrices:     "0",
 	}, relayer.ChainConfig{
 		ID:            initConfig.HubData.ID,
-		RPC:           initConfig.HubData.RPC_URL,
+		RPC:           initConfig.HubData.ARCHIVE_RPC_URL,
 		Denom:         consts.Denoms.Hub,
 		AddressPrefix: consts.AddressPrefixes.Hub,
 		GasPrices:     initConfig.HubData.GAS_PRICE,
