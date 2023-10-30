@@ -2,9 +2,10 @@ package initconfig
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/relayer"
 	global_utils "github.com/dymensionxyz/roller/utils"
-	"os"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -108,7 +109,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		GasPrices:     "0",
 	}, relayer.ChainConfig{
 		ID:            initConfig.HubData.ID,
-		RPC:           initConfig.HubData.RPC_URL,
+		RPC:           initConfig.HubData.ARCHIVE_RPC_URL,
 		Denom:         consts.Denoms.Hub,
 		AddressPrefix: consts.AddressPrefixes.Hub,
 		GasPrices:     initConfig.HubData.GAS_PRICE,
