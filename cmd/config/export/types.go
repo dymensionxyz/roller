@@ -60,7 +60,7 @@ type NetworkJson struct {
 	ExplorerUrl               *string          `json:"explorerUrl,omitempty"`
 	ExploreTxUrl              *string          `json:"exploreTxUrl,omitempty"`
 	FaucetUrl                 string           `json:"faucetUrl,omitempty"`
-	Website                   string           `json:"website,omitempty"`
+	Website                   string           `json:"website"`
 	ValidatorsLogosStorageDir *string          `json:"validatorsLogosStorageDir,omitempty"`
 	Logo                      string           `json:"logo"`
 	Disabled                  *bool            `json:"disabled,omitempty"`
@@ -70,7 +70,7 @@ type NetworkJson struct {
 	Type                      NetworkType      `json:"type"`
 	Da                        DataAvailability `json:"da,omitempty"`
 	Apps                      []App            `json:"apps,omitempty"`
-	Description               *string          `json:"description,omitempty"`
-	IsValidator               *bool            `json:"isValidator,omitempty"`
+	Description               string           `json:"description"`
+	IsValidator               *bool            `json:"validator,omitempty"`
 	Analytics                 bool             `json:"analytics"`
 }

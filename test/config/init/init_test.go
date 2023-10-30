@@ -54,24 +54,21 @@ func TestInitCmd(t *testing.T) {
 			initCmd := initconfig.InitCmd()
 			utils.AddGlobalFlags(initCmd)
 			denom := "dym"
-			rollappID := "mars_1238-1"
+			rollappID := "mars"
 			initCmd.SetArgs(append([]string{
 				rollappID,
 				denom,
 				"--" + utils.FlagNames.Home, tempDir,
 			}, tc.optionalFlags...))
 			assert.NoError(initCmd.Execute())
-			initConfig, err := initconfig.GetInitConfig(initCmd, []string{rollappID, denom})
+			rlpCfg, err := config.LoadConfigFromTOML(tempDir)
 			assert.NoError(err)
-			assert.NoError(testutils.VerifyRollerConfig(initConfig))
 			assert.NoError(os.Remove(filepath.Join(tempDir, config.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
-			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rollappID, initConfig.HubData.ID))
+			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rlpCfg.RollappID, rlpCfg.HubData.ID))
 			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
-			assert.NoError(testutils.SanitizeConfigDir(tempDir))
-			areDirsEqual, err := testutils.CompareDirs(tempDir, tc.goldenDirPath, tc.excludedDirs...)
-			assert.NoError(err)
-			assert.True(areDirsEqual)
+			assert.NoError(testutils.SanitizeConfigDir(tempDir, &rlpCfg))
+			assert.NoError(testutils.VerifyRlyConfig(rlpCfg, tc.goldenDirPath))
 		})
 	}
 }

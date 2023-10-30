@@ -30,6 +30,10 @@ func InitCmd() *cobra.Command {
 				return fmt.Errorf("invalid number of arguments. Expected 2, got %d", len(args))
 			}
 
+			if !isLowercaseAlphabetical(args[0]) {
+				return fmt.Errorf("invalid rollapp id %s. %s", args[0], validRollappIDMsg)
+			}
+
 			//TODO: parse the config here instead of GetInitConfig in Run command
 			// cmd.SetContextValue("mydata", data)
 
@@ -61,10 +65,11 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	initConfig, err := GetInitConfig(cmd, args)
+	initConfigPtr, err := GetInitConfig(cmd, args)
 	if err != nil {
 		return err
 	}
+	initConfig := *initConfigPtr
 	outputHandler := NewOutputHandler(noOutput)
 	defer outputHandler.StopSpinner()
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
@@ -160,7 +165,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	/* ------------------------------ Initialize Local Hub ---------------------------- */
 	hub := cmd.Flag(FlagNames.HubID).Value.String()
-	if hub == LocalHubName {
+	if hub == consts.LocalHubName {
 		err := initLocalHub(initConfig)
 		utils.PrettifyErrorIfExists(err)
 	}

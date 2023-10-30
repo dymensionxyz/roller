@@ -12,7 +12,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-// TODO: should accept a context and cancel the command if the context is cancelled
 func RunCommandEvery(ctx context.Context, command string, args []string, intervalSec int, options ...CommandOption) {
 	go func() {
 		for {
@@ -21,8 +20,9 @@ func RunCommandEvery(ctx context.Context, command string, args []string, interva
 				option(cmd)
 			}
 			err := cmd.Run()
+
 			if err != nil {
-				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", command, err)))
+				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", cmd.String(), err)))
 			}
 
 			if ctx.Err() != nil {

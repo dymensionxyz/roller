@@ -46,7 +46,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
-			//Eventhough the hub can get evm signitures, we still use the native
+			//Eventhough the hub can get evm signatures, we still use the native
 			Type: config.SDK_ROLLAPP,
 		},
 		{
@@ -80,9 +80,6 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
-	}
-	if keyConfig.ChainBinary == consts.Executables.Dymension {
-		args = append(args, "--algo", consts.AlgoTypes.Secp256k1)
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
 	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)

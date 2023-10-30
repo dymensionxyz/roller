@@ -3,6 +3,7 @@ package initconfig
 import (
 	"fmt"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ const (
 )
 
 func addFlags(cmd *cobra.Command) error {
-	cmd.Flags().StringP(FlagNames.HubID, "", FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+	cmd.Flags().StringP(FlagNames.HubID, "", consts.FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
@@ -39,50 +40,58 @@ func addFlags(cmd *cobra.Command) error {
 	return nil
 }
 
-func GetInitConfig(initCmd *cobra.Command, args []string) (config.RollappConfig, error) {
-	cfg := config.RollappConfig{
-		RollerVersion: version.TrimVersionStr(version.BuildVersion),
-	}
-	cfg.Home = initCmd.Flag(utils.FlagNames.Home).Value.String()
-	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
-	// Error is ignored because the flag is validated in the cobra preRun hook
+func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig, error) {
+	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
+
+	//load initial config if exists
+	var cfg config.RollappConfig
+	//load from flags
+	cfg.Home = home
+	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
+	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
+	cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
+	decimals, _ := initCmd.Flags().GetUint(FlagNames.Decimals)
+	cfg.Decimals = decimals
+	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
+	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
+	if hub, ok := consts.Hubs[hubID]; ok {
+		cfg.HubData = hub
+	}
+	cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
+
+	if len(args) > 0 {
+		cfg.RollappID = args[0]
+	}
+	if len(args) > 1 {
+		cfg.Denom = "u" + args[1]
+	}
+
 	if interactive {
 		if err := RunInteractiveMode(&cfg); err != nil {
-			return cfg, err
+			return nil, err
 		}
-		return formatBaseCfg(cfg, initCmd), nil
 	}
 
-	rollappId := args[0]
-	denom := args[1]
-	if !isLowercaseAlphabetical(rollappId) {
-		return cfg, fmt.Errorf("invalid rollapp id %s. %s", rollappId, validRollappIDMsg)
-	}
-	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	tokenSupply := initCmd.Flag(FlagNames.TokenSupply).Value.String()
-	cfg.RollappID = rollappId
-	cfg.Denom = "u" + denom
-	cfg.HubData = Hubs[hubID]
-	cfg.TokenSupply = tokenSupply
-	cfg.DA = config.DAType(strings.ToLower(initCmd.Flag(FlagNames.DAType).Value.String()))
-	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
-	return formatBaseCfg(cfg, initCmd), nil
+	return formatBaseCfg(cfg, initCmd)
 }
 
-func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) config.RollappConfig {
+func formatBaseCfg(cfg config.RollappConfig, initCmd *cobra.Command) (*config.RollappConfig, error) {
 	setDecimals(initCmd, &cfg)
 	formattedRollappId, err := generateRollappId(cfg)
 	if err != nil {
-		return cfg
+		return nil, err
 	}
 	cfg.RollappID = formattedRollappId
-	return cfg
+	return &cfg, nil
 }
 
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	for {
 		RandEthId := generateRandEthId()
+		if rlpCfg.HubData.ID == consts.LocalHubID {
+			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
+		}
 		isUnique, err := isEthIdentifierUnique(RandEthId, rlpCfg)
 		if err != nil {
 			return "", err
@@ -109,5 +118,10 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 }
 
 func getAvailableHubsMessage() string {
-	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", FroopylandHubName, StagingHubName, LocalHubName)
+	return fmt.Sprintf("Acceptable values are '%s', '%s' or '%s'", consts.FroopylandHubName, consts.StagingHubName, consts.LocalHubName)
+}
+
+func isLowercaseAlphabetical(s string) bool {
+	match, _ := regexp.MatchString("^[a-z]+$", s)
+	return match
 }

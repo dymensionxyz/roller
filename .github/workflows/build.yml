@@ -48,6 +48,20 @@ jobs:
           make build
           make go-install
           make cel-key
+      - name: Get the latest version of the cosmos sdk
+        run: |
+          if [ -d "./cosmos-sdk" ]; then
+            cd cosmos-sdk
+            git fetch --all
+          else
+            git clone https://github.com/cosmos/cosmos-sdk.git
+            cd cosmos-sdk
+          fi
+          git checkout tags/v0.47.5
+      - name: Build cosmos-sdk
+        run: |
+          cd ./cosmos-sdk
+          make build
       - name: Create roller_bins archive folder structure
         run: |
           rm -rf roller_bins
@@ -55,6 +69,7 @@ jobs:
           mkdir roller_bins/lib
           sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
           sudo cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
+          sudo cp ./cosmos-sdk/build/simd ./roller_bins/lib/simd
           sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
           sudo cp /usr/local/bin/roller ./roller_bins/roller
           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
