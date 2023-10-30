@@ -2,6 +2,7 @@ package consts
 
 import (
 	"fmt"
+
 	"github.com/dymensionxyz/roller/config"
 )
 
@@ -84,26 +85,29 @@ var SpinnerMsgs = struct {
 }
 
 var FroopylandHubData = config.HubData{
-	API_URL:   "https://froopyland.api.silknodes.io:443",
-	ID:        FroopylandHubID,
-	RPC_URL:   "https://froopyland.rpc.silknodes.io:443",
-	GAS_PRICE: "0.25",
+	API_URL:         "https://froopyland.api.silknodes.io:443",
+	ID:              FroopylandHubID,
+	RPC_URL:         "https://froopyland.rpc.silknodes.io:443",
+	ARCHIVE_RPC_URL: "https://froopy-archive.rpc.silknodes.io:443",
+	GAS_PRICE:       "0.25",
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
 	StagingHubName: {
-		API_URL:   "https://dymension-devnet.api.silknodes.io:443",
-		ID:        StagingHubID,
-		RPC_URL:   "https://dymension-devnet.rpc.silknodes.io:443",
-		GAS_PRICE: "0.25",
+		API_URL:         "https://dymension-devnet.api.silknodes.io:443",
+		ID:              StagingHubID,
+		RPC_URL:         "https://dymension-devnet.rpc.silknodes.io:443",
+		ARCHIVE_RPC_URL: "https://dymension-devnet.rpc.silknodes.io:443",
+		GAS_PRICE:       "0.25",
 	},
 	FroopylandHubName: FroopylandHubData,
 	LocalHubName: {
-		API_URL:   "http://localhost:1318",
-		ID:        LocalHubID,
-		RPC_URL:   "http://localhost:36657",
-		GAS_PRICE: "0",
+		API_URL:         "http://localhost:1318",
+		ID:              LocalHubID,
+		RPC_URL:         "http://localhost:36657",
+		ARCHIVE_RPC_URL: "http://localhost:36657",
+		GAS_PRICE:       "0",
 	},
 	// TODO: Add mainnet hub data
 	MainnetHubName: FroopylandHubData,
