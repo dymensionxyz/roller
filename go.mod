@@ -9,13 +9,11 @@ require (
 )
 
 require (
-	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/briandowns/spinner v1.23.0
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/fatih/color v1.15.0
 	github.com/gizak/termui/v3 v3.1.0
-	github.com/google/go-cmp v0.5.9
 	github.com/manifoldco/promptui v0.9.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml v1.9.5
