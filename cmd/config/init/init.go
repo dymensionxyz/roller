@@ -2,7 +2,6 @@ package initconfig
 
 import (
 	"fmt"
-	"math/big"
 	"os"
 
 	"github.com/dymensionxyz/roller/relayer"
@@ -33,16 +32,6 @@ func InitCmd() *cobra.Command {
 
 			if !isLowercaseAlphabetical(args[0]) {
 				return fmt.Errorf("invalid rollapp id %s. %s", args[0], validRollappIDMsg)
-			}
-
-			tokenSupply := cmd.Flag(FlagNames.TokenSupply).Value.String()
-			tokenSupplyInt, ok := new(big.Int).SetString(tokenSupply, 10)
-			if !ok {
-				return fmt.Errorf("invalid token supply %s", tokenSupply)
-			}
-
-			if tokenSupplyInt.Cmp(big.NewInt(1_000_000)) < 0 {
-				return fmt.Errorf("token supply %s must be greater than 1,000,000", tokenSupply)
 			}
 
 			//TODO: parse the config here instead of GetInitConfig in Run command
