@@ -113,6 +113,10 @@ func VerifyTokenSupply(supply string) error {
 		return fmt.Errorf("invalid token supply: %s. Must be divisible by 10", supply)
 	}
 
+	if tokenSupply.Cmp(big.NewInt(10_000_000)) < 0 {
+		return fmt.Errorf("token supply %s must be greater than 10,000,000", tokenSupply)
+	}
+
 	return nil
 }
 
