@@ -15,7 +15,7 @@ import (
 )
 
 func TestInitCmd(t *testing.T) {
-	tokenSupply := "1000"
+	tokenSupply := "10000000"
 	testCases := []struct {
 		name          string
 		goldenDirPath string
