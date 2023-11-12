@@ -37,7 +37,7 @@ jobs:
             git clone https://github.com/celestiaorg/celestia-node.git
             cd celestia-node
           fi
-          git checkout tags/v0.11.0-rc6
+          git checkout tags/v0.11.0-rc6.1
       - name: Set up Go 1.20
         uses: actions/setup-go@v3
         with:
