@@ -62,6 +62,9 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 	err := cmd.Start()
 	if err != nil {
 		errMsg := parseError(stderr.String())
+		if errMsg == "" {
+			PrettifyErrorIfExists(err)
+		}
 		PrettifyErrorIfExists(errors.New(errMsg))
 	}
 	printOutput()
