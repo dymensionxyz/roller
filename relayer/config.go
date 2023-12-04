@@ -14,11 +14,6 @@ import (
 
 func CreatePath(rlpCfg config.RollappConfig) error {
 	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
-	setSettlementCmd := exec.Command(consts.Executables.Relayer, "chains", "set-settlement",
-		rlpCfg.HubData.ID, "--home", relayerHome)
-	if err := setSettlementCmd.Run(); err != nil {
-		return err
-	}
 	newPathCmd := exec.Command(consts.Executables.Relayer, "paths", "new", rlpCfg.HubData.ID, rlpCfg.RollappID,
 		consts.DefaultRelayerPath, "--home", relayerHome)
 	if err := newPathCmd.Run(); err != nil {
