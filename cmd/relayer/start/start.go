@@ -57,7 +57,7 @@ func Start() *cobra.Command {
 				_, err := rly.CreateIBCChannel(override, logFileOption, seq)
 				utils.PrettifyErrorIfExists(err)
 			}
-			utils.RunBashCmdAsync(rly.GetStartCmd(), func() {}, func(errMessage string) string { return errMessage })
+			go utils.RunBashCmdAsync(rly.GetStartCmd(), func() {}, func(errMessage string) string { return errMessage }, logFileOption)
 			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
 				rly.SrcChannel, rly.DstChannel)
 
