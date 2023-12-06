@@ -125,33 +125,6 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	}
 }
 
-func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "clients"}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	if override {
-		args = append(args, "--override")
-	}
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
-func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection", "-t", "300s", "-d"}
-	if override {
-		args = append(args, "--override")
-	}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
-func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "300s", "-r", "5", "-d"}
-	if override {
-		args = append(args, "--override")
-	}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
 func (r *Relayer) getCreateLinkCmd(override bool) *exec.Cmd {
 	args := []string{"tx", "link", "-t", "300s", "--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1"}
 	if override {
