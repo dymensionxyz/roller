@@ -1,10 +1,12 @@
 package sequnecer_start
 
 import (
+	"context"
 	"fmt"
-	"github.com/dymensionxyz/roller/sequencer"
 	"math/big"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/sequencer"
 
 	"strings"
 
@@ -38,10 +40,13 @@ func StartCmd() *cobra.Command {
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
-			utils.RunBashCmdAsync(startRollappCmd, func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			go utils.RunBashCmdAsync(ctx, startRollappCmd, func() {
 				printOutput(rollappConfig)
 			}, parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
+			select {}
 		},
 	}
 
