@@ -3,31 +3,53 @@ chains:
     type: cosmos
     value:
       account-prefix: ethm
+      block-timeout: ""
+      broadcast-mode: batch
       chain-id: PLACEHOLDER_ROLLAPP_ID
-      client-type: 01-dymint
+      coin-type: null
       debug: true
+      extension-options: []
+      extra-codecs:
+      - ethermint
+      feegrants: null
       gas-adjustment: 1.2
       gas-prices: 0udym
       key: relayer-rollapp-key
+      key-directory: PLACEHOLDER_KEY_DIRECTORY
       keyring-backend: test
+      max-gas-amount: 0
+      min-gas-amount: 0
+      min-loop-duration: 0s
       output-format: json
       rpc-addr: http://localhost:26657
       sign-mode: direct
+      signing-algorithm: ""
       timeout: 10s
   dymension_100-1:
     type: cosmos
     value:
       account-prefix: dym
+      block-timeout: ""
+      broadcast-mode: batch
       chain-id: dymension_100-1
-      client-type: 07-tendermint
+      coin-type: null
       debug: true
+      extension-options: []
+      extra-codecs:
+      - ethermint
+      feegrants: null
       gas-adjustment: 1.2
-      gas-prices: 0udym
+      gas-prices: 100000000udym
       key: relayer-hub-key
+      key-directory: PLACEHOLDER_KEY_DIRECTORY
       keyring-backend: test
+      max-gas-amount: 0
+      min-gas-amount: 0
+      min-loop-duration: 0s
       output-format: json
       rpc-addr: http://localhost:36657
       sign-mode: direct
+      signing-algorithm: ""
       timeout: 10s
 global:
   api-listen-addr: :5183
@@ -43,4 +65,3 @@ paths:
     src-channel-filter:
       channel-list: []
       rule: ""
-settlement: ""
