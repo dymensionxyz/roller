@@ -2,10 +2,11 @@ package initconfig
 
 import (
 	"encoding/json"
-	"github.com/dymensionxyz/roller/relayer"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/relayer"
 
 	"github.com/dymensionxyz/roller/config"
 
@@ -28,13 +29,12 @@ type RelayerFileChainConfigValue struct {
 	Timeout        string  `json:"timeout"`
 	OutputFormat   string  `json:"output-format"`
 	SignMode       string  `json:"sign-mode"`
-	ClientType     string  `json:"client-type"`
+	ExtraCodecs    []string  `json:"extra-codecs"`
 }
 
 type RelayerChainConfig struct {
 	ChainConfig relayer.ChainConfig
 	GasPrices   string
-	ClientType  string
 	KeyName     string
 }
 
@@ -65,7 +65,7 @@ func getRelayerFileChainConfig(relayerChainConfig RelayerChainConfig) RelayerFil
 			Timeout:        "10s",
 			OutputFormat:   "json",
 			SignMode:       "direct",
-			ClientType:     relayerChainConfig.ClientType,
+			ExtraCodecs:    []string{"ethermint"},
 		},
 	}
 }
@@ -91,14 +91,12 @@ func addChainsConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainC
 	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: rollappConfig,
 		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
-		ClientType:  "01-dymint",
 		KeyName:     consts.KeysIds.RollappRelayer,
 	})
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
 		GasPrices:   hubConfig.GasPrices + hubConfig.Denom,
-		ClientType:  "07-tendermint",
 		KeyName:     consts.KeysIds.HubRelayer,
 	})
 
