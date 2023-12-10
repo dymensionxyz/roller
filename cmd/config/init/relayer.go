@@ -18,18 +18,18 @@ type RelayerFileChainConfig struct {
 	Value RelayerFileChainConfigValue `json:"value"`
 }
 type RelayerFileChainConfigValue struct {
-	Key            string  `json:"key"`
-	ChainID        string  `json:"chain-id"`
-	RpcAddr        string  `json:"rpc-addr"`
-	AccountPrefix  string  `json:"account-prefix"`
-	KeyringBackend string  `json:"keyring-backend"`
-	GasAdjustment  float64 `json:"gas-adjustment"`
-	GasPrices      string  `json:"gas-prices"`
-	Debug          bool    `json:"debug"`
-	Timeout        string  `json:"timeout"`
-	OutputFormat   string  `json:"output-format"`
-	SignMode       string  `json:"sign-mode"`
-	ExtraCodecs    []string  `json:"extra-codecs"`
+	Key            string   `json:"key"`
+	ChainID        string   `json:"chain-id"`
+	RpcAddr        string   `json:"rpc-addr"`
+	AccountPrefix  string   `json:"account-prefix"`
+	KeyringBackend string   `json:"keyring-backend"`
+	GasAdjustment  float64  `json:"gas-adjustment"`
+	GasPrices      string   `json:"gas-prices"`
+	Debug          bool     `json:"debug"`
+	Timeout        string   `json:"timeout"`
+	OutputFormat   string   `json:"output-format"`
+	SignMode       string   `json:"sign-mode"`
+	ExtraCodecs    []string `json:"extra-codecs"`
 }
 
 type RelayerChainConfig struct {
