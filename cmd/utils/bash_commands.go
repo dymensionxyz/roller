@@ -42,7 +42,7 @@ func GetCommonDymdFlags(rollappConfig config.RollappConfig) []string {
 
 type CommandOption func(cmd *exec.Cmd)
 
-func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg string) string,
+func RunBashCmdAsync(ctx context.Context, cmd *exec.Cmd, printOutput func(), parseError func(errMsg string) string,
 	options ...CommandOption) {
 	for _, option := range options {
 		option(cmd)
@@ -68,6 +68,14 @@ func RunBashCmdAsync(cmd *exec.Cmd, printOutput func(), parseError func(errMsg s
 		PrettifyErrorIfExists(errors.New(errMsg))
 	}
 	printOutput()
+
+	go func() {
+		<-ctx.Done()
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
+	}()
+
 	err = cmd.Wait()
 	if err != nil {
 		errMsg := parseError(stderr.String())

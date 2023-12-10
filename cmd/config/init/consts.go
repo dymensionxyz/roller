@@ -50,6 +50,6 @@ var Hubs = map[string]config.HubData{
 		ID:              LocalHubID,
 		RPC_URL:         "http://localhost:36657",
 		ARCHIVE_RPC_URL: "http://localhost:36657",
-		GAS_PRICE:       "0",
+		GAS_PRICE:       "100000000",
 	},
 }

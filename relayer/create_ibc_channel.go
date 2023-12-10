@@ -20,22 +20,12 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	createClientsCmd := r.getCreateClientsCmd(override)
-	status := "Creating clients..."
-	fmt.Printf("💈 %s\n", status)
-	if err := r.WriteRelayerStatus(status); err != nil {
-		return ConnectionChannels{}, err
-	}
-	if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
-		return ConnectionChannels{}, err
-	}
-
 	//after successful update clients, keep running in the background
 	updateClientsCmd := r.GetUpdateClientsCmd()
 	utils.RunCommandEvery(ctx, updateClientsCmd.Path, updateClientsCmd.Args[1:], 20, utils.WithDiscardLogging())
 
 	//wait for block to be created
-	status = "Waiting for block creation..."
+	status := "Waiting for state update before creating the channel..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
@@ -44,28 +34,15 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	connectionID, _ := r.GetActiveConnection()
-	if connectionID == "" || override {
-		status = "Creating connection..."
-		fmt.Printf("💈 %s\n", status)
-		if err := r.WriteRelayerStatus(status); err != nil {
-			return ConnectionChannels{}, err
-		}
-		createConnectionCmd := r.getCreateConnectionCmd(override)
-		if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
-			return ConnectionChannels{}, err
-		}
-	}
-
 	var src, dst string
 	// we ran create channel with override, as it not recovarable anyway
-	createChannelCmd := r.getCreateChannelCmd(true)
-	status = "Creating channel..."
+	createLinkCmd := r.getCreateLinkCmd(true)
+	status = "Creating link..."
 	fmt.Printf("💈 %s\n", status)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
+	if err := utils.ExecBashCmd(createLinkCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 	status = "Validating channel established..."
@@ -148,26 +125,8 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	}
 }
 
-func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "clients"}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	if override {
-		args = append(args, "--override")
-	}
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
-func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection", "-t", "300s", "-d"}
-	if override {
-		args = append(args, "--override")
-	}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	return exec.Command(consts.Executables.Relayer, args...)
-}
-
-func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "300s", "-r", "5", "-d"}
+func (r *Relayer) getCreateLinkCmd(override bool) *exec.Cmd {
+	args := []string{"tx", "link", "-t", "300s", "--src-port", "transfer", "--dst-port", "transfer", "--version", "ics20-1"}
 	if override {
 		args = append(args, "--override")
 	}

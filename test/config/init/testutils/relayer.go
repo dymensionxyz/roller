@@ -2,10 +2,16 @@ package testutils
 
 import (
 	"errors"
+	"reflect"
+
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils"
-	"reflect"
+)
+
+const (
+	placeholderRollappID     = "PLACEHOLDER_ROLLAPP_ID"
+	placerholderKeyDirectory = "PLACEHOLDER_KEY_DIRECTORY"
 )
 
 func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
@@ -13,7 +19,14 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	const placeholderRollappID = "PLACEHOLDER_ROLLAPP_ID"
+	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.RollappID, "value", "key-directory"}, placerholderKeyDirectory)
+	if err != nil {
+		return err
+	}
+	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.HubData.ID, "value", "key-directory"}, placerholderKeyDirectory)
+	if err != nil {
+		return err
+	}
 	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.RollappID, "value", "chain-id"}, placeholderRollappID)
 	if err != nil {
 		return err
