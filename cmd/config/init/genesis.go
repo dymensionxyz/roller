@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -57,6 +56,12 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+
+	err = createTokenMetadaJSON(filepath.Join(RollappConfigDir(initConfig.Home), "tokenmetadata.json"), initConfig.Denom, initConfig.Decimals)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -70,25 +75,8 @@ type PathValue struct {
 	Value interface{}
 }
 
-type BankDenomMetadata struct {
-	Base        string                  `json:"base"`
-	DenomUnits  []BankDenomUnitMetadata `json:"denom_units"`
-	Description string                  `json:"description"`
-	Display     string                  `json:"display"`
-	Name        string                  `json:"name"`
-	Symbol      string                  `json:"symbol"`
-}
-
-type BankDenomUnitMetadata struct {
-	Aliases  []string `json:"aliases"`
-	Denom    string   `json:"denom"`
-	Exponent uint     `json:"exponent"`
-}
-
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
-	displayDenom := denom[1:]
-
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
@@ -101,27 +89,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.staking.params.unbonding_time", "3628800s"},
-		{"app_state.bank.denom_metadata", []BankDenomMetadata{
-			{
-				Base: denom,
-				DenomUnits: []BankDenomUnitMetadata{
-					{
-						Aliases:  []string{},
-						Denom:    denom,
-						Exponent: 0,
-					},
-					{
-						Aliases:  []string{},
-						Denom:    displayDenom,
-						Exponent: decimals,
-					},
-				},
-				Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
-				Display:     displayDenom,
-				Name:        displayDenom,
-				Symbol:      strings.ToUpper(displayDenom),
-			},
-		}},
+		{"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
 	}
 }
 
@@ -171,7 +139,7 @@ func generateGenesisTx(initConfig config.RollappConfig) error {
 func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
 	totalSupply, err := strconv.Atoi(initConfig.TokenSupply)
 	if err != nil {
-		return fmt.Errorf("Error converting string to integer: %w", err)
+		return fmt.Errorf("error converting string to integer: %w", err)
 	}
 	// Convert to token supply with decimals
 	stakedSupply := big.NewInt(int64(totalSupply / totalSupplyToStakingRatio))
