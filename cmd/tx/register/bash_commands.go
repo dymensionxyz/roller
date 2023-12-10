@@ -12,7 +12,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-// TODO: create tokenmetadata.json
 func getRegisterRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
 	tokenMetadataPath := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "config", "tokenmetadata.json")
 	cmdArgs := []string{
