@@ -25,6 +25,12 @@ func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
+func (r *Relayer) GetStartCmd() *exec.Cmd {
+	args := []string{"start"}
+	args = append(args, r.getRelayerDefaultArgs()...)
+	return exec.Command(consts.Executables.Relayer, args...)
+}
+
 func (r *Relayer) getArgsWithSrcChannel() []string {
 	return []string{consts.DefaultRelayerPath, r.DstChannel, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
 }

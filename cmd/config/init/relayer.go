@@ -2,10 +2,11 @@ package initconfig
 
 import (
 	"encoding/json"
-	"github.com/dymensionxyz/roller/relayer"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/relayer"
 
 	"github.com/dymensionxyz/roller/config"
 
@@ -17,24 +18,23 @@ type RelayerFileChainConfig struct {
 	Value RelayerFileChainConfigValue `json:"value"`
 }
 type RelayerFileChainConfigValue struct {
-	Key            string  `json:"key"`
-	ChainID        string  `json:"chain-id"`
-	RpcAddr        string  `json:"rpc-addr"`
-	AccountPrefix  string  `json:"account-prefix"`
-	KeyringBackend string  `json:"keyring-backend"`
-	GasAdjustment  float64 `json:"gas-adjustment"`
-	GasPrices      string  `json:"gas-prices"`
-	Debug          bool    `json:"debug"`
-	Timeout        string  `json:"timeout"`
-	OutputFormat   string  `json:"output-format"`
-	SignMode       string  `json:"sign-mode"`
-	ClientType     string  `json:"client-type"`
+	Key            string   `json:"key"`
+	ChainID        string   `json:"chain-id"`
+	RpcAddr        string   `json:"rpc-addr"`
+	AccountPrefix  string   `json:"account-prefix"`
+	KeyringBackend string   `json:"keyring-backend"`
+	GasAdjustment  float64  `json:"gas-adjustment"`
+	GasPrices      string   `json:"gas-prices"`
+	Debug          bool     `json:"debug"`
+	Timeout        string   `json:"timeout"`
+	OutputFormat   string   `json:"output-format"`
+	SignMode       string   `json:"sign-mode"`
+	ExtraCodecs    []string `json:"extra-codecs"`
 }
 
 type RelayerChainConfig struct {
 	ChainConfig relayer.ChainConfig
 	GasPrices   string
-	ClientType  string
 	KeyName     string
 }
 
@@ -65,7 +65,7 @@ func getRelayerFileChainConfig(relayerChainConfig RelayerChainConfig) RelayerFil
 			Timeout:        "10s",
 			OutputFormat:   "json",
 			SignMode:       "direct",
-			ClientType:     relayerChainConfig.ClientType,
+			ExtraCodecs:    []string{"ethermint"},
 		},
 	}
 }
@@ -91,14 +91,12 @@ func addChainsConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainC
 	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: rollappConfig,
 		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
-		ClientType:  "01-dymint",
 		KeyName:     consts.KeysIds.RollappRelayer,
 	})
 
 	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: hubConfig,
 		GasPrices:   hubConfig.GasPrices + hubConfig.Denom,
-		ClientType:  "07-tendermint",
 		KeyName:     consts.KeysIds.HubRelayer,
 	})
 

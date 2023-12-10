@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -52,7 +53,10 @@ func Cmd() *cobra.Command {
 
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
-			utils.RunBashCmdAsync(startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			go utils.RunBashCmdAsync(ctx, startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
+			select {}
 		},
 	}
 
