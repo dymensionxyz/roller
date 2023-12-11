@@ -22,7 +22,7 @@ type BankDenomUnitMetadata struct {
 	Exponent uint     `json:"exponent"`
 }
 
-func getBankDenomMetadata(denom string, decimals uint) string {
+func getBankDenomMetadata(denom string, decimals uint) []BankDenomMetadata {
 	displayDenom := denom[1:]
 
 	metadata := []BankDenomMetadata{
@@ -46,26 +46,21 @@ func getBankDenomMetadata(denom string, decimals uint) string {
 			Symbol:      strings.ToUpper(displayDenom),
 		},
 	}
-
-	json, err := json.Marshal(metadata)
-	if err != nil {
-		return ""
-	}
-
-	return string(json)
+	return metadata
 }
 
 func createTokenMetadaJSON(metadataPath string, denom string, decimals uint) error {
 	metadata := getBankDenomMetadata(denom, decimals)
-	if metadata == "" {
-		return fmt.Errorf("failed to generate token metadata")
+	json, err := json.Marshal(metadata)
+	if err != nil {
+		return err
 	}
 
 	file, err := os.Create(metadataPath)
 	if err != nil {
 		return err
 	}
-	_, err = file.WriteString(metadata)
+	_, err = file.WriteString(string(json))
 	if err != nil {
 		return err
 	}
