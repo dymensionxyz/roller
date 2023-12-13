@@ -7,7 +7,7 @@
 For Author:
 
 - [ ]  Targeted PR against correct branch
-- [ ]  included the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
+- [ ]  Included the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ]  Linked to Github issue with discussion and accepted design
 - [ ]  Targets only one github issue
 - [ ]  Wrote unit and integration tests
@@ -18,13 +18,13 @@ For Author:
 
 For Reviewer:
 
-- [ ]  confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
+- [ ]  Confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ]  Reviewers assigned
-- [ ]  confirmed all author checklist items have been addressed
+- [ ]  Confirmed all author checklist items have been addressed
 
 ---
 
 After reviewer approval:
 
-- [ ]  In case targets main branch, PR should be squashed and merged.
+- [ ]  In case PR targets main branch, PR should be squashed and merged.
 - [ ]  In case PR targets a release branch, PR should be rebased.
