@@ -18,7 +18,6 @@ func (seq *Sequencer) GetSendCmd(destAddress string) *exec.Cmd {
 		"--broadcast-mode", "block",
 		"--keyring-backend", "test",
 		"--yes",
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 	)
 	return cmd
 }
