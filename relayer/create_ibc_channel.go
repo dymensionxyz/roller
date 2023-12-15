@@ -57,6 +57,10 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
+	// Sleep for a few seconds to make sure the clients are created
+	// otherwise the connection creation fails
+	time.Sleep(10 * time.Second)
+
 	connectionID, _ := r.GetActiveConnection()
 	if connectionID == "" || override {
 		status = "Creating connection..."
