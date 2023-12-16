@@ -24,7 +24,6 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	// progressing for connection and channel creation.
 	// replaced update clients to avoid account sequence mismatch and
 	// premature heights updates e.g "TrustedHeight {1 x} must be less than header height {1 y}"
-	// sequecerAddress, err := utils.GetSequencerAddress(seq.RlpCfg)
 	sequecerAddress, err := utils.GetAddressBinary(utils.KeyConfig{
 		Dir: filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp),
 		ID:  consts.KeysIds.RollappSequencer,
