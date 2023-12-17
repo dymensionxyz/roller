@@ -13,12 +13,12 @@ func (r *Relayer) CheckClientsExist() (bool, error) {
 	}
 	clientIDRollapp_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "client-id"})
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	clientIDHub_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "src", "client-id"})
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	clientIDRollapp := clientIDRollapp_raw.(string)

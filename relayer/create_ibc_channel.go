@@ -32,7 +32,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 	sendFundsCmd := seq.GetSendCmd(sequecerAddress)
-	utils.RunCommandEvery(ctx, sendFundsCmd.Path, sendFundsCmd.Args[1:], 20, utils.WithDiscardLogging())
+	utils.RunCommandEvery(ctx, sendFundsCmd.Path, sendFundsCmd.Args[1:], 5, utils.WithDiscardLogging())
 
 	var status string
 
@@ -40,10 +40,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	clientsExist := false
 	if !override {
 		// Check if clients exist
-		clientsExist, err = r.CheckClientsExist()
-		if err != nil {
-			return ConnectionChannels{}, err
-		}
+		clientsExist, _ = r.CheckClientsExist()
 	}
 	if !clientsExist {
 		//wait for block to be created
