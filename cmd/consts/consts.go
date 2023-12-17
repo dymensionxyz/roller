@@ -85,10 +85,10 @@ var SpinnerMsgs = struct {
 }
 
 var FroopylandHubData = config.HubData{
-	API_URL:         "https://froopyland.api.silknodes.io:443",
+	API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
 	ID:              FroopylandHubID,
-	RPC_URL:         "https://froopyland.rpc.silknodes.io:443",
-	ARCHIVE_RPC_URL: "https://froopy-archive.rpc.silknodes.io:443",
+	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
+	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
 	GAS_PRICE:       "0.25",
 }
 
