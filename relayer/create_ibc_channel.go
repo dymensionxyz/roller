@@ -87,6 +87,8 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 
 	var src, dst string
 
+	// Sleep for a few seconds to make sure the connection is created
+	time.Sleep(15 * time.Second)
 	// we ran create channel with override, as it not recovarable anyway
 	createChannelCmd := r.getCreateChannelCmd(true)
 	status = "Creating channel..."
