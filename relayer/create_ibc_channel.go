@@ -163,7 +163,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel"}
+	args := []string{"tx", "channel", "-t", "60s", "-d"}
 	if override {
 		args = append(args, "--override")
 	}
