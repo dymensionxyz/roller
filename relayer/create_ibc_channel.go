@@ -34,15 +34,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 	sendFundsCmd := seq.GetSendCmd(sequecerAddress)
 	utils.RunCommandEvery(ctx, sendFundsCmd.Path, sendFundsCmd.Args[1:], 20, utils.WithDiscardLogging())
 
-	//wait for block to be created
-	status := "Validating rollapp height > 2 before creating clients..."
-	fmt.Printf("💈 %s\n", status)
-	if err := r.WriteRelayerStatus(status); err != nil {
-		return ConnectionChannels{}, err
-	}
-	if err := waitForValidRollappHeight(seq); err != nil {
-		return ConnectionChannels{}, err
-	}
+	var status string
 
 	// Create client if it doesn't exist or override is true
 	clientsExist := false
@@ -54,6 +46,15 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		}
 	}
 	if !clientsExist {
+		//wait for block to be created
+		status = "Validating rollapp height > 2 before creating clients..."
+		fmt.Printf("💈 %s\n", status)
+		if err := r.WriteRelayerStatus(status); err != nil {
+			return ConnectionChannels{}, err
+		}
+		if err := waitForValidRollappHeight(seq); err != nil {
+			return ConnectionChannels{}, err
+		}
 		// We always pass override otherwise this command hangs if there are too many clients
 		// in the hub as it iterates all to check if this client exists
 		createClientsCmd := r.getCreateClientsCmd(true)
