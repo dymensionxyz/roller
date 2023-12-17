@@ -44,16 +44,27 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 
-	// We always pass override otherwise this commands hangs if there are too many clients
-	// in the hub as it iterates all to check if this client exists
-	createClientsCmd := r.getCreateClientsCmd(true)
-	status = "Creating clients..."
-	fmt.Printf("💈 %s\n", status)
-	if err := r.WriteRelayerStatus(status); err != nil {
-		return ConnectionChannels{}, err
+	// Create client if it doesn't exist or override is true
+	clientsExist := false
+	if !override {
+		// Check if clients exist
+		clientsExist, err = r.CheckClientsExist()
+		if err != nil {
+			return ConnectionChannels{}, err
+		}
 	}
-	if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
-		return ConnectionChannels{}, err
+	if !clientsExist {
+		// We always pass override otherwise this command hangs if there are too many clients
+		// in the hub as it iterates all to check if this client exists
+		createClientsCmd := r.getCreateClientsCmd(true)
+		status = "Creating clients..."
+		fmt.Printf("💈 %s\n", status)
+		if err := r.WriteRelayerStatus(status); err != nil {
+			return ConnectionChannels{}, err
+		}
+		if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
+			return ConnectionChannels{}, err
+		}
 	}
 
 	// Sleep for a few seconds to make sure the clients are created
@@ -130,6 +141,7 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 		}
 		if rollappHeight <= 2 {
 			logger.Printf("💈 Waiting for rollapp height to be greater than 2")
+			continue
 		}
 		return nil
 	}
