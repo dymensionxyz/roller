@@ -8,7 +8,7 @@ import (
 
 func generateRandNamespaceID() string {
 	rand.Seed(time.Now().UnixNano())
-	nID := make([]byte, 8)
+	nID := make([]byte, 10)
 	_, err := rand.Read(nID)
 	if err != nil {
 		panic(err)

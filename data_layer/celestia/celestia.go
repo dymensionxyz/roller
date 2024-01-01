@@ -3,13 +3,14 @@ package celestia
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"math/big"
-	"os/exec"
-	"path/filepath"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
@@ -187,8 +188,6 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"light", "start",
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--gateway",
-		"--gateway.deprecated-endpoints",
 		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
@@ -211,6 +210,9 @@ func (c *Celestia) GetSequencerDAConfig() string {
 	if c.NamespaceID == "" {
 		c.NamespaceID = generateRandNamespaceID()
 	}
+
+	//FIXME: add auth_token
+
 	lcEndpoint := c.GetLightNodeEndpoint()
 	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
 		lcEndpoint, c.NamespaceID)
