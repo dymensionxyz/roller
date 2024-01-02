@@ -91,6 +91,7 @@ func runcCommandWithErrorChecking(cmd *exec.Cmd) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	cmdExecErr := cmd.Run()
+	println(stdout.String())
 	if len(stderr.String()) > 0 {
 		return errors.New(stderr.String())
 	}

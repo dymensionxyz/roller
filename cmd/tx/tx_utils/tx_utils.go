@@ -15,10 +15,10 @@ func CheckTxStdOut(stdout bytes.Buffer) error {
 		return err
 	}
 
-	if strings.Contains(response.RawLog, "fail") || strings.Contains(response.RawLog, "error") {
+	if strings.Contains(response.RawLog, "fail") || strings.Contains(response.RawLog, "error") ||
+		strings.Contains(response.RawLog, "insufficient funds") {
 		return errors.New(response.RawLog)
 	}
-
 	return nil
 }
 
