@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"strings"
 )
 
 func CheckTxStdOut(stdout bytes.Buffer) error {
@@ -15,13 +14,13 @@ func CheckTxStdOut(stdout bytes.Buffer) error {
 		return err
 	}
 
-	if strings.Contains(response.RawLog, "fail") || strings.Contains(response.RawLog, "error") ||
-		strings.Contains(response.RawLog, "insufficient funds") {
+	if response.ExitCode != 0 {
 		return errors.New(response.RawLog)
 	}
 	return nil
 }
 
 type Response struct {
-	RawLog string `json:"raw_log"`
+	RawLog   string `json:"raw_log"`
+	ExitCode int    `json:"code"`
 }
