@@ -40,7 +40,7 @@ sudo mkdir -p "$INTERNAL_DIR"
 sudo mkdir -p "/tmp/roller_tmp"
 
 # Function to display Go installation instructions
-GO_REQUIRED_VERSION="1.19"
+GO_REQUIRED_VERSION="1.20"
 display_go_installation_instructions() {
     echo "$EMOJI To install Go $GO_REQUIRED_VERSION, you can run the following commands:"
     echo "  wget https://go.dev/dl/go1.19.10.${OS}-${ARCH}.tar.gz"

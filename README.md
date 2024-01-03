@@ -37,10 +37,10 @@ To run Roller, use:
 
 ## Testing
 
-First, make sure you have the latest version of all the dependencies:
+First, make sure you have the latest version of all the dependencies by running the compile locally script:
 
 ```bash
-curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+yes | ./compile_locally.sh
 ```
 
 To run the all the tests, run from the root directory:
