@@ -14,13 +14,13 @@ func CheckTxStdOut(stdout bytes.Buffer) error {
 		return err
 	}
 
-	if response.ExitCode != 0 {
+	if response.SDKCode != 0 {
 		return errors.New(response.RawLog)
 	}
 	return nil
 }
 
 type Response struct {
-	RawLog   string `json:"raw_log"`
-	ExitCode int    `json:"code"`
+	RawLog  string `json:"raw_log"`
+	SDKCode int    `json:"code"`
 }
