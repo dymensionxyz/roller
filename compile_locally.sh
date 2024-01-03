@@ -11,11 +11,11 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 # The list of projects to be installed
-PROJECTS=("dymension" "go-relayer" "rollapp-evm")
-REPOS=("" "" "")
-VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta")
-BUILDCOMMANDS=("" "" "")
-BINARYNAME=("dymd" "rly" "rollapp-evm")
+PROJECTS=("dymension" "go-relayer" "rollapp-evm", "celestia-node")
+REPOS=("" "" "" "https://github.com/celestiaorg/celestia-node")
+VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta", "v0.11.0-rc6.1")
+BUILDCOMMANDS=("" "" "" "make go-install install-key")
+BINARYNAME=("dymd" "rly" "rollapp-evm" "celestia cel-key")
 
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
@@ -87,11 +87,8 @@ for i in "${!PROJECTS[@]}"; do
 
     REPO_URL=${REPOS[i]:-"https://github.com/dymensionxyz/${PROJECTS[i]}"}
     rm -rf "/tmp/${PROJECTS[i]}"
-    git clone "$REPO_URL"
+    git clone "$REPO_URL" --branch "${VERSIONS[i]}" --depth 1
     cd "${PROJECTS[i]}"
-    if [ -n "${VERSIONS[i]}" ]; then
-        git checkout "${VERSIONS[i]}"
-    fi
     if [ -n "${BUILDCOMMANDS[i]}" ]; then
         ${BUILDCOMMANDS[i]}
     else
@@ -102,7 +99,7 @@ for i in "${!PROJECTS[@]}"; do
         if [ ! -x "$(command -v "$binary")" ]; then
             echo "$EMOJI Couldn't find $binary in PATH. Aborting."; exit 1;
         fi
-        binary_path=$(which "$binary" 2> /dev/null)  # Redirect error output to /dev/null
+        binary_path=$(which "$binary" 2> /dev/null)
         sudo cp "$binary_path" "$INTERNAL_DIR"
     done
 done
