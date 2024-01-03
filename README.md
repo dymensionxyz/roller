@@ -37,8 +37,8 @@ To run Roller, use:
 
 ## Testing
 
-First, ensure that the versions of all dependencies match the code 
-by running the local compilation script:
+First, ensure that the versions of all dependencies match the code
+ by running the local compilation script:
 
 ```bash
 yes | ./compile_locally.sh
