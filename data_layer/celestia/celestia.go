@@ -117,6 +117,7 @@ func (c *Celestia) InitializeLightNodeConfig() error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -207,11 +208,26 @@ func (c *Celestia) GetNetworkName() string {
 	return DefaultCelestiaNetwork
 }
 
+func (c *Celestia) getAuthToken() (string, error) {
+	getAuthTokenCmd := exec.Command(consts.Executables.Celestia, "light", "auth", "admin", "--p2p.network",
+		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	output, err := utils.ExecBashCommandWithStdout(getAuthTokenCmd)
+	if err != nil {
+		return "", err
+	}
+	return output.String(), nil
+}
+
 func (c *Celestia) GetSequencerDAConfig() string {
 	if c.NamespaceID == "" {
 		c.NamespaceID = generateRandNamespaceID()
 	}
 	lcEndpoint := c.GetLightNodeEndpoint()
+	authToken, err := c.getAuthToken()
+	if err != nil {
+		panic(err)
+	}
+
 	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
 		lcEndpoint, c.NamespaceID)
 }
