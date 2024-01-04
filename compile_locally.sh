@@ -11,11 +11,11 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 # The list of projects to be installed
-PROJECTS=("dymension" "go-relayer" "rollapp-evm" "celestia-node" "cosmos-sdk")
-REPOS=("" "" "" "https://github.com/celestiaorg/celestia-node" "https://github.com/cosmos/cosmos-sdk.git")
-VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta" "v0.12.1" "v0.47.5")
-BUILDCOMMANDS=("" "" "" "make go-install install-key")
-BINARYNAME=("dymd" "rly" "rollapp-evm" "celestia cel-key" "simd")
+PROJECTS=("dymension" "go-relayer" "rollapp-evm")
+REPOS=("" "" "")
+VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta")
+BUILDCOMMANDS=("" "" "")
+BINARYNAME=("dymd" "rly" "rollapp-evm")
 
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
@@ -40,7 +40,7 @@ sudo mkdir -p "$INTERNAL_DIR"
 sudo mkdir -p "/tmp/roller_tmp"
 
 # Function to display Go installation instructions
-GO_REQUIRED_VERSION="1.21"
+GO_REQUIRED_VERSION="1.19"
 display_go_installation_instructions() {
     echo "$EMOJI To install Go $GO_REQUIRED_VERSION, you can run the following commands:"
     echo "  wget https://go.dev/dl/go1.19.10.${OS}-${ARCH}.tar.gz"
@@ -68,27 +68,30 @@ fi
 for i in "${!PROJECTS[@]}"; do
     echo "$EMOJI handling ${PROJECTS[i]}..."
     cd /tmp
-    for binary in ${BINARYNAME[i]}; do
-        echo "$EMOJI checking for $binary..."
-        if [ -x "$(command -v "$binary")" ]; then
-            read -p "$binary already exists. Do you want to overwrite it? (y/n) " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Nn]$ ]]; then
-                binary_path=$(which "$binary" 2> /dev/null)  # Redirect error output to /dev/null
-                sudo cp "$binary_path" "$INTERNAL_DIR"
-                if [ "$binary" != "celestia" ]; then
-                  continue 2
-                fi
-            else
-                rm -f "$binary_path"
-            fi
+
+    # Check if binaries already exist
+    IFS=' ' read -r -a binary_array <<< "${BINARYNAME[i]}"  # convert string to array
+    binary=${binary_array[0]}  # get the first element
+    echo "$EMOJI checking for $binary..."
+    if [ -x "$(command -v "$binary")" ]; then
+        read -p "$binary already exists. Do you want to overwrite it? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Nn]$ ]]; then
+            binary_path=$(which "$binary" 2> /dev/null)  # Redirect error output to /dev/null
+            sudo cp "$binary_path" "$INTERNAL_DIR"
+            continue 1
+        else
+            rm -f "$binary_path"
         fi
-    done
+    fi
 
     REPO_URL=${REPOS[i]:-"https://github.com/dymensionxyz/${PROJECTS[i]}"}
     rm -rf "/tmp/${PROJECTS[i]}"
-    git clone "$REPO_URL" --branch "${VERSIONS[i]}" --depth 1
+    git clone "$REPO_URL"
     cd "${PROJECTS[i]}"
+    if [ -n "${VERSIONS[i]}" ]; then
+        git checkout "${VERSIONS[i]}"
+    fi
     if [ -n "${BUILDCOMMANDS[i]}" ]; then
         ${BUILDCOMMANDS[i]}
     else
@@ -99,7 +102,7 @@ for i in "${!PROJECTS[@]}"; do
         if [ ! -x "$(command -v "$binary")" ]; then
             echo "$EMOJI Couldn't find $binary in PATH. Aborting."; exit 1;
         fi
-        binary_path=$(which "$binary" 2> /dev/null)
+        binary_path=$(which "$binary" 2> /dev/null)  # Redirect error output to /dev/null
         sudo cp "$binary_path" "$INTERNAL_DIR"
     done
 done
