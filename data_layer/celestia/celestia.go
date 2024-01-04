@@ -15,8 +15,8 @@ import (
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	CelestiaRestApiEndpoint = "https://api-arabica-11.consensus.celestia-arabica.com"
-	DefaultCelestiaRPC      = "consensus-full-arabica-11.celestia-arabica.com"
+	CelestiaRestApiEndpoint = "https://api.celestia-arabica-11.com"
+	DefaultCelestiaRPC      = "https://rpc.celestia-arabica-11.com"
 	DefaultCelestiaNetwork  = "arabica"
 )
 
