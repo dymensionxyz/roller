@@ -82,7 +82,7 @@ func (c *Celestia) getRPCPort() string {
 		return c.RPCPort
 	}
 	port, err := globalutils.GetKeyFromTomlFile(filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
-		"Gateway.Port")
+		"RPC.Port")
 	if err != nil {
 		panic(err)
 	}
