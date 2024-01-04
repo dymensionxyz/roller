@@ -72,6 +72,7 @@ for i in "${!PROJECTS[@]}"; do
         echo "$EMOJI checking for $binary..."
         if [ -x "$(command -v "$binary")" ]; then
             read -p "$binary already exists. Do you want to overwrite it? (y/n) " -n 1 -r
+            echo
             if [[ $REPLY =~ ^[Nn]$ ]]; then
                 binary_path=$(which "$binary" 2> /dev/null)  # Redirect error output to /dev/null
                 sudo cp "$binary_path" "$INTERNAL_DIR"
