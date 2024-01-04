@@ -197,9 +197,11 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
 	}
-	return exec.Command(
+	startCmd := exec.Command(
 		consts.Executables.Celestia, args...,
 	)
+	startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
+	return startCmd
 }
 
 func (c *Celestia) SetRPCEndpoint(rpc string) {
