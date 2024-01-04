@@ -222,7 +222,7 @@ func (c *Celestia) getAuthToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSuffix(output.String(), "\n\""), nil
+	return strings.TrimSuffix(output.String(), "\n"), nil
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
@@ -235,6 +235,6 @@ func (c *Celestia) GetSequencerDAConfig() string {
 		panic(err)
 	}
 
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s""}`,
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s"}`,
 		lcEndpoint, c.NamespaceID, authToken)
 }
