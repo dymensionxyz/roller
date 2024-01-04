@@ -192,7 +192,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	args := []string{
 		"light", "start",
-		//"--core.ip", c.rpcEndpoint,
+		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		//"--gateway",
 		//"--gateway.deprecated-endpoints",
@@ -224,7 +224,7 @@ func (c *Celestia) getAuthToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimRight(output.String(), "\n"), nil
+	return strings.TrimSuffix(output.String(), "\n\""), nil
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
