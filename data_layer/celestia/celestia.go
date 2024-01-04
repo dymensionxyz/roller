@@ -8,7 +8,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"math/big"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -16,8 +15,8 @@ import (
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	CelestiaRestApiEndpoint = "https://api.celestia-arabica-11.com"
-	DefaultCelestiaRPC      = "https://rpc.celestia-arabica-11.com"
+	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
+	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
 	DefaultCelestiaNetwork  = "arabica"
 )
 
@@ -114,10 +113,10 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 
 func (c *Celestia) InitializeLightNodeConfig() error {
 	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init",
-		//"--p2p.network",
-		//DefaultCelestiaNetwork,
+		"--p2p.network",
+		DefaultCelestiaNetwork,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
-	initLightNodeCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
+	//initLightNodeCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
@@ -194,9 +193,9 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"light", "start",
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		//"--gateway",
-		//"--gateway.deprecated-endpoints",
-		//"--p2p.network", DefaultCelestiaNetwork,
+		"--gateway",
+		"--gateway.deprecated-endpoints",
+		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
@@ -204,8 +203,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	startCmd := exec.Command(
 		consts.Executables.Celestia, args...,
 	)
-	println(startCmd.String())
-	startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
+	//startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
 	return startCmd
 }
 
