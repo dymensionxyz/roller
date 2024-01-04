@@ -37,6 +37,13 @@ To run Roller, use:
 
 ## Testing
 
+First, ensure that the versions of all dependencies match the code
+ by running the local compilation script:
+
+```bash
+yes | ./compile_locally.sh
+```
+
 To run the all the tests, run from the root directory:
 
 ```bash
