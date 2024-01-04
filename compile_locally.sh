@@ -13,7 +13,7 @@ ARCH=$(uname -m)
 # The list of projects to be installed
 PROJECTS=("dymension" "go-relayer" "rollapp-evm" "celestia-node" "cosmos-sdk")
 REPOS=("" "" "" "https://github.com/celestiaorg/celestia-node" "https://github.com/cosmos/cosmos-sdk.git")
-VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta" "v0.11.0-rc6.1" "v0.47.5")
+VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v1.0.1-beta" "v0.12.1" "v0.47.5")
 BUILDCOMMANDS=("" "" "" "make go-install install-key")
 BINARYNAME=("dymd" "rly" "rollapp-evm" "celestia cel-key" "simd")
 
