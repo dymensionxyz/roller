@@ -68,7 +68,6 @@ fi
 for i in "${!PROJECTS[@]}"; do
     echo "$EMOJI handling ${PROJECTS[i]}..."
     cd /tmp
-    echo ${BINARYNAME[i]}
     for binary in ${BINARYNAME[i]}; do
         echo "$EMOJI checking for $binary..."
         if [ -x "$(command -v "$binary")" ]; then
