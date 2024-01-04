@@ -112,8 +112,10 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 }
 
 func (c *Celestia) InitializeLightNodeConfig() error {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
-		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init",
+		//"--p2p.network",
+		//DefaultCelestiaNetwork,
+		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
 	initLightNodeCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
 	err := initLightNodeCmd.Run()
 	if err != nil {
@@ -171,6 +173,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var insufficientBalances []utils.NotFundedAddressData
 	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
@@ -188,11 +191,11 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	args := []string{
 		"light", "start",
-		"--core.ip", c.rpcEndpoint,
+		//"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--gateway",
-		"--gateway.deprecated-endpoints",
-		"--p2p.network", DefaultCelestiaNetwork,
+		//"--gateway",
+		//"--gateway.deprecated-endpoints",
+		//"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
@@ -200,6 +203,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	startCmd := exec.Command(
 		consts.Executables.Celestia, args...,
 	)
+	println(startCmd.String())
 	startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
 	return startCmd
 }
