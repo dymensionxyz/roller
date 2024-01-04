@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
@@ -223,7 +224,7 @@ func (c *Celestia) getAuthToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return output.String(), nil
+	return strings.TrimRight(output.String(), "\n"), nil
 }
 
 func (c *Celestia) GetSequencerDAConfig() string {
