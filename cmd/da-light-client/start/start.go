@@ -50,6 +50,7 @@ func Cmd() *cobra.Command {
 			if startDALCCmd == nil {
 				utils.PrettifyErrorIfExists(errors.New("DA doesn't need to run seperatly. It runs automatically with the app"))
 			}
+			println(startDALCCmd.String())
 
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
