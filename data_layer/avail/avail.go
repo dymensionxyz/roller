@@ -2,11 +2,12 @@ package avail
 
 import (
 	"fmt"
+	"math/big"
+	"os/exec"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"math/big"
-	"os/exec"
 
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -19,7 +20,7 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	DeafultRPCEndpoint        = "wss://dymension-devnet.avail.tools/ws"
+	DeafultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
 	requiredAVL               = 1
 )
 
