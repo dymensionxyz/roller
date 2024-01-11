@@ -51,31 +51,32 @@ func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
 	c2.metricsEndpoint = endpoint
 }
 
+type BalanceResponse struct {
+	Result struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	} `json:"result"`
+}
+
 func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
-	logger := utils.GetRollerLogger(rlpCfg.Home)
-	lcEndpoint := c.GetLightNodeEndpoint()
-	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", lcEndpoint))
-	const stoppedMsg = "Stopped, Restarting..."
+	args := []string{"state", "balance", "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode)}
+	output, err := exec.Command(consts.Executables.Celestia, args...).Output()
+
 	if err != nil {
-		logger.Println("Error querying balance", err)
-		return stoppedMsg
-	} else {
-		var balanceResp utils.BalanceResp
-		err := json.Unmarshal(out.Bytes(), &balanceResp)
-		if err != nil {
-			logger.Println("Error unmarshalling balance response", err)
-			return stoppedMsg
-		}
-		balance, err := utils.ParseBalance(balanceResp)
-		if err != nil {
-			logger.Println("Error parsing balance", err)
-			return stoppedMsg
-		}
-		if balance.Cmp(lcMinBalance) < 0 {
-			return "Stopped, out of funds"
-		}
-		return "Active"
+		return "Stopped, Restarting..."
 	}
+
+	var resp BalanceResponse
+	err = json.Unmarshal(output, &resp)
+	if err != nil {
+		return "Stopped, Restarting..."
+	}
+
+	if strings.TrimSpace(resp.Result.Amount) != "0" {
+		return "active"
+	}
+
+	return "Stopped, Restarting..."
 }
 
 func (c *Celestia) getRPCPort() string {

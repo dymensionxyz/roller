@@ -1,23 +1,19 @@
 package cmd
 
 import (
-	"encoding/json"
-	"github.com/dymensionxyz/roller/cmd/migrate"
-	"github.com/dymensionxyz/roller/cmd/run"
-	"github.com/dymensionxyz/roller/cmd/services"
-	"github.com/dymensionxyz/roller/cmd/tx"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"os"
-	"os/exec"
-	"strings"
-
 	"github.com/dymensionxyz/roller/cmd/config"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/keys"
+	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/relayer"
+	"github.com/dymensionxyz/roller/cmd/run"
 	"github.com/dymensionxyz/roller/cmd/sequencer"
+	"github.com/dymensionxyz/roller/cmd/services"
+	"github.com/dymensionxyz/roller/cmd/tx"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var rootCmd = &cobra.Command{
@@ -55,39 +51,8 @@ func test() *cobra.Command {
 		Use:   "test",
 		Short: "Runs the rollapp on the local machine.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			resp := checkBalance()
-			println(resp)
 			return nil
 		},
 	}
 	return cmd
-}
-
-type CelestiaResponse struct {
-	Result struct {
-		Denom  string `json:"denom"`
-		Amount string `json:"amount"`
-	} `json:"result"`
-}
-
-func checkBalance() string {
-	cmd := "/usr/local/bin/roller_bins/celestia"
-	args := []string{"state", "balance", "--node.store", "~/.roller/da-light-node"}
-	output, err := exec.Command(cmd, args...).Output()
-
-	if err != nil {
-		return "Stopped, Restarting"
-	}
-
-	var resp CelestiaResponse
-	err = json.Unmarshal(output, &resp)
-	if err != nil {
-		return "Stopped, Restarting"
-	}
-
-	if strings.TrimSpace(resp.Result.Amount) != "0" {
-		return "active"
-	}
-
-	return "Stopped, Restarting"
 }
