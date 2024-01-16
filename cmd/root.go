@@ -1,20 +1,19 @@
 package cmd
 
 import (
-	"github.com/dymensionxyz/roller/cmd/migrate"
-	"github.com/dymensionxyz/roller/cmd/run"
-	"github.com/dymensionxyz/roller/cmd/services"
-	"github.com/dymensionxyz/roller/cmd/tx"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"os"
-
 	"github.com/dymensionxyz/roller/cmd/config"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/keys"
+	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/relayer"
+	"github.com/dymensionxyz/roller/cmd/run"
 	"github.com/dymensionxyz/roller/cmd/sequencer"
+	"github.com/dymensionxyz/roller/cmd/services"
+	"github.com/dymensionxyz/roller/cmd/tx"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var rootCmd = &cobra.Command{
@@ -43,5 +42,17 @@ func init() {
 	rootCmd.AddCommand(services.Cmd())
 	rootCmd.AddCommand(migrate.Cmd())
 	rootCmd.AddCommand(tx.Cmd())
+	rootCmd.AddCommand(test())
 	utils.AddGlobalFlags(rootCmd)
+}
+
+func test() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "test",
+		Short: "Runs the rollapp on the local machine.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	return cmd
 }
