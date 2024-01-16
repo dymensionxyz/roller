@@ -3,19 +3,21 @@ package celestia
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"math/big"
-	"os/exec"
-	"path/filepath"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	CelestiaRestApiEndpoint = "https://api-arabica-9.consensus.celestia-arabica.com"
-	DefaultCelestiaRPC      = "consensus-full-arabica-9.celestia-arabica.com"
+	CelestiaRestApiEndpoint = "https://api.celestia-arabica-11.com"
+	DefaultCelestiaRPC      = "validator-1.celestia-arabica-11.com"
 	DefaultCelestiaNetwork  = "arabica"
 )
 
@@ -50,31 +52,32 @@ func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
 	c2.metricsEndpoint = endpoint
 }
 
+type BalanceResponse struct {
+	Result struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	} `json:"result"`
+}
+
 func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
-	logger := utils.GetRollerLogger(rlpCfg.Home)
-	lcEndpoint := c.GetLightNodeEndpoint()
-	out, err := utils.RestQueryJson(fmt.Sprintf("%s/balance", lcEndpoint))
-	const stoppedMsg = "Stopped, Restarting..."
+	args := []string{"state", "balance", "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode)}
+	output, err := exec.Command(consts.Executables.Celestia, args...).Output()
+
 	if err != nil {
-		logger.Println("Error querying balance", err)
-		return stoppedMsg
-	} else {
-		var balanceResp utils.BalanceResp
-		err := json.Unmarshal(out.Bytes(), &balanceResp)
-		if err != nil {
-			logger.Println("Error unmarshalling balance response", err)
-			return stoppedMsg
-		}
-		balance, err := utils.ParseBalance(balanceResp)
-		if err != nil {
-			logger.Println("Error parsing balance", err)
-			return stoppedMsg
-		}
-		if balance.Cmp(lcMinBalance) < 0 {
-			return "Stopped, out of funds"
-		}
-		return "Active"
+		return "Stopped, Restarting..."
 	}
+
+	var resp BalanceResponse
+	err = json.Unmarshal(output, &resp)
+	if err != nil {
+		return "Stopped, Restarting..."
+	}
+
+	if strings.TrimSpace(resp.Result.Amount) != "0" {
+		return "active"
+	}
+
+	return "Stopped, Restarting..."
 }
 
 func (c *Celestia) getRPCPort() string {
@@ -82,7 +85,7 @@ func (c *Celestia) getRPCPort() string {
 		return c.RPCPort
 	}
 	port, err := globalutils.GetKeyFromTomlFile(filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
-		"Gateway.Port")
+		"RPC.Port")
 	if err != nil {
 		panic(err)
 	}
@@ -111,12 +114,15 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 }
 
 func (c *Celestia) InitializeLightNodeConfig() error {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init", "--p2p.network",
-		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init",
+		"--p2p.network",
+		DefaultCelestiaNetwork,
+		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
 	err := initLightNodeCmd.Run()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -168,6 +174,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var insufficientBalances []utils.NotFundedAddressData
 	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
@@ -188,15 +195,17 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
-		"--gateway.deprecated-endpoints",
+		//"--gateway.deprecated-endpoints",
 		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
 	}
-	return exec.Command(
+	startCmd := exec.Command(
 		consts.Executables.Celestia, args...,
 	)
+	//startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
+	return startCmd
 }
 
 func (c *Celestia) SetRPCEndpoint(rpc string) {
@@ -207,11 +216,26 @@ func (c *Celestia) GetNetworkName() string {
 	return DefaultCelestiaNetwork
 }
 
+func (c *Celestia) getAuthToken() (string, error) {
+	getAuthTokenCmd := exec.Command(consts.Executables.Celestia, "light", "auth", "admin", "--p2p.network",
+		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	output, err := utils.ExecBashCommandWithStdout(getAuthTokenCmd)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSuffix(output.String(), "\n"), nil
+}
+
 func (c *Celestia) GetSequencerDAConfig() string {
 	if c.NamespaceID == "" {
 		c.NamespaceID = generateRandNamespaceID()
 	}
 	lcEndpoint := c.GetLightNodeEndpoint()
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s"}`,
-		lcEndpoint, c.NamespaceID)
+	authToken, err := c.getAuthToken()
+	if err != nil {
+		panic(err)
+	}
+
+	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s"}`,
+		lcEndpoint, c.NamespaceID, authToken)
 }
