@@ -2,15 +2,20 @@ package migrate
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils"
 )
 
 type VersionMigratorV1005 struct{}
 
 func (v *VersionMigratorV1005) ShouldMigrate(prevVersion VersionData) bool {
-	fmt.Println(prevVersion)
 	if prevVersion.Major < 1 || (prevVersion.Major == 1 && prevVersion.Minor < 1 && prevVersion.Patch < 5) {
 		return true
 	}
@@ -18,11 +23,27 @@ func (v *VersionMigratorV1005) ShouldMigrate(prevVersion VersionData) bool {
 }
 
 func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) error {
-	// Check if celestia is the data layer.
+	// If the DA is not celestia, no-op
 	if rlpCfg.DA != config.Celestia {
 		return nil
 	}
-	// If it is celestia, re-init the light node and ask the user to fund the address
+	// Update dymint config with celestia new config
+	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	sequencerDaConfig := da.GetSequencerDAConfig()
+	if sequencerDaConfig == "" {
+		return nil
+	}
+	if err := utils.UpdateFieldInToml(dymintTomlPath, "da_config", sequencerDaConfig); err != nil {
+		return err
+	}
+	// Delete previous celestia data directory
+	celestiaDataDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode, "data")
+	// Delete the celestia DataDir
+	if err := os.RemoveAll(celestiaDataDir); err != nil {
+		return err
+	}
+	// re-init the light node and ask the user to fund the address
 	celestiaClient := celestia.NewCelestia(rlpCfg.Home)
 	celestiaClient.InitializeLightNodeConfig()
 	address, err := celestiaClient.GetDAAccountAddress()
