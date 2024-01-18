@@ -36,14 +36,14 @@ var Hubs = map[string]config.HubData{
 		ID:              "devnet_304-1",
 		RPC_URL:         "https://dymension-devnet.rpc.silknodes.io:443",
 		ARCHIVE_RPC_URL: "https://dymension-devnet.rpc.silknodes.io:443",
-		GAS_PRICE:       "0.25",
+		GAS_PRICE:       "20000000000",
 	},
 	FroopylandHubName: {
 		API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
 		ID:              "froopyland_100-1",
 		RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
 		ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
-		GAS_PRICE:       "0.25",
+		GAS_PRICE:       "20000000000",
 	},
 	LocalHubName: {
 		API_URL:         "http://localhost:1318",
