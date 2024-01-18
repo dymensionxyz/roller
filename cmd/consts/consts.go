@@ -89,7 +89,7 @@ var FroopylandHubData = config.HubData{
 	ID:              FroopylandHubID,
 	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
 	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
-	GAS_PRICE:       "0.25",
+	GAS_PRICE:       "20000000000",
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
@@ -99,7 +99,7 @@ var Hubs = map[string]config.HubData{
 		ID:              StagingHubID,
 		RPC_URL:         "https://dymension-devnet.rpc.silknodes.io:443",
 		ARCHIVE_RPC_URL: "https://dymension-devnet.rpc.silknodes.io:443",
-		GAS_PRICE:       "0.25",
+		GAS_PRICE:       "20000000000",
 	},
 	FroopylandHubName: FroopylandHubData,
 	LocalHubName: {
