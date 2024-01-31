@@ -20,7 +20,7 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	DeafultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
+	DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
 	requiredAVL               = 1
 )
 
@@ -67,7 +67,7 @@ func NewAvail(root string) *Avail {
 	availConfig.AccAddress = keyringPair.Address
 
 	availConfig.Root = root
-	availConfig.RpcEndpoint = DeafultRPCEndpoint
+	availConfig.RpcEndpoint = DefaultRPCEndpoint
 	return &availConfig
 }
 
@@ -103,7 +103,7 @@ func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 
 func (a *Avail) getBalance() (availtypes.U128, error) {
 	if a.client == nil {
-		client, err := gsrpc.NewSubstrateAPI(DeafultRPCEndpoint)
+		client, err := gsrpc.NewSubstrateAPI(DefaultRPCEndpoint)
 		if err != nil {
 			return availtypes.U128{}, err
 		}
