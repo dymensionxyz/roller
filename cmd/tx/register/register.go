@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: Test registration on 35-C and update the price
-var registerUdymPrice = big.NewInt(1)
+var registerAdymPrice = big.NewInt(1)
 
 var flagNames = struct {
 	NoOutput             string
@@ -53,7 +53,7 @@ func register(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerUdymPrice)
+	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerAdymPrice)
 	if err != nil {
 		return err
 	}

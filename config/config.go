@@ -128,8 +128,8 @@ func ValidateDecimals(decimals uint) error {
 }
 
 func IsValidDenom(s string) error {
-	if !strings.HasPrefix(s, "u") {
-		return fmt.Errorf("invalid denom '%s'. denom expected to start with 'u'", s)
+	if !strings.HasPrefix(s, "a") {
+		return fmt.Errorf("invalid denom '%s'. denom expected to start with 'a'", s)
 	}
 	if !IsValidTokenSymbol(s[1:]) {
 		return fmt.Errorf("invalid token symbol '%s'", s[1:])

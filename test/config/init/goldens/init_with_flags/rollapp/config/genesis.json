@@ -63,7 +63,7 @@
           "address": "PLACEHOLDER_SEQUENCER_ADDRESS",
           "coins": [
             {
-              "denom": "udym",
+              "denom": "adym",
               "amount": "PLACEHOLDER_SEQUENCER_BALANCE"
             }
           ]
@@ -72,7 +72,7 @@
           "address": "PLACEHOLDER_RELAYER_ADDRESS",
           "coins": [
             {
-              "denom": "udym",
+              "denom": "adym",
               "amount": "PLACEHOLDER_RELAYER_BALANCE"
             }
           ]
@@ -80,11 +80,11 @@
       ],
       "supply": [
         {
-          "denom": "udym",
+          "denom": "adym",
           "amount": "1000000000000000000000"
         }
       ],
-      "denom_metadata": [{"base":"udym","denom_units":[{"aliases":[],"denom":"udym","exponent":0},{"aliases":[],"denom":"dym","exponent":18}],"description":"Denom metadata for dym (udym)","display":"dym","name":"dym","symbol":"DYM"}]
+      "denom_metadata": [{"base":"adym","denom_units":[{"aliases":[],"denom":"adym","exponent":0},{"aliases":[],"denom":"dym","exponent":18}],"description":"Denom metadata for dym (adym)","display":"dym","name":"dym","symbol":"DYM"}]
     },
     "capability": {
       "index": "1",
@@ -176,7 +176,7 @@
     "evm": {
       "accounts": [],
       "params": {
-        "evm_denom": "udym",
+        "evm_denom": "adym",
         "enable_create": true,
         "enable_call": true,
         "extra_eips": [],
@@ -243,7 +243,7 @@
                   "key": "PLACEHOLDER_SEQUENCER_PUBKEY"
                 },
                 "value": {
-                  "denom": "udym",
+                  "denom": "adym",
                   "amount": "500000000000000000000"
                 }
               }
@@ -290,7 +290,7 @@
       "deposit_params": {
         "min_deposit": [
           {
-            "denom": "udym",
+            "denom": "adym",
             "amount": "10000000"
           }
         ],
@@ -344,7 +344,7 @@
         "epoch_provisions": "0.000000000000000000"
       },
       "params": {
-        "mint_denom": "udym",
+        "mint_denom": "adym",
         "genesis_epoch_provisions": "285388127.853881278538812785",
         "epoch_identifier": "mint",
         "reduction_period_in_epochs": "8760",
@@ -399,7 +399,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 10000,
-        "bond_denom": "udym",
+        "bond_denom": "adym",
         "min_commission_rate": "0.050000000000000000"
       },
       "last_total_power": "0",
@@ -420,5 +420,5 @@
     },
     "upgrade": {},
     "vesting": {}
-  ,"crisis":{"constant_fee":{"denom":"udym"}}}
+  ,"crisis":{"constant_fee":{"denom":"adym"}}}
 }

@@ -13,7 +13,7 @@ chains:
       - ethermint
       feegrants: null
       gas-adjustment: 1.2
-      gas-prices: 0udym
+      gas-prices: 0adym
       key: relayer-rollapp-key
       key-directory: PLACEHOLDER_KEY_DIRECTORY
       keyring-backend: test
@@ -39,7 +39,7 @@ chains:
       - ethermint
       feegrants: null
       gas-adjustment: 1.2
-      gas-prices: 100000000udym
+      gas-prices: 100000000adym
       key: relayer-hub-key
       key-directory: PLACEHOLDER_KEY_DIRECTORY
       keyring-backend: test

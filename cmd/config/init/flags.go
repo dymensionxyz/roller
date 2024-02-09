@@ -64,7 +64,7 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig
 		cfg.RollappID = args[0]
 	}
 	if len(args) > 1 {
-		cfg.Denom = "u" + args[1]
+		cfg.Denom = "a" + args[1]
 	}
 
 	if interactive {
