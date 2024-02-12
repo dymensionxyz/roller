@@ -2,16 +2,16 @@ package initconfig_test
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/config"
+	"os"
 	"path/filepath"
 	"testing"
 
-	"os"
+	"github.com/stretchr/testify/assert"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/test/config/init/testutils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestInitCmd(t *testing.T) {
@@ -65,7 +65,9 @@ func TestInitCmd(t *testing.T) {
 			assert.NoError(err)
 			assert.NoError(os.Remove(filepath.Join(tempDir, config.RollerConfigFileName)))
 			assert.NoError(testutils.VerifyRollappKeys(tempDir))
-			assert.NoError(testutils.VerifyRelayerKeys(tempDir, rlpCfg.RollappID, rlpCfg.HubData.ID))
+			assert.NoError(
+				testutils.VerifyRelayerKeys(tempDir, rlpCfg.RollappID, rlpCfg.HubData.ID),
+			)
 			assert.NoError(testutils.VerifyCelestiaLightNodeKeys(tempDir))
 			assert.NoError(testutils.SanitizeConfigDir(tempDir, &rlpCfg))
 			assert.NoError(testutils.VerifyRlyConfig(rlpCfg, tc.goldenDirPath))

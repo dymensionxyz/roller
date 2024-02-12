@@ -94,7 +94,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 
 	promptDenom := promptui.Prompt{
 		Label:     "Specify your RollApp denom",
-		Default:   strings.TrimPrefix(cfg.Denom, "u"),
+		Default:   strings.TrimPrefix(cfg.Denom, "a"),
 		AllowEdit: true,
 		Validate: func(s string) error {
 			if !config.IsValidTokenSymbol(s) {
@@ -107,7 +107,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg.Denom = "u" + denom
+	cfg.Denom = "a" + denom
 
 	promptTokenSupply := promptui.Prompt{
 		Label:    "How many " + denom + " tokens do you wish to mint for Genesis?",

@@ -65,7 +65,7 @@ var Denoms = struct {
 	Celestia string
 	Avail    string
 }{
-	Hub:      "udym",
+	Hub:      "adym",
 	Celestia: "utia",
 	Avail:    "aAVL",
 }
