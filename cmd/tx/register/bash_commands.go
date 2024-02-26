@@ -28,6 +28,9 @@ func getRegisterSequencerCmd(rollappConfig config.RollappConfig) (*exec.Cmd, err
 	if err != nil {
 		return nil, err
 	}
+
+	bondAmount := rollappConfig.HubData.SEQ_MIN_BOND
+
 	description := fmt.Sprintf(`{"Moniker":"%s","Identity":"","Website":"","SecurityContact":"","Details":""}`,
 		consts.KeysIds.HubSequencer)
 	cmdArgs := []string{
@@ -35,7 +38,9 @@ func getRegisterSequencerCmd(rollappConfig config.RollappConfig) (*exec.Cmd, err
 		seqPubKey,
 		rollappConfig.RollappID,
 		description,
+		bondAmount,
 	}
+
 	cmdArgs = append(cmdArgs, getCommonDymdTxFlags(rollappConfig)...)
 	return exec.Command(consts.Executables.Dymension, cmdArgs...), nil
 }
