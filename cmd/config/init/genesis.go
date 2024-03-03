@@ -85,6 +85,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 		{"app_state.gov.deposit_params.min_deposit.0.denom", denom},
 		{"consensus_params.block.max_gas", "40000000"},
 		{"app_state.feemarket.params.no_base_fee", true},
+		{"app_state.feemarket.params.min_gas_price", "0.0"},
 		{"app_state.distribution.params.base_proposer_reward", "0.8"},
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},

@@ -45,6 +45,7 @@ type HubData = struct {
 	RPC_URL         string
 	ARCHIVE_RPC_URL string
 	GAS_PRICE       string
+	SEQ_MIN_BOND    string
 }
 
 func (c RollappConfig) Validate() error {

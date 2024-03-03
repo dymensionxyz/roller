@@ -108,6 +108,7 @@ var Hubs = map[string]config.HubData{
 		RPC_URL:         "http://localhost:36657",
 		ARCHIVE_RPC_URL: "http://localhost:36657",
 		GAS_PRICE:       "100000000",
+		SEQ_MIN_BOND:    "100dym",
 	},
 	// TODO: Add mainnet hub data
 	MainnetHubName: FroopylandHubData,

@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"math/big"
 	"os/exec"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -53,6 +54,8 @@ func register(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	//TODO: should check for sequencer bond requirements as well
 	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerAdymPrice)
 	if err != nil {
 		return err
