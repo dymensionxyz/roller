@@ -25,6 +25,8 @@ func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
+// @20240319 the flags `--max-msgs` and `--flush-interval` improve the relayer performance
+// a better solution should be implemented as a part of https://github.com/dymensionxyz/roller/issues/769
 func (r *Relayer) GetStartCmd() *exec.Cmd {
 	args := []string{"start", "--max-msgs", "100", "--flush-interval", "10s"}
 	args = append(args, r.getRelayerDefaultArgs()...)
