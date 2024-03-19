@@ -26,7 +26,7 @@ func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
 }
 
 func (r *Relayer) GetStartCmd() *exec.Cmd {
-	args := []string{"start"}
+	args := []string{"start", "--max-msgs", "100", "--flush-interval", "10s"}
 	args = append(args, r.getRelayerDefaultArgs()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
