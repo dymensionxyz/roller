@@ -20,16 +20,6 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	seqPubKey, err := utils.GetSequencerPubKey(initConfig)
-	if err != nil {
-		return err
-	}
-	gentxSeqCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
-		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", home)
-	_, err = utils.ExecBashCommandWithStdout(gentxSeqCmd)
-	if err != nil {
-		return err
-	}
 	if err = setRollappConfig(initConfig); err != nil {
 		return err
 	}
