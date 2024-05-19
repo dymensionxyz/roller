@@ -52,4 +52,4 @@ export ROLLER_RELEASE_TAG="<RELEASE_TAG>"
 curl -L https://dymensionxyz.github.io/roller/install.sh | bash
 ```
 
-For more information about Roller and its usage, please refer to [the documentation](https://docs.dymension.xyz/build/roller).
+For more information about Roller and its usage, please refer to [the documentation](https://docs.dymension.xyz/build/roller/overview/).
