@@ -88,7 +88,7 @@ func SanitizeGenesis(genesisPath string) error {
 			Value: "PLACEHOLDER_RELAYER_BALANCE",
 		},
 		{
-			Path:  "app_state.sequencers.genesis_operator_address",
+			Path:  "app_state.sequencers.sequencers.0.operator_address",
 			Value: "PLACEHOLDER_OPERATOR_ADDRESS",
 		},
 		{
