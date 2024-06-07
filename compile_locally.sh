@@ -13,7 +13,7 @@ ARCH=$(uname -m)
 # The list of projects to be installed
 PROJECTS=("dymension" "go-relayer" "rollapp-evm")
 REPOS=("" "" "")
-VERSIONS=("v2.0.0-alpha.3" "v0.2.0-v2.3.1-relayer" "v2.0.0-beta")
+VERSIONS=("v3.1.0" "v0.3.3-v2.5.2-relayer" "v2.2.0-rc03")
 BUILDCOMMANDS=("" "" "")
 BINARYNAME=("dymd" "rly" "rollapp-evm")
 
@@ -89,16 +89,16 @@ for i in "${!PROJECTS[@]}"; do
     rm -rf "/tmp/${PROJECTS[i]}"
     git clone "$REPO_URL"
     cd "${PROJECTS[i]}"
-    if [ -n "${VERSIONS[i]}" ]; then
+    if [ "${VERSIONS[i]}" != "" ]; then
         git checkout "${VERSIONS[i]}"
     fi
-    if [ -n "${BUILDCOMMANDS[i]}" ]; then
-        ${BUILDCOMMANDS[i]}
+    if [ "${BUILDCOMMANDS[i]}" != "" ]; then
+        "${BUILDCOMMANDS[i]}"
     else
         make install
     fi
 
-    for binary in ${BINARYNAME[i]}; do
+    for binary in "${BINARYNAME[i]}"; do
         if [ ! -x "$(command -v "$binary")" ]; then
             echo "$EMOJI Couldn't find $binary in PATH. Aborting."; exit 1;
         fi

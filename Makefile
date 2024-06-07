@@ -28,4 +28,4 @@ install: go.sum ## Installs the roller binary
 
 .PHONY: build
 build: ## Compiles the roller binary
-	go build -o build/roller $(BUILD_FLAGS) .
+	go build -o build/roller $(BUILD_FLAGS) -gcflags "all=-N -l" .

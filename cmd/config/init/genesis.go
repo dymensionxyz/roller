@@ -118,7 +118,6 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 func updateGenesisParams(genesisFilePath string, denom string, decimals uint, home string) error {
 	oa, err := getGenesisOperatorAddress(home)
 	if err != nil {
-		fmt.Println("here, update genesis params")
 		return err
 	}
 	params := getDefaultGenesisParams(denom, decimals, oa)
