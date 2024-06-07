@@ -171,6 +171,8 @@ func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
 	gentxCmd := exec.Command(initConfig.RollappBinary, "gentx", consts.KeysIds.RollappSequencer,
 		fmt.Sprint(stakedSupply, initConfig.Denom), "--chain-id", initConfig.RollappID, "--keyring-backend", "test", "--home", rollappConfigDirPath)
 
+	fmt.Println(gentxCmd.String())
+
 	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
 	if err != nil {
 		return err
