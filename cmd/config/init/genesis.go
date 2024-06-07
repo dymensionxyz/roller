@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-
-	"os/exec"
-	"path/filepath"
 
 	"github.com/tidwall/sjson"
 )
@@ -48,11 +48,11 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = generateGenesisTx(initConfig)
+	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom, initConfig.Decimals, initConfig.Home)
 	if err != nil {
 		return err
 	}
-	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom, initConfig.Decimals)
+	err = generateGenesisTx(initConfig)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,8 @@ type PathValue struct {
 }
 
 // TODO(#130): fix to support epochs
-func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
+func getDefaultGenesisParams(denom string, decimals uint, genesisOperatorAddress string) []PathValue {
+	fmt.Println(genesisOperatorAddress)
 	return []PathValue{
 		{"app_state.mint.params.mint_denom", denom},
 		{"app_state.staking.params.bond_denom", denom},
@@ -91,6 +92,7 @@ func getDefaultGenesisParams(denom string, decimals uint) []PathValue {
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.staking.params.unbonding_time", "3628800s"},
 		{"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
+		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
 	}
 }
 
@@ -113,8 +115,13 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-func updateGenesisParams(genesisFilePath string, denom string, decimals uint) error {
-	params := getDefaultGenesisParams(denom, decimals)
+func updateGenesisParams(genesisFilePath string, denom string, decimals uint, home string) error {
+	oa, err := getGenesisOperatorAddress(home)
+	if err != nil {
+		fmt.Println("here, update genesis params")
+		return err
+	}
+	params := getDefaultGenesisParams(denom, decimals, oa)
 	return UpdateJSONParams(genesisFilePath, params)
 }
 
@@ -123,6 +130,7 @@ func generateGenesisTx(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+
 	// collect gentx
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 	collectGentx := exec.Command(initConfig.RollappBinary, "collect-gentxs", "--home", rollappConfigDirPath)
@@ -131,7 +139,20 @@ func generateGenesisTx(initConfig config.RollappConfig) error {
 		return err
 	}
 	return nil
+}
 
+func getGenesisOperatorAddress(homePath string) (string, error) {
+	rollappConfigDirPath := filepath.Join(homePath, consts.ConfigDirName.Rollapp)
+	getOperatorAddrCommand := exec.Command(consts.Executables.RollappEVM, "keys", "show", consts.KeysIds.RollappSequencer, "-a", "--keyring-backend", "test", "--home", rollappConfigDirPath, "--bech", "val")
+
+	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+
+	return a, nil
 }
 
 // registerSequencerAsGoverner registers the sequencer as a governor of the rollapp chain.
@@ -150,6 +171,7 @@ func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 	gentxCmd := exec.Command(initConfig.RollappBinary, "gentx", consts.KeysIds.RollappSequencer,
 		fmt.Sprint(stakedSupply, initConfig.Denom), "--chain-id", initConfig.RollappID, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+
 	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
 	if err != nil {
 		return err

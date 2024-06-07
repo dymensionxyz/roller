@@ -2,13 +2,14 @@ package initconfig
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	global_utils "github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
-	"os/exec"
-	"path/filepath"
 )
 
 const validatorKeyID = "local-user"

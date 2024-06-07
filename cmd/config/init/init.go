@@ -34,7 +34,7 @@ func InitCmd() *cobra.Command {
 				return fmt.Errorf("invalid rollapp id %s. %s", args[0], validRollappIDMsg)
 			}
 
-			//TODO: parse the config here instead of GetInitConfig in Run command
+			// TODO: parse the config here instead of GetInitConfig in Run command
 			// cmd.SetContextValue("mydata", data)
 
 			return nil
@@ -101,7 +101,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	//TODO: create all dirs here
+	// TODO: create all dirs here
 	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)

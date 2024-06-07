@@ -44,9 +44,9 @@ func GetInitConfig(initCmd *cobra.Command, args []string) (*config.RollappConfig
 	home := initCmd.Flag(utils.FlagNames.Home).Value.String()
 	interactive, _ := initCmd.Flags().GetBool(FlagNames.Interactive)
 
-	//load initial config if exists
+	// load initial config if exists
 	var cfg config.RollappConfig
-	//load from flags
+	// load from flags
 	cfg.Home = home
 	cfg.RollappBinary = initCmd.Flag(FlagNames.RollappBinary).Value.String()
 	cfg.VMType = config.VMType(initCmd.Flag(FlagNames.VMType).Value.String())
