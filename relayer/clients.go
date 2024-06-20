@@ -9,19 +9,26 @@ func (r *Relayer) CheckClientsExist() (bool, error) {
 	rlyCfg, err := ReadRlyConfig(r.Home)
 	if err != nil {
 		return false, err
-
 	}
-	clientIDRollapp_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "client-id"})
+	clientIDRollapp_raw, err := roller_utils.GetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "dst", "client-id"},
+	)
 	if err != nil {
 		return false, err
 	}
 
-	clientIDHub_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "src", "client-id"})
+	clientIDHub_raw, err := roller_utils.GetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
+	)
 	if err != nil {
 		return false, err
 	}
 
+	//nolint:errcheck
 	clientIDRollapp := clientIDRollapp_raw.(string)
+	//nolint:errcheck
 	clientIDHub := clientIDHub_raw.(string)
 
 	if clientIDRollapp == "" || clientIDHub == "" {

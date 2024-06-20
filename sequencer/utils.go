@@ -1,8 +1,9 @@
 package sequencer
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func GetDymintFilePath(root string) string {

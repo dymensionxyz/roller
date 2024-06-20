@@ -46,7 +46,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
-			//Eventhough the hub can get evm signatures, we still use the native
+			// Eventhough the hub can get evm signatures, we still use the native
 			Type: config.SDK_ROLLAPP,
 		},
 		{
@@ -92,7 +92,10 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
 	relayerAddresses := make([]utils.AddressData, 0)
 	keys := getRelayerKeysConfig(rollappConfig)
-	createRollappKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.RollappRelayer], rollappConfig.RollappID)
+	createRollappKeyCmd := getAddRlyKeyCmd(
+		keys[consts.KeysIds.RollappRelayer],
+		rollappConfig.RollappID,
+	)
 	createHubKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
 	out, err := utils.ExecBashCommandWithStdout(createRollappKeyCmd)
 	if err != nil {
@@ -122,7 +125,7 @@ func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressDat
 }
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	var coinType = "118"
+	coinType := "118"
 	if keyConfig.Type == config.EVM_ROLLAPP {
 		coinType = "60"
 	}

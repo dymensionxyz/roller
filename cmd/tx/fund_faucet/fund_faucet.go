@@ -23,8 +23,10 @@ var flagNames = struct {
 	NoOutput:    "no-output",
 }
 
-const faucetAddr = "dym1g8sf7w4cz5gtupa6y62h3q6a4gjv37pgefnpt5"
-const faucetDefaultTokenAmount = "5000000"
+const (
+	faucetAddr               = "dym1g8sf7w4cz5gtupa6y62h3q6a4gjv37pgefnpt5"
+	faucetDefaultTokenAmount = "5000000"
+)
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -34,7 +36,8 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(fundFaucet(cmd, args))
 		},
 	}
-	cmd.Flags().StringP(flagNames.tokenAmount, "", faucetDefaultTokenAmount, "The amount of tokens to fund the faucet with")
+	cmd.Flags().
+		StringP(flagNames.tokenAmount, "", faucetDefaultTokenAmount, "The amount of tokens to fund the faucet with")
 	cmd.Flags().BoolP(flagNames.NoOutput, "", false, "Run the command without output")
 	return cmd
 }
@@ -64,12 +67,33 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	if !success {
 		return fmt.Errorf("invalid faucet %s token amount", faucetTokenAmountStr)
 	}
-	actualFaucetAmount := faucetTokensAmount.Mul(faucetTokensAmount, new(big.Int).Exp(big.NewInt(10),
-		new(big.Int).SetUint64(uint64(rlpCfg.Decimals)), nil))
-	fundFaucetCmd := exec.Command(rlpCfg.RollappBinary, "tx", "ibc-transfer", "transfer", "transfer",
-		srcChannel, faucetAddr, actualFaucetAmount.String()+rlpCfg.Denom, "--from",
-		consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", filepath.Join(rlpCfg.Home,
-			consts.ConfigDirName.Rollapp), "--broadcast-mode", "block", "-y", "--output", "json")
+	actualFaucetAmount := faucetTokensAmount.Mul(
+		faucetTokensAmount,
+		new(big.Int).Exp(big.NewInt(10),
+			new(big.Int).SetUint64(uint64(rlpCfg.Decimals)), nil),
+	)
+	fundFaucetCmd := exec.Command(
+		rlpCfg.RollappBinary,
+		"tx",
+		"ibc-transfer",
+		"transfer",
+		"transfer",
+		srcChannel,
+		faucetAddr,
+		actualFaucetAmount.String()+rlpCfg.Denom,
+		"--from",
+		consts.KeysIds.RollappSequencer,
+		"--keyring-backend",
+		"test",
+		"--home",
+		filepath.Join(rlpCfg.Home,
+			consts.ConfigDirName.Rollapp),
+		"--broadcast-mode",
+		"block",
+		"-y",
+		"--output",
+		"json",
+	)
 	outputHandler.StartSpinner(" Funding faucet...")
 	stdout, err := utils.ExecBashCommandWithStdout(fundFaucetCmd)
 	if err != nil {

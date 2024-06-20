@@ -2,12 +2,14 @@ package claim
 
 import (
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 	"math/big"
 	"os"
 	"os/exec"
+
+	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 func Cmd() *cobra.Command {
@@ -18,7 +20,9 @@ func Cmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			shouldProceed, err := utils.PromptBool(fmt.Sprintf(
 				"This command will transfer all Rollapp rewards on the mainnet to %s. Please note that once"+
-					" initiated, this action cannot be undone. Do you wish to proceed", args[1]))
+					" initiated, this action cannot be undone. Do you wish to proceed",
+				args[1],
+			))
 			if err != nil {
 				return err
 			}
@@ -55,14 +59,33 @@ func Cmd() *cobra.Command {
 			txGasPrice := big.NewInt(50000)
 			totalBalanceMinusFees := new(big.Int).Sub(sequencerBalance.Amount, txGasPrice)
 			if totalBalanceMinusFees.Cmp(big.NewInt(0)) != 1 {
-				return fmt.Errorf("no rewards to claim for the address associated with the given private key: %s"+
-					"please try to import the private key to keplr and claim the rewards from there",
-					sequencerAddr)
+				return fmt.Errorf(
+					"no rewards to claim for the address associated with the given private key: %s"+
+						"please try to import the private key to keplr and claim the rewards from there",
+					sequencerAddr,
+				)
 			}
 			rewardsAmountStr := totalBalanceMinusFees.String() + consts.Denoms.Hub
-			sendAllFundsCmd := exec.Command(consts.Executables.Dymension, "tx", "bank", "send", consts.KeysIds.HubSequencer,
-				args[1], rewardsAmountStr, "--node", mainnetHub.RPC_URL, "--chain-id", mainnetHub.ID,
-				"--fees", txGasPrice.String()+consts.Denoms.Hub, "-b", "block", "--yes", "--home", tempDir)
+			sendAllFundsCmd := exec.Command(
+				consts.Executables.Dymension,
+				"tx",
+				"bank",
+				"send",
+				consts.KeysIds.HubSequencer,
+				args[1],
+				rewardsAmountStr,
+				"--node",
+				mainnetHub.RPC_URL,
+				"--chain-id",
+				mainnetHub.ID,
+				"--fees",
+				txGasPrice.String()+consts.Denoms.Hub,
+				"-b",
+				"block",
+				"--yes",
+				"--home",
+				tempDir,
+			)
 			_, err = utils.ExecBashCommandWithStdout(sendAllFundsCmd)
 			if err != nil {
 				return err

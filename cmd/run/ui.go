@@ -20,8 +20,11 @@ func initializeUI() {
 
 func buildTitleParagraph(rollappConfig config.RollappConfig, termWidth int) *widgets.Paragraph {
 	p := widgets.NewParagraph()
-	p.Text = fmt.Sprintf("💈 Rollapp '%s' is successfully running on your local machine, connected to Dymension hub '%s'.",
-		rollappConfig.RollappID, rollappConfig.HubData.ID)
+	p.Text = fmt.Sprintf(
+		"💈 Rollapp '%s' is successfully running on your local machine, connected to Dymension hub '%s'.",
+		rollappConfig.RollappID,
+		rollappConfig.HubData.ID,
+	)
 	p.SetRect(0, 0, termWidth, 3)
 	return p
 }
@@ -34,7 +37,11 @@ func NewServiceStatusTable(termWidth int) *widgets.Table {
 	return table
 }
 
-func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table, cfg config.RollappConfig) {
+func updateUITable(
+	serviceData []servicemanager.UIData,
+	table *widgets.Table,
+	cfg config.RollappConfig,
+) {
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
 	sort.Slice(serviceData, func(i, j int) bool {
 		return serviceData[i].Name < serviceData[j].Name
@@ -45,6 +52,9 @@ func updateUITable(serviceData []servicemanager.UIData, table *widgets.Table, cf
 			balances = append(balances, account.Balance.BiggerDenomStr(cfg))
 		}
 
-		table.Rows = append(table.Rows, []string{service.Name, strings.Join(balances, ","), service.Status})
+		table.Rows = append(
+			table.Rows,
+			[]string{service.Name, strings.Join(balances, ","), service.Status},
+		)
 	}
 }

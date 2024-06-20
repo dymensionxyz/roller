@@ -19,7 +19,7 @@ type ServiceConfig struct {
 }
 
 type UIData struct {
-	//TODO: try to remove as it stored in a map
+	// TODO: try to remove as it stored in a map
 	Name     string
 	Accounts []utils.AccountData
 	Balance  string

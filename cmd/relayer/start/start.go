@@ -16,8 +16,10 @@ import (
 )
 
 // TODO: Test relaying on 35-C and update the prices
-var oneDayRelayPriceHub = big.NewInt(1)
-var oneDayRelayPriceRollapp = big.NewInt(1)
+var (
+	oneDayRelayPriceHub     = big.NewInt(1)
+	oneDayRelayPriceRollapp = big.NewInt(1)
+)
 
 const (
 	flagOverride = "override"
@@ -37,7 +39,11 @@ func Start() *cobra.Command {
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			logger := utils.GetLogger(relayerLogFilePath)
 			logFileOption := utils.WithLoggerLogging(logger)
-			rly := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
+			rly := relayer.NewRelayer(
+				rollappConfig.Home,
+				rollappConfig.RollappID,
+				rollappConfig.HubData.ID,
+			)
 			rly.SetLogger(logger)
 
 			_, _, err = rly.LoadActiveChannel()
@@ -60,15 +66,25 @@ func Start() *cobra.Command {
 			}
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(ctx, rly.GetStartCmd(), func() {}, func(errMessage string) string { return errMessage }, logFileOption)
-			fmt.Printf("💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
-				rly.SrcChannel, rly.DstChannel)
+			go utils.RunBashCmdAsync(
+				ctx,
+				rly.GetStartCmd(),
+				func() {},
+				func(errMessage string) string { return errMessage },
+				logFileOption,
+			)
+			fmt.Printf(
+				"💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
+				rly.SrcChannel,
+				rly.DstChannel,
+			)
 
 			select {}
 		},
 	}
 
-	relayerStartCmd.Flags().BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
+	relayerStartCmd.Flags().
+		BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
 	return relayerStartCmd
 }
 
@@ -78,7 +94,9 @@ func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rolCfg)
 }
 
-func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRlyHubInsufficientBalances(
+	config config.RollappConfig,
+) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
 		return nil, err
@@ -105,7 +123,9 @@ func GetRlyHubInsufficientBalances(config config.RollappConfig) ([]utils.NotFund
 	return insufficientBalances, nil
 }
 
-func GetRelayerInsufficientBalances(config config.RollappConfig) ([]utils.NotFundedAddressData, error) {
+func GetRelayerInsufficientBalances(
+	config config.RollappConfig,
+) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {
 		return insufficientBalances, err

@@ -1,12 +1,13 @@
 package migrate
 
 import (
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	"path/filepath"
 )
 
 type VersionMigratorV0112 struct{}

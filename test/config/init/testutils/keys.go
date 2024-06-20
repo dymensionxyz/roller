@@ -3,25 +3,29 @@ package testutils
 import (
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/config"
-	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils"
-	"github.com/pelletier/go-toml"
 	"os"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"path/filepath"
 	"regexp"
 
+	"github.com/pelletier/go-toml"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils"
 )
 
-const innerKeysDirName = "keyring-test"
-const addressPattern = `.*\.address`
+const (
+	innerKeysDirName = "keyring-test"
+	addressPattern   = `.*\.address`
+)
 
 func SanitizeConfigDir(root string, rlpCfg *config.RollappConfig) error {
-	dirsToClean := []string{getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root),
-		getHubKeysDir(root), filepath.Join(root, consts.ConfigDirName.LocalHub)}
+	dirsToClean := []string{
+		getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root),
+		getHubKeysDir(root), filepath.Join(root, consts.ConfigDirName.LocalHub),
+	}
 	for _, dir := range dirsToClean {
 		if err := os.RemoveAll(dir); err != nil {
 			return err
@@ -50,7 +54,7 @@ func SanitizeConfigDir(root string, rlpCfg *config.RollappConfig) error {
 
 func SanitizeDymintToml(root string) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(root)
-	var tomlCfg, err = toml.LoadFile(dymintTomlPath)
+	tomlCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", dymintTomlPath, err)
 	}
@@ -59,6 +63,7 @@ func SanitizeDymintToml(root string) error {
 	tomlCfg.Set("da_config", "PLACEHOLDER_DA_CONFIG")
 	return utils.WriteTomlTreeToFile(tomlCfg, dymintTomlPath)
 }
+
 func verifyFileExists(path string) error {
 	_, err := os.Stat(path)
 	if err != nil {

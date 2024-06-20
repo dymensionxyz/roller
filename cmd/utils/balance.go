@@ -20,7 +20,17 @@ type ChainQueryConfig struct {
 }
 
 func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error) {
-	cmd := exec.Command(chainConfig.Binary, "query", "bank", "balances", address, "--node", chainConfig.RPC, "--output", "json")
+	cmd := exec.Command(
+		chainConfig.Binary,
+		"query",
+		"bank",
+		"balances",
+		address,
+		"--node",
+		chainConfig.RPC,
+		"--output",
+		"json",
+	)
 	out, err := ExecBashCommandWithStdout(cmd)
 	if err != nil {
 		return Balance{}, err
@@ -112,7 +122,10 @@ type AccountData struct {
 	Balance Balance
 }
 
-func GetSequencerInsufficientAddrs(cfg config.RollappConfig, requiredBalance *big.Int) ([]NotFundedAddressData, error) {
+func GetSequencerInsufficientAddrs(
+	cfg config.RollappConfig,
+	requiredBalance *big.Int,
+) ([]NotFundedAddressData, error) {
 	sequencerData, err := GetSequencerData(cfg)
 	if err != nil {
 		return nil, err

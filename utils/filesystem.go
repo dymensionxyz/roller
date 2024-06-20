@@ -30,6 +30,7 @@ func MoveFile(src, dst string) error {
 		return fmt.Errorf("failed to open source file: %w", err)
 	}
 	defer func() { _ = srcFile.Close() }()
+	// nolint:gofumpt
 	err = os.MkdirAll(filepath.Dir(dst), 0755)
 	if err != nil {
 		return fmt.Errorf("failed to create parent directories: %w", err)

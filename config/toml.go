@@ -12,6 +12,7 @@ func WriteConfigToTOML(rlpCfg RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	// nolint:gofumpt
 	return os.WriteFile(filepath.Join(rlpCfg.Home, RollerConfigFileName), tomlBytes, 0644)
 }
 

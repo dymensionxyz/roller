@@ -1,11 +1,13 @@
 package utils
 
 import (
-	"github.com/dymensionxyz/roller/config"
-	"github.com/dymensionxyz/roller/version"
-	"github.com/fatih/color"
 	"os"
 	"os/signal"
+
+	"github.com/fatih/color"
+
+	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/version"
 )
 
 func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
@@ -15,6 +17,7 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 				os.Exit(1)
 			}
 		}()
+		//nolint:errcheck
 		color.New(color.FgRed, color.Bold).Printf("💈 %s\n", err.Error())
 
 		for _, printInfo := range printAdditionalInfo {
@@ -29,9 +32,11 @@ func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
 	currentRollerVersion := version.TrimVersionStr(version.BuildVersion)
 	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
 	if configRollerVersion != currentRollerVersion {
-		color.New(color.FgRed, color.Bold).Printf("💈 Your rollapp config version ('%s') is older than your"+
-			" installed roller version ('%s'),"+
-			" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion)
+		//nolint:errcheck
+		color.New(color.FgRed, color.Bold).
+			Printf("💈 Your rollapp config version ('%s') is older than your"+
+				" installed roller version ('%s'),"+
+				" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion)
 		os.Exit(1)
 	}
 }

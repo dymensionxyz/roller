@@ -31,7 +31,9 @@ func Cmd() *cobra.Command {
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
-				utils.PrettifyErrorIfExists(errors.New("the services commands are only available on linux machines"))
+				utils.PrettifyErrorIfExists(
+					errors.New("the services commands are only available on linux machines"),
+				)
 			}
 			for _, service := range []string{"sequencer", "da-light-client", "relayer"} {
 				serviceData := ServiceTemplateData{
@@ -44,10 +46,14 @@ func Cmd() *cobra.Command {
 				err = writeServiceFile(tpl, service)
 				utils.PrettifyErrorIfExists(err)
 			}
-			_, err := utils.ExecBashCommandWithStdout(exec.Command("sudo", "systemctl", "daemon-reload"))
+			_, err := utils.ExecBashCommandWithStdout(
+				exec.Command("sudo", "systemctl", "daemon-reload"),
+			)
 			utils.PrettifyErrorIfExists(err)
-			fmt.Println("💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully." +
-				" To start them, use 'systemctl start <service>'.")
+			fmt.Println(
+				"💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully." +
+					" To start them, use 'systemctl start <service>'.",
+			)
 		},
 	}
 	return cmd

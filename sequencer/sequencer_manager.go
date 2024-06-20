@@ -1,13 +1,14 @@
 package sequencer
 
 import (
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	"io"
 	"log"
 	"os/exec"
 	"path/filepath"
 	"sync"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 )
 
 type Sequencer struct {
@@ -18,8 +19,10 @@ type Sequencer struct {
 	logger      *log.Logger
 }
 
-var instance *Sequencer
-var once sync.Once
+var (
+	instance *Sequencer
+	once     sync.Once
+)
 
 func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
 	once.Do(func() {

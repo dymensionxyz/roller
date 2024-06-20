@@ -61,7 +61,10 @@ func Cmd() *cobra.Command {
 				Addr: hubRlyAddr,
 				Name: consts.KeysIds.HubRelayer,
 			})
-			rollappRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.RollappID)
+			rollappRlyAddr, err := utils.GetRelayerAddress(
+				rollappConfig.Home,
+				rollappConfig.RollappID,
+			)
 			utils.PrettifyErrorIfExists(err)
 			addresses = append(addresses, utils.AddressData{
 				Addr: rollappRlyAddr,

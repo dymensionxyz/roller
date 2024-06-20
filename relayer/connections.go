@@ -58,19 +58,26 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	rlyCfg, err := ReadRlyConfig(r.Home)
 	if err != nil {
 		return "", err
-
 	}
-	connectionIDRollapp_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"})
+	connectionIDRollapp_raw, err := roller_utils.GetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
+	)
 	if err != nil {
 		return "", err
 	}
 
-	connectionIDHub_raw, err := roller_utils.GetNestedValue(rlyCfg, []string{"paths", consts.DefaultRelayerPath, "src", "connection-id"})
+	connectionIDHub_raw, err := roller_utils.GetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
+	)
 	if err != nil {
 		return "", err
 	}
 
+	//nolint:errcheck
 	connectionIDRollapp := connectionIDRollapp_raw.(string)
+	//nolint:errcheck
 	connectionIDHub := connectionIDHub_raw.(string)
 
 	if connectionIDRollapp == "" || connectionIDHub == "" {
@@ -110,8 +117,11 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 
 	if res.Connection.State != "STATE_OPEN" {
-		r.logger.Printf("connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
-			connectionIDRollapp, connectionIDHub, res.Connection.State,
+		r.logger.Printf(
+			"connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
+			connectionIDRollapp,
+			connectionIDHub,
+			res.Connection.State,
 		)
 		return "", nil
 	}

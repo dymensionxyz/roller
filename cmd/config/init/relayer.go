@@ -6,17 +6,16 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/relayer"
-
-	"github.com/dymensionxyz/roller/config"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/relayer"
 )
 
 type RelayerFileChainConfig struct {
 	Type  string                      `json:"type"`
 	Value RelayerFileChainConfigValue `json:"value"`
 }
+
 type RelayerFileChainConfigValue struct {
 	Key            string   `json:"key"`
 	ChainID        string   `json:"chain-id"`
@@ -44,6 +43,7 @@ func writeTmpChainConfig(chainConfig RelayerFileChainConfig, fileName string) (s
 		return "", err
 	}
 	filePath := filepath.Join(os.TempDir(), fileName)
+	// nolint:gofumpt
 	if err := os.WriteFile(filePath, file, 0644); err != nil {
 		return "", err
 	}
@@ -75,7 +75,16 @@ func addChainToRelayer(fileChainConfig RelayerFileChainConfig, relayerHome strin
 	if err != nil {
 		return err
 	}
-	addChainCmd := exec.Command(consts.Executables.Relayer, "chains", "add", fileChainConfig.Value.ChainID, "--home", relayerHome, "--file", chainFilePath)
+	addChainCmd := exec.Command(
+		consts.Executables.Relayer,
+		"chains",
+		"add",
+		fileChainConfig.Value.ChainID,
+		"--home",
+		relayerHome,
+		"--file",
+		chainFilePath,
+	)
 	if err := addChainCmd.Run(); err != nil {
 		return err
 	}
@@ -83,11 +92,21 @@ func addChainToRelayer(fileChainConfig RelayerFileChainConfig, relayerHome strin
 }
 
 func initRelayer(relayerHome string) error {
-	initRelayerConfigCmd := exec.Command(consts.Executables.Relayer, "config", "init", "--home", relayerHome)
+	initRelayerConfigCmd := exec.Command(
+		consts.Executables.Relayer,
+		"config",
+		"init",
+		"--home",
+		relayerHome,
+	)
 	return initRelayerConfigCmd.Run()
 }
 
-func addChainsConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainConfig, relayerHome string) error {
+func addChainsConfig(
+	rollappConfig relayer.ChainConfig,
+	hubConfig relayer.ChainConfig,
+	relayerHome string,
+) error {
 	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
 		ChainConfig: rollappConfig,
 		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
@@ -109,7 +128,11 @@ func addChainsConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainC
 	return nil
 }
 
-func initializeRelayerConfig(rollappConfig relayer.ChainConfig, hubConfig relayer.ChainConfig, initConfig config.RollappConfig) error {
+func initializeRelayerConfig(
+	rollappConfig relayer.ChainConfig,
+	hubConfig relayer.ChainConfig,
+	initConfig config.RollappConfig,
+) error {
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 	if err := initRelayer(relayerHome); err != nil {
 		return err

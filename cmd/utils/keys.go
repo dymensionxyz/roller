@@ -20,7 +20,7 @@ type KeyInfo struct {
 }
 
 func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
-	var key = &KeyInfo{}
+	key := &KeyInfo{}
 	err := json.Unmarshal(output.Bytes(), key)
 	if err != nil {
 		return "", err
@@ -37,8 +37,16 @@ type KeyConfig struct {
 
 func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 	showKeyCommand := exec.Command(
-		binaryPath, "keys", "show", keyConfig.ID, "--keyring-backend", "test", "--keyring-dir", keyConfig.Dir,
-		"--output", "json",
+		binaryPath,
+		"keys",
+		"show",
+		keyConfig.ID,
+		"--keyring-backend",
+		"test",
+		"--keyring-dir",
+		keyConfig.Dir,
+		"--output",
+		"json",
 	)
 	output, err := ExecBashCommandWithStdout(showKeyCommand)
 	if err != nil {
@@ -49,7 +57,12 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 
 func GetRelayerAddress(home string, chainID string) (string, error) {
 	showKeyCmd := exec.Command(
-		consts.Executables.Relayer, "keys", "show", chainID, "--home", filepath.Join(home, consts.ConfigDirName.Relayer),
+		consts.Executables.Relayer,
+		"keys",
+		"show",
+		chainID,
+		"--home",
+		filepath.Join(home, consts.ConfigDirName.Relayer),
 	)
 	out, err := ExecBashCommandWithStdout(showKeyCmd)
 	return strings.TrimSuffix(out.String(), "\n"), err
@@ -64,6 +77,7 @@ func PrintAddressesWithTitle(addresses []AddressData) {
 	fmt.Printf("🔑 Addresses:\n\n")
 	PrintAddresses(addresses)
 }
+
 func PrintAddresses(addresses []AddressData) {
 	data := make([][]string, 0, len(addresses))
 	for _, address := range addresses {
@@ -121,5 +135,8 @@ func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
 }
 
 func getExportKeyFlags(keyringDir string) string {
-	return fmt.Sprintf("--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe", keyringDir)
+	return fmt.Sprintf(
+		"--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe",
+		keyringDir,
+	)
 }

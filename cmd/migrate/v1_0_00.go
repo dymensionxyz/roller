@@ -18,14 +18,30 @@ func (v *VersionMigratorV1000) ShouldMigrate(prevVersion VersionData) bool {
 
 func (v *VersionMigratorV1000) PerformMigration(rlpCfg config.RollappConfig) error {
 	fmt.Println("💈 Migrating Rollapp key...")
-	migrateRollappKeyCmd := exec.Command(consts.Executables.RollappEVM, "keys", "migrate", "--home", rlpCfg.Home+"/relayer/keys/"+rlpCfg.RollappID, "--keyring-backend", "test")
+	migrateRollappKeyCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"migrate",
+		"--home",
+		rlpCfg.Home+"/relayer/keys/"+rlpCfg.RollappID,
+		"--keyring-backend",
+		"test",
+	)
 	out, err := utils.ExecBashCommandWithStdout(migrateRollappKeyCmd)
 	if err != nil {
 		return err
 	}
 	fmt.Println(out.String())
 	fmt.Println("💈 Migrating Hub key...")
-	migrateHubKeyCmd := exec.Command(consts.Executables.Dymension, "keys", "migrate", "--home", rlpCfg.Home+"/relayer/keys/"+rlpCfg.HubData.ID, "--keyring-backend", "test")
+	migrateHubKeyCmd := exec.Command(
+		consts.Executables.Dymension,
+		"keys",
+		"migrate",
+		"--home",
+		rlpCfg.Home+"/relayer/keys/"+rlpCfg.HubData.ID,
+		"--keyring-backend",
+		"test",
+	)
 	out, err = utils.ExecBashCommandWithStdout(migrateHubKeyCmd)
 	if err != nil {
 		return err
@@ -36,5 +52,4 @@ func (v *VersionMigratorV1000) PerformMigration(rlpCfg config.RollappConfig) err
 		return err
 	}
 	return nil
-
 }

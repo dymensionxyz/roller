@@ -78,6 +78,7 @@ func (a *Avail) InitializeLightNodeConfig() error {
 func (a *Avail) GetDAAccountAddress() (string, error) {
 	return a.AccAddress, nil
 }
+
 func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
@@ -157,7 +158,11 @@ func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error
 }
 
 func (a *Avail) GetSequencerDAConfig() string {
-	return fmt.Sprintf(`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`, a.Mnemonic, a.RpcEndpoint)
+	return fmt.Sprintf(
+		`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`,
+		a.Mnemonic,
+		a.RpcEndpoint,
+	)
 }
 
 func (a *Avail) SetRPCEndpoint(rpc string) {

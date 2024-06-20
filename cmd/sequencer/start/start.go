@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"math/big"
 	"path/filepath"
+	"strings"
 
 	"github.com/dymensionxyz/roller/sequencer"
-
-	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -35,7 +34,10 @@ func StartCmd() *cobra.Command {
 			utils.RequireMigrateIfNeeded(rollappConfig)
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, OneDaySequencePrice)
+			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(
+				rollappConfig,
+				OneDaySequencePrice,
+			)
 			utils.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
 			seq := sequencer.GetInstance(rollappConfig)
@@ -68,7 +70,8 @@ func printOutput(rlpCfg config.RollappConfig) {
 
 func parseError(errMsg string) string {
 	lines := strings.Split(errMsg, "\n")
-	if len(lines) > 0 && lines[0] == "Error: failed to initialize database: resource temporarily unavailable" {
+	if len(lines) > 0 &&
+		lines[0] == "Error: failed to initialize database: resource temporarily unavailable" {
 		return "The Rollapp sequencer is already running on your local machine. Only one sequencer can run at any given time."
 	}
 	return errMsg

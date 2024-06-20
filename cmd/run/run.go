@@ -97,7 +97,10 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 	return exec.Command(ex, "relayer", "start", "--home", config.Home)
 }
 
-func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
+func runDaWithRestarts(
+	rollappConfig config.RollappConfig,
+	serviceConfig *servicemanager.ServiceConfig,
+) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	damanager.SetRPCEndpoint(celestia.DefaultCelestiaRPC)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
@@ -111,7 +114,10 @@ func runDaWithRestarts(rollappConfig config.RollappConfig, serviceConfig *servic
 	serviceConfig.RunServiceWithRestart("DA Light Client", utils.WithLogging(daLogFilePath))
 }
 
-func runSequencerWithRestarts(seq *sequencer.Sequencer, serviceConfig *servicemanager.ServiceConfig) {
+func runSequencerWithRestarts(
+	seq *sequencer.Sequencer,
+	serviceConfig *servicemanager.ServiceConfig,
+) {
 	startRollappCmd := seq.GetStartCmd()
 
 	service := servicemanager.Service{
@@ -121,7 +127,10 @@ func runSequencerWithRestarts(seq *sequencer.Sequencer, serviceConfig *servicema
 		UIData:   servicemanager.UIData{Name: "Sequencer"},
 	}
 	serviceConfig.AddService("Sequencer", service)
-	serviceConfig.RunServiceWithRestart("Sequencer", utils.WithLogging(utils.GetSequencerLogPath(seq.RlpCfg)))
+	serviceConfig.RunServiceWithRestart(
+		"Sequencer",
+		utils.WithLogging(utils.GetSequencerLogPath(seq.RlpCfg)),
+	)
 }
 
 func verifyBalances(rollappConfig config.RollappConfig) {

@@ -19,15 +19,27 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.RollappID, "value", "key-directory"}, placerholderKeyDirectory)
+	err = utils.SetNestedValue(
+		rlyCfg,
+		[]string{"chains", rlpCfg.RollappID, "value", "key-directory"},
+		placerholderKeyDirectory,
+	)
 	if err != nil {
 		return err
 	}
-	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.HubData.ID, "value", "key-directory"}, placerholderKeyDirectory)
+	err = utils.SetNestedValue(
+		rlyCfg,
+		[]string{"chains", rlpCfg.HubData.ID, "value", "key-directory"},
+		placerholderKeyDirectory,
+	)
 	if err != nil {
 		return err
 	}
-	err = utils.SetNestedValue(rlyCfg, []string{"chains", rlpCfg.RollappID, "value", "chain-id"}, placeholderRollappID)
+	err = utils.SetNestedValue(
+		rlyCfg,
+		[]string{"chains", rlpCfg.RollappID, "value", "chain-id"},
+		placeholderRollappID,
+	)
 	if err != nil {
 		return err
 	}
@@ -43,7 +55,11 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetNestedValue(rlyCfg, []string{"paths", "rollapp-hub", "dst", "chain-id"}, placeholderRollappID)
+	err = utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", "rollapp-hub", "dst", "chain-id"},
+		placeholderRollappID,
+	)
 	if err != nil {
 		return err
 	}

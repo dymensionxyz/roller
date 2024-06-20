@@ -2,10 +2,11 @@ package initconfig
 
 import (
 	"encoding/json"
+	"os/exec"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"os/exec"
 )
 
 type Rollapp struct {

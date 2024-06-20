@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"math/big"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -23,7 +24,7 @@ func Cmd() *cobra.Command {
 			utils.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
-			var faucetUrls = map[string]string{
+			faucetUrls := map[string]string{
 				consts.LocalHubID:      "",
 				consts.StagingHubID:    "https://discord.com/channels/956961633165529098/1125047988247593010",
 				consts.FroopylandHubID: "https://discord.com/channels/956961633165529098/1143231362468434022",

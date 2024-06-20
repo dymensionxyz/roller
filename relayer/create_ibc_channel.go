@@ -15,7 +15,10 @@ import (
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
-func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOption, seq *sequencer.Sequencer,
+func (r *Relayer) CreateIBCChannel(
+	override bool,
+	logFileOption utils.CommandOption,
+	seq *sequencer.Sequencer,
 ) (ConnectionChannels, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -32,7 +35,13 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		return ConnectionChannels{}, err
 	}
 	sendFundsCmd := seq.GetSendCmd(sequecerAddress)
-	utils.RunCommandEvery(ctx, sendFundsCmd.Path, sendFundsCmd.Args[1:], 5, utils.WithDiscardLogging())
+	utils.RunCommandEvery(
+		ctx,
+		sendFundsCmd.Path,
+		sendFundsCmd.Args[1:],
+		5,
+		utils.WithDiscardLogging(),
+	)
 
 	var status string
 
@@ -43,7 +52,7 @@ func (r *Relayer) CreateIBCChannel(override bool, logFileOption utils.CommandOpt
 		clientsExist, _ = r.CheckClientsExist()
 	}
 	if !clientsExist {
-		//wait for block to be created
+		// wait for block to be created
 		status = "Validating rollapp height > 2 before creating clients..."
 		fmt.Printf("💈 %s\n", status)
 		if err := r.WriteRelayerStatus(status); err != nil {
@@ -172,5 +181,9 @@ func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getRelayerDefaultArgs() []string {
-	return []string{consts.DefaultRelayerPath, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
+	return []string{
+		consts.DefaultRelayerPath,
+		"--home",
+		filepath.Join(r.Home, consts.ConfigDirName.Relayer),
+	}
 }
