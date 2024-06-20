@@ -1,124 +1,121 @@
-name: Create Roller Release Assets
-
-on:
-  release:
-    types: [ created ]
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-        - info
-        - warning
-        - debug
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: boolean
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: true
-
-
-jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-20.04, arm-mac, amd-mac, arm-linux ]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.20.x
-      - name: Run the roller installation script
-        run: |
-          [ -f ~/.zshrc ] && source ~/.zshrc
-          chmod +x ./compile_locally.sh
-          yes | ./compile_locally.sh
-      - name: Install Roller binary
-        run: |
-          make build
-          sudo cp ./build/roller /usr/local/bin/roller
-      - name: Get the latest version of Celestia Node
-        run: |
-          if [ -d "./celestia-node" ]; then
-            cd celestia-node
-            git fetch --all
-          else
-            git clone https://github.com/celestiaorg/celestia-node.git
-            cd celestia-node
-          fi
-          git checkout tags/v0.12.2
-      - name: Set up Go 1.21
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.21.x
-      - name: Build Celestia Node
-        run: |
-          cd ./celestia-node
-          make build
-          make go-install
-          make cel-key
-      - name: Get the latest version of the cosmos sdk
-        run: |
-          if [ -d "./cosmos-sdk" ]; then
-            cd cosmos-sdk
-            git fetch --all
-          else
-            git clone https://github.com/cosmos/cosmos-sdk.git
-            cd cosmos-sdk
-          fi
-          git checkout tags/v0.47.5
-      - name: Build cosmos-sdk
-        run: |
-          cd ./cosmos-sdk
-          make build
-      - name: Create roller_bins archive folder structure
-        run: |
-          rm -rf roller_bins
-          mkdir roller_bins
-          mkdir roller_bins/lib
-          sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
-          sudo cp ./celestia-node/cel-key /usr/local/bin/roller_bins/cel-key
-          sudo cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
-          sudo cp ./celestia-node/build/celestia /usr/local/bin/roller_bins/celestia
-          sudo cp ./cosmos-sdk/build/simd ./roller_bins/lib/simd
-          sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
-          sudo cp /usr/local/bin/roller ./roller_bins/roller
-          sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
-          sudo cp /usr/local/bin/dymd ./roller_bins/dymd
-      - name: Set up filenames
-        run: |
-          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "aarch64" ]; then
-            ARCH="arm64"
-          fi
-          VERSION=${{ github.ref }}
-          VERSION_CLEAN="${VERSION#refs/tags/}"
-          if [[ $ARCH == "x86_64" ]]; then
-            ARCH="amd64"
-          fi
-          echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
-          echo "ASSET_NAME=roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
-      - name: Archive the roller_bins folder
-        run: |
-          tar -czvf ${{ env.PACKAGED_ASSET }} roller_bins
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ env.PACKAGED_ASSET }}
-          asset_name: ${{ env.ASSET_NAME }}
-          asset_content_type: application/gzip
+# name: Create Roller Release Assets
+# on:
+#   release:
+#     types: [created]
+#   workflow_dispatch:
+#     inputs:
+#       logLevel:
+#         description: 'Log level'
+#         required: true
+#         default: 'warning'
+#         type: choice
+#         options:
+#           - info
+#           - warning
+#           - debug
+#       tags:
+#         description: 'Test scenario tags'
+#         required: false
+#         type: boolean
+#       environment:
+#         description: 'Environment to run tests against'
+#         type: environment
+#         required: true
+# jobs:
+#   build:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       matrix:
+#         os: [ubuntu-20.04, arm-mac, amd-mac, arm-linux]
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
+#         with:
+#           ref: ${{ github.ref }}
+#       - name: Set up Go
+#         uses: actions/setup-go@v3
+#         with:
+#           go-version: 1.20.x
+#       - name: Run the roller installation script
+#         run: |
+#           [ -f ~/.zshrc ] && source ~/.zshrc
+#           chmod +x ./compile_locally.sh
+#           yes | ./compile_locally.sh
+#       - name: Install Roller binary
+#         run: |
+#           make build
+#           sudo cp ./build/roller /usr/local/bin/roller
+#       - name: Get the latest version of Celestia Node
+#         run: |
+#           if [ -d "./celestia-node" ]; then
+#             cd celestia-node
+#             git fetch --all
+#           else
+#             git clone https://github.com/celestiaorg/celestia-node.git
+#             cd celestia-node
+#           fi
+#           git checkout tags/v0.12.2
+#       - name: Set up Go 1.21
+#         uses: actions/setup-go@v3
+#         with:
+#           go-version: 1.21.x
+#       - name: Build Celestia Node
+#         run: |
+#           cd ./celestia-node
+#           make build
+#           make go-install
+#           make cel-key
+#       - name: Get the latest version of the cosmos sdk
+#         run: |
+#           if [ -d "./cosmos-sdk" ]; then
+#             cd cosmos-sdk
+#             git fetch --all
+#           else
+#             git clone https://github.com/cosmos/cosmos-sdk.git
+#             cd cosmos-sdk
+#           fi
+#           git checkout tags/v0.47.5
+#       - name: Build cosmos-sdk
+#         run: |
+#           cd ./cosmos-sdk
+#           make build
+#       - name: Create roller_bins archive folder structure
+#         run: |
+#           rm -rf roller_bins
+#           mkdir roller_bins
+#           mkdir roller_bins/lib
+#           sudo cp ./celestia-node/cel-key ./roller_bins/lib/cel-key
+#           sudo cp ./celestia-node/cel-key /usr/local/bin/roller_bins/cel-key
+#           sudo cp ./celestia-node/build/celestia ./roller_bins/lib/celestia
+#           sudo cp ./celestia-node/build/celestia /usr/local/bin/roller_bins/celestia
+#           sudo cp ./cosmos-sdk/build/simd ./roller_bins/lib/simd
+#           sudo cp -r /usr/local/bin/roller_bins/* ./roller_bins/lib/
+#           sudo cp /usr/local/bin/roller ./roller_bins/roller
+#           sudo cp /usr/local/bin/rollapp_evm ./roller_bins/rollapp_evm
+#           sudo cp /usr/local/bin/dymd ./roller_bins/dymd
+#       - name: Set up filenames
+#         run: |
+#           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+#           ARCH=$(uname -m)
+#           if [ "$ARCH" = "aarch64" ]; then
+#             ARCH="arm64"
+#           fi
+#           VERSION=${{ github.ref }}
+#           VERSION_CLEAN="${VERSION#refs/tags/}"
+#           if [[ $ARCH == "x86_64" ]]; then
+#             ARCH="amd64"
+#           fi
+#           echo "PACKAGED_ASSET=${{ github.workspace }}/roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+#           echo "ASSET_NAME=roller_${VERSION_CLEAN}_${OS}_${ARCH}.tar.gz" >> $GITHUB_ENV
+#       - name: Archive the roller_bins folder
+#         run: |
+#           tar -czvf ${{ env.PACKAGED_ASSET }} roller_bins
+#       - name: Upload Release Asset
+#         uses: actions/upload-release-asset@v1
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           upload_url: ${{ github.event.release.upload_url }}
+#           asset_path: ${{ env.PACKAGED_ASSET }}
+#           asset_name: ${{ env.ASSET_NAME }}
+#           asset_content_type: application/gzip

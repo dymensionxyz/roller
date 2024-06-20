@@ -1,0 +1,36 @@
+project_name: roller
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: roller
+    main: ./main.go
+    binary: roller
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+changelog:
+  skip: false
+  use: git
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - '^chore:'
+      - '^test:'
+      - '^ci:'
+
+# TODO: add azure, gcp and aws container registries as docker and docker manifest targets
