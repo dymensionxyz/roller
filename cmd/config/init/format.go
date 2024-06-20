@@ -2,14 +2,18 @@ package initconfig
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	"strings"
 )
 
-func formatAddresses(rollappConfig config.RollappConfig, addresses []utils.AddressData) []utils.AddressData {
+func formatAddresses(
+	rollappConfig config.RollappConfig,
+	addresses []utils.AddressData,
+) []utils.AddressData {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	requireFundingKeys := map[string]string{
 		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
@@ -28,8 +32,16 @@ func formatAddresses(rollappConfig config.RollappConfig, addresses []utils.Addre
 
 func FormatTokenSupplyLine(rollappConfig config.RollappConfig) string {
 	displayDenom := strings.ToUpper(rollappConfig.Denom[1:])
-	return fmt.Sprintf("💰 Total Token Supply: %s %s. Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).",
-		addCommasToNum(rollappConfig.TokenSupply), displayDenom, displayDenom, rollappConfig.Decimals, "u"+displayDenom)
+	return fmt.Sprintf(
+		"💰 Total Token Supply: %s %s. Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).",
+		addCommasToNum(
+			rollappConfig.TokenSupply,
+		),
+		displayDenom,
+		displayDenom,
+		rollappConfig.Decimals,
+		"u"+displayDenom,
+	)
 }
 
 func addCommasToNum(number string) string {

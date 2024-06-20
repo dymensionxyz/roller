@@ -3,11 +3,12 @@ package status
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func Cmd() *cobra.Command {
@@ -18,7 +19,11 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			rly := relayer.NewRelayer(rollappConfig.Home, rollappConfig.RollappID, rollappConfig.HubData.ID)
+			rly := relayer.NewRelayer(
+				rollappConfig.Home,
+				rollappConfig.RollappID,
+				rollappConfig.HubData.ID,
+			)
 
 			bytes, err := os.ReadFile(rly.StatusFilePath())
 			if err != nil {

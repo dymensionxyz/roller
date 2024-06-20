@@ -36,6 +36,7 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 	if err != nil {
 		return "-1", err
 	}
+	//nolint:errcheck
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -81,6 +82,7 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 	}
 	return strconv.Itoa(startHeight + numBlocks - 1), nil
 }
+
 func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
 	rolHeight, err := seq.GetRollappHeight()

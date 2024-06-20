@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
+
+	"github.com/tidwall/sjson"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-
-	"os/exec"
-	"path/filepath"
-
-	"github.com/tidwall/sjson"
 )
 
 const (
@@ -32,8 +31,16 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
 	relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
-		consts.KeysIds.RollappSequencer, sequencerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	genesisSequencerAccountCmd := exec.Command(
+		initConfig.RollappBinary,
+		"add-genesis-account",
+		consts.KeysIds.RollappSequencer,
+		sequencerBalanceStr,
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
 	_, err := utils.ExecBashCommandWithStdout(genesisSequencerAccountCmd)
 	if err != nil {
 		return err
@@ -42,8 +49,16 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	genesisRelayerAccountCmd := exec.Command(initConfig.RollappBinary, "add-genesis-account",
-		rlyRollappAddress, relayerBalanceStr, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	genesisRelayerAccountCmd := exec.Command(
+		initConfig.RollappBinary,
+		"add-genesis-account",
+		rlyRollappAddress,
+		relayerBalanceStr,
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
 	_, err = utils.ExecBashCommandWithStdout(genesisRelayerAccountCmd)
 	if err != nil {
 		return err
@@ -52,12 +67,20 @@ func initializeRollappGenesis(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	err = updateGenesisParams(GetGenesisFilePath(initConfig.Home), initConfig.Denom, initConfig.Decimals)
+	err = updateGenesisParams(
+		GetGenesisFilePath(initConfig.Home),
+		initConfig.Denom,
+		initConfig.Decimals,
+	)
 	if err != nil {
 		return err
 	}
 
-	err = createTokenMetadaJSON(filepath.Join(RollappConfigDir(initConfig.Home), "tokenmetadata.json"), initConfig.Denom, initConfig.Decimals)
+	err = createTokenMetadaJSON(
+		filepath.Join(RollappConfigDir(initConfig.Home), "tokenmetadata.json"),
+		initConfig.Denom,
+		initConfig.Decimals,
+	)
 	if err != nil {
 		return err
 	}
@@ -106,6 +129,8 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 			return err
 		}
 	}
+
+	// nolint:gofumpt
 	err = os.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0644)
 	if err != nil {
 		return err
@@ -125,13 +150,17 @@ func generateGenesisTx(initConfig config.RollappConfig) error {
 	}
 	// collect gentx
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	collectGentx := exec.Command(initConfig.RollappBinary, "collect-gentxs", "--home", rollappConfigDirPath)
+	collectGentx := exec.Command(
+		initConfig.RollappBinary,
+		"collect-gentxs",
+		"--home",
+		rollappConfigDirPath,
+	)
 	_, err = utils.ExecBashCommandWithStdout(collectGentx)
 	if err != nil {
 		return err
 	}
 	return nil
-
 }
 
 // registerSequencerAsGoverner registers the sequencer as a governor of the rollapp chain.
@@ -148,8 +177,21 @@ func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
 	stakedSupply.Mul(stakedSupply, multiplier)
 	// Build and run the gentx command
 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	gentxCmd := exec.Command(initConfig.RollappBinary, "gentx", consts.KeysIds.RollappSequencer,
-		fmt.Sprint(stakedSupply, initConfig.Denom), "--chain-id", initConfig.RollappID, "--keyring-backend", "test", "--home", rollappConfigDirPath)
+	gentxCmd := exec.Command(
+		initConfig.RollappBinary,
+		"gentx",
+		consts.KeysIds.RollappSequencer,
+		fmt.Sprint(
+			stakedSupply,
+			initConfig.Denom,
+		),
+		"--chain-id",
+		initConfig.RollappID,
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
 	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
 	if err != nil {
 		return err

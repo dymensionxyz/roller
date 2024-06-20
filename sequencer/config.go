@@ -6,12 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pelletier/go-toml"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils"
-	"github.com/pelletier/go-toml"
 )
 
 func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
@@ -64,7 +65,10 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 	if rlpCfg.DA == config.Celestia {
 		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
 		if !ok {
-			return fmt.Errorf("invalid damanager type, expected *celestia.Celestia, got %T", damanager.DataLayer)
+			return fmt.Errorf(
+				"invalid damanager type, expected *celestia.Celestia, got %T",
+				damanager.DataLayer,
+			)
 		}
 		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
 	}
@@ -96,7 +100,7 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 
 func SetTMConfig(rlpCfg config.RollappConfig) error {
 	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
-	var tomlCfg, err = toml.LoadFile(configFilePath)
+	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}
@@ -127,7 +131,7 @@ func (seq *Sequencer) ReadPorts() error {
 
 func (seq *Sequencer) GetConfigValue(key string) (string, error) {
 	configFilePath := filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "config.toml")
-	var tomlCfg, err = toml.LoadFile(configFilePath)
+	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}

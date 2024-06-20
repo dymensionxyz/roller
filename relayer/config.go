@@ -6,16 +6,25 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/utils"
-	"gopkg.in/yaml.v2"
 )
 
 func CreatePath(rlpCfg config.RollappConfig) error {
 	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
-	newPathCmd := exec.Command(consts.Executables.Relayer, "paths", "new", rlpCfg.HubData.ID, rlpCfg.RollappID,
-		consts.DefaultRelayerPath, "--home", relayerHome)
+	newPathCmd := exec.Command(
+		consts.Executables.Relayer,
+		"paths",
+		"new",
+		rlpCfg.HubData.ID,
+		rlpCfg.RollappID,
+		consts.DefaultRelayerPath,
+		"--home",
+		relayerHome,
+	)
 	if err := newPathCmd.Run(); err != nil {
 		return err
 	}
@@ -30,8 +39,17 @@ type ChainConfig struct {
 	GasPrices     string
 }
 
-func UpdateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValue interface{}) error {
-	rlyConfigPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer, "config", "config.yaml")
+func UpdateRlyConfigValue(
+	rlpCfg config.RollappConfig,
+	keyPath []string,
+	newValue interface{},
+) error {
+	rlyConfigPath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.Relayer,
+		"config",
+		"config.yaml",
+	)
 	data, err := os.ReadFile(rlyConfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", rlyConfigPath, err)
@@ -48,6 +66,7 @@ func UpdateRlyConfigValue(rlpCfg config.RollappConfig, keyPath []string, newValu
 	if err != nil {
 		return fmt.Errorf("failed to marshal updated config: %v", err)
 	}
+	// nolint:gofumpt
 	return os.WriteFile(rlyConfigPath, newData, 0644)
 }
 
@@ -71,5 +90,6 @@ func WriteRlyConfig(homeDir string, rlyCfg map[interface{}]interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %v", err)
 	}
+	// nolint:gofumpt
 	return os.WriteFile(rlyConfigPath, data, 0644)
 }

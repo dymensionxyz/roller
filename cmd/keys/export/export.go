@@ -21,7 +21,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rlpCfg, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			var supportedKeys = []string{
+			supportedKeys := []string{
 				consts.KeysIds.HubSequencer,
 				consts.KeysIds.RollappSequencer,
 			}
@@ -31,8 +31,11 @@ func Cmd() *cobra.Command {
 			}
 			keyID := args[0]
 			if keyID == consts.KeysIds.HubSequencer {
-				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.HubKeys),
-					consts.Executables.Dymension)
+				exportKeyCmd := utils.GetExportKeyCmdBinary(
+					keyID,
+					filepath.Join(home, consts.ConfigDirName.HubKeys),
+					consts.Executables.Dymension,
+				)
 				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
 				utils.PrettifyErrorIfExists(err)
 				printHexKeyOutput(out.String())

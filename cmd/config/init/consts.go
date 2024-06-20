@@ -29,7 +29,7 @@ const (
 	LocalHubID        = "dymension_100-1"
 )
 
-// TODO(#112): The avaialble hub networks should be read from YAML file
+// TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
 	StagingHubName: {
 		API_URL:         "https://dymension-devnet.api.silknodes.io:443",

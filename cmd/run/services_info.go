@@ -2,12 +2,13 @@ package run
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	"strings"
 
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
@@ -22,7 +23,11 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	seq := sequencer.GetInstance(rollappConfig)
 	table.Rows = [][]string{
 		{"Name", "Log File", "Ports"},
-		{"Sequencer", utils.GetSequencerLogPath(rollappConfig), fmt.Sprintf("%v, %v, %v", seq.RPCPort, seq.JsonRPCPort, seq.APIPort)},
+		{
+			"Sequencer",
+			utils.GetSequencerLogPath(rollappConfig),
+			fmt.Sprintf("%v, %v, %v", seq.RPCPort, seq.JsonRPCPort, seq.APIPort),
+		},
 		{"Relayer", utils.GetRelayerLogPath(rollappConfig), ""},
 	}
 
@@ -31,7 +36,10 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 	if lcEndPoint != "" {
 		parts := strings.Split(lcEndPoint, ":")
 		port := parts[len(parts)-1]
-		table.Rows = append(table.Rows, []string{"DA Light Client", utils.GetDALogFilePath(rollappConfig.Home), port})
+		table.Rows = append(
+			table.Rows,
+			[]string{"DA Light Client", utils.GetDALogFilePath(rollappConfig.Home), port},
+		)
 	}
 	return table
 }

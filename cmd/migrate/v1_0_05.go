@@ -16,7 +16,8 @@ import (
 type VersionMigratorV1005 struct{}
 
 func (v *VersionMigratorV1005) ShouldMigrate(prevVersion VersionData) bool {
-	if prevVersion.Major < 1 || (prevVersion.Major == 1 && prevVersion.Minor < 1 && prevVersion.Patch < 5) {
+	if prevVersion.Major < 1 ||
+		(prevVersion.Major == 1 && prevVersion.Minor < 1 && prevVersion.Patch < 5) {
 		return true
 	}
 	return false
@@ -45,7 +46,10 @@ func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) err
 	}
 	// re-init the light node and ask the user to fund the address
 	celestiaClient := celestia.NewCelestia(rlpCfg.Home)
-	celestiaClient.InitializeLightNodeConfig()
+	err := celestiaClient.InitializeLightNodeConfig()
+	if err != nil {
+		return err
+	}
 	address, err := celestiaClient.GetDAAccountAddress()
 	if err != nil {
 		return err
@@ -53,5 +57,4 @@ func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) err
 	fmt.Println("💈 Celestia client migrated successfully!")
 	fmt.Println("🔔 Please fund the following from the celestia-faucet on discord 🔔", ":", address)
 	return nil
-
 }

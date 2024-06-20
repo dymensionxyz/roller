@@ -2,11 +2,12 @@ package set
 
 import (
 	"errors"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	"path/filepath"
 )
 
 func setLCGatewayPort(cfg config.RollappConfig, value string) error {

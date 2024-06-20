@@ -2,12 +2,13 @@ package set
 
 import (
 	"fmt"
+	"path/filepath"
+	"strconv"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils"
-	"path/filepath"
-	"strconv"
 )
 
 func setRollappRPC(rlpCfg config.RollappConfig, value string) error {
@@ -33,12 +34,22 @@ func validatePort(portStr string) error {
 }
 
 func updateRlpClientCfg(rlpCfg config.RollappConfig, newRpcPort string) error {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "client.toml")
+	configFilePath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"client.toml",
+	)
 	return utils.UpdateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
 }
 
 func updateRlpCfg(rlpCfg config.RollappConfig, newRpc string) error {
-	configFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "config", "config.toml")
+	configFilePath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"config.toml",
+	)
 	return utils.UpdateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
 }
 

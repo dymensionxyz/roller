@@ -17,13 +17,12 @@ func (v *VersionMigratorV0118) PerformMigration(rlpCfg config.RollappConfig) err
 	if err != nil {
 		return err
 	}
+	//nolint:errcheck
 	hubRpcAddress := rlyCfg["chains"].(map[interface{}]interface{})[rlpCfg.HubData.ID].(map[interface{}]interface{})["value"].(map[interface{}]interface{})["rpc-addr"].(string)
 	if hubRpcAddress == initconfig.Hubs[initconfig.FroopylandHubName].RPC_URL {
 		if err := relayer.UpdateRlyConfigValue(rlpCfg, []string{"chains", rlpCfg.HubData.ID, "value", "rpc-addr"}, initconfig.Hubs[initconfig.FroopylandHubName].ARCHIVE_RPC_URL); err != nil {
 			return err
 		}
-
 	}
 	return nil
-
 }

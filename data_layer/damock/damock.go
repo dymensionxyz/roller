@@ -7,8 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-type DAMock struct {
-}
+type DAMock struct{}
 
 func (d *DAMock) GetPrivateKey() (string, error) {
 	return "", nil
@@ -52,6 +51,7 @@ func (d *DAMock) GetLightNodeEndpoint() string {
 func (d *DAMock) GetSequencerDAConfig() string {
 	return ""
 }
+
 func (d *DAMock) SetRPCEndpoint(string) {
 }
 

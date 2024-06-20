@@ -11,6 +11,7 @@ func RestQueryJson(url string) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
+	//nolint:errcheck
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)

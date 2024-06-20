@@ -31,7 +31,9 @@ func Cmd() *cobra.Command {
 			utils.RequireMigrateIfNeeded(rollappConfig)
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
 			if metricsEndpoint != "" && rollappConfig.DA != config.Celestia {
-				utils.PrettifyErrorIfExists(errors.New("metrics endpoint can only be set for celestia"))
+				utils.PrettifyErrorIfExists(
+					errors.New("metrics endpoint can only be set for celestia"),
+				)
 			}
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
@@ -48,13 +50,23 @@ func Cmd() *cobra.Command {
 			}
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
-				utils.PrettifyErrorIfExists(errors.New("DA doesn't need to run seperatly. It runs automatically with the app"))
+				utils.PrettifyErrorIfExists(
+					errors.New(
+						"DA doesn't need to run seperatly. It runs automatically with the app",
+					),
+				)
 			}
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(ctx, startDALCCmd, printOutput, parseError, utils.WithLogging(logFilePath))
+			go utils.RunBashCmdAsync(
+				ctx,
+				startDALCCmd,
+				printOutput,
+				parseError,
+				utils.WithLogging(logFilePath),
+			)
 			select {}
 		},
 	}
@@ -64,8 +76,10 @@ func Cmd() *cobra.Command {
 }
 
 func addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
-	cmd.Flags().StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
+	cmd.Flags().
+		StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
+	cmd.Flags().
+		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }
 
 func printOutput() {

@@ -39,6 +39,7 @@ func flipRlyPath(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	//nolint:errcheck
 	pathCfgMap := pathCfg.(map[interface{}]interface{})
 	if err := utils.SetNestedValue(pathCfgMap, []string{"src"}, dstData); err != nil {
 		return err

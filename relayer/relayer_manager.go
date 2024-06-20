@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-
 	"github.com/dymensionxyz/roller/config"
 )
 
@@ -49,6 +48,7 @@ func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 }
 
 func (r *Relayer) WriteRelayerStatus(status string) error {
+	// nolint:gofumpt
 	return os.WriteFile(r.StatusFilePath(), []byte(status), 0644)
 }
 

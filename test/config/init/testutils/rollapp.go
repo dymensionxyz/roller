@@ -82,14 +82,16 @@ func SanitizeGenesis(genesisPath string) error {
 		{
 			Path:  "app_state.bank.balances.1.address",
 			Value: "PLACEHOLDER_RELAYER_ADDRESS",
-		}, {
+		},
+		{
 			Path:  "app_state.bank.balances.1.coins.0.amount",
 			Value: "PLACEHOLDER_RELAYER_BALANCE",
 		},
 		{
 			Path:  "app_state.sequencers.sequencers.0.operator_address",
 			Value: "PLACEHOLDER_OPERATOR_ADDRESS",
-		}, {
+		},
+		{
 			Path:  "app_state.sequencers.sequencers.0.consensus_pubkey.key",
 			Value: "PLACEHOLDER_CONSENSUS_PUBKEY",
 		},
@@ -103,7 +105,7 @@ func SanitizeGenesis(genesisPath string) error {
 		},
 		{
 			Path:  "app_state.genutil.gen_txs.0.body.messages.0.validator_address",
-			Value: "PLACEHOLDER_SEQUENCER_GOVERNER_ADDRESS",
+			Value: "PLACEHOLDER_SEQUENCER_GOVERNOR_ADDRESS",
 		},
 		{
 			Path:  "app_state.genutil.gen_txs.0.signatures.0",

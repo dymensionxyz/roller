@@ -57,7 +57,7 @@ func RunInteractiveMode(cfg *config.RollappConfig) error {
 		cfg.VMType = config.EVM_ROLLAPP
 	}
 
-	//if custom binary, get the binary path
+	// if custom binary, get the binary path
 	if env != "EVM rollapp" {
 		promptBinaryPath := promptui.Prompt{
 			Label:     "Set your runtime binary",

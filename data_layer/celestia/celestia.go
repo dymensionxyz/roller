@@ -21,9 +21,7 @@ const (
 	DefaultCelestiaNetwork  = "arabica"
 )
 
-var (
-	lcMinBalance = big.NewInt(1)
-)
+var lcMinBalance = big.NewInt(1)
 
 type Celestia struct {
 	Root            string
@@ -60,9 +58,13 @@ type BalanceResponse struct {
 }
 
 func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
-	args := []string{"state", "balance", "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode)}
+	args := []string{
+		"state",
+		"balance",
+		"--node.store",
+		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
+	}
 	output, err := exec.Command(consts.Executables.Celestia, args...).Output()
-
 	if err != nil {
 		return "Stopped, Restarting..."
 	}
@@ -84,8 +86,10 @@ func (c *Celestia) getRPCPort() string {
 	if c.RPCPort != "" {
 		return c.RPCPort
 	}
-	port, err := globalutils.GetKeyFromTomlFile(filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
-		"RPC.Port")
+	port, err := globalutils.GetKeyFromTomlFile(
+		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
+		"RPC.Port",
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +135,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 	if err != nil {
 		return nil, err
 	}
-	var restQueryUrl = fmt.Sprintf(
+	restQueryUrl := fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
 		CelestiaRestApiEndpoint, celAddress,
 	)
@@ -165,8 +169,11 @@ func (c *Celestia) GetKeyName() string {
 }
 
 func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
-	return utils.GetExportKeyCmdBinary(c.GetKeyName(), filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
-		consts.Executables.CelKey)
+	return utils.GetExportKeyCmdBinary(
+		c.GetKeyName(),
+		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
+		consts.Executables.CelKey,
+	)
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
@@ -204,7 +211,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	startCmd := exec.Command(
 		consts.Executables.Celestia, args...,
 	)
-	//startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
+	// startCmd.Env = append(os.Environ(), CUSTOM_ARABICA11_CONFIG)
 	return startCmd
 }
 
@@ -217,8 +224,16 @@ func (c *Celestia) GetNetworkName() string {
 }
 
 func (c *Celestia) getAuthToken() (string, error) {
-	getAuthTokenCmd := exec.Command(consts.Executables.Celestia, "light", "auth", "admin", "--p2p.network",
-		DefaultCelestiaNetwork, "--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+	getAuthTokenCmd := exec.Command(
+		consts.Executables.Celestia,
+		"light",
+		"auth",
+		"admin",
+		"--p2p.network",
+		DefaultCelestiaNetwork,
+		"--node.store",
+		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
+	)
 	output, err := utils.ExecBashCommandWithStdout(getAuthTokenCmd)
 	if err != nil {
 		return "", err
@@ -236,6 +251,10 @@ func (c *Celestia) GetSequencerDAConfig() string {
 		panic(err)
 	}
 
-	return fmt.Sprintf(`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s"}`,
-		lcEndpoint, c.NamespaceID, authToken)
+	return fmt.Sprintf(
+		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s"}`,
+		lcEndpoint,
+		c.NamespaceID,
+		authToken,
+	)
 }

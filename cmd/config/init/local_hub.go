@@ -2,13 +2,14 @@ package initconfig
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	global_utils "github.com/dymensionxyz/roller/utils"
 	"github.com/pelletier/go-toml"
-	"os/exec"
-	"path/filepath"
 )
 
 const validatorKeyID = "local-user"
@@ -50,8 +51,18 @@ func initLocalHub(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	genTxCmd := exec.Command(consts.Executables.Dymension, "gentx", validatorKeyID, "670000000000000000000000"+consts.Denoms.Hub,
-		"--home", localHubPath, "--chain-id", rlpCfg.HubData.ID, "--keyring-backend", "test")
+	genTxCmd := exec.Command(
+		consts.Executables.Dymension,
+		"gentx",
+		validatorKeyID,
+		"670000000000000000000000"+consts.Denoms.Hub,
+		"--home",
+		localHubPath,
+		"--chain-id",
+		rlpCfg.HubData.ID,
+		"--keyring-backend",
+		"test",
+	)
 	_, err = utils.ExecBashCommandWithStdout(genTxCmd)
 	if err != nil {
 		return err
@@ -66,8 +77,15 @@ func initLocalHub(rlpCfg config.RollappConfig) error {
 }
 
 func getInitDymdCmd(rlpCfg config.RollappConfig) *exec.Cmd {
-	return exec.Command(consts.Executables.Dymension, "init", "local", "--chain-id", rlpCfg.HubData.ID, "--home",
-		filepath.Join(rlpCfg.Home, consts.ConfigDirName.LocalHub))
+	return exec.Command(
+		consts.Executables.Dymension,
+		"init",
+		"local",
+		"--chain-id",
+		rlpCfg.HubData.ID,
+		"--home",
+		filepath.Join(rlpCfg.Home, consts.ConfigDirName.LocalHub),
+	)
 }
 
 func getHubGenesisParams() []PathValue {
@@ -85,7 +103,12 @@ func getHubGenesisParams() []PathValue {
 }
 
 func UpdateTendermintConfig(rlpCfg config.RollappConfig) error {
-	tendermintConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.LocalHub, "config", "config.toml")
+	tendermintConfigFilePath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.LocalHub,
+		"config",
+		"config.toml",
+	)
 	tmCfg, err := toml.LoadFile(tendermintConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", tendermintConfigFilePath, err)
@@ -96,7 +119,12 @@ func UpdateTendermintConfig(rlpCfg config.RollappConfig) error {
 }
 
 func UpdateAppConfig(rlpCfg config.RollappConfig) error {
-	appConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.LocalHub, "config", "app.toml")
+	appConfigFilePath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.LocalHub,
+		"config",
+		"app.toml",
+	)
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
@@ -112,7 +140,12 @@ func UpdateAppConfig(rlpCfg config.RollappConfig) error {
 }
 
 func UpdateClientConfig(rlpCfg config.RollappConfig) error {
-	clientConfigFilePath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.LocalHub, "config", "client.toml")
+	clientConfigFilePath := filepath.Join(
+		rlpCfg.Home,
+		consts.ConfigDirName.LocalHub,
+		"config",
+		"client.toml",
+	)
 	clientCfg, err := toml.LoadFile(clientConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", clientConfigFilePath, err)

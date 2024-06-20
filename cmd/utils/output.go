@@ -3,17 +3,21 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/manifoldco/promptui"
 	"math/big"
 	"os"
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
+
+	"github.com/dymensionxyz/roller/config"
 )
 
-func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config config.RollappConfig) {
+func PrintInsufficientBalancesIfAny(
+	addressesData []NotFundedAddressData,
+	config config.RollappConfig,
+) {
 	if len(addressesData) == 0 {
 		return
 	}
@@ -40,8 +44,10 @@ func PrintInsufficientBalancesIfAny(addressesData []NotFundedAddressData, config
 		fmt.Println()
 		fmt.Println("💈 Please fund these addresses and try again.")
 	}
-	PrettifyErrorIfExists(errors.New("the following addresses have insufficient balance to perform this operation"),
-		printAddresses)
+	PrettifyErrorIfExists(
+		errors.New("the following addresses have insufficient balance to perform this operation"),
+		printAddresses,
+	)
 }
 
 type NotFundedAddressData struct {

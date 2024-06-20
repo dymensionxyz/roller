@@ -1,11 +1,12 @@
 package export
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"path/filepath"
-	"strings"
 )
 
 func getBech32Prefix(rlpCfg config.RollappConfig) (string, error) {

@@ -2,10 +2,11 @@ package set
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) error{
@@ -22,8 +23,11 @@ var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) err
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "set <key> <value>",
-		Short: fmt.Sprintf("Updates the specified key in all relevant places within the roller configuration files. "+
-			"The Supported keys are %s", strings.Join(getSupportedKeys(), ", ")),
+		Short: fmt.Sprintf(
+			"Updates the specified key in all relevant places within the roller configuration files. "+
+				"The Supported keys are %s",
+			strings.Join(getSupportedKeys(), ", "),
+		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
@@ -36,7 +40,10 @@ func Cmd() *cobra.Command {
 			if updateFunc, exists := keyUpdateFuncs[key]; exists {
 				return updateFunc(rlpCfg, value)
 			}
-			return fmt.Errorf("invalid key. Supported keys are: %v", strings.Join(getSupportedKeys(), ", "))
+			return fmt.Errorf(
+				"invalid key. Supported keys are: %v",
+				strings.Join(getSupportedKeys(), ", "),
+			)
 		},
 	}
 	return cmd

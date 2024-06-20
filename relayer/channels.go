@@ -59,7 +59,9 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		// found STATE_OPEN channel
 		// Check if the channel is open on the hub
 		var res HubQueryResult
-		outputHub, err := cmdutils.ExecBashCommandWithStdout(r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID))
+		outputHub, err := cmdutils.ExecBashCommandWithStdout(
+			r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID),
+		)
 		if err != nil {
 			return "", "", err
 		}
@@ -69,8 +71,11 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		}
 
 		if res.Channel.State != "STATE_OPEN" {
-			r.logger.Printf("channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
-				outputStruct.ChannelID, outputStruct.Counterparty.ChannelID, res.Channel.State,
+			r.logger.Printf(
+				"channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
+				outputStruct.ChannelID,
+				outputStruct.Counterparty.ChannelID,
+				res.Channel.State,
 			)
 			continue
 		}
@@ -118,6 +123,7 @@ type ProofHeight struct {
 	RevNumber string `json:"revision_number"`
 	RevHeight string `json:"revision_height"`
 }
+
 type HubQueryResult struct {
 	Channel     Output      `json:"channel"`
 	Proof       string      `json:"proof"`

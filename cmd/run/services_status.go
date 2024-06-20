@@ -28,7 +28,7 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	updateUITable(manager.GetUIData(), servicesStatusTable, rollappConfig)
 	ui.Render(p, servicesStatusTable, servicesInfoTable)
 
-	//TODO: the renderer should be a struct that holds the config and the tables
+	// TODO: the renderer should be a struct that holds the config and the tables
 	config := ServiceStatusConfig{
 		rollappConfig: rollappConfig,
 		logger:        logger,
@@ -40,8 +40,12 @@ func RenderUI(rollappConfig config.RollappConfig, manager *servicemanager.Servic
 	eventLoop(events, ticker, manager, config)
 }
 
-func eventLoop(events <-chan ui.Event, ticker <-chan time.Time, manager *servicemanager.ServiceConfig,
-	config ServiceStatusConfig) {
+func eventLoop(
+	events <-chan ui.Event,
+	ticker <-chan time.Time,
+	manager *servicemanager.ServiceConfig,
+	config ServiceStatusConfig,
+) {
 	for {
 		select {
 		case e := <-events:

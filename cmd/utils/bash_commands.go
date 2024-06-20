@@ -12,7 +12,13 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-func RunCommandEvery(ctx context.Context, command string, args []string, intervalSec int, options ...CommandOption) {
+func RunCommandEvery(
+	ctx context.Context,
+	command string,
+	args []string,
+	intervalSec int,
+	options ...CommandOption,
+) {
 	go func() {
 		for {
 			cmd := exec.CommandContext(ctx, command, args...)
@@ -20,9 +26,15 @@ func RunCommandEvery(ctx context.Context, command string, args []string, interva
 				option(cmd)
 			}
 			err := cmd.Run()
-
 			if err != nil {
-				cmd.Stderr.Write([]byte(fmt.Sprintf("Failed to execute command: %s, err: %s\n", cmd.String(), err)))
+				_, err := cmd.Stderr.Write(
+					[]byte(
+						fmt.Sprintf("Failed to execute command: %s, err: %s\n", cmd.String(), err),
+					),
+				)
+				if err != nil {
+					return
+				}
 			}
 
 			if ctx.Err() != nil {
@@ -42,8 +54,13 @@ func GetCommonDymdFlags(rollappConfig config.RollappConfig) []string {
 
 type CommandOption func(cmd *exec.Cmd)
 
-func RunBashCmdAsync(ctx context.Context, cmd *exec.Cmd, printOutput func(), parseError func(errMsg string) string,
-	options ...CommandOption) {
+func RunBashCmdAsync(
+	ctx context.Context,
+	cmd *exec.Cmd,
+	printOutput func(),
+	parseError func(errMsg string) string,
+	options ...CommandOption,
+) {
 	for _, option := range options {
 		option(cmd)
 	}
@@ -72,7 +89,10 @@ func RunBashCmdAsync(ctx context.Context, cmd *exec.Cmd, printOutput func(), par
 	go func() {
 		<-ctx.Done()
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			err := cmd.Process.Kill()
+			if err != nil {
+				return
+			}
 		}
 	}()
 

@@ -143,7 +143,8 @@ func IsValidTokenSymbol(s string) bool {
 		return false
 	}
 	for _, r := range s {
-		if !unicode.IsLetter(r) || !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
+		if !unicode.IsLetter(r) ||
+			!strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", r) {
 			return false
 		}
 	}

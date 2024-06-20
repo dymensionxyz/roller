@@ -1,19 +1,23 @@
 package register
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 
-	"fmt"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func getRegisterRollappCmd(rollappConfig config.RollappConfig) *exec.Cmd {
-	tokenMetadataPath := filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "config", "tokenmetadata.json")
+	tokenMetadataPath := filepath.Join(
+		rollappConfig.Home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"tokenmetadata.json",
+	)
 	cmdArgs := []string{
 		"tx", "rollapp", "create-rollapp", rollappConfig.RollappID, "3", `{"Addresses":[]}`, tokenMetadataPath,
 	}
@@ -31,8 +35,10 @@ func getRegisterSequencerCmd(rollappConfig config.RollappConfig) (*exec.Cmd, err
 
 	bondAmount := rollappConfig.HubData.SEQ_MIN_BOND
 
-	description := fmt.Sprintf(`{"Moniker":"%s","Identity":"","Website":"","SecurityContact":"","Details":""}`,
-		consts.KeysIds.HubSequencer)
+	description := fmt.Sprintf(
+		`{"Moniker":"%s","Identity":"","Website":"","SecurityContact":"","Details":""}`,
+		consts.KeysIds.HubSequencer,
+	)
 	cmdArgs := []string{
 		"tx", "sequencer", "create-sequencer",
 		seqPubKey,

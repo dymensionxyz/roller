@@ -2,14 +2,15 @@ package set
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	global_utils "github.com/dymensionxyz/roller/utils"
-	"os"
-	"path/filepath"
 )
 
 func setDA(rlpCfg config.RollappConfig, value string) error {

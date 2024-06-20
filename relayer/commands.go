@@ -34,5 +34,10 @@ func (r *Relayer) GetStartCmd() *exec.Cmd {
 }
 
 func (r *Relayer) getArgsWithSrcChannel() []string {
-	return []string{consts.DefaultRelayerPath, r.DstChannel, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer)}
+	return []string{
+		consts.DefaultRelayerPath,
+		r.DstChannel,
+		"--home",
+		filepath.Join(r.Home, consts.ConfigDirName.Relayer),
+	}
 }

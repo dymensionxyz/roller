@@ -35,7 +35,8 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	registerCmd.Flags().BoolP(flagNames.forceSeqRegistration, "f", false, "force sequencer registration even if the rollapp is already registered")
+	registerCmd.Flags().
+		BoolP(flagNames.forceSeqRegistration, "f", false, "force sequencer registration even if the rollapp is already registered")
 	registerCmd.Flags().BoolP(flagNames.NoOutput, "", false, "Register the rollapp without output.")
 	return registerCmd
 }
@@ -55,7 +56,7 @@ func register(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	//TODO: should check for sequencer bond requirements as well
+	// TODO: should check for sequencer bond requirements as well
 	notFundedAddrs, err := utils.GetSequencerInsufficientAddrs(rollappConfig, registerAdymPrice)
 	if err != nil {
 		return err
@@ -83,7 +84,12 @@ func register(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	outputHandler.StopSpinner()
-	outputHandler.DisplayMessage(fmt.Sprintf("💈 Rollapp '%s' has been successfully registered on the hub.", rollappConfig.RollappID))
+	outputHandler.DisplayMessage(
+		fmt.Sprintf(
+			"💈 Rollapp '%s' has been successfully registered on the hub.",
+			rollappConfig.RollappID,
+		),
+	)
 	return nil
 }
 
