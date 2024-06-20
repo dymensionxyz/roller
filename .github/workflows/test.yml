@@ -5,6 +5,10 @@ on:
       - v*
     branches:
       - main
+    paths:
+      - '**/*.go'
+      - go.mod
+      - go.sum
   pull_request:
 jobs:
   build:
