@@ -21,6 +21,8 @@ jobs:
           pull-request-header: ":loop: New roller Release"
           release-type: go
           package-name: roller
+          prerelease: true
+          prerelease-label: beta
           changelog-types: >-
             [
 
