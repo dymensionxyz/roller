@@ -53,3 +53,13 @@ curl -L https://dymensionxyz.github.io/roller/install.sh | bash
 ```
 
 For more information about Roller and its usage, please refer to [the documentation](https://docs.dymension.xyz/build/roller/overview).
+
+## Contribution
+
+[pre-commit](https://pre-commit.com/) will help you with the hooks that will make sure you follow the style guidelines, once installed
+run:
+
+```sh
+pre-commit install -c .pre-commit-config.yaml -t commit-msg
+pre-commit install -c .pre-commit-config.yaml
+```
