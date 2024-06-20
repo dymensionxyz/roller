@@ -1,0 +1,61 @@
+name: release for roller
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: read
+      contents: write
+    steps:
+      - id: release-please
+        name: Create release notes from conventional commits
+        uses: google-github-actions/release-please-action@v3
+        with:
+          pull-request-header: ":loop: New roller Release"
+          release-type: go
+          package-name: roller
+          prerelease: true
+          prerelease-label: beta
+          changelog-types: >-
+            [
+
+              {"type":"feat","section":"Features","hidden":false},
+              {"type":"fix","section":"Bug Fixes","hidden":false},
+              {"type":"docs","section":"Documentation","hidden":false},
+              {"type":"chore","section":"Miscellaneous","hidden":true},
+              {"type":"ci","section":"Miscellaneous","hidden":true},
+              {"type":"test","section":"Miscellaneous","hidden":true}
+            ]
+          # token must have repo write permissions ( https://github.com/googleapis/release-please/blob/main/docs/cli.md#create-a-manifest-pull-request-deprecated )
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        if: steps.release-please.outputs.release_created
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        if: steps.release-please.outputs.release_created
+        with:
+          go-version-file: go.mod
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        if: steps.release-please.outputs.release_created
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        if: steps.release-please.outputs.release_created
+      - name: Run GoReleaser - release binaries
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          args: release --rm-dist --config .goreleaser.yaml --debug
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPRIVATE: github.com/${{ env.GITHUB_REPOSITORY_OWNER }}
+        if: steps.release-please.outputs.release_created
