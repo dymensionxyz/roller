@@ -17,7 +17,7 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 				os.Exit(1)
 			}
 		}()
-		//nolint:errcheck
+		//nolint:errcheck,gosec
 		color.New(color.FgRed, color.Bold).Printf("💈 %s\n", err.Error())
 
 		for _, printInfo := range printAdditionalInfo {
@@ -32,7 +32,7 @@ func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
 	currentRollerVersion := version.TrimVersionStr(version.BuildVersion)
 	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
 	if configRollerVersion != currentRollerVersion {
-		//nolint:errcheck
+		//nolint:errcheck,gosec
 		color.New(color.FgRed, color.Bold).
 			Printf("💈 Your rollapp config version ('%s') is older than your"+
 				" installed roller version ('%s'),"+

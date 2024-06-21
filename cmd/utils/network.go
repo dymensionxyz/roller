@@ -7,6 +7,7 @@ import (
 )
 
 func RestQueryJson(url string) (*bytes.Buffer, error) {
+	//nolint:gosec
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err

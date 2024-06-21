@@ -1,11 +1,11 @@
 package initconfig
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/dymensionxyz/roller/version"
 
@@ -96,7 +96,10 @@ func formatBaseCfg(
 
 func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	for {
-		RandEthId := generateRandEthId()
+		RandEthId, err := generateRandEthId()
+		if err != nil {
+			return "", err
+		}
 		if rlpCfg.HubData.ID == consts.LocalHubID {
 			return fmt.Sprintf("%s_%s-1", rlpCfg.RollappID, RandEthId), nil
 		}
@@ -110,10 +113,13 @@ func generateRollappId(rlpCfg config.RollappConfig) (string, error) {
 	}
 }
 
-func generateRandEthId() string {
-	rand.Seed(time.Now().UnixNano())
-	randomNumber := rand.Intn(9000000) + 1000000
-	return fmt.Sprintf("%d", randomNumber)
+func generateRandEthId() (string, error) {
+	max := big.NewInt(9000000)
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%d", n), nil
 }
 
 func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {

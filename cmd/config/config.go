@@ -1,11 +1,12 @@
 package config
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/config/export"
 	configInit "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/config/set"
 	"github.com/dymensionxyz/roller/cmd/config/show"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
