@@ -20,9 +20,17 @@ repos:
         args: [feat, fix, ci, chore, test, docs] # optional: list of Conventional Commits types to allow e.g. [feat, fix, ci, chore, test]
   - repo: local
     hooks:
+      - id: goimports-reviser
+        name: go imports reviser
+        entry: goimports-reviser -format -recursive
+        language: golang
+        types: [go]
+        files: \.go$
+  - repo: local
+    hooks:
       - id: golines
         name: golines
-        entry: golines --max-len=100
+        entry: golines --max-len=100 -w
         language: golang
         types: [go]
         files: \.go$
