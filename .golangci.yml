@@ -3,6 +3,7 @@ run:
   timeout: 5m
   tests: true
   modules-download-mode: readonly
+  go: "1.22.4"
 output:
   # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
   #
@@ -52,7 +53,7 @@ issues:
     - "^.*SA1019.*$" # Excluding SA1019 errors
 linters-settings:
   go-version-checker:
-    min-version: "1.22"
+    min-version: "1.22.4"
   revive:
     rules:
       - name: exported

@@ -41,7 +41,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         if: steps.release-please.outputs.release_created
         with:
           go-version-file: go.mod
@@ -51,10 +51,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         if: steps.release-please.outputs.release_created
+      # TODO: handle GCP, AWS, GitHub, Docker Hub and Azure container registries
       - name: Run GoReleaser - release binaries
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v6
         with:
-          args: release --rm-dist --config .goreleaser.yaml --debug
+          args: release --clean --config .goreleaser.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPRIVATE: github.com/${{ env.GITHUB_REPOSITORY_OWNER }}

@@ -3,20 +3,19 @@ on:
   workflow_dispatch:
 jobs:
   end_to_end_test:
-    runs-on: [ "arm-linux" ]
+    runs-on: ["arm-linux"]
     env:
       GOPRIVATE: "github.com/dymensionxyz/*"
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
-      ROLLER_CONFIG_PATH: "${{ github.workspace }}/tmp/e2e_roller_config"  # Setting the environment variable
+      ROLLER_CONFIG_PATH: "${{ github.workspace }}/tmp/e2e_roller_config" # Setting the environment variable
       ROLLAPP_ID: "endtoend_1-${{ github.run_number }}"
     steps:
       - uses: actions/checkout@v3
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19.10
+          go-version-file: go.mod
       - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
-
       - name: Init a local rollapp within screen
         run: |
           # Start a new detached screen session named "rollapp_init"
@@ -32,7 +31,6 @@ jobs:
 
           # Kill the screen session after the command is done
           screen -S rollapp_init -X quit
-
       - name: Run the local hub
         run: |
           screen -dmS hub-session /usr/local/bin/dymd start --home "$ROLLER_CONFIG_PATH/local-hub"
@@ -40,7 +38,6 @@ jobs:
           HUB_PID=$(pgrep -f 'dymd start --home' | head -n 1)
           echo "Captured PID: $HUB_PID"
           echo "HUB_PID=$HUB_PID" >> $GITHUB_ENV
-
       - name: Fund the RollApp addresses
         run: |
           HUB_SEQ_ADDR=$(go run . keys list --home $ROLLER_CONFIG_PATH --output json | jq -r '.hub_sequencer')
@@ -48,21 +45,17 @@ jobs:
           RELAYER_ROLLAPP_ADDR=$(go run . keys list --home $ROLLER_CONFIG_PATH --output json | jq -r '."relayer-hub-key"')
           /usr/local/bin/dymd tx bank multi-send local-user $HUB_SEQ_ADDR $RELAYER_ROLLAPP_ADDR 1adym --yes -b block --keyring-backend test --home $ROLLER_CONFIG_PATH/local-hub --node http://127.0.0.1:36657
           sleep 10
-
       - name: Register the rollapp
         run: |
           go run . tx register --home $ROLLER_CONFIG_PATH --no-output
-
       - name: Run the rollapp
         run: |
           go run . run --home $ROLLER_CONFIG_PATH --no-output &
           echo "ROLLAPP_PID=$!" >> $GITHUB_ENV
-
       - name: Execute IBC relay tester
         run: |
           chmod +x ./scripts/ibc_relay_tester.sh
           DEST_ADDR=$HUB_SEQ_ADDR ROLLAPP_ID=$ROLLAPP_ID ROLLER_CONFIG_PATH=$ROLLER_CONFIG_PATH ./scripts/ibc_relay_tester.sh 2> script_errors.log
-
       - name: Terminate the rollapp
         if: always()
         run: |

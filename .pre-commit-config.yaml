@@ -2,27 +2,35 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.51.2
+    rev: v1.59.1
     hooks:
       - id: golangci-lint
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v2.1.1
+    rev: v3.2.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [feat, fix, ci, chore, test, docs] # optional: list of Conventional Commits types to allow e.g. [feat, fix, ci, chore, test]
   - repo: local
     hooks:
+      - id: goimports-reviser
+        name: go imports reviser
+        entry: goimports-reviser -format -recursive
+        language: golang
+        types: [go]
+        files: \.go$
+  - repo: local
+    hooks:
       - id: golines
         name: golines
-        entry: golines --max-len=100
+        entry: golines --max-len=100 -w
         language: golang
         types: [go]
         files: \.go$
