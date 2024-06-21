@@ -5,9 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/manifoldco/promptui"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/manifoldco/promptui"
 )
 
 func RunInteractiveMode(cfg *config.RollappConfig) error {

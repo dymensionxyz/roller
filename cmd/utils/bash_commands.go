@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -135,5 +136,54 @@ func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	if err != nil {
 		return fmt.Errorf("command execution failed: %w", err)
 	}
+	return nil
+}
+
+func ExecBashCmdFollow(cmd *exec.Cmd) error {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	// Create a channel to capture any errors from stdout or stderr
+	errChan := make(chan error, 1)
+
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+		errChan <- scanner.Err()
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+		errChan <- scanner.Err()
+	}()
+
+	// Wait for the command to finish
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	// Check if there was any error in the goroutines
+	if err := <-errChan; err != nil {
+		return err
+	}
+	if err := <-errChan; err != nil {
+		return err
+	}
+
 	return nil
 }

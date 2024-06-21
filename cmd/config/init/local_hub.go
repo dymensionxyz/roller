@@ -5,11 +5,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pelletier/go-toml"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	global_utils "github.com/dymensionxyz/roller/utils"
-	"github.com/pelletier/go-toml"
 )
 
 const validatorKeyID = "local-user"
@@ -36,7 +37,8 @@ func initLocalHub(rlpCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	addr, err := createAddressBinary(utils.KeyConfig{
+
+	addr, err := CreateAddressBinary(utils.KeyConfig{
 		Dir:         consts.ConfigDirName.LocalHub,
 		ID:          validatorKeyID,
 		ChainBinary: consts.Executables.Dymension,
