@@ -1,3 +1,4 @@
+version: 2
 project_name: roller
 before:
   hooks:
@@ -16,7 +17,6 @@ builds:
       - amd64
       - arm64
 changelog:
-  skip: false
   use: git
   groups:
     - title: Features
