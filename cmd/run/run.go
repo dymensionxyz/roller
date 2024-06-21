@@ -6,17 +6,17 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/spf13/cobra"
 
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
 	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
-	"github.com/spf13/cobra"
 )
 
 var flagNames = struct {

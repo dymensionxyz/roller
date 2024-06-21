@@ -22,6 +22,7 @@ func (o *OutputHandler) PrintInitOutput(
 	addresses []utils.AddressData,
 	rollappId string,
 ) {
+	// nolint:typecheck
 	if o.NoOutput {
 		return
 	}
@@ -37,6 +38,7 @@ func (o *OutputHandler) PrintInitOutput(
 }
 
 func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
+	// nolint:typecheck
 	if o.NoOutput {
 		return true, nil
 	}

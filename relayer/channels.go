@@ -1,5 +1,6 @@
 package relayer
 
+// nolint:typecheck
 import (
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils"
+	global_utils "github.com/dymensionxyz/roller/utils"
 )
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
@@ -29,7 +30,7 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 
 	activeConnectionID, err = r.GetActiveConnection()
 	if err != nil {
-		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
+		if keyErr, ok := err.(*global_utils.KeyNotFoundError); ok {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
 			return "", "", nil
 		} else {
