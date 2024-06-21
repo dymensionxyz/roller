@@ -52,7 +52,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
         if: steps.release-please.outputs.release_created
       - name: Run GoReleaser - release binaries
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v6
         with:
           args: release --rm-dist --config .goreleaser.yaml --debug
         env:
