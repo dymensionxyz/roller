@@ -60,3 +60,13 @@ linters-settings:
         disabled: true
   errcheck:
     check-type-assertions: true
+  gosec:
+    exclude-generated: false
+    excludes:
+      - G204
+      - G301
+      - G304
+      - G306
+      - G307
+    severity: low
+    confidence: low

@@ -14,8 +14,15 @@ import (
 
 func initializeRollappConfig(initConfig config.RollappConfig) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	initRollappCmd := exec.Command(initConfig.RollappBinary, "init", consts.KeysIds.HubSequencer, "--chain-id",
-		initConfig.RollappID, "--home", home)
+	initRollappCmd := exec.Command(
+		initConfig.RollappBinary,
+		"init",
+		consts.KeysIds.HubSequencer,
+		"--chain-id",
+		initConfig.RollappID,
+		"--home",
+		home,
+	)
 	_, err := utils.ExecBashCommandWithStdout(initRollappCmd)
 	if err != nil {
 		return err
@@ -24,8 +31,18 @@ func initializeRollappConfig(initConfig config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	gentxSeqCmd := exec.Command(initConfig.RollappBinary, "gentx_seq",
-		"--pubkey", seqPubKey, "--from", consts.KeysIds.RollappSequencer, "--keyring-backend", "test", "--home", home)
+	gentxSeqCmd := exec.Command(
+		initConfig.RollappBinary,
+		"gentx_seq",
+		"--pubkey",
+		seqPubKey,
+		"--from",
+		consts.KeysIds.RollappSequencer,
+		"--keyring-backend",
+		"test",
+		"--home",
+		home,
+	)
 	_, err = utils.ExecBashCommandWithStdout(gentxSeqCmd)
 	if err != nil {
 		return err
