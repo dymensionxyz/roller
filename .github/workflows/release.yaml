@@ -1,13 +1,10 @@
----
 name: release for roller
-
 on:
   push:
     branches:
       - 'main'
     tags:
       - 'v*'
-
 jobs:
   release:
     name: release
@@ -24,8 +21,11 @@ jobs:
           pull-request-header: ":loop: New roller Release"
           release-type: go
           package-name: roller
+          prerelease: true
+          prerelease-label: beta
           changelog-types: >-
             [
+
               {"type":"feat","section":"Features","hidden":false},
               {"type":"fix","section":"Bug Fixes","hidden":false},
               {"type":"docs","section":"Documentation","hidden":false},
