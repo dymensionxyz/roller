@@ -9,9 +9,10 @@ import (
 	"runtime"
 	"text/template"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/spf13/cobra"
 )
 
 type Service struct {

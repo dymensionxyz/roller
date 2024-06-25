@@ -115,7 +115,10 @@ func CreateAddressBinaryWithSensitiveOutput(
 		return nil, err
 	}
 
-	json.Unmarshal(out.Bytes(), &ko)
+	err = json.Unmarshal(out.Bytes(), &ko)
+	if err != nil {
+		return nil, err
+	}
 
 	return &ko, nil
 }

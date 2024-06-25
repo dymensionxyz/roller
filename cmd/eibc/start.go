@@ -2,6 +2,7 @@ package eibc
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,7 @@ func startCmd() *cobra.Command {
 
 				err = ensureWhaleAccount()
 				if err != nil {
-					fmt.Errorf(err.Error())
+					log.Printf("failed to create whale account: %v\n", err)
 					return
 				}
 			}
