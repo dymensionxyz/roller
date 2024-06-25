@@ -1,14 +1,22 @@
 package initconfig
 
 import (
+	"encoding/json"
 	"os/exec"
 	"path"
-	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 )
+
+type KeyOutput struct {
+	Name     string `json:"name"               yaml:"name"`
+	Type     string `json:"type"               yaml:"type"`
+	Address  string `json:"address"            yaml:"address"`
+	PubKey   string `json:"pubkey"             yaml:"pubkey"`
+	Mnemonic string `json:"mnemonic,omitempty" yaml:"mnemonic"`
+}
 
 func generateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
 	sequencerAddresses, err := generateSequencersKeys(rollappConfig)
@@ -28,7 +36,7 @@ func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.AddressDat
 	for _, key := range keys {
 		var address string
 		var err error
-		address, err = createAddressBinary(key, initConfig.Home)
+		address, err = CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -75,18 +83,44 @@ func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 	}
 }
 
-func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
+func CreateAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
 	args := []string{
 		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
+		"--keyring-dir", keyConfig.Dir,
 		"--output", "json",
 	}
+
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
 	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return "", err
 	}
 	return utils.ParseAddressFromOutput(out)
+}
+
+func CreateAddressBinaryWithSensitiveOutput(
+	keyConfig utils.KeyConfig,
+	home string,
+) (*KeyOutput, error) {
+	args := []string{
+		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"--keyring-dir", keyConfig.Dir,
+		"--output", "json",
+	}
+	ko := KeyOutput{}
+
+	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
+	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &ko)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ko, nil
 }
 
 func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {

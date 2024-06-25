@@ -9,12 +9,15 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 )
 
+// TODO: KeyInfo and AddressData seem redundant, should be moved into
+// location
 type KeyInfo struct {
 	Address string `json:"address"`
 }
@@ -28,8 +31,11 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	return key.Address, nil
 }
 
+// KeyConfig struct store information about a wallet
+// Dir refers to the keyringDir where the key is created
 type KeyConfig struct {
-	Dir         string
+	Dir string
+	// TODO: this is not descriptive, Name would be more expressive
 	ID          string
 	ChainBinary string
 	Type        config.VMType
@@ -48,6 +54,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		"--output",
 		"json",
 	)
+	fmt.Println(showKeyCommand.String())
 	output, err := ExecBashCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return "", err
@@ -89,6 +96,25 @@ func PrintAddresses(addresses []AddressData) {
 	table.SetBorder(false)
 	table.AppendBulk(data)
 	table.Render()
+}
+
+type SecretAddressData struct {
+	AddressData
+	Mnemonic string
+}
+
+func PrintSecretAddresses(addresses []SecretAddressData) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Whale information"})
+
+	for _, address := range addresses {
+		t.AppendRow(table.Row{address.Name})
+		t.AppendRow(table.Row{address.Addr})
+		t.AppendRow(table.Row{address.Mnemonic})
+	}
+
+	t.Render()
 }
 
 func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {

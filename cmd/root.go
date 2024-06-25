@@ -3,8 +3,11 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/config"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
+	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/keys"
 	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/relayer"
@@ -14,7 +17,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/tx"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
-	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -43,6 +45,7 @@ func init() {
 	rootCmd.AddCommand(services.Cmd())
 	rootCmd.AddCommand(migrate.Cmd())
 	rootCmd.AddCommand(tx.Cmd())
+	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(test())
 	utils.AddGlobalFlags(rootCmd)
 }

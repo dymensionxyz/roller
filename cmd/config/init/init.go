@@ -71,8 +71,11 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 	initConfig := *initConfigPtr
 	outputHandler := NewOutputHandler(noOutput)
+	// nolint:typecheck
 	defer outputHandler.StopSpinner()
+	// nolint:typecheck
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	// nolint:typecheck
 	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
@@ -83,6 +86,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if isRootExist {
+		// nolint:typecheck
 		outputHandler.StopSpinner()
 		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(initConfig.Home)
 		if err != nil {
@@ -103,6 +107,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// TODO: create all dirs here
+	// nolint:typecheck
 	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
 	/* ---------------------------- Initialize relayer --------------------------- */
 	rollappPrefix, err := utils.GetAddressPrefix(initConfig.RollappBinary)
@@ -172,6 +177,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
+	// nolint:typecheck
 	outputHandler.StopSpinner()
 	outputHandler.printInitOutput(initConfig, addresses, initConfig.RollappID)
 
