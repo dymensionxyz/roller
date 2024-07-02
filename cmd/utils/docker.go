@@ -41,7 +41,7 @@ func CheckAndCreateMongoDBContainer(
 		PortBindings: portBindings,
 	}
 
-	containers, err := cli.ContainerList(ctx, container.ListOptions{})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
 	if err != nil {
 		return err
 	}
@@ -50,6 +50,18 @@ func CheckAndCreateMongoDBContainer(
 		for _, name := range c.Names {
 			if strings.TrimPrefix(name, "/") == containerName {
 				fmt.Printf("Container %s already exists.\n", containerName)
+
+				if c.Status != "running" {
+					fmt.Printf(
+						"Container %s is not in a running state, restarting.\n",
+						containerName,
+					)
+					err := cli.ContainerStart(context.Background(), c.ID, container.StartOptions{})
+					if err != nil {
+						return err
+					}
+					return nil
+				}
 			}
 		}
 	}
