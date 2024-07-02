@@ -51,7 +51,7 @@ func CheckAndCreateMongoDBContainer(
 			if strings.TrimPrefix(name, "/") == containerName {
 				fmt.Printf("Container %s already exists.\n", containerName)
 
-				if c.Status != "running" {
+				if c.State != "running" {
 					fmt.Printf(
 						"Container %s is not in a running state, restarting.\n",
 						containerName,
@@ -60,8 +60,9 @@ func CheckAndCreateMongoDBContainer(
 					if err != nil {
 						return err
 					}
-					return nil
 				}
+
+				return nil
 			}
 		}
 	}
