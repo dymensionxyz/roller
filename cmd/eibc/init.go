@@ -26,21 +26,23 @@ func initCmd() *cobra.Command {
 				return
 			}
 
-			if !ok {
-				c := GetInitCommand()
-
-				_, err = utils.ExecBashCommandWithStdout(c)
-				if err != nil {
-					return
-				}
-
-				err = ensureWhaleAccount()
-				if err != nil {
-					log.Printf("failed to create whale account: %v\n", err)
-					return
-				}
+			if ok {
+				fmt.Println("eibc client already initialized")
+				return
 			}
-			fmt.Println("eibc client already initialized")
+
+			c := GetInitCommand()
+
+			err = utils.ExecBashCmd(c)
+			if err != nil {
+				return
+			}
+
+			err = ensureWhaleAccount()
+			if err != nil {
+				log.Printf("failed to create whale account: %v\n", err)
+				return
+			}
 		},
 	}
 	return cmd
