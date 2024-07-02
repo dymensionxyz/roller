@@ -48,7 +48,8 @@ func ensureWhaleAccount() error {
 func createMongoDbContainer() error {
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
-		return nil
+		fmt.Printf("failed to create docker client: %v\n", err)
+		return err
 	}
 
 	err = utils.CheckAndCreateMongoDBContainer(
@@ -56,8 +57,8 @@ func createMongoDbContainer() error {
 		cc,
 	)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		fmt.Printf("failed to run mongodb container: %v\n", err)
+		return err
 	}
 	return err
 }
