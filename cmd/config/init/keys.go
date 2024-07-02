@@ -26,18 +26,22 @@ func GenerateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, erro
 func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.AddressData, error) {
 	keys := getSequencerKeysConfig(initConfig)
 	addresses := make([]utils.AddressData, 0)
+
 	for _, key := range keys {
 		var address string
 		var err error
+
 		address, err = CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
+
 		addresses = append(addresses, utils.AddressData{
 			Addr: address,
 			Name: key.ID,
 		})
 	}
+
 	return addresses, nil
 }
 
@@ -79,7 +83,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 func CreateAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
 	args := []string{
 		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", keyConfig.Dir,
+		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
 	}
 
