@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jedib0t/go-pretty/table"
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -54,7 +53,6 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		"--output",
 		"json",
 	)
-	fmt.Println(showKeyCommand.String())
 	output, err := ExecBashCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return "", err
@@ -85,6 +83,11 @@ func PrintAddressesWithTitle(addresses []AddressData) {
 	PrintAddresses(addresses)
 }
 
+func PrintSecretAddressesWithTitle(addresses []SecretAddressData) {
+	fmt.Printf("🔑 Addresses:\n\n")
+	PrintSecretAddresses(addresses)
+}
+
 func PrintAddresses(addresses []AddressData) {
 	data := make([][]string, 0, len(addresses))
 	for _, address := range addresses {
@@ -104,17 +107,11 @@ type SecretAddressData struct {
 }
 
 func PrintSecretAddresses(addresses []SecretAddressData) {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Whale information"})
-
 	for _, address := range addresses {
-		t.AppendRow(table.Row{address.Name})
-		t.AppendRow(table.Row{address.Addr})
-		t.AppendRow(table.Row{address.Mnemonic})
+		fmt.Println(address.AddressData.Name)
+		fmt.Println(address.AddressData.Addr)
+		fmt.Println(address.Mnemonic)
 	}
-
-	t.Render()
 }
 
 func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {

@@ -31,8 +31,6 @@ func ensureWhaleAccount() error {
 			return err
 		}
 
-		fmt.Println(addressInfo.Mnemonic)
-
 		whaleAddress := utils.SecretAddressData{
 			AddressData: utils.AddressData{
 				Name: addressInfo.Name,
@@ -41,7 +39,7 @@ func ensureWhaleAccount() error {
 			Mnemonic: addressInfo.Mnemonic,
 		}
 
-		utils.PrintSecretAddresses([]utils.SecretAddressData{whaleAddress})
+		utils.PrintSecretAddressesWithTitle([]utils.SecretAddressData{whaleAddress})
 	}
 
 	return nil
