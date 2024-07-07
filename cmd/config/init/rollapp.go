@@ -1,6 +1,7 @@
 package initconfig
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -9,8 +10,10 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-func initializeRollappConfig(initConfig config.RollappConfig) error {
+func InitializeRollappConfig(initConfig config.RollappConfig) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+	fmt.Println(initConfig.RollappID)
+
 	initRollappCmd := exec.Command(
 		initConfig.RollappBinary,
 		"init",

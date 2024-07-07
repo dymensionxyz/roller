@@ -1,4 +1,4 @@
-package utils
+package archives
 
 import (
 	"archive/tar"
@@ -36,6 +36,7 @@ func ExtractZip(zipFile string) error {
 	// Iterate through the files in the ZIP archive
 	for _, f := range zipReader.File {
 		if filepath.Ext(f.Name) == ".tar" {
+			// nolint gosec
 			tarFilePath = filepath.Join(tmpDir, f.Name)
 			if err := extractFileFromZip(f, tarFilePath); err != nil {
 				return fmt.Errorf("failed to extract .tar file %s: %w", tarFilePath, err)
@@ -65,6 +66,7 @@ func ExtractTar(tarFile, outputDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open tar file: %w", err)
 	}
+	// nolint errcheck
 	defer file.Close()
 
 	// Create a tar reader
@@ -135,6 +137,7 @@ func extractFileFromZip(f *zip.File, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file in zip: %w", err)
 	}
+	// nolint errcheck
 	defer rc.Close()
 
 	outFile, err := os.Create(outputPath)
