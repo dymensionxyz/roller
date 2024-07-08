@@ -85,18 +85,18 @@ var SpinnerMsgs = struct {
 }
 
 var MainnetHubData = config.HubData{
-	API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
+	API_URL:         "https://dymension-mainnet-rest.public.blastapi.io",
 	ID:              MainnetHubID,
-	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
-	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
+	RPC_URL:         "https://dymension-mainnet-tendermint.public.blastapi.io",
+	ARCHIVE_RPC_URL: "https://dymension-mainnet-tendermint.public.blastapi.io",
 	GAS_PRICE:       "20000000000",
 }
 
 var TestnetHubData = config.HubData{
-	API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
+	API_URL:         "https://api-blumbus.mzonder.com",
 	ID:              TestnetHubID,
-	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
-	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
+	RPC_URL:         "https://rpc-blumbus.mzonder.com",
+	ARCHIVE_RPC_URL: "https://rpc-blumbus-archive.mzonder.com",
 	GAS_PRICE:       "20000000000",
 }
 
