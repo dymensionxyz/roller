@@ -7,16 +7,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"slices"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
-// ExtractZip function extracts the zip file created by the genesis-generator
-// into a temporary directory and passes the tar archive container within
-// the zip archive to ExtractTar for processing
-func ExtractZip(zipFile string) error {
+// TODO: work with actual gzip archive once genesis creator exports one
+
+// TraverseTARFile function extracts a .tar file from a .zip archive and
+// extracts the fileName into outputDir
+func ExtractFileFromNestedTar(sourceZipFilePath, fileName, outputDir string) error {
 	tmpDir, err := os.MkdirTemp("", "genesis_zip_files")
 	if err != nil {
 		return err
@@ -24,7 +21,7 @@ func ExtractZip(zipFile string) error {
 	// nolint errcheck
 	defer os.RemoveAll(tmpDir)
 
-	zipReader, err := zip.OpenReader(zipFile)
+	zipReader, err := zip.OpenReader(sourceZipFilePath)
 	if err != nil {
 		return err
 	}
@@ -33,13 +30,17 @@ func ExtractZip(zipFile string) error {
 
 	var tarFilePath string
 
-	// Iterate through the files in the ZIP archive
 	for _, f := range zipReader.File {
 		if filepath.Ext(f.Name) == ".tar" {
 			// nolint gosec
 			tarFilePath = filepath.Join(tmpDir, f.Name)
 			if err := extractFileFromZip(f, tarFilePath); err != nil {
 				return fmt.Errorf("failed to extract .tar file %s: %w", tarFilePath, err)
+			}
+
+			err := TraverseTARFile(tarFilePath, fileName, outputDir)
+			if err != nil {
+				return fmt.Errorf("failed to traverse the tar file: %v ", err)
 			}
 		}
 	}
@@ -48,31 +49,20 @@ func ExtractZip(zipFile string) error {
 		return fmt.Errorf("no .tar file found in the zip archive")
 	}
 
-	// Process the extracted .tar file
-	if err := ExtractTar(tarFilePath, tmpDir); err != nil {
-		return fmt.Errorf("failed to extract .tar file %s: %w", tarFilePath, err)
-	}
-
 	return nil
 }
 
-// ExtractTar function extracts the tar archive created by the genesis-generator
-// and moves the files into the correct location
-func ExtractTar(tarFile, outputDir string) error {
-	supportedFiles := []string{"roller.toml", "genesis.json"}
-
-	// Open the .tar file
+// TraverseTARFile function traverses a .tar archuve and extracts the fileName into
+// outputDir
+func TraverseTARFile(tarFile, fileName, outputDir string) error {
 	file, err := os.Open(tarFile)
 	if err != nil {
 		return fmt.Errorf("failed to open tar file: %w", err)
 	}
 	// nolint errcheck
 	defer file.Close()
-
-	// Create a tar reader
 	tarReader := tar.NewReader(file)
 
-	// Iterate through the files in the tar archive
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -82,26 +72,20 @@ func ExtractTar(tarFile, outputDir string) error {
 			return fmt.Errorf("ExtractTar: Next() failed: %w", err)
 		}
 
-		if !slices.Contains(supportedFiles, header.Name) {
+		if fileName != header.Name {
 			continue
 		}
 
-		switch header.Name {
-		case "roller.toml":
-			// Create directory
-			filePath := filepath.Join(utils.GetRollerRootDir(), "roller.toml")
-			err := createFileFromArchive(filePath, tarReader)
+		if fileName == header.Name {
+			fp := filepath.Join(outputDir, fileName)
+			fmt.Println(fp)
+
+			err := createFileFromArchive(fp, tarReader)
 			if err != nil {
 				return err
 			}
-		case "genesis.json":
-			filePath := filepath.Join(
-				utils.GetRollerRootDir(),
-				consts.ConfigDirName.Rollapp,
-				"config",
-				"genesis.json",
-			)
-			err := createFileFromArchive(filePath, tarReader)
+
+			_, err = os.Stat(fp)
 			if err != nil {
 				return err
 			}
@@ -112,10 +96,14 @@ func ExtractTar(tarFile, outputDir string) error {
 }
 
 func createFileFromArchive(outputPath string, tarReader *tar.Reader) error {
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {
+	dir := filepath.Dir(outputPath)
+
+	fmt.Println("creating dir:", dir)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("ExtractTar: MkdirAll() failed: %w", err)
 	}
 
+	fmt.Println("creating file:", outputPath)
 	outFile, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("ExtractTar: Create() failed: %w", err)
