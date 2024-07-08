@@ -84,42 +84,46 @@ var SpinnerMsgs = struct {
 	BalancesVerification: " Verifying balances...\n",
 }
 
-var FroopylandHubData = config.HubData{
+var MainnetHubData = config.HubData{
 	API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
-	ID:              FroopylandHubID,
+	ID:              MainnetHubID,
 	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
 	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
 	GAS_PRICE:       "20000000000",
 }
 
+var TestnetHubData = config.HubData{
+	API_URL:         "https://froopyland.blockpi.network:443/lcd/v1/public",
+	ID:              TestnetHubID,
+	RPC_URL:         "https://froopyland.blockpi.network:443/rpc/v1/public",
+	ARCHIVE_RPC_URL: "https://froopyland.blockpi.network:443/rpc/v1/public",
+	GAS_PRICE:       "20000000000",
+}
+
+var LocalHubData = config.HubData{
+	API_URL:         "http://localhost:1318",
+	ID:              LocalHubID,
+	RPC_URL:         "http://localhost:36657",
+	ARCHIVE_RPC_URL: "http://localhost:36657",
+	GAS_PRICE:       "100000000",
+	SEQ_MIN_BOND:    "100dym",
+}
+
 // TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
-	StagingHubName: {
-		API_URL:         "https://dymension-devnet.api.silknodes.io:443",
-		ID:              StagingHubID,
-		RPC_URL:         "https://dymension-devnet.rpc.silknodes.io:443",
-		ARCHIVE_RPC_URL: "https://dymension-devnet.rpc.silknodes.io:443",
-		GAS_PRICE:       "20000000000",
-	},
-	FroopylandHubName: FroopylandHubData,
-	LocalHubName: {
-		API_URL:         "http://localhost:1318",
-		ID:              LocalHubID,
-		RPC_URL:         "http://localhost:36657",
-		ARCHIVE_RPC_URL: "http://localhost:36657",
-		GAS_PRICE:       "100000000",
-		SEQ_MIN_BOND:    "100dym",
-	},
-	// TODO: Add mainnet hub data
-	MainnetHubName: FroopylandHubData,
+	LocalHubName:   LocalHubData,
+	TestnetHubName: TestnetHubData,
+	MainnetHubName: MainnetHubData,
 }
 
 const (
-	StagingHubName    = "devnet"
-	FroopylandHubName = "froopyland"
-	LocalHubName      = "local"
-	MainnetHubName    = "mainnet"
-	LocalHubID        = "dymension_100-1"
-	StagingHubID      = "devnet_304-1"
-	FroopylandHubID   = "froopyland_100-1"
+	LocalHubName   = "local"
+	TestnetHubName = "testnet"
+	MainnetHubName = "mainnet"
+)
+
+const (
+	LocalHubID   = "dymension_100-1"
+	TestnetHubID = "blumbus_111-1"
+	MainnetHubID = "dymension_1100-1"
 )

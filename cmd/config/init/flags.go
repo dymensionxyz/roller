@@ -20,7 +20,7 @@ const (
 
 func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
-		StringP(FlagNames.HubID, "", consts.FroopylandHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+		StringP(FlagNames.HubID, "", consts.LocalHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
 	cmd.Flags().
 		StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().
@@ -142,9 +142,9 @@ func setDecimals(initCmd *cobra.Command, cfg *config.RollappConfig) {
 func getAvailableHubsMessage() string {
 	return fmt.Sprintf(
 		"Acceptable values are '%s', '%s' or '%s'",
-		consts.FroopylandHubName,
-		consts.StagingHubName,
 		consts.LocalHubName,
+		consts.TestnetHubName,
+		consts.MainnetHubName,
 	)
 }
 
