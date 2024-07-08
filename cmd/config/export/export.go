@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -25,9 +25,9 @@ func Cmd() *cobra.Command {
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
 			faucetUrls := map[string]string{
-				consts.LocalHubID:      "",
-				consts.StagingHubID:    "https://discord.com/channels/956961633165529098/1125047988247593010",
-				consts.FroopylandHubID: "https://discord.com/channels/956961633165529098/1143231362468434022",
+				consts.LocalHubID:   "",
+				consts.TestnetHubID: "https://discord.com/channels/956961633165529098/1196803789911498763",
+				consts.MainnetHubID: "",
 			}
 			baseDenom := rlpCfg.Denom
 
