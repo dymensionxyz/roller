@@ -9,7 +9,6 @@ import (
 
 	"github.com/pelletier/go-toml"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
@@ -39,9 +38,9 @@ func SanitizeConfigDir(root string, rlpCfg *config.RollappConfig) error {
 	if err := os.Remove(nodeKeyPath); err != nil {
 		return err
 	}
-	if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
-		return err
-	}
+	// if err := SanitizeGenesis(initconfig.GetGenesisFilePath(root)); err != nil {
+	// 	return err
+	// }
 	if err := SanitizeRlyConfig(rlpCfg); err != nil {
 		return err
 	}
