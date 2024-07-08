@@ -17,7 +17,7 @@ func NewOutputHandler(noOutput bool) *OutputHandler {
 	}
 }
 
-func (o *OutputHandler) printInitOutput(
+func (o *OutputHandler) PrintInitOutput(
 	rollappConfig config.RollappConfig,
 	addresses []utils.AddressData,
 	rollappId string,
@@ -32,6 +32,7 @@ func (o *OutputHandler) printInitOutput(
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
 	utils.PrintAddressesWithTitle(formatAddresses(rollappConfig, addresses))
+
 	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
 }
 
