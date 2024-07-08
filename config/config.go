@@ -2,12 +2,11 @@ package config
 
 import (
 	"fmt"
-	"math/big"
 	"strings"
 	"unicode"
 )
 
-const RollerConfigFileName = "config.toml"
+const RollerConfigFileName = "roller.toml"
 
 type VMType string
 
@@ -27,16 +26,24 @@ const (
 var SupportedDas = []DAType{Celestia, Avail, Local}
 
 type RollappConfig struct {
-	Home          string
-	RollappID     string
+	Home          string `toml:"home"`
+	RollappID     string `toml:"rollapp_id"`
 	RollappBinary string
-	VMType        VMType
-	Denom         string
-	TokenSupply   string
+	VMType        VMType `toml:"execution"`
+	Denom         string `toml:"denom"`
+	// TokenSupply   string
 	Decimals      uint
 	HubData       HubData
 	DA            DAType
-	RollerVersion string
+	RollerVersion string `toml:"roller_version"`
+
+	// new roller.toml
+	Environment string `toml:"environment"`
+	// Execution        string `toml:"execution"`
+	ExecutionVersion string `toml:"execution_version"`
+	Bech32Prefix     string `toml:"bech32_prefix"`
+	BaseDenom        string `toml:"base_denom"`
+	MinGasPrices     string `toml:"minimum_gas_prices"`
 }
 
 type HubData = struct {
@@ -53,11 +60,14 @@ func (c RollappConfig) Validate() error {
 	if err != nil {
 		return err
 	}
-	err = VerifyTokenSupply(c.TokenSupply)
-	if err != nil {
-		return err
-	}
-	err = IsValidDenom(c.Denom)
+
+	// the assumption is that the supply is coming from the genesis creator
+	// err = VerifyTokenSupply(c.TokenSupply)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = IsValidDenom(c.BaseDenom)
 	if err != nil {
 		return err
 	}
@@ -99,27 +109,27 @@ func VerifyHubID(data HubData) error {
 	return nil
 }
 
-func VerifyTokenSupply(supply string) error {
-	tokenSupply := new(big.Int)
-	_, ok := tokenSupply.SetString(supply, 10)
-	if !ok {
-		return fmt.Errorf("invalid token supply: %s. Must be a valid integer", supply)
-	}
-
-	ten := big.NewInt(10)
-	remainder := new(big.Int)
-	remainder.Mod(tokenSupply, ten)
-
-	if remainder.Cmp(big.NewInt(0)) != 0 {
-		return fmt.Errorf("invalid token supply: %s. Must be divisible by 10", supply)
-	}
-
-	if tokenSupply.Cmp(big.NewInt(10_000_000)) < 0 {
-		return fmt.Errorf("token supply %s must be greater than 10,000,000", tokenSupply)
-	}
-
-	return nil
-}
+// func VerifyTokenSupply(supply string) error {
+// 	tokenSupply := new(big.Int)
+// 	_, ok := tokenSupply.SetString(supply, 10)
+// 	if !ok {
+// 		return fmt.Errorf("invalid token supply: %s. Must be a valid integer", supply)
+// 	}
+//
+// 	ten := big.NewInt(10)
+// 	remainder := new(big.Int)
+// 	remainder.Mod(tokenSupply, ten)
+//
+// 	if remainder.Cmp(big.NewInt(0)) != 0 {
+// 		return fmt.Errorf("invalid token supply: %s. Must be divisible by 10", supply)
+// 	}
+//
+// 	if tokenSupply.Cmp(big.NewInt(10_000_000)) < 0 {
+// 		return fmt.Errorf("token supply %s must be greater than 10,000,000", tokenSupply)
+// 	}
+//
+// 	return nil
+// }
 
 func ValidateDecimals(decimals uint) error {
 	if decimals > 18 {
