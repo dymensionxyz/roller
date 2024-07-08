@@ -35,7 +35,7 @@ func FormatTokenSupplyLine(rollappConfig config.RollappConfig) string {
 	return fmt.Sprintf(
 		"💰 Total Token Supply: %s %s. Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).",
 		addCommasToNum(
-			rollappConfig.TokenSupply,
+			"1000000000",
 		),
 		displayDenom,
 		displayDenom,

@@ -13,6 +13,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	global_utils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/archives"
@@ -74,12 +75,7 @@ after configuration files are generated, rerun the 'init' command`,
 				return
 			}
 
-			err = archives.ExtractZip(archivePath)
-			if err != nil {
-				fmt.Println("failed to extract: ", err)
-			}
-
-			err = runInit(cmd, args)
+			err = runInit(cmd, args, archivePath)
 			if err != nil {
 				fmt.Printf("failed to initialize the RollApp: %v\n", err)
 				return
@@ -103,34 +99,16 @@ func expandHomePath(path string) (string, error) {
 	return path, nil
 }
 
-func runInit(cmd *cobra.Command, args []string) error {
-	fmt.Println("running init")
-	// noOutput, err := cmd.Flags().GetBool(initconfig.FlagNames.NoOutput)
-	// if err != nil {
-	// 	utils.PrettifyErrorIfExists(err)
-	// 	return err
-	// }
-
-	initConfigPtr, err := initconfig.GetInitConfig(cmd, args)
-	if err != nil {
-		utils.PrettifyErrorIfExists(err)
-		return err
-	}
-
-	initConfig := *initConfigPtr
-
+// in runInit I parse the entire genesis creator zip file twice to extract
+// the file this looks awful but since the archive has only 2 files it's
+// kinda fine
+func runInit(cmd *cobra.Command, args []string, configArchivePath string) error {
+	home := utils.GetRollerRootDir()
 	outputHandler := initconfig.NewOutputHandler(false)
+
 	defer outputHandler.StopSpinner()
 
-	utils.RunOnInterrupt(outputHandler.StopSpinner)
-	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
-	err = initConfig.Validate()
-	if err != nil {
-		utils.PrettifyErrorIfExists(err)
-		return err
-	}
-
-	isRootExist, err := global_utils.DirNotEmpty(initConfig.Home)
+	isRootExist, err := global_utils.DirNotEmpty(home)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -138,13 +116,13 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	if isRootExist {
 		outputHandler.StopSpinner()
-		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(initConfig.Home)
+		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(home)
 		if err != nil {
 			utils.PrettifyErrorIfExists(err)
 			return err
 		}
 		if shouldOverwrite {
-			err = os.RemoveAll(initConfig.Home)
+			err = os.RemoveAll(home)
 			if err != nil {
 				utils.PrettifyErrorIfExists(err)
 				return err
@@ -155,7 +133,32 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}
 
 	// nolint:gofumpt
-	err = os.MkdirAll(initConfig.Home, 0755)
+	err = os.MkdirAll(home, 0755)
+	if err != nil {
+		utils.PrettifyErrorIfExists(err)
+		return err
+	}
+
+	err = archives.ExtractFileFromNestedTar(
+		configArchivePath,
+		config.RollerConfigFileName,
+		home,
+	)
+	if err != nil {
+		return err
+	}
+
+	initConfigPtr, err := initconfig.GetInitConfig(cmd, args)
+	if err != nil {
+		utils.PrettifyErrorIfExists(err)
+		return err
+	}
+
+	initConfig := *initConfigPtr
+
+	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
+	err = initConfig.Validate()
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -214,6 +217,15 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	err = initconfig.InitializeRollappConfig(initConfig)
+	if err != nil {
+		return err
+	}
+
+	err = archives.ExtractFileFromNestedTar(
+		configArchivePath,
+		"genesis.json",
+		filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
+	)
 	if err != nil {
 		return err
 	}
