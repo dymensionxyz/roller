@@ -1,9 +1,16 @@
 package initconfig
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/tidwall/sjson"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 const (
@@ -15,108 +22,40 @@ type PathValue struct {
 	Value interface{}
 }
 
-//	func initializeRollappGenesis(initConfig config.RollappConfig) error {
-//		totalTokenSupply, success := new(big.Int).SetString(initConfig.TokenSupply, 10)
-//		if !success {
-//			return fmt.Errorf("invalid token supply")
-//		}
-//		totalTokenSupply = totalTokenSupply.Mul(totalTokenSupply, new(big.Int).Exp(big.NewInt(10),
-//			new(big.Int).SetUint64(uint64(initConfig.Decimals)), nil))
-//		relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
-//		sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
-//		sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
-//		relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
-//		rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-//		genesisSequencerAccountCmd := exec.Command(
-//			initConfig.RollappBinary,
-//			"add-genesis-account",
-//			consts.KeysIds.RollappSequencer,
-//			sequencerBalanceStr,
-//			"--keyring-backend",
-//			"test",
-//			"--home",
-//			rollappConfigDirPath,
-//		)
-//		_, err := utils.ExecBashCommandWithStdout(genesisSequencerAccountCmd)
-//		if err != nil {
-//			return err
-//		}
-//		rlyRollappAddress, err := utils.GetRelayerAddress(initConfig.Home, initConfig.RollappID)
-//		if err != nil {
-//			return err
-//		}
-//		genesisRelayerAccountCmd := exec.Command(
-//			initConfig.RollappBinary,
-//			"add-genesis-account",
-//			rlyRollappAddress,
-//			relayerBalanceStr,
-//			"--keyring-backend",
-//			"test",
-//			"--home",
-//			rollappConfigDirPath,
-//		)
-//		_, err = utils.ExecBashCommandWithStdout(genesisRelayerAccountCmd)
-//		if err != nil {
-//			return err
-//		}
-//
-//		err = updateGenesisParams(
-//			GetGenesisFilePath(initConfig.Home),
-//			initConfig.Denom,
-//			initConfig.Decimals,
-//			initConfig.Home,
-//		)
-//		if err != nil {
-//			return err
-//		}
-//
-//		err = generateGenesisTx(initConfig)
-//		if err != nil {
-//			return err
-//		}
-//
-//		err = createTokenMetadaJSON(
-//			filepath.Join(RollappConfigDir(initConfig.Home), "tokenmetadata.json"),
-//			initConfig.Denom,
-//			initConfig.Decimals,
-//		)
-//		if err != nil {
-//			return err
-//		}
-//
-//		return nil
-//	}
-//
-//	func GetGenesisFilePath(root string) string {
-//		return filepath.Join(RollappConfigDir(root),
-//			"genesis.json")
-//	}
-//
-// // TODO(#130): fix to support epochs
-// func getDefaultGenesisParams(
-//
-//	denom string,
-//	decimals uint,
-//	genesisOperatorAddress string,
-//
-//	) []PathValue {
-//		return []PathValue{
-//			{"app_state.mint.params.mint_denom", denom},
-//			{"app_state.staking.params.bond_denom", denom},
-//			{"app_state.crisis.constant_fee.denom", denom},
-//			{"app_state.evm.params.evm_denom", denom},
-//			{"app_state.gov.deposit_params.min_deposit.0.denom", denom},
-//			{"consensus_params.block.max_gas", "40000000"},
-//			{"app_state.feemarket.params.no_base_fee", true},
-//			{"app_state.feemarket.params.min_gas_price", "0.0"},
-//			{"app_state.distribution.params.base_proposer_reward", "0.8"},
-//			{"app_state.distribution.params.community_tax", "0.00002"},
-//			{"app_state.gov.voting_params.voting_period", "300s"},
-//			{"app_state.staking.params.unbonding_time", "3628800s"},
-//			// {"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
-//			{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
-//		}
-//	}
+func GetGenesisFilePath(root string) string {
+	return filepath.Join(RollappConfigDir(root),
+		"genesis.json")
+}
+
+// TODO(#130): fix to support epochs
+func getDefaultGenesisParams(
+	sequencerAddr, genesisOperatorAddress string,
+) []PathValue {
+	return []PathValue{
+		// these should be injected from the genesis creator
+		// {"app_state.mint.params.mint_denom", denom},
+		// {"app_state.staking.params.bond_denom", denom},
+		// {"app_state.crisis.constant_fee.denom", denom},
+		// {"app_state.evm.params.evm_denom", denom},
+		// {"app_state.gov.deposit_params.min_deposit.0.denom", denom},
+		// {"consensus_params.block.max_gas", "40000000"},
+		// {"app_state.feemarket.params.no_base_fee", true},
+		// {"app_state.feemarket.params.min_gas_price", "0.0"},
+		// {"app_state.distribution.params.base_proposer_reward", "0.8"},
+		// {"app_state.distribution.params.community_tax", "0.00002"},
+		// {"app_state.gov.voting_params.voting_period", "300s"},
+		// {"app_state.staking.params.unbonding_time", "3628800s"},
+		// {"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
+
+		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
+		{
+			"app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
+			map[string]string{"address": sequencerAddr},
+		},
+		{"app_state.denommetadata.params.allowed_addresses.0", sequencerAddr},
+	}
+}
+
 func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	jsonFileContent, err := os.ReadFile(jsonFilePath)
 	if err != nil {
@@ -138,41 +77,78 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-//
-// func updateGenesisParams(genesisFilePath string, denom string, decimals uint, home string) error {
-// 	oa, err := getGenesisOperatorAddress(home)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	params := getDefaultGenesisParams(denom, decimals, oa)
-// 	return UpdateJSONParams(genesisFilePath, params)
-// }
-//
-// func getGenesisOperatorAddress(home string) (string, error) {
-// 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-// 	getOperatorAddrCommand := exec.Command(
-// 		consts.Executables.RollappEVM,
-// 		"keys",
-// 		"show",
-// 		consts.KeysIds.RollappSequencer,
-// 		"-a",
-// 		"--keyring-backend",
-// 		"test",
-// 		"--home",
-// 		rollappConfigDirPath,
-// 		"--bech",
-// 		"val",
-// 	)
-//
-// 	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
-// 	if err != nil {
-// 		return "", err
-// 	}
-//
-// 	a := strings.TrimSpace(addr.String())
-// 	return a, nil
-// }
-//
+func UpdateGenesisParams(home string) error {
+	oa, err := getGenesisOperatorAddress(home)
+	if err != nil {
+		return err
+	}
+
+	sa, err := getSequencerAddress(home)
+	if err != nil {
+		return err
+	}
+	params := getDefaultGenesisParams(sa, oa)
+
+	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
+	return UpdateJSONParams(genesisFilePath, params)
+}
+
+func getGenesisOperatorAddress(home string) (string, error) {
+	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+	getOperatorAddrCommand := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"show",
+		consts.KeysIds.RollappSequencer,
+		"-a",
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+		"--bech",
+		"val",
+	)
+
+	fmt.Println(getOperatorAddrCommand.String())
+
+	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		fmt.Println("val addr failed")
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+	fmt.Println(a)
+	return a, nil
+}
+
+func getSequencerAddress(home string) (string, error) {
+	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+	getOperatorAddrCommand := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"show",
+		consts.KeysIds.RollappSequencer,
+		"-a",
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
+
+	fmt.Println(getOperatorAddrCommand.String())
+
+	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		fmt.Println("seq addr failed")
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+	fmt.Println(a)
+	return a, nil
+}
+
 // func generateGenesisTx(initConfig config.RollappConfig) error {
 // 	err := registerSequencerAsGoverner(initConfig)
 // 	if err != nil {
@@ -197,14 +173,16 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 // // currently it sets the staking amount to half of the total token supply.
 // // TODO: make the staking amount configurable
 // func registerSequencerAsGoverner(initConfig config.RollappConfig) error {
-// 	totalSupply, err := strconv.Atoi(initConfig.TokenSupply)
+// 	totalSupply, err := strconv.Atoi(consts.DefaultTokenSupply)
 // 	if err != nil {
 // 		return fmt.Errorf("error converting string to integer: %w", err)
 // 	}
+//
 // 	// Convert to token supply with decimals
 // 	stakedSupply := big.NewInt(int64(totalSupply / totalSupplyToStakingRatio))
 // 	multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(initConfig.Decimals)), nil)
 // 	stakedSupply.Mul(stakedSupply, multiplier)
+//
 // 	// Build and run the gentx command
 // 	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 // 	gentxCmd := exec.Command(
