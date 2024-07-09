@@ -13,6 +13,9 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
+// ensureWhaleAccount function makes sure that eibc whale account is present in
+// the keyring. In eibc client, whale account is the wallet that acts as the bank
+// and distributes funds across a set of wallets that fulfill the eibc orders
 func ensureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	eibcHome := filepath.Join(home, ".order-client")
@@ -45,6 +48,9 @@ func ensureWhaleAccount() error {
 	return nil
 }
 
+// createMongoDbContainer function creates a mongodb container using docker
+// sdk. Any 'DOCKER_HOST' can be used for this mongodb container.
+// Mongodb is used to store information about processed eibc orders
 func createMongoDbContainer() error {
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
