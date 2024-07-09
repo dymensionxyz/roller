@@ -13,10 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-const (
-	defaultTokenSupply = "1000000000"
-)
-
 func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
 		StringP(FlagNames.HubID, "", consts.LocalHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
@@ -25,7 +21,7 @@ func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
 		StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().
-		StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
+		StringP(FlagNames.TokenSupply, "", consts.DefaultTokenSupply, "The total token supply of the RollApp")
 	// cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
 	cmd.Flags().BoolP(FlagNames.NoOutput, "", false, "Run init without any output")
 	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
