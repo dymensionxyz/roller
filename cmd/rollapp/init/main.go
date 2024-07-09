@@ -230,6 +230,7 @@ func runInit(cmd *cobra.Command, args []string, configArchivePath string) error 
 		return err
 	}
 
+	// adds the sequencer address to the whitelists
 	err = initconfig.UpdateGenesisParams(home)
 	if err != nil {
 		return err

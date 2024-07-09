@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/spf13/cobra"
+	"github.com/dymensionxyz/roller/sequencer"
 )
 
 // TODO: Test relaying on 35-C and update the prices
