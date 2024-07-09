@@ -6,7 +6,10 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-const binsDir = "/usr/local/bin"
+const (
+	binsDir            = "/usr/local/bin"
+	DefaultTokenSupply = "1000000000"
+)
 
 var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 

@@ -230,6 +230,11 @@ func runInit(cmd *cobra.Command, args []string, configArchivePath string) error 
 		return err
 	}
 
+	err = initconfig.UpdateGenesisParams(home)
+	if err != nil {
+		return err
+	}
+
 	// 20240607 genesis is generated using the genesis-creator
 	// err = initializeRollappGenesis(initConfig)
 	// if err != nil {
