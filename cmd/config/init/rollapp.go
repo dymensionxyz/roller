@@ -7,6 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/sequencer"
 )
 
 func InitializeRollappConfig(initConfig config.RollappConfig) error {
@@ -27,21 +28,26 @@ func InitializeRollappConfig(initConfig config.RollappConfig) error {
 		return err
 	}
 
+	err = setRollappConfig(initConfig)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// func setRollappConfig(rlpCfg config.RollappConfig) error {
-// 	if err := sequencer.SetAppConfig(rlpCfg); err != nil {
-// 		return err
-// 	}
-// 	if err := sequencer.SetTMConfig(rlpCfg); err != nil {
-// 		return err
-// 	}
-// 	if err := sequencer.SetDefaultDymintConfig(rlpCfg); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func setRollappConfig(rlpCfg config.RollappConfig) error {
+	if err := sequencer.SetAppConfig(rlpCfg); err != nil {
+		return err
+	}
+	if err := sequencer.SetTMConfig(rlpCfg); err != nil {
+		return err
+	}
+	if err := sequencer.SetDefaultDymintConfig(rlpCfg); err != nil {
+		return err
+	}
+	return nil
+}
 
 func RollappConfigDir(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
