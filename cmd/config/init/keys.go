@@ -20,7 +20,6 @@ func GenerateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, erro
 	// if err != nil {
 	// 	return nil, err
 	// }
-	fmt.Println(sequencerAddresses)
 	return sequencerAddresses, nil
 }
 

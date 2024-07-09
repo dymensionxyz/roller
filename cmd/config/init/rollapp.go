@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -12,7 +11,6 @@ import (
 
 func InitializeRollappConfig(initConfig config.RollappConfig) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	fmt.Println(initConfig.RollappID)
 
 	initRollappCmd := exec.Command(
 		initConfig.RollappBinary,

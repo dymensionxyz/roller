@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -71,16 +70,11 @@ func GetInitConfig(
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 
-	fmt.Println(cfg.VMType == config.EVM_ROLLAPP)
-
 	if cfg.VMType == config.EVM_ROLLAPP {
 		cfg.Decimals = 18
 	} else {
 		cfg.Decimals = 6
 	}
-
-	j, _ := json.MarshalIndent(cfg, "", " ")
-	fmt.Println(string(j))
 
 	return &cfg, nil
 }
