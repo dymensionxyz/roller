@@ -12,6 +12,7 @@ func Cmd() *cobra.Command {
 
 	cmd.AddCommand(initCmd())
 	cmd.AddCommand(startCmd())
+	cmd.AddCommand(scaleCmd())
 
 	return cmd
 }
