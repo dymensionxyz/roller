@@ -109,8 +109,6 @@ func getGenesisOperatorAddress(home string) (string, error) {
 		"val",
 	)
 
-	fmt.Println(getOperatorAddrCommand.String())
-
 	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
 	if err != nil {
 		fmt.Println("val addr failed")
@@ -118,7 +116,6 @@ func getGenesisOperatorAddress(home string) (string, error) {
 	}
 
 	a := strings.TrimSpace(addr.String())
-	fmt.Println(a)
 	return a, nil
 }
 
@@ -136,8 +133,6 @@ func getSequencerAddress(home string) (string, error) {
 		rollappConfigDirPath,
 	)
 
-	fmt.Println(getOperatorAddrCommand.String())
-
 	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
 	if err != nil {
 		fmt.Println("seq addr failed")
@@ -145,7 +140,6 @@ func getSequencerAddress(home string) (string, error) {
 	}
 
 	a := strings.TrimSpace(addr.String())
-	fmt.Println(a)
 	return a, nil
 }
 

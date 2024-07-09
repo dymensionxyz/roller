@@ -78,7 +78,6 @@ func TraverseTARFile(tarFile, fileName, outputDir string) error {
 
 		if fileName == header.Name {
 			fp := filepath.Join(outputDir, fileName)
-			fmt.Println(fp)
 
 			err := createFileFromArchive(fp, tarReader)
 			if err != nil {
@@ -98,12 +97,10 @@ func TraverseTARFile(tarFile, fileName, outputDir string) error {
 func createFileFromArchive(outputPath string, tarReader *tar.Reader) error {
 	dir := filepath.Dir(outputPath)
 
-	fmt.Println("creating dir:", dir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("ExtractTar: MkdirAll() failed: %w", err)
 	}
 
-	fmt.Println("creating file:", outputPath)
 	outFile, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("ExtractTar: Create() failed: %w", err)

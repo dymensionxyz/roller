@@ -5,15 +5,14 @@ import (
 	"math/big"
 	"os/exec"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
-
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
-
 	bip39 "github.com/cosmos/go-bip39"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 const (

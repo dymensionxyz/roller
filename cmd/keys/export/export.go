@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/spf13/cobra"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
 
 func Cmd() *cobra.Command {

@@ -1,8 +1,9 @@
 package services
 
 import (
-	"github.com/dymensionxyz/roller/cmd/services/load"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/services/load"
 )
 
 func Cmd() *cobra.Command {

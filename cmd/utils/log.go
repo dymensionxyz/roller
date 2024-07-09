@@ -6,9 +6,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"gopkg.in/natefinch/lumberjack.v2"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func GetRollerLogger(home string) *log.Logger {

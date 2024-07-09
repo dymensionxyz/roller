@@ -1,7 +1,6 @@
 package initconfig
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -14,10 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-const (
-	defaultTokenSupply = "1000000000"
-)
-
 func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
 		StringP(FlagNames.HubID, "", consts.LocalHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
@@ -26,7 +21,7 @@ func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
 		StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().
-		StringP(FlagNames.TokenSupply, "", defaultTokenSupply, "The total token supply of the RollApp")
+		StringP(FlagNames.TokenSupply, "", consts.DefaultTokenSupply, "The total token supply of the RollApp")
 	// cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
 	cmd.Flags().BoolP(FlagNames.NoOutput, "", false, "Run init without any output")
 	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
@@ -71,16 +66,11 @@ func GetInitConfig(
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 
-	fmt.Println(cfg.VMType == config.EVM_ROLLAPP)
-
 	if cfg.VMType == config.EVM_ROLLAPP {
 		cfg.Decimals = 18
 	} else {
 		cfg.Decimals = 6
 	}
-
-	j, _ := json.MarshalIndent(cfg, "", " ")
-	fmt.Println(string(j))
 
 	return &cfg, nil
 }

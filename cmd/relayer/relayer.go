@@ -1,9 +1,10 @@
 package relayer
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/relayer/start"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
