@@ -178,5 +178,5 @@ rpc: %s
 rest: %s
 
 Hub:
-rollapp-height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight)
+height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight)
 }
