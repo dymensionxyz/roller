@@ -15,6 +15,8 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
+// TODO: KeyInfo and AddressData seem redundant, should be moved into
+// location
 type KeyInfo struct {
 	Address string `json:"address"`
 }
@@ -28,8 +30,26 @@ func ParseAddressFromOutput(output bytes.Buffer) (string, error) {
 	return key.Address, nil
 }
 
+type SensitiveKeyInfo struct {
+	Name     string `json:"name"`
+	Address  string `json:"address"`
+	Mnemonic string `json:"mnemonic"`
+}
+
+func ParseAddressFromOutputWithSensisiveOutput(output bytes.Buffer) (*SensitiveKeyInfo, error) {
+	key := &SensitiveKeyInfo{}
+	err := json.Unmarshal(output.Bytes(), key)
+	if err != nil {
+		return nil, err
+	}
+	return key, nil
+}
+
+// KeyConfig struct store information about a wallet
+// Dir refers to the keyringDir where the key is created
 type KeyConfig struct {
-	Dir         string
+	Dir string
+	// TODO: this is not descriptive, Name would be more expressive
 	ID          string
 	ChainBinary string
 	Type        config.VMType
@@ -78,6 +98,11 @@ func PrintAddressesWithTitle(addresses []AddressData) {
 	PrintAddresses(addresses)
 }
 
+func PrintSecretAddressesWithTitle(addresses []SecretAddressData) {
+	fmt.Printf("🔑 Addresses:\n\n")
+	PrintSecretAddresses(addresses)
+}
+
 func PrintAddresses(addresses []AddressData) {
 	data := make([][]string, 0, len(addresses))
 	for _, address := range addresses {
@@ -89,6 +114,19 @@ func PrintAddresses(addresses []AddressData) {
 	table.SetBorder(false)
 	table.AppendBulk(data)
 	table.Render()
+}
+
+type SecretAddressData struct {
+	AddressData
+	Mnemonic string
+}
+
+func PrintSecretAddresses(addresses []SecretAddressData) {
+	for _, address := range addresses {
+		fmt.Println(address.AddressData.Name)
+		fmt.Println(address.AddressData.Addr)
+		fmt.Println(address.Mnemonic)
+	}
 }
 
 func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {

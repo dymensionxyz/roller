@@ -7,6 +7,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/config"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
+	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/keys"
 	"github.com/dymensionxyz/roller/cmd/migrate"
 	"github.com/dymensionxyz/roller/cmd/relayer"
@@ -47,6 +48,7 @@ func init() {
 	rootCmd.AddCommand(tx.Cmd())
 	rootCmd.AddCommand(test())
 	rootCmd.AddCommand(rollapp.Cmd())
+	rootCmd.AddCommand(eibc.Cmd())
 	utils.AddGlobalFlags(rootCmd)
 }
 

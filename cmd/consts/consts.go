@@ -21,6 +21,7 @@ var Executables = struct {
 	CelKey     string
 	Roller     string
 	Simd       string
+	Eibc       string
 }{
 	Roller:     fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
@@ -29,6 +30,7 @@ var Executables = struct {
 	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
 	Relayer:    fmt.Sprintf("%s/rly", internalBinsDir),
 	Simd:       fmt.Sprintf("%s/simd", internalBinsDir),
+	Eibc:       fmt.Sprintf("%s/eibc", binsDir),
 }
 
 var KeysIds = struct {
@@ -55,12 +57,14 @@ var ConfigDirName = struct {
 	DALightNode string
 	HubKeys     string
 	LocalHub    string
+	Eibc        string
 }{
 	Rollapp:     "rollapp",
 	Relayer:     "relayer",
 	DALightNode: "da-light-node",
 	HubKeys:     "hub-keys",
 	LocalHub:    "local-hub",
+	Eibc:        ".order-client",
 }
 
 var Denoms = struct {
