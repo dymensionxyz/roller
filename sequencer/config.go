@@ -151,6 +151,10 @@ func (seq *Sequencer) GetRPCEndpoint() string {
 	return "http://localhost:" + seq.RPCPort
 }
 
+func (seq *Sequencer) GetLocalEndpoint(port string) string {
+	return "http://localhost:" + port
+}
+
 func getSequencerConfigDir(rollerHome string) string {
 	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
 }

@@ -2,6 +2,7 @@ package sequencer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,6 +31,24 @@ type Response struct {
 	Result Result `json:"result"`
 }
 
+type HubResponse struct {
+	StateInfo struct {
+		StartHeight string `json:"startHeight"`
+		NumBlocks   string `json:"numBlocks"`
+	} `json:"stateInfo"`
+}
+
+type HealthResult struct {
+	IsHealthy bool   `json:"isHealthy"`
+	Error     string `json:"error"`
+}
+
+type HealthResponse struct {
+	JsonRPC string       `json:"jsonrpc"`
+	Result  HealthResult `json:"result"`
+	ID      int          `json:"id"`
+}
+
 func (seq *Sequencer) GetRollappHeight() (string, error) {
 	rollappRPCEndpoint := seq.GetRPCEndpoint()
 	resp, err := http.Get(fmt.Sprintf("%s/status", rollappRPCEndpoint))
@@ -54,13 +73,6 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 	}
 }
 
-type HubResponse struct {
-	StateInfo struct {
-		StartHeight string `json:"startHeight"`
-		NumBlocks   string `json:"numBlocks"`
-	} `json:"stateInfo"`
-}
-
 func (seq *Sequencer) GetHubHeight() (string, error) {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
 		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL)
@@ -83,22 +95,88 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 	return strconv.Itoa(startHeight + numBlocks - 1), nil
 }
 
+func (seq *Sequencer) GetSequencerHealth() error {
+	var res HealthResponse
+	url := seq.GetLocalEndpoint(seq.RPCPort)
+	healthEndpoint := fmt.Sprintf("%s/health", url)
+
+	// nolint gosec
+	resp, err := http.Get(healthEndpoint)
+	if err != nil {
+		return err
+	}
+
+	// nolint errcheck
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return err
+	}
+
+	if !res.Result.IsHealthy {
+		return errors.New(res.Result.Error)
+	}
+
+	return nil
+}
+
 func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
 	rolHeight, err := seq.GetRollappHeight()
 	if err != nil {
 		seq.logger.Println(err)
 	}
+
+	// ?
 	if rolHeight == "-1" {
 		return "Stopped, Restarting..."
-	} else if rolHeight == "-2" {
-		return "Unhealthy"
-	} else {
-		hubHeight, err := seq.GetHubHeight()
-		if err != nil {
-			seq.logger.Println(err)
-			return fmt.Sprintf("Active, Height: %s", rolHeight)
-		}
-		return fmt.Sprintf("Active, Height: %s, Hub: %s", rolHeight, hubHeight)
 	}
+
+	err = seq.GetSequencerHealth()
+	if err != nil {
+		return fmt.Sprintf(`
+status: Unhealthy
+error: %v
+`, err,
+		)
+	}
+
+	hubHeight, err := seq.GetHubHeight()
+
+	localAPIEndpoint := seq.GetLocalEndpoint(seq.APIPort)
+	localRPCEndpoint := seq.GetLocalEndpoint(seq.RPCPort)
+
+	if err != nil {
+		seq.logger.Println(err)
+
+		err := seq.ReadPorts()
+		if err != nil {
+			fmt.Println("failed to retrieve ports: ", err)
+		}
+
+		return fmt.Sprintf(`RollApp
+status: Healthy
+height: %s
+
+Endpoints:
+rpc: %s
+rest: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint)
+	}
+
+	return fmt.Sprintf(`RollApp:
+status: Healthy
+height: %s
+
+Endpoints:
+rpc: %s
+rest: %s
+
+Hub:
+rollapp-height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight)
 }
