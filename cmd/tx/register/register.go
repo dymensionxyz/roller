@@ -7,12 +7,12 @@ import (
 	"math/big"
 	"os/exec"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/spf13/cobra"
 )
 
 // TODO: Test registration on 35-C and update the price
