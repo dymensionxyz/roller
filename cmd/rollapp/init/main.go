@@ -236,6 +236,13 @@ func runInit(cmd *cobra.Command, args []string, configArchivePath string) error 
 		return err
 	}
 
+	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), "roller.toml")
+	err = global_utils.UpdateFieldInToml(rollerConfigFilePath, "home", utils.GetRollerRootDir())
+	if err != nil {
+		fmt.Println("failed to add home to roller.toml: ", err)
+		return err
+	}
+
 	// 20240607 genesis is generated using the genesis-creator
 	// err = initializeRollappGenesis(initConfig)
 	// if err != nil {
