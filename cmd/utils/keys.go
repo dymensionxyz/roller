@@ -36,6 +36,7 @@ type SensitiveKeyInfo struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
+// TODO: the entire sensitive output thing could be simpler
 func ParseAddressFromOutputWithSensisiveOutput(output bytes.Buffer) (*SensitiveKeyInfo, error) {
 	key := &SensitiveKeyInfo{}
 	err := json.Unmarshal(output.Bytes(), key)
