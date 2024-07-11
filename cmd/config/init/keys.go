@@ -29,7 +29,7 @@ func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.AddressDat
 	for _, key := range keys {
 		var address string
 		var err error
-		address, err = createAddressBinary(key, initConfig.Home)
+		address, err = CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 // 	}
 // }
 
-func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
+func CreateAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
 	args := []string{
 		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
@@ -88,6 +88,24 @@ func createAddressBinary(keyConfig utils.KeyConfig, home string) (string, error)
 		return "", err
 	}
 	return utils.ParseAddressFromOutput(out)
+}
+
+func CreateAddressBinaryWithSensitiveOutput(
+	keyConfig utils.KeyConfig,
+	home string,
+) (*utils.SensitiveKeyInfo, error) {
+	args := []string{
+		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
+		"--output", "json",
+	}
+	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
+	fmt.Println(createKeyCommand.String())
+	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
+	if err != nil {
+		return nil, err
+	}
+	return utils.ParseAddressFromOutputWithSensisiveOutput(out)
 }
 
 // func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
