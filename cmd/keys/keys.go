@@ -1,9 +1,10 @@
 package keys
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/keys/export"
 	"github.com/dymensionxyz/roller/cmd/keys/list"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {

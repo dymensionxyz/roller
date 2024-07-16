@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -35,15 +36,13 @@ func Cmd() *cobra.Command {
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
 
-			c := seq.GetStartCmd()
-			fmt.Println(c.String())
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go utils.RunBashCmdAsync(ctx, startRollappCmd, func() {
-				printOutput(rollappConfig)
+				printOutput(rollappConfig, startRollappCmd)
 			}, parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
 			select {}
@@ -52,7 +51,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func printOutput(rlpCfg config.RollappConfig) {
+func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	seq := sequencer.GetInstance(rlpCfg)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 	fmt.Println("💈 Endpoints:")
@@ -63,6 +62,7 @@ func printOutput(rlpCfg config.RollappConfig) {
 
 	fmt.Println("💈 Log file path: ", LogPath)
 	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
+	fmt.Println("💈 PID: ", cmd.Process.Pid)
 }
 
 func parseError(errMsg string) string {
