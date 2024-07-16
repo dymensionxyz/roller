@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/dymensionxyz/roller/config"
@@ -153,23 +154,39 @@ func ExecBashCmdFollow(cmd *exec.Cmd) error {
 		return err
 	}
 
-	// Create a channel to capture any errors from stdout or stderr
-	errChan := make(chan error, 1)
+	// Use a WaitGroup to wait for both stdout and stderr to be processed
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Channel to capture any errors from stdout or stderr
+	errChan := make(chan error, 2)
 
 	go func() {
+		defer wg.Done()
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
-		errChan <- scanner.Err()
+		if err := scanner.Err(); err != nil {
+			errChan <- err
+		}
 	}()
 
 	go func() {
+		defer wg.Done()
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
-		errChan <- scanner.Err()
+		if err := scanner.Err(); err != nil {
+			errChan <- err
+		}
+	}()
+
+	// Wait for both stdout and stderr goroutines to finish
+	go func() {
+		wg.Wait()
+		close(errChan)
 	}()
 
 	// Wait for the command to finish
@@ -177,12 +194,11 @@ func ExecBashCmdFollow(cmd *exec.Cmd) error {
 		return err
 	}
 
-	// Check if there was any error in the goroutines
-	if err := <-errChan; err != nil {
-		return err
-	}
-	if err := <-errChan; err != nil {
-		return err
+	// Check if there were any errors in the goroutines
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
