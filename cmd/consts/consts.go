@@ -8,7 +8,7 @@ import (
 
 const (
 	binsDir            = "/usr/local/bin"
-	DefaultTokenSupply = "1000000000"
+	DefaultTokenSupply = "1000000000000000000000000000"
 )
 
 var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
