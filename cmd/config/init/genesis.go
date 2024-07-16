@@ -11,6 +11,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/config"
 )
 
 const (
@@ -33,11 +34,6 @@ func getDefaultGenesisParams(
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
-		// {"app_state.mint.params.mint_denom", denom},
-		// {"app_state.staking.params.bond_denom", denom},
-		// {"app_state.crisis.constant_fee.denom", denom},
-		// {"app_state.evm.params.evm_denom", denom},
-		// {"app_state.gov.deposit_params.min_deposit.0.denom", denom},
 		// {"consensus_params.block.max_gas", "40000000"},
 		// {"app_state.feemarket.params.no_base_fee", true},
 		// {"app_state.feemarket.params.min_gas_price", "0.0"},
@@ -82,12 +78,33 @@ func UpdateGenesisParams(home string) error {
 	if err != nil {
 		return err
 	}
+	cfg, err := config.LoadConfigFromTOML(home)
+	if err != nil {
+		return err
+	}
 
 	sa, err := getSequencerAddress(home)
 	if err != nil {
 		return err
 	}
 	params := getDefaultGenesisParams(sa, oa)
+
+	addGenAccountCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"add-genesis-account",
+		sa,
+		fmt.Sprintf("%s%s", consts.DefaultTokenSupply, cfg.BaseDenom),
+		"--home",
+		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
+		"--keyring-backend",
+		"test",
+	)
+
+	fmt.Println(addGenAccountCmd.String())
+	_, err = utils.ExecBashCommandWithStdout(addGenAccountCmd)
+	if err != nil {
+		return err
+	}
 
 	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
 	return UpdateJSONParams(genesisFilePath, params)
