@@ -24,7 +24,7 @@ var Executables = struct {
 	Eibc       string
 }{
 	Roller:     fmt.Sprintf("%s/roller", binsDir),
-	RollappEVM: fmt.Sprintf("%s/rollapp_evm", binsDir),
+	RollappEVM: fmt.Sprintf("%s/rollapp-evm", binsDir),
 	Dymension:  fmt.Sprintf("%s/dymd", binsDir),
 	Celestia:   fmt.Sprintf("%s/celestia", internalBinsDir),
 	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
