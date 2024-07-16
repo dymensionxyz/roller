@@ -41,7 +41,6 @@ func AddFlags(cmd *cobra.Command) error {
 
 func GetInitConfig(
 	initCmd *cobra.Command,
-	args []string,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
 	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), config.RollerConfigFileName)
