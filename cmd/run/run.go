@@ -6,17 +6,17 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/spf13/cobra"
 
 	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
-	sequnecer_start "github.com/dymensionxyz/roller/cmd/sequencer/start"
+	rollapp_start "github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
-	"github.com/spf13/cobra"
 )
 
 var flagNames = struct {
@@ -139,7 +139,7 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	utils.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
-		rollappConfig, sequnecer_start.OneDaySequencePrice)
+		rollappConfig, rollapp_start.OneDaySequencePrice)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
 

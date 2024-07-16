@@ -13,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	"github.com/dymensionxyz/roller/cmd/run"
-	"github.com/dymensionxyz/roller/cmd/sequencer"
 	"github.com/dymensionxyz/roller/cmd/services"
 	"github.com/dymensionxyz/roller/cmd/tx"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -39,7 +38,6 @@ func init() {
 	rootCmd.AddCommand(config.Cmd())
 	rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
-	rootCmd.AddCommand(sequencer.SequencerCmd())
 	rootCmd.AddCommand(relayer.Cmd())
 	rootCmd.AddCommand(keys.Cmd())
 	rootCmd.AddCommand(run.Cmd())
