@@ -41,7 +41,7 @@ func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
 func (seq *Sequencer) GetStartCmd() *exec.Cmd {
 	rollappConfigDir := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp)
 	cmd := exec.Command(
-		seq.RlpCfg.RollappBinary,
+		consts.Executables.RollappEVM,
 		"start",
 		"--home", rollappConfigDir,
 		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),

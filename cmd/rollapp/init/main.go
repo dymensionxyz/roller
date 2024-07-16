@@ -221,6 +221,7 @@ func runInit(cmd *cobra.Command, args []string, configArchivePath string) error 
 		return err
 	}
 
+	// genesis creator archive
 	err = archives.ExtractFileFromNestedTar(
 		configArchivePath,
 		"genesis.json",

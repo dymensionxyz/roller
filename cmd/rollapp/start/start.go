@@ -1,4 +1,4 @@
-package sequnecer_start
+package start
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/spf13/cobra"
+	"github.com/dymensionxyz/roller/sequencer"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -23,25 +23,23 @@ var (
 	LogPath        string
 )
 
-func StartCmd() *cobra.Command {
-	runCmd := &cobra.Command{
+func Cmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Runs the rollapp sequencer.",
+		Short: "Show the status of the sequencer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			utils.RequireMigrateIfNeeded(rollappConfig)
-			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
-			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-			sequencerInsufficientAddrs, err := utils.GetSequencerInsufficientAddrs(
-				rollappConfig,
-				OneDaySequencePrice,
-			)
-			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(sequencerInsufficientAddrs, rollappConfig)
+
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
+
+			c := seq.GetStartCmd()
+			fmt.Println(c.String())
+			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
+			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go utils.RunBashCmdAsync(ctx, startRollappCmd, func() {
@@ -51,8 +49,7 @@ func StartCmd() *cobra.Command {
 			select {}
 		},
 	}
-
-	return runCmd
+	return cmd
 }
 
 func printOutput(rlpCfg config.RollappConfig) {
