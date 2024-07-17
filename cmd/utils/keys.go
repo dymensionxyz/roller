@@ -94,6 +94,7 @@ type AddressData struct {
 	Addr string
 }
 
+// TODO: refactor into options, with title and with mnemonic
 func PrintAddressesWithTitle(addresses []AddressData) {
 	fmt.Printf("🔑 Addresses:\n\n")
 	PrintAddresses(addresses)

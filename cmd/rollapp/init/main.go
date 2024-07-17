@@ -1,11 +1,10 @@
 package initrollapp
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -17,68 +16,65 @@ var Cmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			err := initconfig.AddFlags(cmd)
+		pterm.DefaultHeader.WithFullWidth().Printfln("welcome to roller")
+		err := initconfig.AddFlags(cmd)
+		if err != nil {
+			fmt.Println("failed to add flags")
+			return
+		}
+
+		if len(args) != 0 {
+			archivePath, err := checkConfigArchive(args[0])
 			if err != nil {
-				fmt.Println("failed to add flags")
+				fmt.Printf("failed to get archive: %v\n", err)
 				return
 			}
-			reader := bufio.NewReader(os.Stdin)
 
-			fmt.Println("Do you already have rollapp config? (y/n)")
-			resp, err := reader.ReadString('\n')
+			err = runInit(cmd, WithConfig(strings.TrimSpace(archivePath)))
 			if err != nil {
-				fmt.Println(err)
+				fmt.Printf("failed to initialize the RollApp: %v\n", err)
 				return
 			}
 
-			resp = strings.TrimSpace(resp)
-			resp = strings.ToLower(resp)
+			return
+		}
 
-			if resp == "n" || resp == "no" {
-				fmt.Println(
-					`To generate a RollApp configuration file go to <website>
-or run 'rollapp config' to expose the UI on localhost:11133.
-after configuration files are generated, rerun the 'init' command`,
-				)
-				return
-			}
+		options := []string{"mock", "dymension"}
+		backend, _ := pterm.DefaultInteractiveSelect.WithOptions(options).Show()
+		isMockBackend := backend == "mock"
 
-			if resp == "y" || resp == "yes" {
-				fmt.Println(
-					"provide a path to the configuration archive file downloaded from <website>",
-				)
-				fp, err := reader.ReadString('\n')
-				if err != nil {
-					return
-				}
-
-				archivePath, err := checkConfigArchive(fp)
-				if err != nil {
-					fmt.Printf("failed to get archive: %v\n", err)
-					return
-				}
-
-				err = runInit(cmd, archivePath)
-				if err != nil {
-					fmt.Printf("failed to initialize the RollApp: %v\n", err)
-					return
-				}
-
+		if isMockBackend {
+			err := runInit(cmd)
+			if err != nil {
+				fmt.Println("failed to run init: ", err)
 				return
 			}
 			return
 		}
 
-		archivePath, err := checkConfigArchive(args[0])
+		hasConfig, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"do you have an existing configuration archive?",
+		).Show()
+
+		if !hasConfig {
+			fmt.Println(
+				`To generate a RollApp configuration file go to <website>
+or run 'rollapp config' to expose the UI on localhost:11133.
+after configuration files are generated, rerun the 'init' command`,
+			)
+			return
+		}
+
+		fp, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide the configuration archive path").
+			Show()
+
+		archivePath, err := checkConfigArchive(fp)
 		if err != nil {
 			fmt.Printf("failed to get archive: %v\n", err)
 			return
 		}
 
-		fmt.Println(archivePath)
-
-		err = runInit(cmd, strings.TrimSpace(archivePath))
+		err = runInit(cmd, WithConfig(archivePath))
 		if err != nil {
 			fmt.Printf("failed to initialize the RollApp: %v\n", err)
 			return

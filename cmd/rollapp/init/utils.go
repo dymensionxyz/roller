@@ -19,23 +19,36 @@ import (
 	"github.com/dymensionxyz/roller/utils/archives"
 )
 
-func expandHomePath(path string) (string, error) {
-	if path[:2] == "~/" {
-		usr, err := user.Current()
-		if err != nil {
-			return "", err
-		}
-		path = filepath.Join(usr.HomeDir, path[2:])
+type Options struct {
+	configArchivePath string
+}
+
+type Option func(*Options)
+
+func WithConfig(configArchivePath string) Option {
+	return func(o *Options) {
+		o.configArchivePath = configArchivePath
 	}
-	return path, nil
+}
+
+func defaultOptions() Options {
+	return Options{
+		configArchivePath: "",
+	}
 }
 
 // in runInit I parse the entire genesis creator zip file twice to extract
 // the file this looks awful but since the archive has only 2 files it's
 // kinda fine
-func runInit(cmd *cobra.Command, configArchivePath string) error {
+func runInit(cmd *cobra.Command, opts ...Option) error {
+	options := defaultOptions()
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	home := utils.GetRollerRootDir()
 	outputHandler := initconfig.NewOutputHandler(false)
+	configArchivePath := options.configArchivePath
 
 	defer outputHandler.StopSpinner()
 
@@ -50,13 +63,11 @@ func runInit(cmd *cobra.Command, configArchivePath string) error {
 		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(home)
 		if err != nil {
 			utils.PrettifyErrorIfExists(err)
-			fmt.Println("prompt")
 			return err
 		}
 		if shouldOverwrite {
 			err = os.RemoveAll(home)
 			if err != nil {
-				fmt.Println("RemoveAll")
 				utils.PrettifyErrorIfExists(err)
 				return err
 			}
@@ -72,19 +83,27 @@ func runInit(cmd *cobra.Command, configArchivePath string) error {
 		return err
 	}
 
-	err = archives.ExtractFileFromNestedTar(
-		configArchivePath,
-		config.RollerConfigFileName,
-		home,
-	)
-	if err != nil {
-		fmt.Println("nested tar")
-		return err
+	if configArchivePath != "" {
+		err = archives.ExtractFileFromNestedTar(
+			configArchivePath,
+			config.RollerConfigFileName,
+			home,
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		// do something
+		config := NewMockRollerConfig()
+		err := WriteMockRollerconfigToFile(config)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	initConfigPtr, err := initconfig.GetInitConfig(cmd)
 	if err != nil {
-		fmt.Println("getiniconfig")
 		utils.PrettifyErrorIfExists(err)
 		return err
 	}
@@ -95,7 +114,6 @@ func runInit(cmd *cobra.Command, configArchivePath string) error {
 	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
-		fmt.Println("validate")
 		utils.PrettifyErrorIfExists(err)
 		return err
 	}
@@ -157,14 +175,16 @@ func runInit(cmd *cobra.Command, configArchivePath string) error {
 		return err
 	}
 
-	// genesis creator archive
-	err = archives.ExtractFileFromNestedTar(
-		configArchivePath,
-		"genesis.json",
-		filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
-	)
-	if err != nil {
-		return err
+	if configArchivePath != "" {
+		// genesis creator archive
+		err = archives.ExtractFileFromNestedTar(
+			configArchivePath,
+			"genesis.json",
+			filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	// adds the sequencer address to the whitelists
@@ -225,4 +245,15 @@ func checkConfigArchive(path string) (string, error) {
 	}
 
 	return archivePath, nil
+}
+
+func expandHomePath(path string) (string, error) {
+	if path[:2] == "~/" {
+		usr, err := user.Current()
+		if err != nil {
+			return "", err
+		}
+		path = filepath.Join(usr.HomeDir, path[2:])
+	}
+	return path, nil
 }
