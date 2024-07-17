@@ -41,7 +41,6 @@ func AddFlags(cmd *cobra.Command) error {
 
 func GetInitConfig(
 	initCmd *cobra.Command,
-	args []string,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
 	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), config.RollerConfigFileName)
@@ -59,9 +58,15 @@ func GetInitConfig(
 	cfg.DA = config.DAType(strings.ToLower(string(cfg.DA)))
 
 	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
-	if hub, ok := consts.Hubs[hubID]; ok {
-		cfg.HubData = hub
+
+	hub, ok := consts.Hubs[hubID]
+
+	if !ok {
+		return nil, fmt.Errorf("failed to retrieve the hub with hub id: %s", hubID)
 	}
+
+	cfg.HubData = hub
+
 	// cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
