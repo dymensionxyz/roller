@@ -44,7 +44,7 @@ var Cmd = &cobra.Command{
 		isMockBackend := backend == "mock"
 
 		if isMockBackend {
-			err := runInit(cmd)
+			err := runInit(cmd, WithMockSettlement())
 			if err != nil {
 				fmt.Println("failed to run init: ", err)
 				return

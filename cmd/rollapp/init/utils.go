@@ -1,6 +1,7 @@
 package initrollapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -21,6 +22,7 @@ import (
 
 type Options struct {
 	configArchivePath string
+	useMockSettlement bool
 }
 
 type Option func(*Options)
@@ -28,6 +30,12 @@ type Option func(*Options)
 func WithConfig(configArchivePath string) Option {
 	return func(o *Options) {
 		o.configArchivePath = configArchivePath
+	}
+}
+
+func WithMockSettlement() Option {
+	return func(o *Options) {
+		o.useMockSettlement = true
 	}
 }
 
@@ -93,16 +101,14 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 			return err
 		}
 	} else {
-		// do something
 		config := NewMockRollerConfig()
 		err := WriteMockRollerconfigToFile(config)
 		if err != nil {
 			return err
 		}
-
 	}
 
-	initConfigPtr, err := initconfig.GetInitConfig(cmd)
+	initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -152,7 +158,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
-	err = damanager.InitializeLightNodeConfig()
+	mnemonic, err := damanager.InitializeLightNodeConfig()
 	if err != nil {
 		return err
 	}
@@ -162,10 +168,11 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	if daAddress != "" {
-		addresses = append(addresses, utils.AddressData{
-			Name: damanager.GetKeyName(),
-			Addr: daAddress,
+	if daAddress != nil {
+		addresses = append(addresses, utils.KeyInfo{
+			Name:     damanager.GetKeyName(),
+			Address:  daAddress.Address,
+			Mnemonic: mnemonic,
 		})
 	}
 
@@ -222,6 +229,9 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	// }
 
 	/* ------------------------------ Print output ------------------------------ */
+
+	j, _ := json.MarshalIndent(addresses, "", " ")
+	fmt.Println(string(j))
 	outputHandler.StopSpinner()
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 

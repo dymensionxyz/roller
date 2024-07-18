@@ -113,6 +113,7 @@ type BalanceResp struct {
 	Denom  string `json:"denom"`
 	Amount string `json:"amount"`
 }
+
 type BalanceResponse struct {
 	Balances []BalanceResp `json:"balances"`
 }

@@ -5,14 +5,13 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
 )
 
 type DataLayer interface {
-	GetDAAccountAddress() (string, error)
-	InitializeLightNodeConfig() error
+	GetDAAccountAddress() (*utils.KeyInfo, error)
+	InitializeLightNodeConfig() (string, error)
 	CheckDABalance() ([]utils.NotFundedAddressData, error)
 	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
@@ -37,8 +36,8 @@ func NewDAManager(datype config.DAType, home string) *DAManager {
 	switch datype {
 	case config.Celestia:
 		dalayer = celestia.NewCelestia(home)
-	case config.Avail:
-		dalayer = avail.NewAvail(home)
+	// case config.Avail:
+	// 	dalayer = avail.NewAvail(home)
 	case config.Local:
 		dalayer = &damock.DAMock{}
 	default:

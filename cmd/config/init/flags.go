@@ -16,6 +16,7 @@ import (
 func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
 		StringP(FlagNames.HubID, "", consts.LocalHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+
 	cmd.Flags().
 		StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
 	cmd.Flags().
@@ -41,6 +42,7 @@ func AddFlags(cmd *cobra.Command) error {
 
 func GetInitConfig(
 	initCmd *cobra.Command,
+	withMockSettlement bool,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
 	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), config.RollerConfigFileName)
@@ -57,7 +59,14 @@ func GetInitConfig(
 	// cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
 	cfg.DA = config.DAType(strings.ToLower(string(cfg.DA)))
 
-	hubID := initCmd.Flag(FlagNames.HubID).Value.String()
+	var hubID string
+
+	// TODO: hub id (and probably the rest of settlement config) should come from roller config
+	if withMockSettlement {
+		hubID = "mock"
+	} else {
+		hubID = initCmd.Flag(FlagNames.HubID).Value.String()
+	}
 
 	hub, ok := consts.Hubs[hubID]
 

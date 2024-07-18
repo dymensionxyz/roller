@@ -8,7 +8,7 @@ import (
 )
 
 func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
-	sequencerAddress, err := GetAddressBinary(KeyConfig{
+	seqAddrInfo, err := GetAddressBinary(KeyConfig{
 		ID:  consts.KeysIds.HubSequencer,
 		Dir: filepath.Join(cfg.Home, consts.ConfigDirName.HubKeys),
 	}, consts.Executables.Dymension)
@@ -20,13 +20,13 @@ func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 		Binary: consts.Executables.Dymension,
 		Denom:  consts.Denoms.Hub,
 		RPC:    cfg.HubData.RPC_URL,
-	}, sequencerAddress)
+	}, seqAddrInfo.Address)
 	if err != nil {
 		return nil, err
 	}
 	return []AccountData{
 		{
-			Address: sequencerAddress,
+			Address: seqAddrInfo.Address,
 			Balance: sequencerBalance,
 		},
 	}, nil

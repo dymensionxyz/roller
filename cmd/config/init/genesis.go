@@ -100,7 +100,6 @@ func UpdateGenesisParams(home string) error {
 		"test",
 	)
 
-	fmt.Println(addGenAccountCmd.String())
 	_, err = utils.ExecBashCommandWithStdout(addGenAccountCmd)
 	if err != nil {
 		return err

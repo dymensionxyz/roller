@@ -24,12 +24,12 @@ func NewDAMock() *DAMock {
 	return &DAMock{}
 }
 
-func (d *DAMock) GetDAAccountAddress() (string, error) {
-	return "", nil
+func (d *DAMock) GetDAAccountAddress() (*utils.KeyInfo, error) {
+	return nil, nil
 }
 
-func (d *DAMock) InitializeLightNodeConfig() error {
-	return nil
+func (d *DAMock) InitializeLightNodeConfig() (string, error) {
+	return "", nil
 }
 
 func (d *DAMock) CheckDABalance() ([]utils.NotFundedAddressData, error) {

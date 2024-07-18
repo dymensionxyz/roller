@@ -27,49 +27,54 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
-			addresses := make([]utils.AddressData, 0)
+			addresses := make([]utils.KeyInfo, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
 			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
 			utils.PrettifyErrorIfExists(err)
-			if daAddr != "" {
-				addresses = append(addresses, utils.AddressData{
-					Addr: daAddr,
-					Name: damanager.GetKeyName(),
+			if daAddr != nil {
+				addresses = append(addresses, utils.KeyInfo{
+					Address: daAddr.Address,
+					Name:    damanager.GetKeyName(),
 				})
 			}
-			hubSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{
+
+			hubSeqInfo, err := utils.GetAddressBinary(utils.KeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 				ID:  consts.KeysIds.HubSequencer,
 			}, consts.Executables.Dymension)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.AddressData{
-				Addr: hubSeqAddr,
-				Name: consts.KeysIds.HubSequencer,
+			addresses = append(addresses, utils.KeyInfo{
+				Address: hubSeqInfo.Address,
+				Name:    consts.KeysIds.HubSequencer,
 			})
-			rollappSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{
+
+			raSeqInfo, err := utils.GetAddressBinary(utils.KeyConfig{
 				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
 				ID:  consts.KeysIds.RollappSequencer,
 			}, rollappConfig.RollappBinary)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.AddressData{
-				Addr: rollappSeqAddr,
-				Name: consts.KeysIds.RollappSequencer,
+			addresses = append(addresses, utils.KeyInfo{
+				Address: raSeqInfo.Address,
+				Name:    consts.KeysIds.RollappSequencer,
 			})
+
 			hubRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.HubData.ID)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.AddressData{
-				Addr: hubRlyAddr,
-				Name: consts.KeysIds.HubRelayer,
+			addresses = append(addresses, utils.KeyInfo{
+				Address: hubRlyAddr,
+				Name:    consts.KeysIds.HubRelayer,
 			})
+
 			rollappRlyAddr, err := utils.GetRelayerAddress(
 				rollappConfig.Home,
 				rollappConfig.RollappID,
 			)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.AddressData{
-				Addr: rollappRlyAddr,
-				Name: consts.KeysIds.RollappRelayer,
+
+			addresses = append(addresses, utils.KeyInfo{
+				Address: rollappRlyAddr,
+				Name:    consts.KeysIds.RollappRelayer,
 			})
 			outputType := cmd.Flag(flagNames.outputType).Value.String()
 			if outputType == "json" {
@@ -83,10 +88,10 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func printAsJSON(addresses []utils.AddressData) error {
+func printAsJSON(addresses []utils.KeyInfo) error {
 	addrMap := make(map[string]string)
 	for _, addrData := range addresses {
-		addrMap[addrData.Name] = addrData.Addr
+		addrMap[addrData.Name] = addrData.Address
 	}
 	data, err := json.MarshalIndent(addrMap, "", "  ")
 	if err != nil {

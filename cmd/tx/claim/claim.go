@@ -51,7 +51,7 @@ func Cmd() *cobra.Command {
 				Binary: consts.Executables.Dymension,
 				Denom:  consts.Denoms.Hub,
 				RPC:    mainnetHub.RPC_URL,
-			}, sequencerAddr)
+			}, sequencerAddr.Address)
 			if err != nil {
 				return err
 			}
