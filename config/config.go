@@ -103,6 +103,10 @@ func IsValidVMType(t string) bool {
 }
 
 func VerifyHubID(data HubData) error {
+	if data.ID == "mock" {
+		return nil
+	}
+
 	if data.RPC_URL == "" {
 		return fmt.Errorf("invalid hub ID: %s. RPC URL cannot be empty", data.ID)
 	}
