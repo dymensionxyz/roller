@@ -27,7 +27,7 @@ func ensureWhaleAccount() error {
 	_, err := utils.GetAddressBinary(kc, consts.Executables.Dymension)
 	if err != nil {
 		fmt.Println("whale account not found in the keyring, creating it now")
-		addressInfo, err := initconfig.CreateAddressBinaryWithSensitiveOutput(kc, home)
+		addressInfo, err := initconfig.CreateAddressBinary(kc, home)
 		if err != nil {
 			return err
 		}

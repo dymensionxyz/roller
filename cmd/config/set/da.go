@@ -42,7 +42,8 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 		return err
 	}
 	daManager := datalayer.NewDAManager(newDa, rlpCfg.Home)
-	if err := daManager.InitializeLightNodeConfig(); err != nil {
+	_, err = daManager.InitializeLightNodeConfig()
+	if err != nil {
 		return err
 	}
 	rlpCfg.DA = newDa
@@ -54,18 +55,18 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 	}
 	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
 	if newDa != config.Local {
-		addresses := make([]utils.AddressData, 0)
+		addresses := make([]utils.KeyInfo, 0)
 		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home)
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return err
 		}
-		addresses = append(addresses, utils.AddressData{
-			Name: damanager.GetKeyName(),
-			Addr: daAddress,
+		addresses = append(addresses, utils.KeyInfo{
+			Name:    damanager.GetKeyName(),
+			Address: daAddress.Address,
 		})
-		fmt.Printf("🔑 Address:\n\n")
-		utils.PrintAddresses(addresses)
+
+		utils.PrintAddressesWithTitle(addresses)
 		fmt.Printf("\n🔔 Please fund this address to run the DA light client.\n")
 	}
 	return nil

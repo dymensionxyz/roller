@@ -12,15 +12,15 @@ import (
 
 func formatAddresses(
 	rollappConfig config.RollappConfig,
-	addresses []utils.AddressData,
-) []utils.AddressData {
+	addresses []utils.KeyInfo,
+) []utils.KeyInfo {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	requireFundingKeys := map[string]string{
 		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
 		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID),
 		damanager.GetKeyName():      fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
 	}
-	filteredAddresses := make([]utils.AddressData, 0)
+	filteredAddresses := make([]utils.KeyInfo, 0)
 	for _, address := range addresses {
 		if newName, ok := requireFundingKeys[address.Name]; ok {
 			address.Name = newName

@@ -15,6 +15,7 @@ import (
 
 func CreatePath(rlpCfg config.RollappConfig) error {
 	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
+
 	newPathCmd := exec.Command(
 		consts.Executables.Relayer,
 		"paths",
@@ -28,6 +29,7 @@ func CreatePath(rlpCfg config.RollappConfig) error {
 	if err := newPathCmd.Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 

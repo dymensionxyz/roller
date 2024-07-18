@@ -1,6 +1,7 @@
 package celestia
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -103,7 +104,7 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 
 // GetDAAccountAddress implements datalayer.DataLayer.
 // FIXME: should be loaded once and cached
-func (c *Celestia) GetDAAccountAddress() (string, error) {
+func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
@@ -111,23 +112,50 @@ func (c *Celestia) GetDAAccountAddress() (string, error) {
 	)
 	output, err := utils.ExecBashCommandWithStdout(cmd)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	address, err := utils.ParseAddressFromOutput(output)
 	return address, err
 }
 
-func (c *Celestia) InitializeLightNodeConfig() error {
+func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init",
 		"--p2p.network",
 		DefaultCelestiaNetwork,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
-	err := initLightNodeCmd.Run()
+	// err := initLightNodeCmd.Run()
+	out, err := utils.ExecBashCommandWithStdout(initLightNodeCmd)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	mnemonic := extractMnemonic(out.String())
+
+	return mnemonic, nil
+}
+
+func extractMnemonic(output string) string {
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	mnemonicLineFound := false
+	var mnemonicLines []string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if mnemonicLineFound {
+			// Collect all subsequent lines as part of the mnemonic
+			mnemonicLines = append(mnemonicLines, line)
+		}
+		if strings.HasPrefix(line, "MNEMONIC") {
+			mnemonicLineFound = true
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading output:", err)
+		return ""
+	}
+
+	return strings.Join(mnemonicLines, " ")
 }
 
 func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
@@ -137,7 +165,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}
 	restQueryUrl := fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
-		CelestiaRestApiEndpoint, celAddress,
+		CelestiaRestApiEndpoint, celAddress.Address,
 	)
 	balancesJson, err := utils.RestQueryJson(restQueryUrl)
 	if err != nil {
@@ -148,7 +176,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 		return nil, err
 	}
 	return &utils.AccountData{
-		Address: celAddress,
+		Address: celAddress.Address,
 		Balance: balance,
 	}, nil
 }

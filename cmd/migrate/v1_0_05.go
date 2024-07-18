@@ -46,7 +46,7 @@ func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) err
 	}
 	// re-init the light node and ask the user to fund the address
 	celestiaClient := celestia.NewCelestia(rlpCfg.Home)
-	err := celestiaClient.InitializeLightNodeConfig()
+	_, err := celestiaClient.InitializeLightNodeConfig()
 	if err != nil {
 		return err
 	}

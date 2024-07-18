@@ -3,6 +3,9 @@ package initconfig
 import (
 	"fmt"
 
+	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 )
@@ -19,7 +22,7 @@ func NewOutputHandler(noOutput bool) *OutputHandler {
 
 func (o *OutputHandler) PrintInitOutput(
 	rollappConfig config.RollappConfig,
-	addresses []utils.AddressData,
+	addresses []utils.KeyInfo,
 	rollappId string,
 ) {
 	if o.NoOutput {
@@ -31,9 +34,16 @@ func (o *OutputHandler) PrintInitOutput(
 	)
 	fmt.Println(FormatTokenSupplyLine(rollappConfig))
 	fmt.Println()
-	utils.PrintAddressesWithTitle(formatAddresses(rollappConfig, addresses))
+	utils.PrintAddressesWithTitle(addresses)
 
-	fmt.Printf("\n🔔 Please fund these addresses to register and run the rollapp.\n")
+	if rollappConfig.HubData.ID != consts.MockHubID {
+		pterm.DefaultSection.WithIndentCharacter("🔔").
+			Println("Please fund the addresses below to register and run the rollapp.")
+		fa := formatAddresses(rollappConfig, addresses)
+		for _, v := range fa {
+			v.Print(utils.WithName())
+		}
+	}
 }
 
 func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {

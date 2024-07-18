@@ -10,12 +10,12 @@ import (
 )
 
 func getBech32Prefix(rlpCfg config.RollappConfig) (string, error) {
-	rollappSeqAddr, err := utils.GetAddressBinary(utils.KeyConfig{
+	rollappSeqAddrInfo, err := utils.GetAddressBinary(utils.KeyConfig{
 		Dir: filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp),
 		ID:  consts.KeysIds.RollappSequencer,
 	}, rlpCfg.RollappBinary)
 	if err != nil {
 		return "", err
 	}
-	return strings.Split(rollappSeqAddr, "1")[0], nil
+	return strings.Split(rollappSeqAddrInfo.Address, "1")[0], nil
 }

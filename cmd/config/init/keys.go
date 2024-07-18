@@ -10,38 +10,57 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-func GenerateKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {
+func GenerateKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
+	// var addresses []utils.KeyInfo
+
 	sequencerAddresses, err := generateSequencersKeys(rollappConfig)
 	if err != nil {
 		fmt.Println("failed to generate sequencerAddresses")
 		return nil, err
 	}
+
+	// addresses = append(addresses, sequencerAddresses...)
+
 	// relayerAddresses, err := generateRelayerKeys(rollappConfig)
 	// if err != nil {
 	// 	return nil, err
 	// }
+	// addresses = append(addresses, relayerAddresses...)
+
 	return sequencerAddresses, nil
 }
 
-func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.AddressData, error) {
+func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	keys := getSequencerKeysConfig(initConfig)
-	addresses := make([]utils.AddressData, 0)
+	addresses := make([]utils.KeyInfo, 0)
 	for _, key := range keys {
-		var address string
+		var address *utils.KeyInfo
 		var err error
 		address, err = CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
-		addresses = append(addresses, utils.AddressData{
-			Addr: address,
-			Name: key.ID,
+		addresses = append(addresses, utils.KeyInfo{
+			Address:  address.Address,
+			Name:     key.ID,
+			Mnemonic: address.Mnemonic,
 		})
 	}
 	return addresses, nil
 }
 
 func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
+	fmt.Println(rollappConfig.HubData)
+	if rollappConfig.HubData.ID == consts.MockHubID {
+		return []utils.KeyConfig{
+			{
+				Dir:         consts.ConfigDirName.Rollapp,
+				ID:          consts.KeysIds.RollappSequencer,
+				ChainBinary: rollappConfig.RollappBinary,
+				Type:        rollappConfig.VMType,
+			},
+		}
+	}
 	return []utils.KeyConfig{
 		{
 			Dir:         consts.ConfigDirName.HubKeys,
@@ -76,36 +95,21 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 // 	}
 // }
 
-func CreateAddressBinary(keyConfig utils.KeyConfig, home string) (string, error) {
-	args := []string{
-		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
-		"--output", "json",
-	}
-	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
-	if err != nil {
-		return "", err
-	}
-	return utils.ParseAddressFromOutput(out)
-}
-
-func CreateAddressBinaryWithSensitiveOutput(
+func CreateAddressBinary(
 	keyConfig utils.KeyConfig,
 	home string,
-) (*utils.SensitiveKeyInfo, error) {
+) (*utils.KeyInfo, error) {
 	args := []string{
 		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	fmt.Println(createKeyCommand.String())
 	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return nil, err
 	}
-	return utils.ParseAddressFromOutputWithSensisiveOutput(out)
+	return utils.ParseAddressFromOutput(out)
 }
 
 // func generateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.AddressData, error) {

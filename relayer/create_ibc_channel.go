@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dymensionxyz/roller/sequencer"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/sequencer"
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
@@ -34,7 +33,7 @@ func (r *Relayer) CreateIBCChannel(
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
-	sendFundsCmd := seq.GetSendCmd(sequecerAddress)
+	sendFundsCmd := seq.GetSendCmd(sequecerAddress.Address)
 	utils.RunCommandEvery(
 		ctx,
 		sendFundsCmd.Path,

@@ -40,7 +40,7 @@ var KeysIds = struct {
 	HubRelayer       string
 }{
 	HubSequencer:     "hub_sequencer",
-	RollappSequencer: "rollapp_sequencer",
+	RollappSequencer: "rollapp_genesis_account",
 	RollappRelayer:   "relayer-rollapp-key",
 	HubRelayer:       "relayer-hub-key",
 }
@@ -116,20 +116,32 @@ var LocalHubData = config.HubData{
 	SEQ_MIN_BOND:    "100dym",
 }
 
+var MockHubData = config.HubData{
+	API_URL:         "",
+	ID:              MockHubID,
+	RPC_URL:         "",
+	ARCHIVE_RPC_URL: "",
+	GAS_PRICE:       "",
+	SEQ_MIN_BOND:    "",
+}
+
 // TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]config.HubData{
+	MockHubName:    MockHubData,
 	LocalHubName:   LocalHubData,
 	TestnetHubName: TestnetHubData,
 	MainnetHubName: MainnetHubData,
 }
 
 const (
+	MockHubName    = "mock"
 	LocalHubName   = "local"
 	TestnetHubName = "testnet"
 	MainnetHubName = "mainnet"
 )
 
 const (
+	MockHubID    = "mock"
 	LocalHubID   = "dymension_100-1"
 	TestnetHubID = "blumbus_111-1"
 	MainnetHubID = "dymension_1100-1"
