@@ -1,7 +1,6 @@
 package initrollapp
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -230,8 +229,6 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 
 	/* ------------------------------ Print output ------------------------------ */
 
-	j, _ := json.MarshalIndent(addresses, "", " ")
-	fmt.Println(string(j))
 	outputHandler.StopSpinner()
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 

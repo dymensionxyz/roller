@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -30,15 +32,24 @@ func formatAddresses(
 	return filteredAddresses
 }
 
-func FormatTokenSupplyLine(rollappConfig config.RollappConfig) string {
-	return fmt.Sprintf(
-		"💰 Total Token Supply: %s %s. Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).",
+func PrintTokenSupplyLine(rollappConfig config.RollappConfig) {
+	pterm.DefaultSection.WithIndentCharacter("💰").Printf(
+		"Total Token Supply: %s %s.",
 		addCommasToNum(
-			"1000000000",
+			consts.DefaultTokenSupply[:len(consts.DefaultTokenSupply)-int(rollappConfig.Decimals)],
 		),
 		rollappConfig.Denom,
+	)
+
+	pterm.DefaultBasicText.Printf(
+		"Note that 1 %s == 1 * 10^%d %s (like 1 ETH == 1 * 10^18 wei).\nThe total supply in base denom (%s) is "+pterm.Yellow(
+			"%s%s",
+		),
 		rollappConfig.Denom,
 		rollappConfig.Decimals,
+		rollappConfig.BaseDenom,
+		rollappConfig.BaseDenom,
+		consts.DefaultTokenSupply,
 		rollappConfig.BaseDenom,
 	)
 }
