@@ -28,7 +28,13 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("max_idle_time", "1h0m0s")
 	dymintCfg.Set("max_proof_time", "10s")
-	dymintCfg.Set("settlement_layer", "mock")
+
+	if rlpCfg.HubData.ID == consts.MockHubID {
+		dymintCfg.Set("settlement_layer", "mock")
+	} else {
+		dymintCfg.Set("settlement_layer", "dymension")
+	}
+
 	dymintCfg.Set("block_batch_size", "500")
 	dymintCfg.Set("block_time", "0.2s")
 	dymintCfg.Set("batch_submit_max_time", "100s")
