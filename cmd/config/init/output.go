@@ -32,7 +32,7 @@ func (o *OutputHandler) PrintInitOutput(
 		"💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n",
 		rollappId,
 	)
-	fmt.Println(FormatTokenSupplyLine(rollappConfig))
+	PrintTokenSupplyLine(rollappConfig)
 	fmt.Println()
 	utils.PrintAddressesWithTitle(addresses)
 

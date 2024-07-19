@@ -50,7 +50,6 @@ func generateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, e
 }
 
 func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
-	fmt.Println(rollappConfig.HubData)
 	if rollappConfig.HubData.ID == consts.MockHubID {
 		return []utils.KeyConfig{
 			{
