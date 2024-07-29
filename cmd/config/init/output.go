@@ -50,7 +50,10 @@ func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
 	if o.NoOutput {
 		return true, nil
 	}
-	return utils.PromptBool(
-		fmt.Sprintf("Directory %s is not empty. Do you want to overwrite", home),
-	)
+
+	shouldOverwrite, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", home),
+	).WithDefaultValue(false).Show()
+
+	return shouldOverwrite, nil
 }

@@ -36,8 +36,8 @@ func Cmd() *cobra.Command {
 				coinType = 60
 			}
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
-			srcChannel, hubChannel, err := rly.LoadActiveChannel()
-			if err != nil || srcChannel == "" || hubChannel == "" {
+			_, _, err = rly.LoadActiveChannel()
+			if err != nil || rly.SrcChannel == "" || rly.DstChannel == "" {
 				utils.PrettifyErrorIfExists(errors.New("failed to export rollapp json." +
 					" Please verify that the rollapp is running on your local machine and a relayer channel has been established"))
 			}
@@ -62,8 +62,8 @@ func Cmd() *cobra.Command {
 				Website:   "",
 				Logo:      logoDefaultPath,
 				Ibc: IbcConfig{
-					HubChannel: hubChannel,
-					Channel:    srcChannel,
+					HubChannel: rly.SrcChannel,
+					Channel:    rly.DstChannel,
 					Timeout:    172800000,
 				},
 				Type:      RollApp,

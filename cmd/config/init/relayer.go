@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
@@ -44,7 +46,7 @@ func writeTmpChainConfig(chainConfig RelayerFileChainConfig, fileName string) (s
 	}
 	filePath := filepath.Join(os.TempDir(), fileName)
 	// nolint:gofumpt
-	if err := os.WriteFile(filePath, file, 0644); err != nil {
+	if err := os.WriteFile(filePath, file, 0o644); err != nil {
 		return "", err
 	}
 	return filePath, nil
@@ -107,17 +109,21 @@ func addChainsConfig(
 	hubConfig relayer.ChainConfig,
 	relayerHome string,
 ) error {
-	relayerRollappConfig := getRelayerFileChainConfig(RelayerChainConfig{
-		ChainConfig: rollappConfig,
-		GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
-		KeyName:     consts.KeysIds.RollappRelayer,
-	})
+	relayerRollappConfig := getRelayerFileChainConfig(
+		RelayerChainConfig{
+			ChainConfig: rollappConfig,
+			GasPrices:   rollappConfig.GasPrices + rollappConfig.Denom,
+			KeyName:     consts.KeysIds.RollappRelayer,
+		},
+	)
 
-	relayerHubConfig := getRelayerFileChainConfig(RelayerChainConfig{
-		ChainConfig: hubConfig,
-		GasPrices:   hubConfig.GasPrices + hubConfig.Denom,
-		KeyName:     consts.KeysIds.HubRelayer,
-	})
+	relayerHubConfig := getRelayerFileChainConfig(
+		RelayerChainConfig{
+			ChainConfig: hubConfig,
+			GasPrices:   hubConfig.GasPrices + hubConfig.Denom,
+			KeyName:     consts.KeysIds.HubRelayer,
+		},
+	)
 
 	if err := addChainToRelayer(relayerRollappConfig, relayerHome); err != nil {
 		return err
@@ -128,20 +134,21 @@ func addChainsConfig(
 	return nil
 }
 
-func initializeRelayerConfig(
+func InitializeRelayerConfig(
 	rollappConfig relayer.ChainConfig,
 	hubConfig relayer.ChainConfig,
 	initConfig config.RollappConfig,
 ) error {
+	pterm.Info.Println("initializing relayer config")
+
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
+
 	if err := initRelayer(relayerHome); err != nil {
 		return err
 	}
 	if err := addChainsConfig(rollappConfig, hubConfig, relayerHome); err != nil {
 		return err
 	}
-	if err := relayer.CreatePath(initConfig); err != nil {
-		return err
-	}
+
 	return nil
 }

@@ -30,18 +30,17 @@ func GetGenesisFilePath(root string) string {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string,
+	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
-		// {"consensus_params.block.max_gas", "40000000"},
-		// {"app_state.feemarket.params.no_base_fee", true},
-		// {"app_state.feemarket.params.min_gas_price", "0.0"},
-		// {"app_state.distribution.params.base_proposer_reward", "0.8"},
-		// {"app_state.distribution.params.community_tax", "0.00002"},
-		// {"app_state.gov.voting_params.voting_period", "300s"},
-		// {"app_state.staking.params.unbonding_time", "3628800s"},
-		// {"app_state.bank.denom_metadata", getBankDenomMetadata(denom, decimals)},
+		{"consensus_params.block.max_gas", "40000000"},
+		{"app_state.feemarket.params.no_base_fee", true},
+		{"app_state.feemarket.params.min_gas_price", "0.0"},
+		{"app_state.distribution.params.base_proposer_reward", "0.8"},
+		{"app_state.distribution.params.community_tax", "0.00002"},
+		{"app_state.gov.voting_params.voting_period", "300s"},
+		{"app_state.bank.denom_metadata", getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals)},
 
 		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
 		{
@@ -73,7 +72,7 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-func UpdateGenesisParams(home string) error {
+func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	oa, err := getGenesisOperatorAddress(home)
 	if err != nil {
 		return err
@@ -87,8 +86,9 @@ func UpdateGenesisParams(home string) error {
 	if err != nil {
 		return err
 	}
-	params := getDefaultGenesisParams(sa, oa)
+	params := getDefaultGenesisParams(sa, oa, raCfg)
 
+	// TODO: move to generalized helper
 	addGenAccountCmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"add-genesis-account",
@@ -107,6 +107,22 @@ func UpdateGenesisParams(home string) error {
 
 	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
 	return UpdateJSONParams(genesisFilePath, params)
+}
+
+func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
+	home := utils.GetRollerRootDir()
+	cmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"add-genesis-account",
+		addr,
+		fmt.Sprintf("%s%s", consts.DefaultTokenSupply, raCfg.BaseDenom),
+		"--home",
+		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
+		"--keyring-backend",
+		"test",
+	)
+
+	return cmd
 }
 
 func getGenesisOperatorAddress(home string) (string, error) {

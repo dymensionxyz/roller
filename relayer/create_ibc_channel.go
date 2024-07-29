@@ -8,12 +8,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
 )
 
-// CreateIBCChannel Creates an IBC channel between the hub and the client, and return the source channel ID.
+// CreateIBCChannel Creates an IBC channel between the hub and the client,
+// and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(
 	override bool,
 	logFileOption utils.CommandOption,
@@ -26,14 +29,16 @@ func (r *Relayer) CreateIBCChannel(
 	// progressing for connection and channel creation.
 	// replaced update clients to avoid account sequence mismatch and
 	// premature heights updates e.g "TrustedHeight {1 x} must be less than header height {1 y}"
-	sequecerAddress, err := utils.GetAddressBinary(utils.KeyConfig{
-		Dir: filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp),
-		ID:  consts.KeysIds.RollappSequencer,
-	}, seq.RlpCfg.RollappBinary)
+	sequencerAddress, err := utils.GetAddressBinary(
+		utils.KeyConfig{
+			Dir: filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp),
+			ID:  consts.KeysIds.RollappSequencer,
+		}, consts.Executables.RollappEVM,
+	)
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
-	sendFundsCmd := seq.GetSendCmd(sequecerAddress.Address)
+	sendFundsCmd := seq.GetSendCmd(sequencerAddress.Address)
 	utils.RunCommandEvery(
 		ctx,
 		sendFundsCmd.Path,
@@ -52,23 +57,25 @@ func (r *Relayer) CreateIBCChannel(
 	}
 	if !clientsExist {
 		// wait for block to be created
-		status = "Validating rollapp height > 2 before creating clients..."
-		fmt.Printf("💈 %s\n", status)
+		pterm.Info.Println("💈 Validating rollapp height > 2 before creating clients...")
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
+
 		if err := waitForValidRollappHeight(seq); err != nil {
+			fmt.Println(err)
 			return ConnectionChannels{}, err
 		}
+
 		// We always pass override otherwise this command hangs if there are too many clients
-		// in the hub as it iterates all to check if this client exists
 		createClientsCmd := r.getCreateClientsCmd(true)
-		status = "Creating clients..."
-		fmt.Printf("💈 %s\n", status)
+		pterm.Info.Println("💈 Creating clients...")
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
+
 		if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
+			fmt.Println(err)
 			return ConnectionChannels{}, err
 		}
 	}
@@ -79,8 +86,7 @@ func (r *Relayer) CreateIBCChannel(
 
 	connectionID, _ := r.GetActiveConnection()
 	if connectionID == "" || override {
-		status = "Creating connection..."
-		fmt.Printf("💈 %s\n", status)
+		pterm.Info.Println("💈 Creating connection...")
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
@@ -96,25 +102,24 @@ func (r *Relayer) CreateIBCChannel(
 	time.Sleep(15 * time.Second)
 	// we ran create channel with override, as it not recovarable anyway
 	createChannelCmd := r.getCreateChannelCmd(true)
-	status = "Creating channel..."
-	fmt.Printf("💈 %s\n", status)
+	pterm.Info.Println("💈 Creating channel...")
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
 	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
-	status = "Validating channel established..."
-	fmt.Printf("💈 %s\n", status)
+	status = ""
+	pterm.Info.Println("💈 Validating channel established...")
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
 
-	src, dst, err = r.LoadActiveChannel()
+	_, _, err = r.LoadActiveChannel()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
-	if src == "" || dst == "" {
+	if r.SrcChannel == "" || r.DstChannel == "" {
 		return ConnectionChannels{}, fmt.Errorf("could not load channels")
 	}
 
@@ -133,7 +138,6 @@ func (r *Relayer) CreateIBCChannel(
 func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	logger := utils.GetRollerLogger(seq.RlpCfg.Home)
 	for {
-		time.Sleep(10 * time.Second)
 		rollappHeightStr, err := seq.GetRollappHeight()
 		if err != nil {
 			logger.Printf("💈 Error getting rollapp height, %s", err.Error())
@@ -155,10 +159,12 @@ func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
 func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 	args := []string{"tx", "clients"}
 	args = append(args, r.getRelayerDefaultArgs()...)
+	args = append(args, "--log-level", "debug")
 	if override {
 		args = append(args, "--override")
 	}
-	return exec.Command(consts.Executables.Relayer, args...)
+	cmd := exec.Command(consts.Executables.Relayer, args...)
+	return cmd
 }
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {

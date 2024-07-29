@@ -31,7 +31,7 @@ func MoveFile(src, dst string) error {
 	}
 	defer func() { _ = srcFile.Close() }()
 	// nolint:gofumpt
-	err = os.MkdirAll(filepath.Dir(dst), 0750)
+	err = os.MkdirAll(filepath.Dir(dst), 0o750)
 	if err != nil {
 		return fmt.Errorf("failed to create parent directories: %w", err)
 	}

@@ -28,7 +28,7 @@ var SupportedDas = []DAType{Celestia, Avail, Local}
 type RollappConfig struct {
 	Home          string `toml:"home"`
 	RollappID     string `toml:"rollapp_id"`
-	RollappBinary string
+	RollappBinary string `toml:"rollapp_binary"`
 	VMType        VMType `toml:"execution"`
 	Denom         string `toml:"denom"`
 	// TokenSupply   string
@@ -47,16 +47,16 @@ type RollappConfig struct {
 }
 
 type HubData = struct {
-	API_URL         string
-	ID              string
-	RPC_URL         string
-	ARCHIVE_RPC_URL string
-	GAS_PRICE       string
-	SEQ_MIN_BOND    string
+	API_URL         string `toml:"api_url"`
+	ID              string `toml:"id"`
+	RPC_URL         string `toml:"rpc_url"`
+	ARCHIVE_RPC_URL string `toml:"archive_rpc_url"`
+	GAS_PRICE       string `toml:"gas_price"`
+	SEQ_MIN_BOND    string `toml:"seq_min_bond"`
 }
 
 func (c RollappConfig) Validate() error {
-	err := VerifyHubID(c.HubData)
+	err := VerifyHubData(c.HubData)
 	if err != nil {
 		return err
 	}
@@ -102,13 +102,17 @@ func IsValidVMType(t string) bool {
 	return false
 }
 
-func VerifyHubID(data HubData) error {
+func VerifyHubData(data HubData) error {
 	if data.ID == "mock" {
 		return nil
 	}
 
+	if data.ID == "" {
+		return fmt.Errorf("invalid hub id: %s. ID cannot be empty", data.ID)
+	}
+
 	if data.RPC_URL == "" {
-		return fmt.Errorf("invalid hub ID: %s. RPC URL cannot be empty", data.ID)
+		return fmt.Errorf("invalid RPC endoint: %s. RPC URL cannot be empty", data.ID)
 	}
 	return nil
 }

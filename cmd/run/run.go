@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	relayer_start "github.com/dymensionxyz/roller/cmd/relayer/start"
+	relayer_run "github.com/dymensionxyz/roller/cmd/relayer/run"
 	rollapp_start "github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -139,11 +139,12 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	utils.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
-		rollappConfig, rollapp_start.OneDaySequencePrice)
+		rollappConfig, rollapp_start.OneDaySequencePrice,
+	)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
 
-	rlyAddrs, err := relayer_start.GetRlyHubInsufficientBalances(rollappConfig)
+	rlyAddrs, err := relayer_run.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)

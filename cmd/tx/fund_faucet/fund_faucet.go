@@ -58,8 +58,8 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	utils.RunOnInterrupt(outputHandler.StopSpinner)
 	outputHandler.StartSpinner(" Loading relayer channel...")
 	rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
-	srcChannel, _, err := rly.LoadActiveChannel()
-	if err != nil || srcChannel == "" {
+	_, _, err = rly.LoadActiveChannel()
+	if err != nil || rly.SrcChannel == "" {
 		return errors.New("failed to load relayer channel. Please make sure that the rollapp is " +
 			"running on your local machine and a relayer channel has been established")
 	}
@@ -79,7 +79,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 		"ibc-transfer",
 		"transfer",
 		"transfer",
-		srcChannel,
+		rly.SrcChannel,
 		faucetAddr,
 		actualFaucetAmount.String()+rlpCfg.Denom,
 		"--from",

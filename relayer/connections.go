@@ -59,7 +59,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	connectionIDRollapp_raw, err := roller_utils.GetNestedValue(
+	connectionIDRollappRaw, err := roller_utils.GetNestedValue(
 		rlyCfg,
 		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
 	)
@@ -76,7 +76,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 
 	//nolint:errcheck
-	connectionIDRollapp := connectionIDRollapp_raw.(string)
+	connectionIDRollapp := connectionIDRollappRaw.(string)
 	//nolint:errcheck
 	connectionIDHub := connectionIDHub_raw.(string)
 

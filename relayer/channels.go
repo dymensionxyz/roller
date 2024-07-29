@@ -47,8 +47,10 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
 		if outputStruct.ConnectionHops[0] != activeConnectionID {
-			r.logger.Printf("skipping channel %s as it's not on the active connection %s",
-				outputStruct.ChannelID, activeConnectionID)
+			r.logger.Printf(
+				"skipping channel %s as it's not on the active connection %s",
+				outputStruct.ChannelID, activeConnectionID,
+			)
 			continue
 		}
 
@@ -91,7 +93,7 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 }
 
 func (r *Relayer) queryChannelsRollappCmd() *exec.Cmd {
-	args := []string{"q", "channels", r.RollappID}
+	args := []string{"q", "connection-channels", r.RollappID, "connection-0"}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }
@@ -107,8 +109,11 @@ func (r *Relayer) ChannelReady() bool {
 }
 
 type Counterparty struct {
-	PortID    string `json:"port_id"`
-	ChannelID string `json:"channel_id"`
+	PortID       string `json:"port_id"`
+	ChannelID    string `json:"channel_id"`
+	ChainID      string `json:"chain_id"`
+	ClientID     string `json:"client_id"`
+	ConnectionID string `json:"connection_id"`
 }
 
 type Output struct {
@@ -117,6 +122,9 @@ type Output struct {
 	Counterparty   Counterparty `json:"counterparty"`
 	ConnectionHops []string     `json:"connection_hops"`
 	Version        string       `json:"version"`
+	ChainID        string       `json:"chain_id"`
+	ChannelID      string       `json:"channel_id"`
+	ClientID       string       `json:"client_id"`
 }
 
 type ProofHeight struct {

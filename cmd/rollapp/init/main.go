@@ -16,10 +16,9 @@ var Cmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		pterm.DefaultHeader.WithFullWidth().Printfln("welcome to roller")
 		err := initconfig.AddFlags(cmd)
 		if err != nil {
-			fmt.Println("failed to add flags")
+			pterm.Error.Println("failed to add flags")
 			return
 		}
 
@@ -40,10 +39,12 @@ var Cmd = &cobra.Command{
 		}
 
 		options := []string{"mock", "dymension"}
-		backend, _ := pterm.DefaultInteractiveSelect.WithOptions(options).Show()
-		isMockBackend := backend == "mock"
+		backend, _ := pterm.DefaultInteractiveSelect.
+			WithDefaultText("select the settlement layer type").
+			WithOptions(options).
+			Show()
 
-		if isMockBackend {
+		if backend == "mock" {
 			err := runInit(cmd, WithMockSettlement())
 			if err != nil {
 				fmt.Println("failed to run init: ", err)

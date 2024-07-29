@@ -33,6 +33,7 @@ func PrintInsufficientBalancesIfAny(
 				addressData.Network,
 			}
 		}
+
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"Name", "Address", "Current", "Required", "Network"})
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
@@ -44,6 +45,7 @@ func PrintInsufficientBalancesIfAny(
 		fmt.Println()
 		fmt.Println("💈 Please fund these addresses and try again.")
 	}
+
 	PrettifyErrorIfExists(
 		errors.New("the following addresses have insufficient balance to perform this operation"),
 		printAddresses,

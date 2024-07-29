@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 )
@@ -25,6 +27,7 @@ var (
 )
 
 func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
+	pterm.Info.Println("retrieving sequencer instance")
 	once.Do(func() {
 		seq := &Sequencer{
 			logger: log.New(io.Discard, "", 0),
