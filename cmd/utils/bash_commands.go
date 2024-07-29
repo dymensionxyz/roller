@@ -135,7 +135,7 @@ func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	}
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("command execution failed: %w", err)
+		return fmt.Errorf("command execution failed: %v", err)
 	}
 	return nil
 }

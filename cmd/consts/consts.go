@@ -35,11 +35,13 @@ var Executables = struct {
 
 var KeysIds = struct {
 	HubSequencer     string
+	HubGenesis       string
 	RollappSequencer string
 	RollappRelayer   string
 	HubRelayer       string
 }{
 	HubSequencer:     "hub_sequencer",
+	HubGenesis:       "hub_genesis",
 	RollappSequencer: "rollapp_genesis_account",
 	RollappRelayer:   "relayer-rollapp-key",
 	HubRelayer:       "relayer-hub-key",
@@ -79,7 +81,7 @@ var Denoms = struct {
 
 const (
 	KeysDirName        = "keys"
-	DefaultRelayerPath = "rollapp-hub"
+	DefaultRelayerPath = "hub-rollapp"
 	DefaultRollappRPC  = "http://localhost:26657"
 )
 

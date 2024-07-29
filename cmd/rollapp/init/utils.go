@@ -59,6 +59,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 
 	defer outputHandler.StopSpinner()
 
+	// TODO: extract into util
 	isRootExist, err := global_utils.DirNotEmpty(home)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
@@ -84,7 +85,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	}
 
 	// nolint:gofumpt
-	err = os.MkdirAll(home, 0755)
+	err = os.MkdirAll(home, 0o755)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -100,8 +101,8 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 			return err
 		}
 	} else {
-		config := NewMockRollerConfig()
-		err := WriteMockRollerconfigToFile(config)
+		mockRollerConfig := NewMockRollerConfig()
+		err := WriteMockRollerconfigToFile(mockRollerConfig)
 		if err != nil {
 			return err
 		}
@@ -125,31 +126,9 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 
 	// TODO: create all dirs here
 	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
-	/* ---------------------------- Initialize relayer --------------------------- */
-	// 20240607 relayer will be handled using a separate, relayer command
-	// rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), "roller.toml")
-	// rollappPrefix, err := global_utils.GetKeyFromTomlFile(rollerConfigFilePath, "bech32_prefix")
-	// utils.PrettifyErrorIfExists(err)
-
-	// err = initializeRelayerConfig(relayer.ChainConfig{
-	// 	ID:            initConfig.RollappID,
-	// 	RPC:           consts.DefaultRollappRPC,
-	// 	Denom:         initConfig.Denom,
-	// 	AddressPrefix: rollappPrefix,
-	// 	GasPrices:     "0",
-	// }, relayer.ChainConfig{
-	// 	ID:            initConfig.HubData.ID,
-	// 	RPC:           initConfig.HubData.ARCHIVE_RPC_URL,
-	// 	Denom:         consts.Denoms.Hub,
-	// 	AddressPrefix: consts.AddressPrefixes.Hub,
-	// 	GasPrices:     initConfig.HubData.GAS_PRICE,
-	// }, initConfig)
-	// if err != nil {
-	// 	return err
-	// }
 
 	/* ------------------------------ Generate keys ----------------------------- */
-	addresses, err := initconfig.GenerateKeys(initConfig)
+	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -168,11 +147,13 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	}
 
 	if daAddress != nil {
-		addresses = append(addresses, utils.KeyInfo{
-			Name:     damanager.GetKeyName(),
-			Address:  daAddress.Address,
-			Mnemonic: mnemonic,
-		})
+		addresses = append(
+			addresses, utils.KeyInfo{
+				Name:     damanager.GetKeyName(),
+				Address:  daAddress.Address,
+				Mnemonic: mnemonic,
+			},
+		)
 	}
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
@@ -194,7 +175,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	}
 
 	// adds the sequencer address to the whitelists
-	err = initconfig.UpdateGenesisParams(home)
+	err = initconfig.UpdateGenesisParams(home, &initConfig)
 	if err != nil {
 		return err
 	}
@@ -203,6 +184,59 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	err = global_utils.UpdateFieldInToml(rollerConfigFilePath, "home", utils.GetRollerRootDir())
 	if err != nil {
 		fmt.Println("failed to add home to roller.toml: ", err)
+		return err
+	}
+
+	err = global_utils.UpdateFieldInToml(rollerConfigFilePath, "HubData.ID", initConfig.HubData.ID)
+	if err != nil {
+		fmt.Println("failed to add HubData.ID to roller.toml: ", err)
+		return err
+	}
+
+	err = global_utils.UpdateFieldInToml(
+		rollerConfigFilePath,
+		"HubData.rpc_url",
+		initConfig.HubData.RPC_URL,
+	)
+	if err != nil {
+		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
+		return err
+	}
+
+	err = global_utils.UpdateFieldInToml(
+		rollerConfigFilePath,
+		"HubData.gas_price",
+		initConfig.HubData.GAS_PRICE,
+	)
+	if err != nil {
+		fmt.Println("failed to add HubData.GasPrices to roller.toml: ", err)
+		return err
+	}
+
+	err = global_utils.UpdateFieldInToml(
+		rollerConfigFilePath,
+		"da",
+		strings.ToLower(string(initConfig.DA)),
+	)
+	if err != nil {
+		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
+		return err
+	}
+
+	err = global_utils.UpdateFieldInToml(
+		rollerConfigFilePath,
+		"rollapp_binary",
+		strings.ToLower(consts.Executables.RollappEVM),
+	)
+	if err != nil {
+		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
+		return err
+	}
+
+	/* ------------------------------ Create Init Files ---------------------------- */
+	err = WriteDenomMetadata(initConfig)
+	if err != nil {
+		fmt.Println("failed to create denom metadata: ", err)
 		return err
 	}
 

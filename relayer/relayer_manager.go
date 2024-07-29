@@ -34,6 +34,7 @@ func (r *Relayer) SetLogger(logger *log.Logger) {
 	r.logger = logger
 }
 
+// TODO: review the servicemanager.Service implementation
 func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 	if r.ChannelReady() {
 		return fmt.Sprintf("Active src, %s <-> %s, dst", r.SrcChannel, r.DstChannel)

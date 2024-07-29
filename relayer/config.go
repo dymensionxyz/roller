@@ -6,7 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
+	"github.com/pterm/pterm"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
@@ -15,6 +16,7 @@ import (
 
 func CreatePath(rlpCfg config.RollappConfig) error {
 	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
+	pterm.Info.Printf("creating new ibc path from %s to %s\n", rlpCfg.HubData.ID, rlpCfg.RollappID)
 
 	newPathCmd := exec.Command(
 		consts.Executables.Relayer,
@@ -69,7 +71,7 @@ func UpdateRlyConfigValue(
 		return fmt.Errorf("failed to marshal updated config: %v", err)
 	}
 	// nolint:gofumpt
-	return os.WriteFile(rlyConfigPath, newData, 0644)
+	return os.WriteFile(rlyConfigPath, newData, 0o644)
 }
 
 func ReadRlyConfig(homeDir string) (map[interface{}]interface{}, error) {
@@ -93,5 +95,5 @@ func WriteRlyConfig(homeDir string, rlyCfg map[interface{}]interface{}) error {
 		return fmt.Errorf("failed to marshal config: %v", err)
 	}
 	// nolint:gofumpt
-	return os.WriteFile(rlyConfigPath, data, 0644)
+	return os.WriteFile(rlyConfigPath, data, 0o644)
 }

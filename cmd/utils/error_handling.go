@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/fatih/color"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/version"
@@ -17,8 +17,7 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 				os.Exit(1)
 			}
 		}()
-		//nolint:errcheck,gosec
-		color.New(color.FgRed, color.Bold).Printf("💈 %s\n", err.Error())
+		pterm.Error.Printf("💈 %s\n", err.Error())
 
 		for _, printInfo := range printAdditionalInfo {
 			printInfo()
@@ -33,10 +32,11 @@ func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
 	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
 	if configRollerVersion != currentRollerVersion {
 		//nolint:errcheck,gosec
-		color.New(color.FgRed, color.Bold).
-			Printf("💈 Your rollapp config version ('%s') is older than your"+
+		pterm.Warning.Printf(
+			"💈 Your rollapp config version ('%s') is older than your"+
 				" installed roller version ('%s'),"+
-				" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion)
+				" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion,
+		)
 		os.Exit(1)
 	}
 }
