@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -15,7 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	global_utils "github.com/dymensionxyz/roller/utils"
+	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/archives"
 )
 
@@ -53,14 +53,19 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		opt(&options)
 	}
 
-	home := utils.GetRollerRootDir()
+	home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+	if err != nil {
+		pterm.Error.Println("failed to expand home directory")
+		return err
+	}
+
 	outputHandler := initconfig.NewOutputHandler(false)
 	configArchivePath := options.configArchivePath
 
 	defer outputHandler.StopSpinner()
 
 	// TODO: extract into util
-	isRootExist, err := global_utils.DirNotEmpty(home)
+	isRootExist, err := globalutils.DirNotEmpty(home)
 	if err != nil {
 		utils.PrettifyErrorIfExists(err)
 		return err
@@ -125,7 +130,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	}
 
 	// TODO: create all dirs here
-	outputHandler.StartSpinner(" Initializing RollApp configuration files...")
+	outputHandler.StartSpinner(" Initializing RollApp configuration files...\n")
 
 	/* ------------------------------ Generate keys ----------------------------- */
 	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
@@ -180,20 +185,20 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), "roller.toml")
-	err = global_utils.UpdateFieldInToml(rollerConfigFilePath, "home", utils.GetRollerRootDir())
+	rollerConfigFilePath := filepath.Join(home, "roller.toml")
+	err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "home", home)
 	if err != nil {
 		fmt.Println("failed to add home to roller.toml: ", err)
 		return err
 	}
 
-	err = global_utils.UpdateFieldInToml(rollerConfigFilePath, "HubData.ID", initConfig.HubData.ID)
+	err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "HubData.ID", initConfig.HubData.ID)
 	if err != nil {
 		fmt.Println("failed to add HubData.ID to roller.toml: ", err)
 		return err
 	}
 
-	err = global_utils.UpdateFieldInToml(
+	err = globalutils.UpdateFieldInToml(
 		rollerConfigFilePath,
 		"HubData.rpc_url",
 		initConfig.HubData.RPC_URL,
@@ -203,7 +208,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	err = global_utils.UpdateFieldInToml(
+	err = globalutils.UpdateFieldInToml(
 		rollerConfigFilePath,
 		"HubData.gas_price",
 		initConfig.HubData.GAS_PRICE,
@@ -213,7 +218,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	err = global_utils.UpdateFieldInToml(
+	err = globalutils.UpdateFieldInToml(
 		rollerConfigFilePath,
 		"da",
 		strings.ToLower(string(initConfig.DA)),
@@ -223,7 +228,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	err = global_utils.UpdateFieldInToml(
+	err = globalutils.UpdateFieldInToml(
 		rollerConfigFilePath,
 		"rollapp_binary",
 		strings.ToLower(consts.Executables.RollappEVM),
@@ -276,7 +281,7 @@ func checkConfigArchive(path string) (string, error) {
 		return "", errors.New("invalid or no input")
 	}
 
-	archivePath, err := expandHomePath(path)
+	archivePath, err := globalutils.ExpandHomePath(path)
 	if err != nil {
 		return "", err
 	}
@@ -286,15 +291,4 @@ func checkConfigArchive(path string) (string, error) {
 	}
 
 	return archivePath, nil
-}
-
-func expandHomePath(path string) (string, error) {
-	if path[:2] == "~/" {
-		usr, err := user.Current()
-		if err != nil {
-			return "", err
-		}
-		path = filepath.Join(usr.HomeDir, path[2:])
-	}
-	return path, nil
 }

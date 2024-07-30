@@ -4,16 +4,20 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -29,7 +33,17 @@ func Cmd() *cobra.Command {
 		Use:   "start",
 		Short: "Show the status of the sequencer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			err := initconfig.AddFlags(cmd)
+			if err != nil {
+				pterm.Error.Println("failed to add flags")
+				return
+			}
+			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			if err != nil {
+				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 
@@ -41,10 +55,16 @@ func Cmd() *cobra.Command {
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(ctx, startRollappCmd, func() {
-				printOutput(rollappConfig, startRollappCmd)
-			}, parseError,
-				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)))
+			go utils.RunBashCmdAsync(
+				ctx, startRollappCmd, func() {
+					printOutput(rollappConfig, startRollappCmd)
+					err := createPidFile(RollappDirPath, startRollappCmd)
+					if err != nil {
+						pterm.Warning.Println("failed to create pid file")
+					}
+				}, parseError,
+				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
+			)
 			select {}
 		},
 	}
@@ -63,6 +83,26 @@ func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	fmt.Println("💈 Log file path: ", LogPath)
 	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
 	fmt.Println("💈 PID: ", cmd.Process.Pid)
+}
+
+func createPidFile(path string, cmd *exec.Cmd) error {
+	pidPath := filepath.Join(path, "rollapp.pid")
+	file, err := os.Create(pidPath)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return err
+	}
+	// nolint errcheck
+	defer file.Close()
+
+	pid := cmd.Process.Pid
+	_, err = file.WriteString(fmt.Sprintf("%d", pid))
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return err
+	}
+
+	return nil
 }
 
 func parseError(errMsg string) string {
