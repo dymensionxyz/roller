@@ -24,8 +24,10 @@ type PathValue struct {
 }
 
 func GetGenesisFilePath(root string) string {
-	return filepath.Join(RollappConfigDir(root),
-		"genesis.json")
+	return filepath.Join(
+		RollappConfigDir(root),
+		"genesis.json",
+	)
 }
 
 // TODO(#130): fix to support epochs
@@ -110,7 +112,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 }
 
 func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
-	home := utils.GetRollerRootDir()
+	home := raCfg.Home
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"add-genesis-account",

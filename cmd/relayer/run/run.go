@@ -34,14 +34,14 @@ func Cmd() *cobra.Command {
 		Use:   "run",
 		Short: "Runs a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home, _ := global_utils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 			rollappConfig, err := config.LoadConfigFromTOML(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
 			}
-			rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), "roller.toml")
+			rollerConfigFilePath := filepath.Join(home, "roller.toml")
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			relayerLogger := utils.GetLogger(relayerLogFilePath)
 
@@ -212,7 +212,7 @@ func Cmd() *cobra.Command {
 				logFileOption,
 			)
 			pterm.Info.Printf(
-				"The relayer is running successfully on you local machine!\nChannels:\nsrc, %s <-> %s, dst",
+				"The relayer is running successfully on you local machine!\nChannels:\nsrc, %s <-> %s, dst\n",
 				rly.SrcChannel,
 				rly.DstChannel,
 			)

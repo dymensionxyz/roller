@@ -11,26 +11,44 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
 func AddFlags(cmd *cobra.Command) error {
 	cmd.Flags().
-		StringP(FlagNames.HubID, "", consts.LocalHubName, fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()))
+		StringP(
+			FlagNames.HubID,
+			"",
+			consts.LocalHubName,
+			fmt.Sprintf("The ID of the Dymension hub. %s", getAvailableHubsMessage()),
+		)
 
 	cmd.Flags().
-		StringP(FlagNames.RollappBinary, "", consts.Executables.RollappEVM, "The rollapp binary. Should be passed only if you built a custom rollapp")
+		StringP(
+			FlagNames.RollappBinary,
+			"",
+			consts.Executables.RollappEVM,
+			"The rollapp binary. Should be passed only if you built a custom rollapp",
+		)
 	cmd.Flags().
 		StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().
 		StringP(FlagNames.TokenSupply, "", consts.DefaultTokenSupply, "The total token supply of the RollApp")
 	// cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
 	cmd.Flags().BoolP(FlagNames.NoOutput, "", false, "Run init without any output")
-	cmd.Flags().UintP(FlagNames.Decimals, "", 18,
+	cmd.Flags().UintP(
+		FlagNames.Decimals, "", 18,
 		"The precision level of the RollApp's token defined by the number of decimal places. "+
 			"It should be an integer ranging between 1 and 18. This is akin to how 1 Ether equates to 10^18 Wei in Ethereum. "+
-			"Note: EVM RollApps must set this value to 18.")
+			"Note: EVM RollApps must set this value to 18.",
+	)
 	cmd.Flags().
-		StringP(FlagNames.DAType, "", "Celestia", "The DA layer for the RollApp. Can be one of 'Celestia, Avail, Local'")
+		StringP(
+			FlagNames.DAType,
+			"",
+			"Celestia",
+			"The DA layer for the RollApp. Can be one of 'Celestia, Avail, Local'",
+		)
 
 	// TODO: Expose when supporting custom sdk rollapps.
 	err := cmd.Flags().MarkHidden(FlagNames.Decimals)
@@ -45,11 +63,18 @@ func GetInitConfig(
 	withMockSettlement bool,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
-	rollerConfigFilePath := filepath.Join(utils.GetRollerRootDir(), config.RollerConfigFileName)
+
+	home, err := globalutils.ExpandHomePath(initCmd.Flag(utils.FlagNames.Home).Value.String())
+	if err != nil {
+		fmt.Println("failed to expand home path: ", err)
+	}
+
+	rollerConfigFilePath := filepath.Join(home, config.RollerConfigFileName)
 	if _, err := toml.DecodeFile(rollerConfigFilePath, &cfg); err != nil {
 		return nil, err
 	}
-	cfg.Home = utils.GetRollerRootDir()
+
+	cfg.Home = home
 
 	// TODO: support wasm, make the bainry name generic, like 'rollappd'
 	// for both RollApp types

@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
-
-	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 type RollerConfig struct {
@@ -47,7 +45,7 @@ func NewMockRollerConfig() *RollerConfig {
 }
 
 func WriteMockRollerconfigToFile(rc *RollerConfig) error {
-	home := utils.GetRollerRootDir()
+	home := rc.Home
 	filePath := filepath.Join(home, "roller.toml")
 
 	file, err := os.Create(filePath)
