@@ -95,14 +95,15 @@ func Cmd() *cobra.Command {
 				}
 				fmt.Println(addr)
 
-				isPrimarySequencer, err := func() (bool, error) {
-					return true, nil
-				}()
+				isPrimarySequencer, err := rollapp.IsPrimarySequencer(addr, rollappConfig.RollappID)
 				if err != nil {
 					fmt.Println(err)
 				}
-
-				fmt.Println(isPrimarySequencer)
+				if isPrimarySequencer {
+					fmt.Println(
+						"the existing sequencer address is the initial sequencer of the rollapp",
+					)
+				}
 
 				pterm.Info.Println("checking for existing sequencers for ", rollappConfig.RollappID)
 				func() {

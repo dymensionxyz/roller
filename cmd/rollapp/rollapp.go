@@ -18,7 +18,6 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(initrollapp.Cmd())
 	cmd.AddCommand(status.Cmd())
 	cmd.AddCommand(config.Cmd())
-	// cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(run.Cmd())
 
 	return cmd

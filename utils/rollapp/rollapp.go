@@ -2,11 +2,15 @@ package rollapp
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
+	"strings"
+
+	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/cmd/utils"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
@@ -32,6 +36,42 @@ func getCurrentBlockCmd() *exec.Cmd {
 		"block",
 	)
 	return cmd
+}
+
+func GetInitialSequencerAddress(raID string) (string, error) {
+	cmd := exec.Command(
+		"/usr/local/bin/dymd",
+		"q",
+		"rollapp",
+		"show",
+		raID,
+		"-o",
+		"json",
+	)
+
+	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(out.String())
+
+	var ra dymensiontypes.QueryGetRollappResponse
+	_ = json.Unmarshal(out.Bytes(), &ra)
+
+	return ra.Rollapp.InitialSequencerAddress, nil
+}
+
+func IsPrimarySequencer(addr, raID string) (bool, error) {
+	initSeqAddr, err := GetInitialSequencerAddress(raID)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Println(
+		"are addresses the same?",
+		strings.TrimSpace(addr) == strings.TrimSpace(initSeqAddr),
+	)
+	return true, nil
 }
 
 type BlockInformation struct {
