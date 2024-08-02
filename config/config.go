@@ -52,7 +52,6 @@ type HubData = struct {
 	RPC_URL         string `toml:"rpc_url"`
 	ARCHIVE_RPC_URL string `toml:"archive_rpc_url"`
 	GAS_PRICE       string `toml:"gas_price"`
-	SEQ_MIN_BOND    string `toml:"seq_min_bond"`
 }
 
 func (c RollappConfig) Validate() error {

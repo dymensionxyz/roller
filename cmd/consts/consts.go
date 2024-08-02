@@ -115,7 +115,6 @@ var LocalHubData = config.HubData{
 	RPC_URL:         "http://localhost:36657",
 	ARCHIVE_RPC_URL: "http://localhost:36657",
 	GAS_PRICE:       "100000000",
-	SEQ_MIN_BOND:    "100dym",
 }
 
 var MockHubData = config.HubData{
@@ -124,7 +123,6 @@ var MockHubData = config.HubData{
 	RPC_URL:         "",
 	ARCHIVE_RPC_URL: "",
 	GAS_PRICE:       "",
-	SEQ_MIN_BOND:    "",
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
