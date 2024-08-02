@@ -20,7 +20,7 @@ func Cmd() *cobra.Command {
 		Short: "Export the rollapp configurations jsons needed to list your rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadConfigFromTOML(home)
+			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
@@ -38,8 +38,12 @@ func Cmd() *cobra.Command {
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			_, _, err = rly.LoadActiveChannel()
 			if err != nil || rly.SrcChannel == "" || rly.DstChannel == "" {
-				utils.PrettifyErrorIfExists(errors.New("failed to export rollapp json." +
-					" Please verify that the rollapp is running on your local machine and a relayer channel has been established"))
+				utils.PrettifyErrorIfExists(
+					errors.New(
+						"failed to export rollapp json." +
+							" Please verify that the rollapp is running on your local machine and a relayer channel has been established",
+					),
+				)
 			}
 			logoDefaultPath := fmt.Sprintf("/logos/%s.png", rlpCfg.RollappID)
 			networkJson := NetworkJson{

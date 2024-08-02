@@ -19,7 +19,7 @@ func Cmd() *cobra.Command {
 		Short: "Exports the private key of the given key id.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadConfigFromTOML(home)
+			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			supportedKeys := []string{
 				consts.KeysIds.HubSequencer,
@@ -40,8 +40,10 @@ func Cmd() *cobra.Command {
 				utils.PrettifyErrorIfExists(err)
 				printHexKeyOutput(out.String())
 			} else if keyID == consts.KeysIds.RollappSequencer {
-				exportKeyCmd := utils.GetExportKeyCmdBinary(keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
-					rlpCfg.RollappBinary)
+				exportKeyCmd := utils.GetExportKeyCmdBinary(
+					keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
+					rlpCfg.RollappBinary,
+				)
 				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
 				utils.PrettifyErrorIfExists(err)
 				printHexKeyOutput(out.String())
@@ -54,8 +56,12 @@ func Cmd() *cobra.Command {
 					printMnemonicKeyOutput(privateKey)
 				}
 			} else {
-				utils.PrettifyErrorIfExists(fmt.Errorf("invalid key id: %s. The supported keys are %s", keyID,
-					strings.Join(supportedKeys, ", ")))
+				utils.PrettifyErrorIfExists(
+					fmt.Errorf(
+						"invalid key id: %s. The supported keys are %s", keyID,
+						strings.Join(supportedKeys, ", "),
+					),
+				)
 			}
 		},
 		Args: cobra.ExactArgs(1),

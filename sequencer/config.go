@@ -128,11 +128,13 @@ func (seq *Sequencer) ReadPorts() error {
 	if err != nil {
 		return err
 	}
+
 	seq.RPCPort = getPortFromAddress(rpcAddr)
 	appCfg, err := toml.LoadFile(filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "app.toml"))
 	if err != nil {
 		return err
 	}
+
 	jsonRpcAddr := appCfg.Get("json-rpc.address")
 	seq.JsonRPCPort = getPortFromAddress(fmt.Sprint(jsonRpcAddr))
 	apiAddr := appCfg.Get("api.address")

@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -16,7 +17,9 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
-	global_utils "github.com/dymensionxyz/roller/utils"
+	globalutils "github.com/dymensionxyz/roller/utils"
+	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
+	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -29,14 +32,15 @@ const (
 	flagOverride = "override"
 )
 
+// nolint gocyclo
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "run",
 		Short: "Runs a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home, _ := global_utils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
@@ -47,14 +51,14 @@ func Cmd() *cobra.Command {
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
-			isDirEmpty, err := global_utils.DirNotEmpty(relayerHome)
+			relayerHomeIsNotEmpty, err := globalutils.DirNotEmpty(relayerHome)
 			if err != nil {
 				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
 				return
 			}
 
 			var shouldOverwrite bool
-			if isDirEmpty {
+			if relayerHomeIsNotEmpty {
 				outputHandler.StopSpinner()
 				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
 				if err != nil {
@@ -64,7 +68,7 @@ func Cmd() *cobra.Command {
 			}
 
 			if shouldOverwrite {
-				pterm.Info.Println("overriding the existing relayer channel")
+				pterm.Info.Println("overriding the existing relayer configuration")
 				err = os.RemoveAll(relayerHome)
 				if err != nil {
 					pterm.Error.Printf("failed to recuresively remove %s: %v\n", relayerHome, err)
@@ -76,8 +80,30 @@ func Cmd() *cobra.Command {
 					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
 					return
 				}
+			}
 
-				rollappPrefix, err := global_utils.GetKeyFromTomlFile(
+			if !relayerHomeIsNotEmpty || shouldOverwrite {
+				// preflight checks
+				blockInformation, err := rollapputils.GetCurrentHeight()
+				if err != nil {
+					fmt.Println("failed to retrieve current height")
+				}
+				currentHeight, err := strconv.Atoi(
+					strconv.FormatInt(blockInformation.Block.Header.Height, 10),
+				)
+				if err != nil {
+					fmt.Println("failed to retrieve current height")
+				}
+				if currentHeight <= 2 {
+					pterm.Warning.Println("current height is too low, updating dymint config")
+					err := dymintutils.UpdateDymintConfigForIBC(home)
+					if err != nil {
+						pterm.Error.Println("failed to update dymint config")
+						return
+					}
+				}
+
+				rollappPrefix, err := globalutils.GetKeyFromTomlFile(
 					rollerConfigFilePath,
 					"bech32_prefix",
 				)
@@ -104,6 +130,15 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Printf(
 						"failed to initialize relayer config: %v\n",
+						err,
+					)
+					return
+				}
+
+				err = dymintutils.UpdateDymintConfigForIBC(home)
+				if err != nil {
+					pterm.Error.Println(
+						"failed to update dymint config for ibc creation",
 						err,
 					)
 					return
@@ -163,6 +198,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
+			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
 				if shouldOverwrite {
 					keys, err := initconfig.GenerateRelayerKeys(rollappConfig)

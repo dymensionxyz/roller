@@ -38,7 +38,8 @@ func (r *Relayer) CreateIBCChannel(
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
-	sendFundsCmd := seq.GetSendCmd(sequencerAddress.Address)
+
+	sendFundsCmd := seq.GetSendCmd(sequencerAddress)
 	utils.RunCommandEvery(
 		ctx,
 		sendFundsCmd.Path,

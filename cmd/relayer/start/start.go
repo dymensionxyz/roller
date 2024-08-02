@@ -30,7 +30,7 @@ func Start() *cobra.Command {
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			utils.RequireMigrateIfNeeded(rollappConfig)
 
@@ -100,24 +100,28 @@ func GetRlyHubInsufficientBalances(
 	if err != nil {
 		return nil, err
 	}
-	HubRlyBalance, err := utils.QueryBalance(utils.ChainQueryConfig{
-		RPC:    config.HubData.RPC_URL,
-		Denom:  consts.Denoms.Hub,
-		Binary: consts.Executables.Dymension,
-	}, HubRlyAddr)
+	HubRlyBalance, err := utils.QueryBalance(
+		utils.ChainQueryConfig{
+			RPC:    config.HubData.RPC_URL,
+			Denom:  consts.Denoms.Hub,
+			Binary: consts.Executables.Dymension,
+		}, HubRlyAddr,
+	)
 	if err != nil {
 		return nil, err
 	}
 	insufficientBalances := make([]utils.NotFundedAddressData, 0)
 	if HubRlyBalance.Amount.Cmp(oneDayRelayPriceHub) < 0 {
-		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
-			KeyName:         consts.KeysIds.HubRelayer,
-			Address:         HubRlyAddr,
-			CurrentBalance:  HubRlyBalance.Amount,
-			RequiredBalance: oneDayRelayPriceHub,
-			Denom:           consts.Denoms.Hub,
-			Network:         config.HubData.ID,
-		})
+		insufficientBalances = append(
+			insufficientBalances, utils.NotFundedAddressData{
+				KeyName:         consts.KeysIds.HubRelayer,
+				Address:         HubRlyAddr,
+				CurrentBalance:  HubRlyBalance.Amount,
+				RequiredBalance: oneDayRelayPriceHub,
+				Denom:           consts.Denoms.Hub,
+				Network:         config.HubData.ID,
+			},
+		)
 	}
 	return insufficientBalances, nil
 }
@@ -134,14 +138,16 @@ func GetRelayerInsufficientBalances(
 		return insufficientBalances, err
 	}
 	if rolRlyData.Balance.Amount.Cmp(oneDayRelayPriceRollapp) < 0 {
-		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
-			KeyName:         consts.KeysIds.RollappRelayer,
-			Address:         rolRlyData.Address,
-			CurrentBalance:  rolRlyData.Balance.Amount,
-			RequiredBalance: oneDayRelayPriceRollapp,
-			Denom:           config.Denom,
-			Network:         config.RollappID,
-		})
+		insufficientBalances = append(
+			insufficientBalances, utils.NotFundedAddressData{
+				KeyName:         consts.KeysIds.RollappRelayer,
+				Address:         rolRlyData.Address,
+				CurrentBalance:  rolRlyData.Balance.Amount,
+				RequiredBalance: oneDayRelayPriceRollapp,
+				Denom:           config.Denom,
+				Network:         config.RollappID,
+			},
+		)
 	}
 	return insufficientBalances, nil
 }

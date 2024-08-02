@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml"
 )
 
 func WriteConfigToTOML(rlpCfg RollappConfig) error {
@@ -13,11 +13,11 @@ func WriteConfigToTOML(rlpCfg RollappConfig) error {
 		return err
 	}
 	// nolint:gofumpt
-	return os.WriteFile(filepath.Join(rlpCfg.Home, RollerConfigFileName), tomlBytes, 0644)
+	return os.WriteFile(filepath.Join(rlpCfg.Home, RollerConfigFileName), tomlBytes, 0o644)
 }
 
 // TODO: should be called from root command
-func LoadConfigFromTOML(root string) (RollappConfig, error) {
+func LoadRollerConfigFromTOML(root string) (RollappConfig, error) {
 	var config RollappConfig
 	tomlBytes, err := os.ReadFile(filepath.Join(root, RollerConfigFileName))
 	if err != nil {
@@ -29,4 +29,13 @@ func LoadConfigFromTOML(root string) (RollappConfig, error) {
 	}
 
 	return config, nil
+}
+
+func LoadConfigFromTOML(path string) ([]byte, error) {
+	tomlBytes, err := os.ReadFile(path)
+	if err != nil {
+		return tomlBytes, err
+	}
+
+	return tomlBytes, nil
 }

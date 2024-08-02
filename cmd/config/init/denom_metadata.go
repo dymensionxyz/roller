@@ -1,9 +1,7 @@
 package initconfig
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -49,21 +47,22 @@ func getBankDenomMetadata(denom string, decimals uint) []BankDenomMetadata {
 	return metadata
 }
 
-func createTokenMetadaJSON(metadataPath string, denom string, decimals uint) error {
-	metadata := getBankDenomMetadata(denom, decimals)
-	json, err := json.Marshal(metadata)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(metadataPath)
-	if err != nil {
-		return err
-	}
-	_, err = file.WriteString(string(json))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+//
+// func createTokenMetadaJSON(metadataPath string, denom string, decimals uint) error {
+// 	metadata := getBankDenomMetadata(denom, decimals)
+// 	json, err := json.Marshal(metadata)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	file, err := os.Create(metadataPath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	_, err = file.WriteString(string(json))
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	return nil
+// }

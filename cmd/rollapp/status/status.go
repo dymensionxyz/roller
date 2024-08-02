@@ -16,7 +16,7 @@ func Cmd() *cobra.Command {
 		Short: "Show the status of the sequencer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			if err != nil {
 				fmt.Println("failed to load config:", err)
 				return

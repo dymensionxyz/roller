@@ -3,10 +3,11 @@ package migrate
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/version"
-	"github.com/spf13/cobra"
 )
 
 var migrationsRegistry = []VersionMigrator{
@@ -28,7 +29,7 @@ func Cmd() *cobra.Command {
 		Short: "Migrates the roller configuration to the newly installed version.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadConfigFromTOML(home)
+			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			prevVersionData, err := GetPrevVersionData(rlpCfg)
 			utils.PrettifyErrorIfExists(err)
@@ -64,8 +65,10 @@ func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 		return nil, err
 	}
 	if n != 3 {
-		return nil, fmt.Errorf("failed to extract all version components from version %s",
-			rollerPrevVersion)
+		return nil, fmt.Errorf(
+			"failed to extract all version components from version %s",
+			rollerPrevVersion,
+		)
 	}
 	return &VersionData{
 		Major: major,

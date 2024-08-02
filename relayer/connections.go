@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -55,6 +54,7 @@ type PrefixInfo struct {
 }
 
 func (r *Relayer) GetActiveConnection() (string, error) {
+	// try to read connection information from the configuration file
 	rlyCfg, err := ReadRlyConfig(r.Home)
 	if err != nil {
 		return "", err
@@ -64,53 +64,82 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
 	)
 	if err != nil {
-		return "", err
+		r.logger.Println("no active rollapp connection id found in the configuration file")
+		// return "", err
 	}
 
-	connectionIDHub_raw, err := roller_utils.GetNestedValue(
+	connectionIDHubRaw, err := roller_utils.GetNestedValue(
 		rlyCfg,
 		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
 	)
 	if err != nil {
-		return "", err
+		r.logger.Println("no active hub connection id found in the configuration file")
+		// return "", err
 	}
 
-	//nolint:errcheck
-	connectionIDRollapp := connectionIDRollappRaw.(string)
-	//nolint:errcheck
-	connectionIDHub := connectionIDHub_raw.(string)
+	var connectionIDRollapp string
+	if connectionIDRollappRaw != nil {
+		//nolint:errcheck
+		connectionIDRollapp = connectionIDRollappRaw.(string)
+	}
+
+	var connectionIDHub string
+	if connectionIDHubRaw != nil {
+		//nolint:errcheck
+		connectionIDHub = connectionIDHubRaw.(string)
+	}
 
 	if connectionIDRollapp == "" || connectionIDHub == "" {
-		r.logger.Printf("can't find active connection in the config")
-		return "", nil
+		r.logger.Printf("can't find active connection in the configuration file")
+	}
+	// END: try to read connection information from the configuration file
+
+	var hubConnectionInfo ConnectionsQueryResult
+	hubConnectionOutput, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd())
+	if err != nil {
+		r.logger.Printf("couldn't find any open connections for %s", r.HubID)
+		return "", err
+	}
+	err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
+	if err != nil {
+		r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
 	}
 
-	output, err := utils.ExecBashCommandWithStdout(r.queryConnectionRollappCmd(connectionIDRollapp))
+	// fetch connection from the chain
+	rollappConnectionOutput, err := utils.ExecBashCommandWithStdout(
+		r.queryConnectionRollappCmd(
+			hubConnectionInfo.
+				Counterparty.ConnectionID,
+		),
+	)
 	if err != nil {
+		r.logger.Printf(
+			"failed to find connection on the rollapp side for %s: %v",
+			r.RollappID,
+			err,
+		)
 		return "", err
 	}
 
 	// While there are JSON objects in the stream...
 	var outputStruct ConnectionQueryResult
-
-	dec := json.NewDecoder(&output)
-	for dec.More() {
-		err = dec.Decode(&outputStruct)
-		if err != nil {
-			return "", fmt.Errorf("error while decoding JSON: %v", err)
-		}
+	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &outputStruct)
+	if err != nil {
+		r.logger.Printf("error while decoding JSON: %v", err)
 	}
 
+	// TODO: review, why return nil error?
 	if outputStruct.Connection.State != "STATE_OPEN" {
 		return "", nil
 	}
 
 	// Check if the connection is open on the hub
 	var res ConnectionQueryResult
-	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd(connectionIDHub))
+	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionHubCmd(hubConnectionInfo.ID))
 	if err != nil {
 		return "", err
 	}
+
 	err = json.Unmarshal(outputHub.Bytes(), &res)
 	if err != nil {
 		return "", err
@@ -126,7 +155,44 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 		return "", nil
 	}
 
-	return connectionIDRollapp, nil
+	// todo: refactor
+	err = roller_utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
+		hubConnectionInfo.ID,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	err = roller_utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
+		hubConnectionInfo.ID,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	err = roller_utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
+		hubConnectionInfo.ID,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	err = roller_utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
+		hubConnectionInfo.ID,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return hubConnectionInfo.Counterparty.ConnectionID, nil
 }
 
 func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
@@ -135,8 +201,14 @@ func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func (r *Relayer) queryConnectionsHubCmd(connectionID string) *exec.Cmd {
+func (r *Relayer) queryConnectionHubCmd(connectionID string) *exec.Cmd {
 	args := []string{"q", "connection", r.HubID, connectionID}
+	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
+	return exec.Command(consts.Executables.Relayer, args...)
+}
+
+func (r *Relayer) queryConnectionsHubCmd() *exec.Cmd {
+	args := []string{"q", "connections", r.HubID}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }

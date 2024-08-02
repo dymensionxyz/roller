@@ -28,16 +28,18 @@ var (
 
 func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
 	pterm.Info.Println("retrieving sequencer instance")
-	once.Do(func() {
-		seq := &Sequencer{
-			logger: log.New(io.Discard, "", 0),
-			RlpCfg: rlpCfg,
-		}
-		if err := seq.ReadPorts(); err != nil {
-			panic(err)
-		}
-		instance = seq
-	})
+	once.Do(
+		func() {
+			seq := &Sequencer{
+				logger: log.New(io.Discard, "", 0),
+				RlpCfg: rlpCfg,
+			}
+			if err := seq.ReadPorts(); err != nil {
+				panic(err)
+			}
+			instance = seq
+		},
+	)
 	return instance
 }
 

@@ -14,9 +14,9 @@ import (
 	"github.com/dymensionxyz/roller/config"
 )
 
-const (
-	totalSupplyToStakingRatio = 2
-)
+// const (
+// 	totalSupplyToStakingRatio = 2
+// )
 
 type PathValue struct {
 	Path  string
@@ -67,7 +67,7 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	}
 
 	// nolint:gofumpt
-	err = os.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0644)
+	err = os.WriteFile(jsonFilePath, []byte(jsonFileContentString), 0o644)
 	if err != nil {
 		return err
 	}
@@ -79,12 +79,12 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := config.LoadConfigFromTOML(home)
+	cfg, err := config.LoadRollerConfigFromTOML(home)
 	if err != nil {
 		return err
 	}
 
-	sa, err := getSequencerAddress(home)
+	sa, err := GetRollappSequencerAddress(home)
 	if err != nil {
 		return err
 	}
@@ -153,28 +153,20 @@ func getGenesisOperatorAddress(home string) (string, error) {
 	return a, nil
 }
 
-func getSequencerAddress(home string) (string, error) {
+func GetRollappSequencerAddress(home string) (string, error) {
 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-	getOperatorAddrCommand := exec.Command(
-		consts.Executables.RollappEVM,
-		"keys",
-		"show",
-		consts.KeysIds.RollappSequencer,
-		"-a",
-		"--keyring-backend",
-		"test",
-		"--home",
-		rollappConfigDirPath,
-	)
-
-	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	seqKeyConfig := utils.KeyConfig{
+		Dir:         rollappConfigDirPath,
+		ID:          consts.KeysIds.RollappSequencer,
+		ChainBinary: consts.Executables.RollappEVM,
+		Type:        config.EVM_ROLLAPP,
+	}
+	addr, err := utils.GetAddressBinary(seqKeyConfig, seqKeyConfig.Dir)
 	if err != nil {
-		fmt.Println("seq addr failed")
 		return "", err
 	}
 
-	a := strings.TrimSpace(addr.String())
-	return a, nil
+	return addr, nil
 }
 
 // func generateGenesisTx(initConfig config.RollappConfig) error {

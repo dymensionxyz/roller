@@ -106,7 +106,7 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 			return err
 		}
 	} else {
-		mockRollerConfig := NewMockRollerConfig()
+		mockRollerConfig := NewMockRollerConfig(cmd)
 		err := WriteMockRollerconfigToFile(mockRollerConfig)
 		if err != nil {
 			return err
