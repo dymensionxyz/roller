@@ -106,5 +106,5 @@ type BlockInformation struct {
 }
 
 type Sequencers struct {
-	Sequencers []sequencerutils.Sequencer `json:"sequencers,omitempty"`
+	Sequencers []sequencerutils.Info `json:"sequencers,omitempty"`
 }

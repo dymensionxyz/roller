@@ -8,7 +8,7 @@ import (
 	"github.com/gogo/protobuf/types"
 )
 
-type Sequencer struct {
+type Info struct {
 	// address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3"                                                       json:"address,omitempty"`
 	// pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.

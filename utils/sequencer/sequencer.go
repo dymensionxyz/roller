@@ -105,9 +105,9 @@ func GetMinSequencerBond() (string, error) {
 }
 
 // TODO: dymd q sequencer show-sequencer could be used instead
-func IsRegisteredAsSequencer(seq []Sequencer, addr string) bool {
+func IsRegisteredAsSequencer(seq []Info, addr string) bool {
 	return slices.ContainsFunc(
 		seq,
-		func(s Sequencer) bool { return strings.Compare(s.Address, addr) == 0 },
+		func(s Info) bool { return strings.Compare(s.Address, addr) == 0 },
 	)
 }
