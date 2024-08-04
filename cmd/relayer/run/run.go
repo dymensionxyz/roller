@@ -267,7 +267,7 @@ func VerifyRelayerBalances(rolCfg config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rolCfg)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 	return nil
 }

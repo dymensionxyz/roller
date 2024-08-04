@@ -39,7 +39,7 @@ func Cmd() *cobra.Command {
 
 			insufficientBalances, err := damanager.CheckDABalance()
 			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
+			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			if rpcEndpoint != "" {

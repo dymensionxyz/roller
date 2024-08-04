@@ -90,7 +90,7 @@ func Start() *cobra.Command {
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	utils.PrettifyErrorIfExists(err)
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rolCfg)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
 func GetRlyHubInsufficientBalances(
