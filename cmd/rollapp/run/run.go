@@ -84,7 +84,8 @@ func Cmd() *cobra.Command {
 				WithOptions(options).
 				Show()
 
-			if nodeType == "sequencer" {
+			switch nodeType {
+			case "sequencer":
 				pterm.Info.Println("getting the existing sequencer address ")
 
 				hubSeqKC := utils.KeyConfig{
@@ -173,6 +174,8 @@ func Cmd() *cobra.Command {
 
 					return
 				}
+			case "fullnode":
+				pterm.Info.Println("getting the fullnode address ")
 			}
 		},
 	}
