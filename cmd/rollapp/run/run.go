@@ -93,18 +93,44 @@ func Cmd() *cobra.Command {
 					ChainBinary: consts.Executables.Dymension,
 					Type:        config.SDK_ROLLAPP,
 				}
-				addr, err := utils.GetAddressBinary(hubSeqKC, hubSeqKC.ChainBinary)
+				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, hubSeqKC.ChainBinary)
 				if err != nil {
 					return
 				}
-				addr = strings.TrimSpace(addr)
+				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
+				balance, err := utils.QueryBalance(
+					utils.ChainQueryConfig{
+						Denom:  consts.Denoms.Hub,
+						RPC:    rollappConfig.HubData.RPC_URL,
+						Binary: consts.Executables.Dymension,
+					}, seqAddrInfo.Address,
+				)
+				if err != nil {
+					return
+				}
+				minBond, _ := sequencerutils.GetMinSequencerBond()
+				isAddrFunded := balance.Amount.Cmp(minBond.Amount.BigInt()) == 1
 
 				isPrimarySequencer, err := rollapputils.IsPrimarySequencer(
-					addr,
+					seqAddrInfo.Address,
 					rollappConfig.RollappID,
 				)
 				if err != nil {
 					fmt.Println(err)
+				}
+
+				if !isAddrFunded {
+					pterm.DefaultSection.WithIndentCharacter("🔔").
+						Println("Please fund the addresses below to register and run the sequencer.")
+					seqAddrInfo.Print(utils.WithName())
+					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+						WithDefaultText(
+							"press enter when funded",
+						).Show()
+
+					if !proceed {
+						return
+					}
 				}
 
 				if isPrimarySequencer {
@@ -124,7 +150,7 @@ func Cmd() *cobra.Command {
 
 					isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
 						seq.Sequencers,
-						addr,
+						seqAddrInfo.Address,
 					)
 					if !isInitialSequencerRegistered {
 						pterm.Info.Println(
@@ -139,8 +165,9 @@ func Cmd() *cobra.Command {
 						}
 					}
 					pterm.Info.Printf(
-						"%s is registered as a sequencer for %s",
-						addr,
+						"%s ( %s ) is registered as a sequencer for %s",
+						seqAddrInfo.Name,
+						seqAddrInfo.Address,
 						rollappConfig.RollappID,
 					)
 
