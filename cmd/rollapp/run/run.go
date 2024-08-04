@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -98,6 +100,7 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					return
 				}
+
 				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 				balance, err := utils.QueryBalance(
 					utils.ChainQueryConfig{
@@ -109,10 +112,36 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					return
 				}
+
 				minBond, _ := sequencerutils.GetMinSequencerBond()
+				var bondAmount cosmossdktypes.Coin
+				bondAmount.Denom = consts.Denoms.Hub
+
+				var desiredBond cosmossdktypes.Coin
+				desiredBondAmount, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					fmt.Sprintf(
+						"what is your desired bond amount? ( min: %s ) press enter to proceed with %s",
+						minBond.String(),
+						minBond.String(),
+					),
+				).WithDefaultValue(minBond.Amount.String()).Show()
+
+				if strings.TrimSpace(desiredBondAmount) == "" {
+					desiredBond = *minBond
+				} else {
+					desiredBondAmountInt, ok := cosmossdkmath.NewIntFromString(desiredBondAmount)
+					if !ok {
+						pterm.Error.Printf("failed to convert %s to int\n", desiredBondAmount)
+						return
+					}
+
+					desiredBond.Denom = consts.Denoms.Hub
+					desiredBond.Amount = desiredBondAmountInt
+				}
+
 				isAddrFunded := balance.Amount.Cmp(minBond.Amount.BigInt()) == 1
 
-				isPrimarySequencer, err := rollapputils.IsPrimarySequencer(
+				isInitialSequencer, err := rollapputils.IsInitialSequencer(
 					seqAddrInfo.Address,
 					rollappConfig.RollappID,
 				)
@@ -134,7 +163,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				if isPrimarySequencer {
+				if isInitialSequencer {
 					pterm.Info.Printf(
 						"the hub_sequencer address matches the initial sequencer address of the %s\n",
 						rollappConfig.RollappID,
@@ -155,7 +184,7 @@ func Cmd() *cobra.Command {
 					)
 					if !isInitialSequencerRegistered {
 						pterm.Info.Println(
-							"primary sequencer is not registered for ",
+							"initial sequencer address is not registered for %s",
 							rollappConfig.RollappID,
 						)
 

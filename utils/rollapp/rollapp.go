@@ -61,7 +61,7 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 	return ra.Rollapp.InitialSequencerAddress, nil
 }
 
-func IsPrimarySequencer(addr, raID string) (bool, error) {
+func IsInitialSequencer(addr, raID string) (bool, error) {
 	initSeqAddr, err := GetInitialSequencerAddress(raID)
 	if err != nil {
 		return false, err
