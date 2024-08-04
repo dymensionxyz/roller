@@ -11,6 +11,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/cmd/utils"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
@@ -40,7 +41,7 @@ func getCurrentBlockCmd() *exec.Cmd {
 
 func GetInitialSequencerAddress(raID string) (string, error) {
 	cmd := exec.Command(
-		"/usr/local/bin/dymd",
+		consts.Executables.Dymension,
 		"q",
 		"rollapp",
 		"show",
@@ -53,7 +54,6 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(out.String())
 
 	var ra dymensiontypes.QueryGetRollappResponse
 	_ = json.Unmarshal(out.Bytes(), &ra)
@@ -67,11 +67,37 @@ func IsPrimarySequencer(addr, raID string) (bool, error) {
 		return false, err
 	}
 
-	fmt.Println(
-		"are addresses the same?",
-		strings.TrimSpace(addr) == strings.TrimSpace(initSeqAddr),
+	if strings.TrimSpace(addr) == strings.TrimSpace(initSeqAddr) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func GetRegisteredSequencers(
+	raID string,
+) (*Sequencers, error) {
+	var seq Sequencers
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencers-by-rollapp",
+		raID,
+		"--output", "json",
 	)
-	return true, nil
+
+	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &seq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &seq, nil
 }
 
 type BlockInformation struct {
@@ -80,5 +106,5 @@ type BlockInformation struct {
 }
 
 type Sequencers struct {
-	Sequencers []any `json:"sequencers,omitempty"`
+	Sequencers []sequencerutils.Sequencer `json:"sequencers,omitempty"`
 }

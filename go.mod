@@ -12,11 +12,13 @@ require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/briandowns/spinner v1.23.0
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
+	github.com/cosmos/cosmos-sdk v0.47.13
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240802123505-afd8254a010c
 	github.com/gizak/termui/v3 v3.1.0
+	github.com/gogo/protobuf v1.3.3
 	github.com/manifoldco/promptui v0.9.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml v1.9.5
@@ -65,7 +67,6 @@ require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/cosmos-sdk v0.47.13 // indirect
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v0.20.1 // indirect
 	github.com/cosmos/ibc-go/v7 v7.5.1 // indirect
@@ -99,7 +100,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
-	github.com/gogo/protobuf v1.3.3 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

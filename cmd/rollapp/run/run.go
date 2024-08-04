@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -19,7 +18,8 @@ import (
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/rollapp"
+	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -55,7 +55,11 @@ func Cmd() *cobra.Command {
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
 
-			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
+			LogPath = filepath.Join(
+				rollappConfig.Home,
+				consts.ConfigDirName.Rollapp,
+				"rollapputils.log",
+			)
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
 			if rollappConfig.HubData.ID == "mock" {
@@ -93,45 +97,55 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					return
 				}
-				fmt.Println(addr)
+				addr = strings.TrimSpace(addr)
 
-				isPrimarySequencer, err := rollapp.IsPrimarySequencer(addr, rollappConfig.RollappID)
+				isPrimarySequencer, err := rollapputils.IsPrimarySequencer(
+					addr,
+					rollappConfig.RollappID,
+				)
 				if err != nil {
 					fmt.Println(err)
 				}
+
 				if isPrimarySequencer {
-					fmt.Println(
-						"the existing sequencer address is the initial sequencer of the rollapp",
+					pterm.Info.Printf(
+						"the hub_sequencer address matches the initial sequencer address of the %s\n",
+						rollappConfig.RollappID,
 					)
-				}
+					pterm.Info.Println(
+						"checking whether sequencer is already registered",
+						rollappConfig.RollappID,
+					)
 
-				pterm.Info.Println("checking for existing sequencers for ", rollappConfig.RollappID)
-				func() {
-					// GetSequencersByRollapp
-					getseq := func() *exec.Cmd {
-						cmdArgs := []string{
-							"q", "sequencer", "show-sequencers-by-rollapp", rollappConfig.RollappID, "-o",
-							"json",
-						}
-						return exec.Command(
-							consts.Executables.Dymension, cmdArgs...,
+					seq, err := rollapputils.GetRegisteredSequencers(rollappConfig.RollappID)
+					if err != nil {
+						pterm.Error.Println("failed to retrieve registered sequencers: ", err)
+					}
+
+					isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
+						seq.Sequencers,
+						addr,
+					)
+					if !isInitialSequencerRegistered {
+						pterm.Info.Println(
+							"primary sequencer is not registered for ",
+							rollappConfig.RollappID,
 						)
-					}()
 
-					out, err := utils.ExecBashCommandWithStdout(getseq)
-					if err != nil {
-						fmt.Println(err)
+						err = sequencerutils.Register(rollappConfig)
+						if err != nil {
+							pterm.Error.Println("failed to register sequencer: ", err)
+							return
+						}
 					}
+					pterm.Info.Printf(
+						"%s is registered as a sequencer for %s",
+						addr,
+						rollappConfig.RollappID,
+					)
 
-					var s rollapp.Sequencers
-					err = json.Unmarshal(out.Bytes(), &s)
-					if err != nil {
-						fmt.Println(err)
-					}
-
-					fmt.Println(len(s.Sequencers))
-				}()
-
+					return
+				}
 			}
 		},
 	}
@@ -154,12 +168,12 @@ func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	fmt.Printf(
 		"💈 PID: %d (saved in %s)\n",
 		cmd.Process.Pid,
-		filepath.Join(rlpCfg.Home, "rollapp.pid"),
+		filepath.Join(rlpCfg.Home, "rollapputils.pid"),
 	)
 }
 
 func createPidFile(path string, cmd *exec.Cmd) error {
-	pidPath := filepath.Join(path, "rollapp.pid")
+	pidPath := filepath.Join(path, "rollapputils.pid")
 	file, err := os.Create(pidPath)
 	if err != nil {
 		fmt.Println("Error creating file:", err)

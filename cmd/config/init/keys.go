@@ -96,7 +96,6 @@ func CreateAddressBinary(
 		"--output", "json",
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	fmt.Println(createKeyCommand.String())
 	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return nil, err

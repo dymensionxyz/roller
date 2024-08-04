@@ -94,7 +94,6 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		keyConfig.Dir,
 	)
 
-	fmt.Println(showKeyCommand.String())
 	output, err := ExecBashCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return "", err
