@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -47,7 +48,7 @@ func Register(raCfg config.RollappConfig) error {
 		seqPubKey,
 		raCfg.RollappID,
 		seqMetadataPath,
-		seqMinBond,
+		fmt.Sprintf("%s%s", seqMinBond.Amount.String(), seqMinBond.Denom),
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
 		"--fees", "1000000000000000000adym",
@@ -86,7 +87,7 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	return true, err
 }
 
-func GetMinSequencerBond() (string, error) {
+func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -95,13 +96,12 @@ func GetMinSequencerBond() (string, error) {
 
 	out, err := utils.ExecBashCommandWithStdout(cmd)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	_ = json.Unmarshal(out.Bytes(), &qpr)
 
-	minBond := fmt.Sprintf("%s%s", qpr.Params.MinBond.Amount, qpr.Params.MinBond.Denom)
-	return minBond, nil
+	return &qpr.Params.MinBond, nil
 }
 
 // TODO: dymd q sequencer show-sequencer could be used instead
