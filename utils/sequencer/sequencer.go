@@ -53,15 +53,13 @@ func Register(raCfg config.RollappConfig) error {
 		"--keyring-backend", "test",
 		"--fees", "1000000000000000000adym",
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
-		"-y",
 	)
 
-	out, err := utils.ExecBashCommandWithStdout(cmd)
+	err = utils.ExecBashCommandWithInput(cmd)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(out.String())
 	return nil
 }
 

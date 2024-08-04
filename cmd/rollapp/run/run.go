@@ -165,7 +165,9 @@ func Cmd() *cobra.Command {
 
 				if isInitialSequencer {
 					pterm.Info.Printf(
-						"the hub_sequencer address matches the initial sequencer address of the %s\n",
+						"the %s ( %s ) address matches the initial sequencer address of the %s\n",
+						seqAddrInfo.Name,
+						seqAddrInfo.Address,
 						rollappConfig.RollappID,
 					)
 					pterm.Info.Println(
@@ -184,7 +186,7 @@ func Cmd() *cobra.Command {
 					)
 					if !isInitialSequencerRegistered {
 						pterm.Info.Println(
-							"initial sequencer address is not registered for %s",
+							"initial sequencer address is not registered for ",
 							rollappConfig.RollappID,
 						)
 
