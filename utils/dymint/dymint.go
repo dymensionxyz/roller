@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	"github.com/pterm/pterm"
 )
 
 // TODO: use dymint instead

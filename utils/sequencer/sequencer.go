@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -105,8 +106,59 @@ func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
 
 // TODO: dymd q sequencer show-sequencer could be used instead
 func IsRegisteredAsSequencer(seq []Info, addr string) bool {
+	if len(seq) == 0 {
+		return false
+	}
+
 	return slices.ContainsFunc(
 		seq,
 		func(s Info) bool { return strings.Compare(s.Address, addr) == 0 },
 	)
+}
+
+func GetSequencersByRollappID(raID string) (*Sequencers, error) {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "show-sequencers-by-rollapp",
+		raID, "-o", "json",
+	)
+
+	var sequencers Sequencers
+	out, err := utils.ExecBashCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &sequencers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sequencers, nil
+}
+
+func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
+	sequencers, err := GetSequencersByRollappID(raID)
+	if err != nil {
+		return nil, err
+	}
+
+	var latestSnapshot *SnapshotInfo
+	var maxHeight int = 0
+
+	for _, s := range sequencers.Sequencers {
+		for _, snapshot := range s.Metadata.Snapshots {
+			height, err := strconv.Atoi(snapshot.Height)
+			if err != nil {
+				continue
+			}
+
+			if height > maxHeight {
+				maxHeight = height
+				latestSnapshot = snapshot
+			}
+		}
+	}
+
+	return latestSnapshot, nil
 }

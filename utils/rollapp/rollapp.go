@@ -76,8 +76,8 @@ func IsInitialSequencer(addr, raID string) (bool, error) {
 
 func GetRegisteredSequencers(
 	raID string,
-) (*Sequencers, error) {
-	var seq Sequencers
+) (*sequencerutils.Sequencers, error) {
+	var seq sequencerutils.Sequencers
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q",
@@ -103,8 +103,4 @@ func GetRegisteredSequencers(
 type BlockInformation struct {
 	BlockId tmtypes.BlockID `json:"block_id"`
 	Block   tmtypes.Block   `json:"block"`
-}
-
-type Sequencers struct {
-	Sequencers []sequencerutils.Info `json:"sequencers,omitempty"`
 }
