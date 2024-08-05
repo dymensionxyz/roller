@@ -23,6 +23,8 @@ type DataLayer interface {
 	GetStatus(c config.RollappConfig) string
 	GetKeyName() string
 	GetPrivateKey() (string, error)
+	GetRootDirectory() string
+	GetNamespaceID() string
 }
 
 type DAManager struct {
