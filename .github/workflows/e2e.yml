@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   end_to_end_test:
-    runs-on: ["arm-linux"]
+    runs-on: ["self-hosted"]
     env:
       GOPRIVATE: "github.com/dymensionxyz/*"
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"

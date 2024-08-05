@@ -8,7 +8,7 @@ on:
 jobs:
   release:
     name: release
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted"]
     permissions:
       pull-requests: write
       actions: read

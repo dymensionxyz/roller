@@ -25,7 +25,7 @@ func Cmd() *cobra.Command {
 		Short: "List all the addresses of roller on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			addresses := make([]utils.KeyInfo, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
@@ -33,38 +33,50 @@ func Cmd() *cobra.Command {
 			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
 			utils.PrettifyErrorIfExists(err)
 			if daAddr != nil {
-				addresses = append(addresses, utils.KeyInfo{
-					Address: daAddr.Address,
-					Name:    damanager.GetKeyName(),
-				})
+				addresses = append(
+					addresses, utils.KeyInfo{
+						Address: daAddr.Address,
+						Name:    damanager.GetKeyName(),
+					},
+				)
 			}
 
-			hubSeqInfo, err := utils.GetAddressBinary(utils.KeyConfig{
-				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-				ID:  consts.KeysIds.HubSequencer,
-			}, consts.Executables.Dymension)
+			hubSeqInfo, err := utils.GetAddressInfoBinary(
+				utils.KeyConfig{
+					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
+					ID:  consts.KeysIds.HubSequencer,
+				}, consts.Executables.Dymension,
+			)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.KeyInfo{
-				Address: hubSeqInfo.Address,
-				Name:    consts.KeysIds.HubSequencer,
-			})
+			addresses = append(
+				addresses, utils.KeyInfo{
+					Address: hubSeqInfo.Address,
+					Name:    consts.KeysIds.HubSequencer,
+				},
+			)
 
-			raSeqInfo, err := utils.GetAddressBinary(utils.KeyConfig{
-				Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-				ID:  consts.KeysIds.RollappSequencer,
-			}, rollappConfig.RollappBinary)
+			raSeqInfo, err := utils.GetAddressInfoBinary(
+				utils.KeyConfig{
+					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
+					ID:  consts.KeysIds.RollappSequencer,
+				}, rollappConfig.RollappBinary,
+			)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.KeyInfo{
-				Address: raSeqInfo.Address,
-				Name:    consts.KeysIds.RollappSequencer,
-			})
+			addresses = append(
+				addresses, utils.KeyInfo{
+					Address: raSeqInfo.Address,
+					Name:    consts.KeysIds.RollappSequencer,
+				},
+			)
 
 			hubRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.HubData.ID)
 			utils.PrettifyErrorIfExists(err)
-			addresses = append(addresses, utils.KeyInfo{
-				Address: hubRlyAddr,
-				Name:    consts.KeysIds.HubRelayer,
-			})
+			addresses = append(
+				addresses, utils.KeyInfo{
+					Address: hubRlyAddr,
+					Name:    consts.KeysIds.HubRelayer,
+				},
+			)
 
 			rollappRlyAddr, err := utils.GetRelayerAddress(
 				rollappConfig.Home,
@@ -72,10 +84,12 @@ func Cmd() *cobra.Command {
 			)
 			utils.PrettifyErrorIfExists(err)
 
-			addresses = append(addresses, utils.KeyInfo{
-				Address: rollappRlyAddr,
-				Name:    consts.KeysIds.RollappRelayer,
-			})
+			addresses = append(
+				addresses, utils.KeyInfo{
+					Address: rollappRlyAddr,
+					Name:    consts.KeysIds.RollappRelayer,
+				},
+			)
 			outputType := cmd.Flag(flagNames.outputType).Value.String()
 			if outputType == "json" {
 				utils.PrettifyErrorIfExists(printAsJSON(addresses))

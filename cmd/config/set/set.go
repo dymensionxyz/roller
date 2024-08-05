@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
-	"github.com/spf13/cobra"
 )
 
 var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) error{
@@ -31,7 +32,7 @@ func Cmd() *cobra.Command {
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadConfigFromTOML(home)
+			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
 			if err != nil {
 				return err
 			}

@@ -10,13 +10,10 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
-
-	"github.com/dymensionxyz/roller/config"
 )
 
 func PrintInsufficientBalancesIfAny(
 	addressesData []NotFundedAddressData,
-	config config.RollappConfig,
 ) {
 	if len(addressesData) == 0 {
 		return
@@ -75,6 +72,7 @@ func PromptBool(msg string) (bool, error) {
 		Label:     msg,
 		IsConfirm: true,
 	}
+
 	_, err := prompt.Run()
 	if err != nil {
 		if err == promptui.ErrAbort {

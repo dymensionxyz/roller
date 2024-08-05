@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	relayer_run "github.com/dymensionxyz/roller/cmd/relayer/run"
-	rollapp_start "github.com/dymensionxyz/roller/cmd/rollapp/start"
+	rollapp_run "github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
@@ -31,7 +31,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			utils.RequireMigrateIfNeeded(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
@@ -139,7 +139,7 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	utils.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
-		rollappConfig, rollapp_start.OneDaySequencePrice,
+		rollappConfig, rollapp_run.OneDaySequencePrice,
 	)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
@@ -147,5 +147,5 @@ func verifyBalances(rollappConfig config.RollappConfig) {
 	rlyAddrs, err := relayer_run.GetRlyHubInsufficientBalances(rollappConfig)
 	utils.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
+	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }

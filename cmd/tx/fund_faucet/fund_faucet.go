@@ -45,7 +45,7 @@ func Cmd() *cobra.Command {
 
 func fundFaucet(cmd *cobra.Command, args []string) error {
 	home := cmd.Flag(utils.FlagNames.Home).Value.String()
-	rlpCfg, err := config.LoadConfigFromTOML(home)
+	rlpCfg, err := config.LoadRollerConfigFromTOML(home)
 	if err != nil {
 		return err
 	}
@@ -60,8 +60,10 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 	_, _, err = rly.LoadActiveChannel()
 	if err != nil || rly.SrcChannel == "" {
-		return errors.New("failed to load relayer channel. Please make sure that the rollapp is " +
-			"running on your local machine and a relayer channel has been established")
+		return errors.New(
+			"failed to load relayer channel. Please make sure that the rollapp is " +
+				"running on your local machine and a relayer channel has been established",
+		)
 	}
 	faucetTokenAmountStr := cmd.Flag(flagNames.tokenAmount).Value.String()
 	faucetTokensAmount, success := new(big.Int).SetString(faucetTokenAmountStr, 10)
@@ -70,8 +72,10 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 	}
 	actualFaucetAmount := faucetTokensAmount.Mul(
 		faucetTokensAmount,
-		new(big.Int).Exp(big.NewInt(10),
-			new(big.Int).SetUint64(uint64(rlpCfg.Decimals)), nil),
+		new(big.Int).Exp(
+			big.NewInt(10),
+			new(big.Int).SetUint64(uint64(rlpCfg.Decimals)), nil,
+		),
 	)
 	fundFaucetCmd := exec.Command(
 		rlpCfg.RollappBinary,
@@ -87,8 +91,10 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 		"--keyring-backend",
 		"test",
 		"--home",
-		filepath.Join(rlpCfg.Home,
-			consts.ConfigDirName.Rollapp),
+		filepath.Join(
+			rlpCfg.Home,
+			consts.ConfigDirName.Rollapp,
+		),
 		"--broadcast-mode",
 		"block",
 		"-y",

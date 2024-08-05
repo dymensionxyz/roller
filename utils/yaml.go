@@ -16,7 +16,7 @@ func SetNestedValue(data map[interface{}]interface{}, keyPath []string, value in
 	}
 	nextMap, ok := data[keyPath[0]].(map[interface{}]interface{})
 	if !ok {
-		return fmt.Errorf("failed to get nested map for key: %s", keyPath[0])
+		return fmt.Errorf("failed to set nested map for key: %s", keyPath[0])
 	}
 	return SetNestedValue(nextMap, keyPath[1:], value)
 }

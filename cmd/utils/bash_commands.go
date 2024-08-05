@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -199,6 +201,71 @@ func ExecBashCmdFollow(cmd *exec.Cmd) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// TODO: generalize
+func ExecBashCommandWithInput(cmd *exec.Cmd) error {
+	// Create pipes for stdin, stdout, and stderr
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		fmt.Println("Error creating stdin pipe:", err)
+		return err
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println("Error creating stdout pipe:", err)
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Println("Error creating stderr pipe:", err)
+		return err
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Error starting command:", err)
+		return err
+	}
+
+	// Create a scanner to read command output
+	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
+
+	// Read output and handle user input
+	for scanner.Scan() {
+		line := scanner.Text()
+		fmt.Println(line)
+
+		// Check if the line is asking for confirmation
+		if strings.Contains(line, "signatures") {
+			fmt.Print("Do you want to continue? (y/n): ")
+			reader := bufio.NewReader(os.Stdin)
+			input, _ := reader.ReadString('\n')
+			input = strings.TrimSpace(input)
+			fmt.Println("input:", input)
+
+			if input == "y" || input == "Y" {
+				_, err := stdin.Write([]byte("y\n"))
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err := stdin.Write([]byte("n\n"))
+				if err != nil {
+					return err
+				}
+				break
+			}
+		}
+	}
+
+	// Wait for the command to finish
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Command finished with error:", err)
+		return err
 	}
 
 	return nil

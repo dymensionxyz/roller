@@ -26,7 +26,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the DA light client.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadConfigFromTOML(home)
+			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
 			utils.PrettifyErrorIfExists(err)
 			utils.RequireMigrateIfNeeded(rollappConfig)
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
@@ -39,7 +39,7 @@ func Cmd() *cobra.Command {
 
 			insufficientBalances, err := damanager.CheckDABalance()
 			utils.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(insufficientBalances, rollappConfig)
+			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
 			if rpcEndpoint != "" {

@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/utils"
+	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
 type RollerConfig struct {
@@ -25,7 +29,9 @@ type RollerConfig struct {
 	RollerVersion    string `toml:"roller_version"`
 }
 
-func NewMockRollerConfig() *RollerConfig {
+func NewMockRollerConfig(cmd *cobra.Command) *RollerConfig {
+	home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+
 	return &RollerConfig{
 		BaseDenom:        "amock",
 		Bech32Prefix:     "ethm",
@@ -36,7 +42,7 @@ func NewMockRollerConfig() *RollerConfig {
 		Environment:      "local",
 		Execution:        "evm",
 		ExecutionVersion: "v2.2.0-hotfix.1",
-		Home:             "",
+		Home:             home,
 		LogoDataURI:      "",
 		MinimumGasPrices: "1000000000amock",
 		RollappID:        "mockrollapp_100000-1",

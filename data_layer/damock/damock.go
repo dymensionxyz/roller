@@ -20,6 +20,14 @@ func (d *DAMock) GetStatus(c config.RollappConfig) string {
 	return "Running local DA"
 }
 
+func (c *DAMock) GetRootDirectory() string {
+	return ""
+}
+
+func (c *DAMock) GetNamespaceID() string {
+	return ""
+}
+
 func NewDAMock() *DAMock {
 	return &DAMock{}
 }

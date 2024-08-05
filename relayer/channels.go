@@ -13,21 +13,11 @@ import (
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
 func (r *Relayer) LoadActiveChannel() (string, string, error) {
-	output, err := cmdutils.ExecBashCommandWithStdout(r.queryChannelsRollappCmd())
-	if err != nil {
-		return "", "", err
-	}
-
-	if output.Len() == 0 {
-		return "", "", nil
-	}
-
-	// While there are JSON objects in the stream...
 	var outputStruct RollappQueryResult
 	var foundOpenChannel RollappQueryResult
-	var activeConnectionID string
 
-	activeConnectionID, err = r.GetActiveConnection()
+	var activeConnectionID string
+	activeConnectionID, err := r.GetActiveConnection()
 	if err != nil {
 		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
@@ -40,12 +30,22 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		return "", "", nil
 	}
 
+	output, err := cmdutils.ExecBashCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
+	if err != nil {
+		return "", "", err
+	}
+
+	if output.Len() == 0 {
+		return "", "", nil
+	}
+
 	dec := json.NewDecoder(&output)
 	for dec.More() {
 		err = dec.Decode(&outputStruct)
 		if err != nil {
 			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
 		}
+
 		if outputStruct.ConnectionHops[0] != activeConnectionID {
 			r.logger.Printf(
 				"skipping channel %s as it's not on the active connection %s",
@@ -62,11 +62,12 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		// Check if the channel is open on the hub
 		var res HubQueryResult
 		outputHub, err := cmdutils.ExecBashCommandWithStdout(
-			r.queryChannelsHubCmd(outputStruct.Counterparty.ChannelID),
+			r.queryChannelsHubCmd(outputStruct.ChannelID),
 		)
 		if err != nil {
 			return "", "", err
 		}
+
 		err = json.Unmarshal(outputHub.Bytes(), &res)
 		if err != nil {
 			return "", "", err
@@ -84,16 +85,17 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 
 		// Found open channel on both ends
 		foundOpenChannel = outputStruct
+		fmt.Println("found", foundOpenChannel)
 		break
 	}
 
 	r.SrcChannel = foundOpenChannel.ChannelID
 	r.DstChannel = foundOpenChannel.Counterparty.ChannelID
-	return r.SrcChannel, r.DstChannel, nil
+	return "", "", nil
 }
 
-func (r *Relayer) queryChannelsRollappCmd() *exec.Cmd {
-	args := []string{"q", "connection-channels", r.RollappID, "connection-0"}
+func (r *Relayer) queryChannelsRollappCmd(connectionID string) *exec.Cmd {
+	args := []string{"q", "connection-channels", r.RollappID, connectionID}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }

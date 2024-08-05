@@ -6,10 +6,11 @@ import (
 	"sort"
 	"strings"
 
+	termui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
+
 	"github.com/dymensionxyz/roller/config"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
-	"github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 )
 
 func initializeUI() {

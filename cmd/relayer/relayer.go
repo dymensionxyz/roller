@@ -5,7 +5,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/relayer/run"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
-	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 )
 
 func Cmd() *cobra.Command {
@@ -14,7 +13,7 @@ func Cmd() *cobra.Command {
 		Short: "Commands for running and managing the RollApp relayer.",
 	}
 	cmd.AddCommand(run.Cmd())
-	cmd.AddCommand(start.Cmd())
+	// cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
 	return cmd
 }

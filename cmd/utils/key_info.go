@@ -61,7 +61,7 @@ func ParseAddressFromOutput(output bytes.Buffer) (*KeyInfo, error) {
 	return key, nil
 }
 
-func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, error) {
+func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, error) {
 	showKeyCommand := exec.Command(
 		binaryPath,
 		"keys",
@@ -79,6 +79,27 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, error) 
 		return nil, err
 	}
 	return ParseAddressFromOutput(output)
+}
+
+func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
+	showKeyCommand := exec.Command(
+		binaryPath,
+		"keys",
+		"show",
+		keyConfig.ID,
+		"--address",
+		"--keyring-backend",
+		"test",
+		"--keyring-dir",
+		keyConfig.Dir,
+	)
+
+	output, err := ExecBashCommandWithStdout(showKeyCommand)
+	if err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
 }
 
 // TODO: refactor into options, with title
