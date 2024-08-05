@@ -246,55 +246,60 @@ func Cmd() *cobra.Command {
 			}
 
 			if !isDaInitialized || shouldOverwrite {
-				mnemonic, err := damanager.InitializeLightNodeConfig()
-				if err != nil {
-					pterm.Error.Println("failed to initialize da light client: ", err)
-					return
-				}
-
-				daWalletInfo, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to retrieve da wallet address: ", err)
-					return
-				}
-				daWalletInfo.Mnemonic = mnemonic
-
-				if nodeType == "sequencer" {
-					pterm.DefaultSection.WithIndentCharacter("🔔").
-						Println("Please fund the addresses below to register and run the sequencer.")
-					daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
-
-					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
-						WithDefaultText(
-							"press enter when funded",
-						).Show()
-
-					pterm.Info.Println("updating dymint configuration")
-					daconfig := damanager.DataLayer.GetSequencerDAConfig()
-					dans := damanager.DataLayer.GetNamespaceID()
-
-					dymintConfigPath := sequencer.GetDymintFilePath(home)
-					_ = globalutils.UpdateFieldInToml(
-						dymintConfigPath,
-						"da_layer",
-						string(rollappConfig.DA),
-					)
-					_ = globalutils.UpdateFieldInToml(
-						dymintConfigPath,
-						"namespace_id",
-						dans,
-					)
-					_ = globalutils.UpdateFieldInToml(
-						dymintConfigPath,
-						"da_config",
-						daconfig,
-					)
-
-					if !proceed {
+				if rollappConfig.DA == "celestia" {
+					mnemonic, err := damanager.InitializeLightNodeConfig()
+					if err != nil {
+						pterm.Error.Println("failed to initialize da light client: ", err)
 						return
+					}
+
+					daWalletInfo, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to retrieve da wallet address: ", err)
+						return
+					}
+					daWalletInfo.Mnemonic = mnemonic
+
+					if nodeType == "sequencer" {
+						pterm.DefaultSection.WithIndentCharacter("🔔").
+							Println("Please fund the addresses below to register and run the sequencer.")
+						daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
+
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+							WithDefaultText(
+								"press enter when funded",
+							).Show()
+
+						pterm.Info.Println("updating dymint configuration")
+						daconfig := damanager.DataLayer.GetSequencerDAConfig()
+						dans := damanager.DataLayer.GetNamespaceID()
+
+						dymintConfigPath := sequencer.GetDymintFilePath(home)
+						_ = globalutils.UpdateFieldInToml(
+							dymintConfigPath,
+							"da_layer",
+							string(rollappConfig.DA),
+						)
+						_ = globalutils.UpdateFieldInToml(
+							dymintConfigPath,
+							"namespace_id",
+							dans,
+						)
+						_ = globalutils.UpdateFieldInToml(
+							dymintConfigPath,
+							"da_config",
+							daconfig,
+						)
+
+						if !proceed {
+							return
+						}
 					}
 				}
 			}
+
+			// node sync
+			// retrieve snapshot with the highest height
 
 			pterm.Info.Println("done")
 		},
