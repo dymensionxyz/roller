@@ -239,12 +239,6 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */
-	err = WriteDenomMetadata(initConfig)
-	if err != nil {
-		fmt.Println("failed to create denom metadata: ", err)
-		return err
-	}
-
 	// 20240607 genesis is generated using the genesis-creator
 	// err = initializeRollappGenesis(initConfig)
 	// if err != nil {
