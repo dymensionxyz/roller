@@ -9,6 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
@@ -17,9 +20,9 @@ import (
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
-	CelestiaRestApiEndpoint = "https://api.celestia-arabica-11.com"
-	DefaultCelestiaRPC      = "validator-1.celestia-arabica-11.com"
-	DefaultCelestiaNetwork  = "arabica"
+	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
+	DefaultCelestiaRPC             = "rpc.celestia-mocha.com"
+	DefaultCelestiaNetwork         = "mocha"
 )
 
 var lcMinBalance = big.NewInt(1)
@@ -38,8 +41,8 @@ func NewCelestia(home string) *Celestia {
 	}
 }
 
-func (c2 *Celestia) GetPrivateKey() (string, error) {
-	exportKeyCmd := c2.GetExportKeyCmd()
+func (c *Celestia) GetPrivateKey() (string, error) {
+	exportKeyCmd := c.GetExportKeyCmd()
 	out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
 	if err != nil {
 		return "", err
@@ -47,15 +50,12 @@ func (c2 *Celestia) GetPrivateKey() (string, error) {
 	return out.String(), nil
 }
 
-func (c2 *Celestia) SetMetricsEndpoint(endpoint string) {
-	c2.metricsEndpoint = endpoint
+func (c *Celestia) SetMetricsEndpoint(endpoint string) {
+	c.metricsEndpoint = endpoint
 }
 
 type BalanceResponse struct {
-	Result struct {
-		Denom  string `json:"denom"`
-		Amount string `json:"amount"`
-	} `json:"result"`
+	Result cosmossdktypes.Coin `json:"result"`
 }
 
 func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
@@ -76,11 +76,18 @@ func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
 		return "Stopped, Restarting..."
 	}
 
-	if strings.TrimSpace(resp.Result.Amount) != "0" {
+	if resp.Result.Amount != cosmossdkmath.NewInt(0) {
 		return "active"
 	}
+	// if strings.TrimSpace(resp.Result.Amount) != 0 {
+	// 	return "active"
+	// }
 
 	return "Stopped, Restarting..."
+}
+
+func (c *Celestia) GetRootDirectory() string {
+	return c.Root
 }
 
 func (c *Celestia) getRPCPort() string {
@@ -119,10 +126,13 @@ func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 }
 
 func (c *Celestia) InitializeLightNodeConfig() (string, error) {
-	initLightNodeCmd := exec.Command(consts.Executables.Celestia, "light", "init",
+	// c.Root should be the directory of the da, not the roller.
+	initLightNodeCmd := exec.Command(
+		consts.Executables.Celestia, "light", "init",
 		"--p2p.network",
 		DefaultCelestiaNetwork,
-		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode))
+		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
+	)
 	// err := initLightNodeCmd.Run()
 	out, err := utils.ExecBashCommandWithStdout(initLightNodeCmd)
 	if err != nil {
@@ -165,7 +175,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 	}
 	restQueryUrl := fmt.Sprintf(
 		"%s/cosmos/bank/v1beta1/balances/%s",
-		CelestiaRestApiEndpoint, celAddress.Address,
+		DefaultCelestiaRestApiEndpoint, celAddress.Address,
 	)
 	balancesJson, err := utils.RestQueryJson(restQueryUrl)
 	if err != nil {
@@ -193,7 +203,7 @@ func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, 
 }
 
 func (c *Celestia) GetKeyName() string {
-	return "my_celes_key"
+	return consts.KeysIds.Celestia
 }
 
 func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
@@ -212,14 +222,16 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 
 	var insufficientBalances []utils.NotFundedAddressData
 	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
-		insufficientBalances = append(insufficientBalances, utils.NotFundedAddressData{
-			Address:         accData.Address,
-			CurrentBalance:  accData.Balance.Amount,
-			RequiredBalance: lcMinBalance,
-			KeyName:         c.GetKeyName(),
-			Denom:           consts.Denoms.Celestia,
-			Network:         DefaultCelestiaNetwork,
-		})
+		insufficientBalances = append(
+			insufficientBalances, utils.NotFundedAddressData{
+				Address:         accData.Address,
+				CurrentBalance:  accData.Balance.Amount,
+				RequiredBalance: lcMinBalance,
+				KeyName:         c.GetKeyName(),
+				Denom:           consts.Denoms.Celestia,
+				Network:         DefaultCelestiaNetwork,
+			},
+		)
 	}
 	return insufficientBalances, nil
 }
@@ -230,7 +242,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.ip", c.rpcEndpoint,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
-		//"--gateway.deprecated-endpoints",
+		// "--gateway.deprecated-endpoints",
 		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
@@ -249,6 +261,10 @@ func (c *Celestia) SetRPCEndpoint(rpc string) {
 
 func (c *Celestia) GetNetworkName() string {
 	return DefaultCelestiaNetwork
+}
+
+func (c *Celestia) GetNamespaceID() string {
+	return c.NamespaceID
 }
 
 func (c *Celestia) getAuthToken() (string, error) {
@@ -280,7 +296,8 @@ func (c *Celestia) GetSequencerDAConfig() string {
 	}
 
 	return fmt.Sprintf(
-		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s", "auth_token":"%s"}`,
+		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s",
+"auth_token":"%s"},"backoff":{"initial_delay":6000000000,"max_delay":6000000000,"growth_factor":2},"retry_attempts":4,"retry_delay":3000000000}`,
 		lcEndpoint,
 		c.NamespaceID,
 		authToken,

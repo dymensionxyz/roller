@@ -51,14 +51,14 @@ func Cmd() *cobra.Command {
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
-			relayerHomeIsNotEmpty, err := globalutils.DirNotEmpty(relayerHome)
+			isRelayerInitialized, err := globalutils.DirNotEmpty(relayerHome)
 			if err != nil {
 				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
 				return
 			}
 
 			var shouldOverwrite bool
-			if relayerHomeIsNotEmpty {
+			if isRelayerInitialized {
 				outputHandler.StopSpinner()
 				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
 				if err != nil {
@@ -82,7 +82,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if !relayerHomeIsNotEmpty || shouldOverwrite {
+			if !isRelayerInitialized || shouldOverwrite {
 				// preflight checks
 				blockInformation, err := rollapputils.GetCurrentHeight()
 				if err != nil {

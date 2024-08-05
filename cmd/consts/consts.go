@@ -39,12 +39,14 @@ var KeysIds = struct {
 	RollappSequencer string
 	RollappRelayer   string
 	HubRelayer       string
+	Celestia         string
 }{
 	HubSequencer:     "hub_sequencer",
 	HubGenesis:       "hub_genesis",
 	RollappSequencer: "rollapp_genesis_account",
 	RollappRelayer:   "relayer-rollapp-key",
 	HubRelayer:       "relayer-hub-key",
+	Celestia:         "my_celes_key",
 }
 
 var AddressPrefixes = struct {
