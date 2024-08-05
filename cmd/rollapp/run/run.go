@@ -100,6 +100,7 @@ func Cmd() *cobra.Command {
 				}
 				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, hubSeqKC.ChainBinary)
 				if err != nil {
+					pterm.Error.Println("failed to get address info: ", err)
 					return
 				}
 
@@ -112,6 +113,7 @@ func Cmd() *cobra.Command {
 					}, seqAddrInfo.Address,
 				)
 				if err != nil {
+					pterm.Error.Println("failed to get address balance: ", err)
 					return
 				}
 
@@ -293,6 +295,7 @@ func Cmd() *cobra.Command {
 						)
 
 						if !proceed {
+							pterm.Info.Println("exiting")
 							return
 						}
 					}
