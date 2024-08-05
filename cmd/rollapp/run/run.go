@@ -18,6 +18,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/config"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
@@ -197,17 +198,105 @@ func Cmd() *cobra.Command {
 						}
 					}
 					pterm.Info.Printf(
-						"%s ( %s ) is registered as a sequencer for %s",
+						"%s ( %s ) is registered as a sequencer for %s\n",
 						seqAddrInfo.Name,
 						seqAddrInfo.Address,
 						rollappConfig.RollappID,
 					)
-
-					return
 				}
 			case "fullnode":
 				pterm.Info.Println("getting the fullnode address ")
 			}
+
+			// DA
+			oh := initconfig.NewOutputHandler(false)
+			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+			daHome := filepath.Join(
+				damanager.GetRootDirectory(),
+				consts.ConfigDirName.DALightNode,
+			)
+
+			isDaInitialized, err := globalutils.DirNotEmpty(daHome)
+			if err != nil {
+				return
+			}
+
+			var shouldOverwrite bool
+			if isDaInitialized {
+				oh.StopSpinner()
+				shouldOverwrite, err = oh.PromptOverwriteConfig(daHome)
+				if err != nil {
+					return
+				}
+			}
+
+			if shouldOverwrite {
+				pterm.Info.Println("overriding the existing da configuration")
+				err := os.RemoveAll(daHome)
+				if err != nil {
+					pterm.Error.Printf("failed to recuresively remove %s: %v\n", daHome, err)
+					return
+				}
+
+				err = os.MkdirAll(daHome, 0o755)
+				if err != nil {
+					pterm.Error.Printf("failed to create %s: %v\n", daHome, err)
+					return
+				}
+			}
+
+			if !isDaInitialized || shouldOverwrite {
+				mnemonic, err := damanager.InitializeLightNodeConfig()
+				if err != nil {
+					pterm.Error.Println("failed to initialize da light client: ", err)
+					return
+				}
+
+				daWalletInfo, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to retrieve da wallet address: ", err)
+					return
+				}
+				daWalletInfo.Mnemonic = mnemonic
+
+				if nodeType == "sequencer" {
+					pterm.DefaultSection.WithIndentCharacter("🔔").
+						Println("Please fund the addresses below to register and run the sequencer.")
+					daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
+
+					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+						WithDefaultText(
+							"press enter when funded",
+						).Show()
+
+					pterm.Info.Println("updating dymint configuration")
+					daconfig := damanager.DataLayer.GetSequencerDAConfig()
+					dans := damanager.DataLayer.GetNamespaceID()
+
+					dymintConfigPath := sequencer.GetDymintFilePath(home)
+					_ = globalutils.UpdateFieldInToml(
+						dymintConfigPath,
+						"da_layer",
+						string(rollappConfig.DA),
+					)
+					_ = globalutils.UpdateFieldInToml(
+						dymintConfigPath,
+						"namespace_id",
+						dans,
+					)
+					_ = globalutils.UpdateFieldInToml(
+						dymintConfigPath,
+						"da_config",
+						daconfig,
+					)
+
+					if !proceed {
+						return
+					}
+				}
+			}
+
+			pterm.Info.Println("done")
 		},
 	}
 
