@@ -33,6 +33,7 @@ var (
 	LogPath        string
 )
 
+// nolint:gocyclo
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
