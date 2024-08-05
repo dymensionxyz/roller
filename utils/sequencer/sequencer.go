@@ -69,6 +69,7 @@ func isValidSequencerMetadata(path string) (bool, error) {
 		return false, err
 	}
 
+	// nolint:errcheck
 	defer f.Close()
 
 	b, err := io.ReadAll(f)
