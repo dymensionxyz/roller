@@ -210,7 +210,14 @@ func Cmd() *cobra.Command {
 						seqAddrInfo.Address,
 						rollappConfig.RollappID,
 					)
+				} else {
+					pterm.Info.Printf(
+						"%s ( %s ) is not the initial sequencer address\n",
+						seqAddrInfo.Name,
+						seqAddrInfo.Address,
+					)
 				}
+
 			case "fullnode":
 				pterm.Info.Println("getting the fullnode address ")
 			}
