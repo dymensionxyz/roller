@@ -146,17 +146,6 @@ func Cmd() *cobra.Command {
 
 				isAddrFunded := balance.Amount.Cmp(minBond.Amount.BigInt()) == 1
 
-				isInitialSequencer, err := rollapputils.IsInitialSequencer(
-					seqAddrInfo.Address,
-					rollappConfig.RollappID,
-				)
-				if err != nil {
-					pterm.Error.Printf(
-						"failed to check whether %s is the initial sequencer\n",
-						seqAddrInfo.Address,
-					)
-				}
-
 				if !isAddrFunded {
 					pterm.DefaultSection.WithIndentCharacter("🔔").
 						Println("Please fund the addresses below to register and run the sequencer.")
@@ -169,6 +158,17 @@ func Cmd() *cobra.Command {
 					if !proceed {
 						return
 					}
+				}
+
+				isInitialSequencer, err := rollapputils.IsInitialSequencer(
+					seqAddrInfo.Address,
+					rollappConfig.RollappID,
+				)
+				if err != nil {
+					pterm.Error.Printf(
+						"failed to check whether %s is the initial sequencer\n",
+						seqAddrInfo.Address,
+					)
 				}
 
 				if isInitialSequencer {

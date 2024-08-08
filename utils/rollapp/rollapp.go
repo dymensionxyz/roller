@@ -67,6 +67,8 @@ func IsInitialSequencer(addr, raID string) (bool, error) {
 		return false, err
 	}
 
+	fmt.Printf("%s\n%s\n", addr, initSeqAddr)
+
 	if strings.TrimSpace(addr) == strings.TrimSpace(initSeqAddr) {
 		return true, nil
 	}
