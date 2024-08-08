@@ -2,15 +2,19 @@ package run
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -193,10 +197,25 @@ func Cmd() *cobra.Command {
 						seqAddrInfo.Address,
 					)
 					if !isInitialSequencerRegistered {
-						pterm.Info.Println(
-							"initial sequencer address is not registered for ",
+						pterm.Info.Printf(
+							"initial sequencer address is not registered for %s\n",
 							rollappConfig.RollappID,
 						)
+
+						var sm dymensionseqtypes.SequencerMetadata
+
+						seqMetadataPath := filepath.Join(
+							rollappConfig.Home,
+							consts.ConfigDirName.Rollapp,
+							"init",
+							"sequencer-metadata.json",
+						)
+
+						err = populateSequencerMetadata(sm, seqMetadataPath)
+						if err != nil {
+							pterm.Error.Println("failed to populate sequencer metadata: ", err)
+							return
+						}
 
 						err = sequencerutils.Register(rollappConfig)
 						if err != nil {
@@ -369,4 +388,116 @@ func parseError(errMsg string) string {
 		return "The Rollapp sequencer is already running on your local machine. Only one sequencer can run at any given time."
 	}
 	return errMsg
+}
+
+func populateSequencerMetadata(sm dymensionseqtypes.SequencerMetadata, smPath string) error {
+	pterm.DefaultSection.WithIndentCharacter("🔔").
+		Println("The following values are mandatory for sequencer creation")
+
+	var rpc string
+	var rest string
+	var evmRpc string
+
+	// todo: clean up
+
+	for {
+		// Prompt the user for the RPC URL
+		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"Enter a valid RPC endpoint (example: rpc.rollapp.dym.xyz)",
+		).Show()
+		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
+			rpc = "https://" + rpc
+		}
+
+		isValid := isValidURL(rpc)
+
+		// Validate the URL
+		if !isValid {
+			pterm.Error.Println("Invalid URL. Please try again.")
+		} else {
+			// Valid URL, break out of the loop
+			break
+		}
+	}
+
+	for {
+		// Prompt the user for the RPC URL
+		rest, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"rest endpoint that you will provide (example: api.rollapp.dym.xyz",
+		).Show()
+		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
+			rest = "https://" + rest
+		}
+
+		isValid := isValidURL(rest)
+
+		// Validate the URL
+		if !isValid {
+			pterm.Error.Println("Invalid URL. Please try again.")
+		} else {
+			// Valid URL, break out of the loop
+			break
+		}
+	}
+
+	for {
+		// Prompt the user for the RPC URL
+		evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"evm evmRpc endpoint that you will provide (example: json-evmRpc.rollapp.dym.xyz",
+		).Show()
+		if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
+			evmRpc = "https://" + evmRpc
+		}
+
+		isValid := isValidURL(evmRpc)
+
+		// Validate the URL
+		if !isValid {
+			pterm.Error.Println("Invalid URL. Please try again.")
+		} else {
+			// Valid URL, break out of the loop
+			break
+		}
+	}
+
+	sm.Rpcs = append(sm.Rpcs, rpc)
+	sm.RestApiUrls = append(sm.RestApiUrls, rest)
+	sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
+
+	_, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"Would you also like to fill optional metadata for your sequencer?",
+	).Show()
+
+	err := WriteStructToJSONFile(&sm, smPath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func isValidURL(url string) bool {
+	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(url)
+}
+
+func WriteStructToJSONFile(data *dymensionseqtypes.SequencerMetadata, filePath string) error {
+	// Marshal the struct into JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("error marshalling JSON: %w", err)
+	}
+
+	// Create the directory path if it doesn't exist
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return fmt.Errorf("error creating directories: %w", err)
+	}
+
+	// Write the JSON data to the file
+	if err := ioutil.WriteFile(filePath, jsonData, 0o644); err != nil {
+		return fmt.Errorf("error writing to file: %w", err)
+	}
+
+	return nil
 }
