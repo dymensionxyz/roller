@@ -84,16 +84,15 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 				utils.PrettifyErrorIfExists(err)
 				return err
 			}
+			// nolint:gofumpt
+			err = os.MkdirAll(home, 0o755)
+			if err != nil {
+				utils.PrettifyErrorIfExists(err)
+				return err
+			}
 		} else {
 			os.Exit(0)
 		}
-	}
-
-	// nolint:gofumpt
-	err = os.MkdirAll(home, 0o755)
-	if err != nil {
-		utils.PrettifyErrorIfExists(err)
-		return err
 	}
 
 	if configArchivePath != "" {
