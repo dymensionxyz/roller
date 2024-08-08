@@ -58,7 +58,7 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 	var ra dymensiontypes.QueryGetRollappResponse
 	_ = json.Unmarshal(out.Bytes(), &ra)
 
-	return ra.Rollapp.InitialSequencerAddress, nil
+	return ra.Rollapp.InitialSequencer, nil
 }
 
 func IsInitialSequencer(addr, raID string) (bool, error) {
