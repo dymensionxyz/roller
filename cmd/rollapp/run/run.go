@@ -104,6 +104,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				pterm.Info.Println("getting the existing sequencer address balance")
 				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 				balance, err := utils.QueryBalance(
 					utils.ChainQueryConfig{
@@ -150,7 +151,10 @@ func Cmd() *cobra.Command {
 					rollappConfig.RollappID,
 				)
 				if err != nil {
-					fmt.Println(err)
+					pterm.Error.Printf(
+						"failed to check whether %s is the initial sequencer\n",
+						seqAddrInfo.Address,
+					)
 				}
 
 				if !isAddrFunded {
