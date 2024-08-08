@@ -3,7 +3,7 @@ BINS_DIR="/usr/local/bin"
 ROLLER_BINS_DIR="$BINS_DIR/roller_bins"
 
 ROLLAPP_EVN_VERSION="v2.2.1-rc01"
-DYMD_VERSION=""
+DYMD_VERSION="main"
 DYMD_COMMIT="b9d863e6"
 EIBC_VERSION="main"
 RLY_VERSION="v0.3.4-v2.5.2-relayer"
