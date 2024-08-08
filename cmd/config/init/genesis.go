@@ -94,7 +94,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	addGenAccountCmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"add-genesis-account",
-		sa,
+		consts.KeysIds.RollappSequencer,
 		fmt.Sprintf("%s%s", consts.DefaultTokenSupply, cfg.BaseDenom),
 		"--home",
 		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
@@ -117,7 +117,7 @@ func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *
 		consts.Executables.RollappEVM,
 		"add-genesis-account",
 		addr,
-		fmt.Sprintf("%s%s", consts.DefaultTokenSupply, raCfg.BaseDenom),
+		fmt.Sprintf("%s%s", amount, raCfg.BaseDenom),
 		"--home",
 		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
 		"--keyring-backend",
@@ -161,7 +161,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        config.EVM_ROLLAPP,
 	}
-	addr, err := utils.GetAddressBinary(seqKeyConfig, seqKeyConfig.Dir)
+	addr, err := utils.GetAddressBinary(seqKeyConfig, consts.Executables.RollappEVM)
 	if err != nil {
 		return "", err
 	}

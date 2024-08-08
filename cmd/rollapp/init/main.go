@@ -2,7 +2,6 @@ package initrollapp
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -30,7 +29,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = runInit(cmd, WithConfig(strings.TrimSpace(archivePath)))
+				err = runInit(cmd, WithConfig(archivePath))
 				if err != nil {
 					fmt.Printf("failed to initialize the RollApp: %v\n", err)
 					return
