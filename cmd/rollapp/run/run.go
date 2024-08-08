@@ -154,8 +154,13 @@ func Cmd() *cobra.Command {
 					cosmossdkmath.NewInt(consts.DefaultFee).BigInt(),
 				)
 
-				isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
+				pterm.Info.Printf(
+					"current balance: %s\nnecessary balance: %s\n",
+					balance.Amount.String(),
+					necessaryBalance.String(),
+				)
 
+				isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
 				if !isAddrFunded {
 					pterm.DefaultSection.WithIndentCharacter("🔔").
 						Println("Please fund the addresses below to register and run the sequencer.")
