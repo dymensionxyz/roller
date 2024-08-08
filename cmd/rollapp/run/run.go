@@ -107,9 +107,9 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to get address info: ", err)
 					return
 				}
+				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
 				pterm.Info.Println("getting the existing sequencer address balance")
-				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 				balance, err := utils.QueryBalance(
 					utils.ChainQueryConfig{
 						Denom:  consts.Denoms.Hub,
@@ -443,7 +443,7 @@ func populateSequencerMetadata(sm dymensionseqtypes.SequencerMetadata, smPath st
 	for {
 		// Prompt the user for the RPC URL
 		evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"evm evmRpc endpoint that you will provide (example: json-evmRpc.rollapp.dym.xyz",
+			"evm evmRpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz",
 		).Show()
 		if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
 			evmRpc = "https://" + evmRpc
