@@ -109,19 +109,6 @@ func Cmd() *cobra.Command {
 				}
 				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
-				pterm.Info.Println("getting the existing sequencer address balance")
-				balance, err := utils.QueryBalance(
-					utils.ChainQueryConfig{
-						Denom:  consts.Denoms.Hub,
-						RPC:    rollappConfig.HubData.RPC_URL,
-						Binary: consts.Executables.Dymension,
-					}, seqAddrInfo.Address,
-				)
-				if err != nil {
-					pterm.Error.Println("failed to get address balance: ", err)
-					return
-				}
-
 				minBond, _ := sequencerutils.GetMinSequencerBond()
 				var bondAmount cosmossdktypes.Coin
 				bondAmount.Denom = consts.Denoms.Hub
@@ -148,7 +135,26 @@ func Cmd() *cobra.Command {
 					desiredBond.Amount = desiredBondAmountInt
 				}
 
-				isAddrFunded := balance.Amount.Cmp(minBond.Amount.BigInt()) == 1
+				pterm.Info.Println("getting the existing sequencer address balance")
+				balance, err := utils.QueryBalance(
+					utils.ChainQueryConfig{
+						Denom:  consts.Denoms.Hub,
+						RPC:    rollappConfig.HubData.RPC_URL,
+						Binary: consts.Executables.Dymension,
+					}, seqAddrInfo.Address,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to get address balance: ", err)
+					return
+				}
+
+				var necessaryBalance big.Int
+				necessaryBalance.Add(
+					desiredBond.Amount.BigInt(),
+					cosmossdkmath.NewInt(consts.DefaultFee).BigInt(),
+				)
+
+				isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
 
 				if !isAddrFunded {
 					pterm.DefaultSection.WithIndentCharacter("🔔").
