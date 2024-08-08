@@ -53,7 +53,7 @@ func Register(raCfg config.RollappConfig) error {
 		fmt.Sprintf("%s%s", seqMinBond.Amount.String(), seqMinBond.Denom),
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
-		"--fees", "1000000000000000000adym",
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultFee, consts.Denoms.Hub),
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 	)
 
