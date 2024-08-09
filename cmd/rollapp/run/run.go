@@ -95,7 +95,6 @@ func Cmd() *cobra.Command {
 			switch nodeType {
 			case "sequencer":
 				pterm.Info.Println("getting the existing sequencer address ")
-
 				hubSeqKC := utils.KeyConfig{
 					Dir:         filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 					ID:          consts.KeysIds.HubSequencer,
@@ -109,105 +108,107 @@ func Cmd() *cobra.Command {
 				}
 				seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
-				minBond, _ := sequencerutils.GetMinSequencerBond()
-				var bondAmount cosmossdktypes.Coin
-				bondAmount.Denom = consts.Denoms.Hub
-
-				var desiredBond cosmossdktypes.Coin
-				desiredBondAmount, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-					fmt.Sprintf(
-						"what is your desired bond amount? ( min: %s ) press enter to proceed with %s",
-						minBond.String(),
-						minBond.String(),
-					),
-				).WithDefaultValue(minBond.Amount.String()).Show()
-
-				if strings.TrimSpace(desiredBondAmount) == "" {
-					desiredBond = *minBond
-				} else {
-					desiredBondAmountInt, ok := cosmossdkmath.NewIntFromString(desiredBondAmount)
-					if !ok {
-						pterm.Error.Printf("failed to convert %s to int\n", desiredBondAmount)
-						return
-					}
-
-					desiredBond.Denom = consts.Denoms.Hub
-					desiredBond.Amount = desiredBondAmountInt
-				}
-
-				pterm.Info.Println("getting the existing sequencer address balance")
-				balance, err := utils.QueryBalance(
-					utils.ChainQueryConfig{
-						Denom:  consts.Denoms.Hub,
-						RPC:    rollappConfig.HubData.RPC_URL,
-						Binary: consts.Executables.Dymension,
-					}, seqAddrInfo.Address,
-				)
-				if err != nil {
-					pterm.Error.Println("failed to get address balance: ", err)
-					return
-				}
-
-				var necessaryBalance big.Int
-				necessaryBalance.Add(
-					desiredBond.Amount.BigInt(),
-					cosmossdkmath.NewInt(consts.DefaultFee).BigInt(),
-				)
-
+				// check whether the address is registered as sequencer
 				pterm.Info.Printf(
-					"current balance: %s\nnecessary balance: %s\n",
-					balance.Amount.String(),
-					necessaryBalance.String(),
-				)
-
-				isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
-				if !isAddrFunded {
-					pterm.DefaultSection.WithIndentCharacter("🔔").
-						Println("Please fund the addresses below to register and run the sequencer.")
-					seqAddrInfo.Print(utils.WithName())
-					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
-						WithDefaultText(
-							"press enter when funded",
-						).Show()
-
-					if !proceed {
-						return
-					}
-				}
-
-				isInitialSequencer, err := rollapputils.IsInitialSequencer(
-					seqAddrInfo.Address,
+					"checking whether sequencer is already registered for %s",
 					rollappConfig.RollappID,
 				)
+
+				seq, err := rollapputils.GetRegisteredSequencers(rollappConfig.RollappID)
 				if err != nil {
-					pterm.Error.Printf(
-						"failed to check whether %s is the initial sequencer\n",
-						seqAddrInfo.Address,
-					)
+					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 				}
 
-				if isInitialSequencer {
-					pterm.Info.Printf(
-						"the %s ( %s ) address matches the initial sequencer address of the %s\n",
-						seqAddrInfo.Name,
-						seqAddrInfo.Address,
-						rollappConfig.RollappID,
-					)
-					pterm.Info.Println(
-						"checking whether sequencer is already registered",
-						rollappConfig.RollappID,
-					)
+				isSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
+					seq.Sequencers,
+					seqAddrInfo.Address,
+				)
 
-					seq, err := rollapputils.GetRegisteredSequencers(rollappConfig.RollappID)
-					if err != nil {
-						pterm.Error.Println("failed to retrieve registered sequencers: ", err)
+				if !isSequencerRegistered {
+					minBond, _ := sequencerutils.GetMinSequencerBond()
+					var bondAmount cosmossdktypes.Coin
+					bondAmount.Denom = consts.Denoms.Hub
+
+					var desiredBond cosmossdktypes.Coin
+					desiredBondAmount, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+						fmt.Sprintf(
+							"what is your desired bond amount? ( min: %s ) press enter to proceed with %s",
+							minBond.String(),
+							minBond.String(),
+						),
+					).WithDefaultValue(minBond.Amount.String()).Show()
+
+					if strings.TrimSpace(desiredBondAmount) == "" {
+						desiredBond = *minBond
+					} else {
+						desiredBondAmountInt, ok := cosmossdkmath.NewIntFromString(desiredBondAmount)
+						if !ok {
+							pterm.Error.Printf("failed to convert %s to int\n", desiredBondAmount)
+							return
+						}
+
+						desiredBond.Denom = consts.Denoms.Hub
+						desiredBond.Amount = desiredBondAmountInt
 					}
 
-					isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
-						seq.Sequencers,
-						seqAddrInfo.Address,
+					pterm.Info.Println("getting the existing sequencer address balance")
+					balance, err := utils.QueryBalance(
+						utils.ChainQueryConfig{
+							Denom:  consts.Denoms.Hub,
+							RPC:    rollappConfig.HubData.RPC_URL,
+							Binary: consts.Executables.Dymension,
+						}, seqAddrInfo.Address,
 					)
-					if !isInitialSequencerRegistered {
+					if err != nil {
+						pterm.Error.Println("failed to get address balance: ", err)
+						return
+					}
+
+					var necessaryBalance big.Int
+					necessaryBalance.Add(
+						desiredBond.Amount.BigInt(),
+						cosmossdkmath.NewInt(consts.DefaultFee).BigInt(),
+					)
+
+					pterm.Info.Printf(
+						"current balance: %s\nnecessary balance: %s\n",
+						balance.Amount.String(),
+						necessaryBalance.String(),
+					)
+
+					isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
+					if !isAddrFunded {
+						pterm.DefaultSection.WithIndentCharacter("🔔").
+							Println("Please fund the addresses below to register and run the sequencer.")
+						seqAddrInfo.Print(utils.WithName())
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+							WithDefaultText(
+								"press enter when funded",
+							).Show()
+
+						if !proceed {
+							return
+						}
+					}
+
+					isInitialSequencer, err := rollapputils.IsInitialSequencer(
+						seqAddrInfo.Address,
+						rollappConfig.RollappID,
+					)
+					if err != nil {
+						pterm.Error.Printf(
+							"failed to check whether %s is the initial sequencer\n",
+							seqAddrInfo.Address,
+						)
+					}
+
+					if isInitialSequencer {
+						pterm.Info.Printf(
+							"the %s ( %s ) address matches the initial sequencer address of the %s\n",
+							seqAddrInfo.Name,
+							seqAddrInfo.Address,
+							rollappConfig.RollappID,
+						)
 						pterm.Info.Printf(
 							"initial sequencer address is not registered for %s\n",
 							rollappConfig.RollappID,
@@ -233,19 +234,37 @@ func Cmd() *cobra.Command {
 							pterm.Error.Println("failed to register sequencer: ", err)
 							return
 						}
+						pterm.Info.Printf(
+							"%s ( %s ) is registered as a sequencer for %s\n",
+							seqAddrInfo.Name,
+							seqAddrInfo.Address,
+							rollappConfig.RollappID,
+						)
+					} else {
+						pterm.Info.Printf(
+							"%s ( %s ) is not the initial sequencer address\n",
+							seqAddrInfo.Name,
+							seqAddrInfo.Address,
+						)
+
+						initialSeqAddr, err := rollapputils.GetInitialSequencerAddress(rollappConfig.RollappID)
+						if err != nil {
+							pterm.Error.Println("failed to retrieve initial sequencer address: ", err)
+							return
+						}
+
+						isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
+							seq.Sequencers,
+							initialSeqAddr,
+						)
+
+						if !isInitialSequencerRegistered {
+							pterm.Warning.Println("additional sequencers can only be added after the initial sequencer is registered")
+							pterm.Info.Println("exiting")
+							return
+						}
+
 					}
-					pterm.Info.Printf(
-						"%s ( %s ) is registered as a sequencer for %s\n",
-						seqAddrInfo.Name,
-						seqAddrInfo.Address,
-						rollappConfig.RollappID,
-					)
-				} else {
-					pterm.Info.Printf(
-						"%s ( %s ) is not the initial sequencer address\n",
-						seqAddrInfo.Name,
-						seqAddrInfo.Address,
-					)
 				}
 
 			case "fullnode":
