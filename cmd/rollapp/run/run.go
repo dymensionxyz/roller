@@ -197,96 +197,95 @@ func Cmd() *cobra.Command {
 						}
 					}
 
-					isInitialSequencer, err := rollapputils.IsInitialSequencer(
+					// isInitialSequencer, err := rollapputils.IsInitialSequencer(
+					// 	seqAddrInfo.Address,
+					// 	rollappConfig.RollappID,
+					// )
+					// if err != nil {
+					// 	pterm.Error.Printf(
+					// 		"failed to check whether %s is the initial sequencer\n",
+					// 		seqAddrInfo.Address,
+					// 	)
+					// }
+
+					// if isInitialSequencer {
+					// 	pterm.Info.Printf(
+					// 		"the %s ( %s ) address matches the initial sequencer address of the %s\n",
+					// 		seqAddrInfo.Name,
+					// 		seqAddrInfo.Address,
+					// 		rollappConfig.RollappID,
+					// 	)
+					// 	pterm.Info.Printf(
+					// 		"initial sequencer address is not registered for %s\n",
+					// 		rollappConfig.RollappID,
+					// 	)
+
+					err = populateSequencerMetadata(rollappConfig)
+					if err != nil {
+						pterm.Error.Println("failed to populate sequencer metadata: ", err)
+						return
+					}
+
+					err = sequencerutils.Register(rollappConfig)
+					if err != nil {
+						pterm.Error.Println("failed to register sequencer: ", err)
+						return
+					}
+					pterm.Info.Printf(
+						"%s ( %s ) is registered as a sequencer for %s\n",
+						seqAddrInfo.Name,
 						seqAddrInfo.Address,
 						rollappConfig.RollappID,
 					)
-					if err != nil {
-						pterm.Error.Printf(
-							"failed to check whether %s is the initial sequencer\n",
-							seqAddrInfo.Address,
-						)
-					}
-
-					if isInitialSequencer {
-						pterm.Info.Printf(
-							"the %s ( %s ) address matches the initial sequencer address of the %s\n",
-							seqAddrInfo.Name,
-							seqAddrInfo.Address,
-							rollappConfig.RollappID,
-						)
-						pterm.Info.Printf(
-							"initial sequencer address is not registered for %s\n",
-							rollappConfig.RollappID,
-						)
-
-						err = populateSequencerMetadata(rollappConfig)
-						if err != nil {
-							pterm.Error.Println("failed to populate sequencer metadata: ", err)
-							return
-						}
-
-						err = sequencerutils.Register(rollappConfig)
-						if err != nil {
-							pterm.Error.Println("failed to register sequencer: ", err)
-							return
-						}
-						pterm.Info.Printf(
-							"%s ( %s ) is registered as a sequencer for %s\n",
-							seqAddrInfo.Name,
-							seqAddrInfo.Address,
-							rollappConfig.RollappID,
-						)
-					} else {
-						pterm.Info.Printf(
-							"%s ( %s ) is not the initial sequencer address\n",
-							seqAddrInfo.Name,
-							seqAddrInfo.Address,
-						)
-
-						pterm.Info.Printf(
-							"checking whether the initial sequencer is already registered for %s\n",
-							rollappConfig.RollappID,
-						)
-						initialSeqAddr, err := rollapputils.GetInitialSequencerAddress(rollappConfig.RollappID)
-						if err != nil {
-							pterm.Error.Println("failed to retrieve initial sequencer address: ", err)
-							return
-						}
-
-						isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
-							seq.Sequencers,
-							initialSeqAddr,
-						)
-
-						if !isInitialSequencerRegistered {
-							pterm.Warning.Println("additional sequencers can only be added after the initial sequencer is registered")
-							pterm.Info.Println("exiting")
-							return
-						}
-
-						pterm.Info.Println(
-							"initial sequencer is already registered, proceeding with creation of your sequencer",
-						)
-
-						err = populateSequencerMetadata(rollappConfig)
-						if err != nil {
-							pterm.Error.Println("failed to populate sequencer metadata: ", err)
-							return
-						}
-
-						err = sequencerutils.Register(rollappConfig)
-						if err != nil {
-							pterm.Error.Println("failed to register sequencer: ", err)
-							return
-						}
-						pterm.Info.Printf(
-							"%s ( %s ) is registered as a sequencer for %s\n",
-							seqAddrInfo.Name,
-							seqAddrInfo.Address,
-							rollappConfig.RollappID,
-						)
-					}
+					// } else {
+					// 	pterm.Info.Printf(
+					// 		"%s ( %s ) is not the initial sequencer address\n",
+					// 		seqAddrInfo.Name,
+					// 		seqAddrInfo.Address,
+					// 	)
+					//
+					// 	pterm.Info.Printf(
+					// 		"checking whether the initial sequencer is already registered for %s\n",
+					// 		rollappConfig.RollappID,
+					// 	)
+					// 	initialSeqAddr, err := rollapputils.GetInitialSequencerAddress(rollappConfig.RollappID)
+					// 	if err != nil {
+					// 		pterm.Error.Println("failed to retrieve initial sequencer address: ", err)
+					// 		return
+					// 	}
+					//
+					// 	isInitialSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
+					// 		seq.Sequencers,
+					// 		initialSeqAddr,
+					// 	)
+					//
+					// 	if !isInitialSequencerRegistered {
+					// 		pterm.Warning.Println("additional sequencers can only be added after the initial sequencer is registered")
+					// 		pterm.Info.Println("exiting")
+					// 		return
+					// 	}
+					//
+					// 	pterm.Info.Println(
+					// 		"initial sequencer is already registered, proceeding with creation of your sequencer",
+					// 	)
+					//
+					// 	err = populateSequencerMetadata(rollappConfig)
+					// 	if err != nil {
+					// 		pterm.Error.Println("failed to populate sequencer metadata: ", err)
+					// 		return
+					// 	}
+					// 	err = sequencerutils.Register(rollappConfig)
+					// 	if err != nil {
+					// 		pterm.Error.Println("failed to register sequencer: ", err)
+					// 		return
+					// 	}
+					// 	pterm.Info.Printf(
+					// 		"%s ( %s ) is registered as a sequencer for %s\n",
+					// 		seqAddrInfo.Name,
+					// 		seqAddrInfo.Address,
+					// 		rollappConfig.RollappID,
+					// 	)
+					// }
 				} else {
 					pterm.Info.Printf(
 						"%s ( %s ) is registered as a sequencer for %s\n",
