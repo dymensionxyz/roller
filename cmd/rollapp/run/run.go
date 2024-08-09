@@ -398,10 +398,18 @@ func Cmd() *cobra.Command {
 				daConfig,
 			)
 
-			// node sync
-			// retrieve snapshot with the highest height
-
-			pterm.Info.Println("done")
+			pterm.Info.Println("initialization complete")
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to create IBC channels",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller relayer run"),
+			)
+			pterm.Info.Printf(
+				"run %s load the necessary systemd services",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller services load"),
+			)
 		},
 	}
 
