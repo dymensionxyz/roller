@@ -145,7 +145,7 @@ func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
 	}
 
 	var latestSnapshot *SnapshotInfo
-	var maxHeight int = 0
+	maxHeight := 0
 
 	for _, s := range sequencers.Sequencers {
 		for _, snapshot := range s.Metadata.Snapshots {
