@@ -41,7 +41,7 @@ var (
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
-		Short: "Initialize RollApp locally",
+		Short: "Run the RollApp nodes",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -88,7 +88,7 @@ func Cmd() *cobra.Command {
 
 			options := []string{"sequencer", "fullnode"}
 			nodeType, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the settlement layer backend").
+				WithDefaultText("select the node type you want to run").
 				WithOptions(options).
 				Show()
 
