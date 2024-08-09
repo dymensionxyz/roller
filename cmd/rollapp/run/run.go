@@ -219,16 +219,7 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 
-						var sm dymensionseqtypes.SequencerMetadata
-
-						seqMetadataPath := filepath.Join(
-							rollappConfig.Home,
-							consts.ConfigDirName.Rollapp,
-							"init",
-							"sequencer-metadata.json",
-						)
-
-						err = populateSequencerMetadata(sm, seqMetadataPath)
+						err = populateSequencerMetadata(rollappConfig)
 						if err != nil {
 							pterm.Error.Println("failed to populate sequencer metadata: ", err)
 							return
@@ -276,6 +267,12 @@ func Cmd() *cobra.Command {
 						pterm.Info.Println(
 							"initial sequencer is already registered, proceeding with creation of your sequencer",
 						)
+
+						err = populateSequencerMetadata(rollappConfig)
+						if err != nil {
+							pterm.Error.Println("failed to populate sequencer metadata: ", err)
+							return
+						}
 
 						err = sequencerutils.Register(rollappConfig)
 						if err != nil {
@@ -444,7 +441,15 @@ func parseError(errMsg string) string {
 	return errMsg
 }
 
-func populateSequencerMetadata(sm dymensionseqtypes.SequencerMetadata, smPath string) error {
+func populateSequencerMetadata(raCfg config.RollappConfig) error {
+	var sm dymensionseqtypes.SequencerMetadata
+
+	path := filepath.Join(
+		raCfg.Home,
+		consts.ConfigDirName.Rollapp,
+		"init",
+		"sequencer-metadata.json",
+	)
 	pterm.DefaultSection.WithIndentCharacter("🔔").
 		Println("The following values are mandatory for sequencer creation")
 
@@ -522,7 +527,7 @@ func populateSequencerMetadata(sm dymensionseqtypes.SequencerMetadata, smPath st
 		"Would you also like to fill optional metadata for your sequencer?",
 	).Show()
 
-	err := WriteStructToJSONFile(&sm, smPath)
+	err := WriteStructToJSONFile(&sm, path)
 	if err != nil {
 		return err
 	}
