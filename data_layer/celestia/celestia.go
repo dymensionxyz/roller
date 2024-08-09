@@ -3,6 +3,7 @@ package celestia
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"os/exec"
@@ -233,6 +234,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 			},
 		)
 	}
+
 	return insufficientBalances, nil
 }
 
@@ -267,12 +269,12 @@ func (c *Celestia) GetNamespaceID() string {
 	return c.NamespaceID
 }
 
-func (c *Celestia) getAuthToken() (string, error) {
+func (c *Celestia) getAuthToken(t string) (string, error) {
 	getAuthTokenCmd := exec.Command(
 		consts.Executables.Celestia,
 		"light",
 		"auth",
-		"admin",
+		t,
 		"--p2p.network",
 		DefaultCelestiaNetwork,
 		"--node.store",
@@ -285,12 +287,25 @@ func (c *Celestia) getAuthToken() (string, error) {
 	return strings.TrimSuffix(output.String(), "\n"), nil
 }
 
-func (c *Celestia) GetSequencerDAConfig() string {
+func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	if c.NamespaceID == "" {
 		c.NamespaceID = generateRandNamespaceID()
 	}
 	lcEndpoint := c.GetLightNodeEndpoint()
-	authToken, err := c.getAuthToken()
+
+	var authToken string
+	var err error
+
+	if nt == consts.NodeType.Sequencer {
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin)
+	} else if nt == consts.NodeType.FullNode {
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read)
+	} else {
+		// TODO: don't panic,return an err
+		err := errors.New("invalid node type")
+		panic(err)
+	}
+
 	if err != nil {
 		panic(err)
 	}

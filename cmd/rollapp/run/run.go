@@ -164,6 +164,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
+					// TODO: use NotFundedAddressData instead
 					var necessaryBalance big.Int
 					necessaryBalance.Add(
 						desiredBond.Amount.BigInt(),
@@ -307,6 +308,7 @@ func Cmd() *cobra.Command {
 
 			var shouldOverwrite bool
 			if isDaInitialized {
+				pterm.Info.Println("DA client is already initialized")
 				oh.StopSpinner()
 				shouldOverwrite, err = oh.PromptOverwriteConfig(daHome)
 				if err != nil {
@@ -318,7 +320,7 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("overriding the existing da configuration")
 				err := os.RemoveAll(daHome)
 				if err != nil {
-					pterm.Error.Printf("failed to recuresively remove %s: %v\n", daHome, err)
+					pterm.Error.Printf("failed to remove %s: %v\n", daHome, err)
 					return
 				}
 
@@ -345,6 +347,13 @@ func Cmd() *cobra.Command {
 					daWalletInfo.Mnemonic = mnemonic
 
 					if nodeType == "sequencer" {
+						pterm.Info.Println("checking DA account balance")
+						insufficientBalances, err := damanager.CheckDABalance()
+						if err != nil {
+							pterm.Error.Println("failed to check balance", err)
+						}
+						fmt.Println(insufficientBalances)
+
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
 						daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
@@ -355,7 +364,9 @@ func Cmd() *cobra.Command {
 							).Show()
 
 						pterm.Info.Println("updating dymint configuration")
-						daconfig := damanager.DataLayer.GetSequencerDAConfig()
+						daconfig := damanager.DataLayer.GetSequencerDAConfig(
+							consts.NodeType.Sequencer,
+						)
 						dans := damanager.DataLayer.GetNamespaceID()
 
 						dymintConfigPath := sequencer.GetDymintFilePath(home)

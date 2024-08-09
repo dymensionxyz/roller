@@ -3,6 +3,7 @@ package migrate
 import (
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/avail"
@@ -29,7 +30,7 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) err
 		}
 	}
 	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	sequencerDaConfig := da.GetSequencerDAConfig()
+	sequencerDaConfig := da.GetSequencerDAConfig(consts.NodeType.Sequencer)
 	if sequencerDaConfig == "" {
 		return nil
 	}

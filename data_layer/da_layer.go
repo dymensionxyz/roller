@@ -16,7 +16,8 @@ type DataLayer interface {
 	GetStartDACmd() *exec.Cmd
 	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
 	GetLightNodeEndpoint() string
-	GetSequencerDAConfig() string
+	// todo: Refactor, node type makes reusability awful
+	GetSequencerDAConfig(nt string) string
 	SetRPCEndpoint(string)
 	SetMetricsEndpoint(endpoint string)
 	GetNetworkName() string

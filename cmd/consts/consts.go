@@ -157,3 +157,11 @@ var NodeType = struct {
 	Sequencer: "sequencer",
 	FullNode:  "fullnode",
 }
+
+var DaAuthTokenType = struct {
+	Admin string
+	Read  string
+}{
+	Admin: "admin",
+	Read:  "read",
+}

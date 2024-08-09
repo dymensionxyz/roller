@@ -31,7 +31,7 @@ func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) err
 	// Update dymint config with celestia new config
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
-	sequencerDaConfig := da.GetSequencerDAConfig()
+	sequencerDaConfig := da.GetSequencerDAConfig(consts.NodeType.Sequencer)
 	if sequencerDaConfig == "" {
 		return nil
 	}
