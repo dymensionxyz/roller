@@ -296,7 +296,33 @@ func Cmd() *cobra.Command {
 				}
 
 			case "fullnode":
-				pterm.Info.Println("getting the fullnode address ")
+				pterm.Info.Println("retrieving the latest available snapshot")
+				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve ")
+				}
+
+				if si == nil {
+					pterm.Warning.Printf(
+						"no snapshots were found for %s\n",
+						rollappConfig.RollappID,
+					)
+				} else {
+					fmt.Printf(
+						"found a snapshot for height %s\nchecksum: %s\nurl: %s",
+						si.Height,
+						si.Checksum,
+						si.SnapshotUrl,
+					)
+				}
+
+				options := []string{"p2p", "da"}
+				syncMode, _ := pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the desired syncing mode").
+					WithOptions(options).
+					Show()
+
+				fmt.Printf("the node is set to sync from %s\n", syncMode)
 			}
 
 			// DA
