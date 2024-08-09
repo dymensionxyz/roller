@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
+	"github.com/pterm/pterm"
 )
 
 func PrintInsufficientBalancesIfAny(
@@ -40,13 +40,20 @@ func PrintInsufficientBalancesIfAny(
 		fmt.Println()
 		table.Render()
 		fmt.Println()
-		fmt.Println("💈 Please fund these addresses and try again.")
 	}
 
-	PrettifyErrorIfExists(
-		errors.New("the following addresses have insufficient balance to perform this operation"),
-		printAddresses,
-	)
+	pterm.DefaultSection.WithIndentCharacter("🔔").
+		Println("Please fund the addresses below to register and run the sequencer.")
+	printAddresses()
+
+	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+		WithDefaultText(
+			"press enter when funded",
+		).Show()
+	if !proceed {
+		pterm.Info.Println("exiting")
+		return
+	}
 }
 
 type NotFundedAddressData struct {

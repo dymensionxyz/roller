@@ -366,24 +366,13 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to check balance", err)
 				}
 
-				pterm.DefaultSection.WithIndentCharacter("🔔").
-					Println("Please fund the addresses below to register and run the sequencer.")
 				utils.PrintInsufficientBalancesIfAny(insufficientBalances)
-
-				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
-					WithDefaultText(
-						"press enter when funded",
-					).Show()
 
 				// TODO: daconfig should be a struct
 				daConfig = damanager.DataLayer.GetSequencerDAConfig(
 					consts.NodeType.Sequencer,
 				)
 
-				if !proceed {
-					pterm.Info.Println("exiting")
-					return
-				}
 			case "fullnode":
 				daConfig = damanager.DataLayer.GetSequencerDAConfig(
 					consts.NodeType.FullNode,
