@@ -8,6 +8,7 @@ DYMD_COMMIT="b9d863e6"
 EIBC_VERSION="main"
 RLY_VERSION="v0.3.4-v2.5.2-relayer"
 CELESTIA_VERSION="v0.14.1"
+CELESTIA_APP_VERSION="v1.11.0"
 
 if [ -z "$BECH32_PREFIX" ]; then
   echo "please provide BECH32_PREFIX of the RollApp before running this script"
@@ -74,6 +75,14 @@ if ! command -v "$ROLLER_BINS_DIR/celestia" &> /dev/null || ! command -v "$ROLLE
     make cel-key && sudo mv cel-key "$ROLLER_BINS_DIR"
   fi
   cd ../ && rm -rf celestia-node
+fi
+
+# celestia-app
+if ! command -v "$ROLLER_BINS_DIR/celestia-app" &> /dev/null; then
+  cd ~/ && rm -rf celestia-app/
+  git clone https://github.com/celestiaorg/celestia-app.git --branch $CELESTIA_APP_VERSION && cd celestia-app || exit 1
+  make build && sudo mv build/celestia-app "$ROLLER_BINS_DIR"
+  cd ../ && rm -rf celestia-app/
 fi
 
 # rly
