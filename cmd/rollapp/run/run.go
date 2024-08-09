@@ -176,7 +176,12 @@ func Cmd() *cobra.Command {
 						necessaryBalance.String(),
 					)
 
-					isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1
+					// check whether balance is bigger or equal to the necessaryBalance
+					isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1 ||
+						balance.Amount.Cmp(
+							&necessaryBalance,
+						) == 0
+
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
