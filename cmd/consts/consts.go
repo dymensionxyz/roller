@@ -149,3 +149,11 @@ const (
 	TestnetHubID = "blumbus_111-1"
 	MainnetHubID = "dymension_1100-1"
 )
+
+var NodeType = struct {
+	Sequencer string
+	FullNode  string
+}{
+	Sequencer: "sequencer",
+	FullNode:  "fullnode",
+}
