@@ -287,6 +287,13 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 					}
+				} else {
+					pterm.Info.Printf(
+						"%s ( %s ) is registered as a sequencer for %s\n",
+						seqAddrInfo.Name,
+						seqAddrInfo.Address,
+						rollappConfig.RollappID,
+					)
 				}
 
 			case "fullnode":
