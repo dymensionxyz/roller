@@ -3,6 +3,7 @@ package run
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -14,6 +15,7 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -491,7 +493,33 @@ func parseError(errMsg string) string {
 }
 
 func populateSequencerMetadata(raCfg config.RollappConfig) error {
-	var sm dymensionseqtypes.SequencerMetadata
+	cd := dymensionseqtypes.ContactDetails{
+		Website:  "",
+		Telegram: "",
+		X:        "",
+	}
+	defaultGasPrice, ok := github_com_cosmos_cosmos_sdk_types.NewIntFromString(
+		raCfg.HubData.GAS_PRICE,
+	)
+	if !ok {
+		return errors.New("failed to parse gas price")
+	}
+
+	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
+	sm := dymensionseqtypes.SequencerMetadata{
+		Moniker:        "",
+		Details:        "",
+		P2PSeeds:       []string{},
+		Rpcs:           []string{},
+		EvmRpcs:        []string{},
+		RestApiUrls:    []string{},
+		ExplorerUrl:    "",
+		GenesisUrls:    []string{},
+		ContactDetails: &cd,
+		ExtraData:      []byte{},
+		Snapshots:      defaultSnapshots,
+		GasPrice:       &defaultGasPrice,
+	}
 
 	path := filepath.Join(
 		raCfg.Home,
