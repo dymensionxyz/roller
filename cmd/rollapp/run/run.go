@@ -401,7 +401,7 @@ func Cmd() *cobra.Command {
 			pterm.Info.Println("initialization complete")
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s to create IBC channels\n",
+				"run %s to create IBC channels and start relaying packets\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller relayer run"),
 			)
