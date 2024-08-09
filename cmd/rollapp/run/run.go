@@ -247,6 +247,10 @@ func Cmd() *cobra.Command {
 							seqAddrInfo.Address,
 						)
 
+						pterm.Info.Printf(
+							"checking whether the initial sequencer is already registered for %s\n",
+							rollappConfig.RollappID,
+						)
 						initialSeqAddr, err := rollapputils.GetInitialSequencerAddress(rollappConfig.RollappID)
 						if err != nil {
 							pterm.Error.Println("failed to retrieve initial sequencer address: ", err)
@@ -264,6 +268,21 @@ func Cmd() *cobra.Command {
 							return
 						}
 
+						pterm.Info.Println(
+							"initial sequencer is already registered, proceeding with creation of your sequencer",
+						)
+
+						err = sequencerutils.Register(rollappConfig)
+						if err != nil {
+							pterm.Error.Println("failed to register sequencer: ", err)
+							return
+						}
+						pterm.Info.Printf(
+							"%s ( %s ) is registered as a sequencer for %s\n",
+							seqAddrInfo.Name,
+							seqAddrInfo.Address,
+							rollappConfig.RollappID,
+						)
 					}
 				}
 
