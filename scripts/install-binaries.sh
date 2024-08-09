@@ -78,10 +78,10 @@ if ! command -v "$ROLLER_BINS_DIR/celestia" &> /dev/null || ! command -v "$ROLLE
 fi
 
 # celestia-app
-if ! command -v "$ROLLER_BINS_DIR/celestia-app" &> /dev/null; then
+if ! command -v "$ROLLER_BINS_DIR/celestia-appd" &> /dev/null; then
   cd ~/ && rm -rf celestia-app/
   git clone https://github.com/celestiaorg/celestia-app.git --branch $CELESTIA_APP_VERSION && cd celestia-app || exit 1
-  make build && sudo mv build/celestia-app "$ROLLER_BINS_DIR"
+  make build && sudo mv build/celestia-appd "$ROLLER_BINS_DIR"
   cd ../ && rm -rf celestia-app/
 fi
 
