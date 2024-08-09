@@ -110,7 +110,7 @@ func Cmd() *cobra.Command {
 
 				// check whether the address is registered as sequencer
 				pterm.Info.Printf(
-					"checking whether sequencer is already registered for %s",
+					"checking whether sequencer is already registered for %s\n",
 					rollappConfig.RollappID,
 				)
 
