@@ -112,6 +112,14 @@ var TestnetHubData = config.HubData{
 	GAS_PRICE:       "20000000000",
 }
 
+var DevnetHubData = config.HubData{
+	API_URL:         "http://52.58.111.62:1318",
+	ID:              DevnetHubID,
+	RPC_URL:         "http://52.58.111.62:36657",
+	ARCHIVE_RPC_URL: "http://52.58.111.62:36657",
+	GAS_PRICE:       "100000000",
+}
+
 var LocalHubData = config.HubData{
 	API_URL:         "http://localhost:1318",
 	ID:              LocalHubID,
@@ -132,6 +140,7 @@ var MockHubData = config.HubData{
 var Hubs = map[string]config.HubData{
 	MockHubName:    MockHubData,
 	LocalHubName:   LocalHubData,
+	DevnetHubName:  DevnetHubData,
 	TestnetHubName: TestnetHubData,
 	MainnetHubName: MainnetHubData,
 }
@@ -139,6 +148,7 @@ var Hubs = map[string]config.HubData{
 const (
 	MockHubName    = "mock"
 	LocalHubName   = "local"
+	DevnetHubName  = "devnet"
 	TestnetHubName = "testnet"
 	MainnetHubName = "mainnet"
 )
@@ -146,6 +156,7 @@ const (
 const (
 	MockHubID    = "mock"
 	LocalHubID   = "dymension_100-1"
+	DevnetHubID  = "dymension_100-1"
 	TestnetHubID = "blumbus_111-1"
 	MainnetHubID = "dymension_1100-1"
 )
