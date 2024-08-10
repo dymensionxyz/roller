@@ -47,7 +47,7 @@ func defaultOptions() Options {
 // in runInit I parse the entire genesis creator zip file twice to extract
 // the file this looks awful but since the archive has only 2 files it's
 // kinda fine
-func runInit(cmd *cobra.Command, opts ...Option) error {
+func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 	options := defaultOptions()
 	for _, opt := range opts {
 		opt(&options)
@@ -191,30 +191,25 @@ func runInit(cmd *cobra.Command, opts ...Option) error {
 		return err
 	}
 
-	err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "HubData.ID", initConfig.HubData.ID)
-	if err != nil {
-		fmt.Println("failed to add HubData.ID to roller.toml: ", err)
-		return err
+	hd := consts.Hubs[env]
+	hubData := map[string]string{
+		"HubData.ID":              hd.ID,
+		"HubData.api_url":         hd.API_URL,
+		"HubData.rpc_url":         hd.RPC_URL,
+		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
+		"HubData.gas_price":       hd.GAS_PRICE,
 	}
 
-	err = globalutils.UpdateFieldInToml(
-		rollerConfigFilePath,
-		"HubData.rpc_url",
-		initConfig.HubData.RPC_URL,
-	)
-	if err != nil {
-		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
-		return err
-	}
-
-	err = globalutils.UpdateFieldInToml(
-		rollerConfigFilePath,
-		"HubData.gas_price",
-		initConfig.HubData.GAS_PRICE,
-	)
-	if err != nil {
-		fmt.Println("failed to add HubData.GasPrices to roller.toml: ", err)
-		return err
+	for key, value := range hubData {
+		err = globalutils.UpdateFieldInToml(
+			rollerConfigFilePath,
+			key,
+			value,
+		)
+		if err != nil {
+			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+			return err
+		}
 	}
 
 	err = globalutils.UpdateFieldInToml(

@@ -22,6 +22,12 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			envs := []string{"devnet", "testnet", "mainnet"}
+			env, _ := pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the node type you want to run").
+				WithOptions(envs).
+				Show()
+
 			if len(args) != 0 {
 				archivePath, err := checkConfigArchive(args[0])
 				if err != nil {
@@ -29,7 +35,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = runInit(cmd, WithConfig(archivePath))
+				err = runInit(cmd, env, WithConfig(archivePath))
 				if err != nil {
 					fmt.Printf("failed to initialize the RollApp: %v\n", err)
 					return
@@ -45,7 +51,7 @@ func Cmd() *cobra.Command {
 				Show()
 
 			if backend == "mock" {
-				err := runInit(cmd, WithMockSettlement())
+				err := runInit(cmd, "mock", WithMockSettlement())
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
 					return
@@ -75,7 +81,7 @@ after configuration files are generated, rerun the 'init' command`,
 				return
 			}
 
-			err = runInit(cmd, WithConfig(archivePath))
+			err = runInit(cmd, env, WithConfig(archivePath))
 			if err != nil {
 				fmt.Printf("failed to initialize the RollApp: %v\n", err)
 				return
