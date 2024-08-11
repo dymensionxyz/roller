@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"math/big"
 
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 )
 
@@ -20,10 +22,10 @@ func Cmd() *cobra.Command {
 		Short: "Export the rollapp configurations jsons needed to list your rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
+			rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
+			errorhandling.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			faucetUrls := map[string]string{
 				consts.LocalHubID:   "",
 				consts.TestnetHubID: "https://discord.com/channels/956961633165529098/1196803789911498763",
@@ -32,13 +34,13 @@ func Cmd() *cobra.Command {
 			baseDenom := rlpCfg.Denom
 
 			coinType := 118
-			if rlpCfg.VMType == config.EVM_ROLLAPP {
+			if rlpCfg.VMType == consts.EVM_ROLLAPP {
 				coinType = 60
 			}
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			_, _, err = rly.LoadActiveChannel()
 			if err != nil || rly.SrcChannel == "" || rly.DstChannel == "" {
-				utils.PrettifyErrorIfExists(
+				errorhandling.PrettifyErrorIfExists(
 					errors.New(
 						"failed to export rollapp json." +
 							" Please verify that the rollapp is running on your local machine and a relayer channel has been established",
@@ -73,23 +75,23 @@ func Cmd() *cobra.Command {
 				Type:      RollApp,
 				Analytics: true,
 			}
-			if rlpCfg.VMType == config.EVM_ROLLAPP {
-				evmID := config.GetEthID(rlpCfg.RollappID)
+			if rlpCfg.VMType == consts.EVM_ROLLAPP {
+				evmID := config2.GetEthID(rlpCfg.RollappID)
 				hexEvmID, err := decimalToHexStr(evmID)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 				networkJson.Evm = &EvmConfig{
 					ChainId: hexEvmID,
 					Rpc:     "",
 				}
 			}
-			if rlpCfg.DA == config.Avail {
+			if rlpCfg.DA == consts.Avail {
 				networkJson.Da = Avail
 			} else {
 				networkJson.Da = Celestia
 			}
 
 			networkJsonString, err := json.MarshalIndent(networkJson, "", "  ")
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			println("💈 networks.json:")
 			println(string(networkJsonString))
 		},

@@ -10,8 +10,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func CreatePath(rlpCfg config.RollappConfig) error {

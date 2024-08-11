@@ -16,7 +16,8 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func Register(raCfg config.RollappConfig) error {
@@ -57,7 +58,7 @@ func Register(raCfg config.RollappConfig) error {
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 	)
 
-	err = utils.ExecBashCommandWithInput(cmd)
+	err = bash.ExecCommandWithInput(cmd)
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,7 @@ func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
 		"q", "sequencer", "params", "-o", "json",
 	)
 
-	out, err := utils.ExecBashCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,7 @@ func GetSequencersByRollappID(raID string) (*Sequencers, error) {
 	)
 
 	var sequencers Sequencers
-	out, err := utils.ExecBashCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}

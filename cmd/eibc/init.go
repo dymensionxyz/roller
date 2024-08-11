@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	global_utils "github.com/dymensionxyz/roller/utils"
 )
 
@@ -33,7 +33,7 @@ func initCmd() *cobra.Command {
 
 			c := GetInitCommand()
 
-			err = utils.ExecBashCmd(c)
+			err = bash.ExecCmd(c)
 			if err != nil {
 				return
 			}

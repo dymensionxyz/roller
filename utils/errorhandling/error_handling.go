@@ -1,4 +1,4 @@
-package utils
+package errorhandling
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/version"
 )
 

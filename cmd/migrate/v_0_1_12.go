@@ -4,11 +4,12 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
 )
 
 type VersionMigratorV0112 struct{}
@@ -17,13 +18,13 @@ func (v *VersionMigratorV0112) ShouldMigrate(prevVersion VersionData) bool {
 	return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 12
 }
 
-func (v *VersionMigratorV0112) PerformMigration(rlpCfg config.RollappConfig) error {
+func (v *VersionMigratorV0112) PerformMigration(rlpCfg config2.RollappConfig) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	if rlpCfg.DA == "mock" {
-		rlpCfg.DA = config.Local
-		return config.WriteConfigToTOML(rlpCfg)
+		rlpCfg.DA = consts.Local
+		return toml.WriteConfigToTOML(rlpCfg)
 	}
-	if rlpCfg.DA == config.Avail {
+	if rlpCfg.DA == consts.Avail {
 		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
 		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
 			return err

@@ -13,61 +13,31 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/archives"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
-
-type Options struct {
-	configArchivePath string
-	useMockSettlement bool
-}
-
-type Option func(*Options)
-
-func WithConfig(configArchivePath string) Option {
-	return func(o *Options) {
-		o.configArchivePath = configArchivePath
-	}
-}
-
-func WithMockSettlement() Option {
-	return func(o *Options) {
-		o.useMockSettlement = true
-	}
-}
-
-func defaultOptions() Options {
-	return Options{
-		configArchivePath: "",
-	}
-}
 
 // in runInit I parse the entire genesis creator zip file twice to extract
 // the file this looks awful but since the archive has only 2 files it's
 // kinda fine
-func runInit(cmd *cobra.Command, env string, opts ...Option) error {
-	options := defaultOptions()
-	for _, opt := range opts {
-		opt(&options)
-	}
-
-	home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+func runInit(cmd *cobra.Command, env string, raID string) error {
+	home, err := globalutils.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
 	}
 
 	outputHandler := initconfig.NewOutputHandler(false)
-	configArchivePath := options.configArchivePath
 
 	defer outputHandler.StopSpinner()
 
 	// TODO: extract into util
 	isRootExist, err := globalutils.DirNotEmpty(home)
 	if err != nil {
-		utils.PrettifyErrorIfExists(err)
+		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
 
@@ -75,19 +45,19 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 		outputHandler.StopSpinner()
 		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(home)
 		if err != nil {
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			return err
 		}
 		if shouldOverwrite {
 			err = os.RemoveAll(home)
 			if err != nil {
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 				return err
 			}
 			// nolint:gofumpt
 			err = os.MkdirAll(home, 0o755)
 			if err != nil {
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 				return err
 			}
 		} else {
@@ -95,36 +65,20 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 		}
 	}
 
-	if configArchivePath != "" {
-		err = archives.ExtractFileFromNestedTar(
-			configArchivePath,
-			config.RollerConfigFileName,
-			home,
-		)
-		if err != nil {
-			return err
-		}
-	} else {
-		mockRollerConfig := NewMockRollerConfig(cmd)
-		err := WriteMockRollerconfigToFile(mockRollerConfig)
-		if err != nil {
-			return err
-		}
-	}
+	// initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
 
-	initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
+	initConfigPtr, err := toml.LoadRollappMetadataFromChain(home, raID)
 	if err != nil {
-		utils.PrettifyErrorIfExists(err)
+		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
-
 	initConfig := *initConfigPtr
 
-	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
 	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
-		utils.PrettifyErrorIfExists(err)
+		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
 
@@ -134,7 +88,7 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 	/* ------------------------------ Generate keys ----------------------------- */
 	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
 	if err != nil {
-		utils.PrettifyErrorIfExists(err)
+		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
 
@@ -166,17 +120,18 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 		return err
 	}
 
-	if configArchivePath != "" {
-		// genesis creator archive
-		err = archives.ExtractFileFromNestedTar(
-			configArchivePath,
-			"genesis.json",
-			filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
-		)
-		if err != nil {
-			return err
-		}
-	}
+	// TODO: where to retrieve genesis from?
+	// if configArchivePath != "" {
+	// 	// genesis creator archive
+	// 	err = archives.ExtractFileFromNestedTar(
+	// 		configArchivePath,
+	// 		"genesis.json",
+	// 		filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// adds the sequencer address to the whitelists
 	err = initconfig.UpdateGenesisParams(home, &initConfig)
@@ -192,15 +147,17 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 	}
 
 	hd := consts.Hubs[env]
-	hubData := map[string]string{
+	rollerTomlData := map[string]string{
 		"HubData.ID":              hd.ID,
 		"HubData.api_url":         hd.API_URL,
 		"HubData.rpc_url":         hd.RPC_URL,
 		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
 		"HubData.gas_price":       hd.GAS_PRICE,
+		"da":                      strings.ToLower(string(initConfig.DA)),
+		"rollapp_binary":          strings.ToLower(consts.Executables.RollappEVM),
 	}
 
-	for key, value := range hubData {
+	for key, value := range rollerTomlData {
 		err = globalutils.UpdateFieldInToml(
 			rollerConfigFilePath,
 			key,
@@ -210,26 +167,6 @@ func runInit(cmd *cobra.Command, env string, opts ...Option) error {
 			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
 			return err
 		}
-	}
-
-	err = globalutils.UpdateFieldInToml(
-		rollerConfigFilePath,
-		"da",
-		strings.ToLower(string(initConfig.DA)),
-	)
-	if err != nil {
-		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
-		return err
-	}
-
-	err = globalutils.UpdateFieldInToml(
-		rollerConfigFilePath,
-		"rollapp_binary",
-		strings.ToLower(consts.Executables.RollappEVM),
-	)
-	if err != nil {
-		fmt.Println("failed to add HubData.RpcUrl to roller.toml: ", err)
-		return err
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */

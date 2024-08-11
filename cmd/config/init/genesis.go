@@ -5,13 +5,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
+	"github.com/dymensionxyz/roller/utils/bash"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
 	"github.com/tidwall/sjson"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 )
 
 // const (
@@ -32,7 +33,7 @@ func GetGenesisFilePath(root string) string {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
+	sequencerAddr, genesisOperatorAddress string, raCfg *config2.RollappConfig,
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
@@ -74,12 +75,12 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
+func UpdateGenesisParams(home string, raCfg *config2.RollappConfig) error {
 	oa, err := getGenesisOperatorAddress(home)
 	if err != nil {
 		return err
 	}
-	cfg, err := config.LoadRollerConfigFromTOML(home)
+	cfg, err := toml.LoadRollerConfigFromTOML(home)
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 		"test",
 	)
 
-	_, err = utils.ExecBashCommandWithStdout(addGenAccountCmd)
+	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
 		return err
 	}
@@ -111,7 +112,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	return UpdateJSONParams(genesisFilePath, params)
 }
 
-func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
+func GetAddGenesisAccountCmd(addr, amount string, raCfg *config2.RollappConfig) *exec.Cmd {
 	home := raCfg.Home
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
@@ -143,13 +144,13 @@ func getGenesisOperatorAddress(home string) (string, error) {
 		"val",
 	)
 
-	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
 	if err != nil {
 		fmt.Println("val addr failed")
 		return "", err
 	}
 
-	a := strings.TrimSpace(addr.String())
+	a := addr.String()
 	return a, nil
 }
 
@@ -159,7 +160,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 		Dir:         rollappConfigDirPath,
 		ID:          consts.KeysIds.RollappSequencer,
 		ChainBinary: consts.Executables.RollappEVM,
-		Type:        config.EVM_ROLLAPP,
+		Type:        consts.EVM_ROLLAPP,
 	}
 	addr, err := utils.GetAddressBinary(seqKeyConfig, consts.Executables.RollappEVM)
 	if err != nil {
@@ -182,7 +183,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 // 		"--home",
 // 		rollappConfigDirPath,
 // 	)
-// 	_, err = utils.ExecBashCommandWithStdout(collectGentx)
+// 	_, err = utils.ExecCommandWithStdout(collectGentx)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -220,7 +221,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 // 		"--home",
 // 		rollappConfigDirPath,
 // 	)
-// 	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
+// 	_, err = utils.ExecCommandWithStdout(gentxCmd)
 // 	if err != nil {
 // 		return err
 // 	}

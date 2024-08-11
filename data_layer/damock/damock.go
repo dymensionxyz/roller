@@ -4,7 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type DAMock struct{}

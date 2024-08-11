@@ -6,17 +6,19 @@ import (
 	"strconv"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func setRollappRPC(rlpCfg config.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
-	if err := relayer.UpdateRlyConfigValue(rlpCfg, []string{"chains", rlpCfg.RollappID, "value", "rpc-addr"}, "http://localhost:"+
-		value); err != nil {
+	if err := relayer.UpdateRlyConfigValue(
+		rlpCfg, []string{"chains", rlpCfg.RollappID, "value", "rpc-addr"}, "http://localhost:"+
+			value,
+	); err != nil {
 		return err
 	}
 	if err := updateRlpCfg(rlpCfg, value); err != nil {

@@ -14,11 +14,14 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
 
@@ -40,7 +43,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
@@ -163,7 +166,7 @@ func Cmd() *cobra.Command {
 			}
 			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
-			utils.RequireMigrateIfNeeded(rollappConfig)
+			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			err = rollappConfig.Validate()
 			if err != nil {
@@ -240,7 +243,7 @@ func Cmd() *cobra.Command {
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(
+			go bash.RunCmdAsync(
 				ctx,
 				rly.GetStartCmd(),
 				func() {},
@@ -262,7 +265,7 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config.RollappConfig) error {
+func VerifyRelayerBalances(rolCfg config2.RollappConfig) error {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	if err != nil {
 		return err
@@ -273,7 +276,7 @@ func VerifyRelayerBalances(rolCfg config.RollappConfig) error {
 }
 
 func GetRlyHubInsufficientBalances(
-	config config.RollappConfig,
+	config config2.RollappConfig,
 ) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
@@ -310,7 +313,7 @@ func GetRlyHubInsufficientBalances(
 }
 
 func GetRelayerInsufficientBalances(
-	config config.RollappConfig,
+	config config2.RollappConfig,
 ) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {

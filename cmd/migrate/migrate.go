@@ -3,10 +3,12 @@ package migrate
 import (
 	"fmt"
 
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -29,26 +31,26 @@ func Cmd() *cobra.Command {
 		Short: "Migrates the roller configuration to the newly installed version.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
+			rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
+			errorhandling.PrettifyErrorIfExists(err)
 			prevVersionData, err := GetPrevVersionData(rlpCfg)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			for _, migrator := range migrationsRegistry {
 				if migrator.ShouldMigrate(*prevVersionData) {
-					utils.PrettifyErrorIfExists(migrator.PerformMigration(rlpCfg))
+					errorhandling.PrettifyErrorIfExists(migrator.PerformMigration(rlpCfg))
 				}
 			}
 			trimmedCurrentVersion := version.TrimVersionStr(version.BuildVersion)
 			rlpCfg.RollerVersion = trimmedCurrentVersion
-			err = config.WriteConfigToTOML(rlpCfg)
-			utils.PrettifyErrorIfExists(err)
+			err = toml.WriteConfigToTOML(rlpCfg)
+			errorhandling.PrettifyErrorIfExists(err)
 			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},
 	}
 	return cmd
 }
 
-func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
+func GetPrevVersionData(rlpCfg config2.RollappConfig) (*VersionData, error) {
 	rollerPrevVersion := rlpCfg.RollerVersion
 	var major, minor, patch int
 	// Special case for the first version of roller, that didn't have a version field.
@@ -78,7 +80,7 @@ func GetPrevVersionData(rlpCfg config.RollappConfig) (*VersionData, error) {
 }
 
 type VersionMigrator interface {
-	PerformMigration(rlpCfg config.RollappConfig) error
+	PerformMigration(rlpCfg config2.RollappConfig) error
 	ShouldMigrate(prevVersion VersionData) bool
 }
 

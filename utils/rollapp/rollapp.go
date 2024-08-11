@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	globalutils "github.com/dymensionxyz/roller/utils/bash"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/cmd/utils"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, nil
 	}
@@ -50,7 +50,7 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 		"json",
 	)
 
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -89,7 +89,7 @@ func GetRegisteredSequencers(
 		"--output", "json",
 	)
 
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}

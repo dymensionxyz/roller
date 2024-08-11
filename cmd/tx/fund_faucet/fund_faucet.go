@@ -7,12 +7,14 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 )
 
@@ -34,7 +36,7 @@ func Cmd() *cobra.Command {
 		Use:   "fund-faucet",
 		Short: "Fund the Dymension faucet with rollapp tokens",
 		Run: func(cmd *cobra.Command, args []string) {
-			utils.PrettifyErrorIfExists(fundFaucet(cmd, args))
+			errorhandling.PrettifyErrorIfExists(fundFaucet(cmd, args))
 		},
 	}
 	cmd.Flags().
@@ -45,7 +47,7 @@ func Cmd() *cobra.Command {
 
 func fundFaucet(cmd *cobra.Command, args []string) error {
 	home := cmd.Flag(utils.FlagNames.Home).Value.String()
-	rlpCfg, err := config.LoadRollerConfigFromTOML(home)
+	rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
 	if err != nil {
 		return err
 	}
@@ -55,7 +57,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	defer outputHandler.StopSpinner()
-	utils.RunOnInterrupt(outputHandler.StopSpinner)
+	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
 	outputHandler.StartSpinner(" Loading relayer channel...")
 	rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 	_, _, err = rly.LoadActiveChannel()
@@ -102,7 +104,7 @@ func fundFaucet(cmd *cobra.Command, args []string) error {
 		"json",
 	)
 	outputHandler.StartSpinner(" Funding faucet...")
-	stdout, err := utils.ExecBashCommandWithStdout(fundFaucetCmd)
+	stdout, err := bash.ExecCommandWithStdout(fundFaucetCmd)
 	if err != nil {
 		return err
 	}

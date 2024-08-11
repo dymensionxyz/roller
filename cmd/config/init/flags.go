@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
@@ -31,7 +31,7 @@ func AddFlags(cmd *cobra.Command) error {
 			"The rollapp binary. Should be passed only if you built a custom rollapp",
 		)
 	cmd.Flags().
-		StringP(FlagNames.VMType, "", string(config.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
+		StringP(FlagNames.VMType, "", string(consts.EVM_ROLLAPP), "The rollapp type [evm, sdk]. Defaults to evm")
 	cmd.Flags().
 		StringP(FlagNames.TokenSupply, "", consts.DefaultTokenSupply, "The total token supply of the RollApp")
 	// cmd.Flags().BoolP(FlagNames.Interactive, "i", false, "Run roller in interactive mode")
@@ -64,12 +64,12 @@ func GetInitConfig(
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
 
-	home, err := globalutils.ExpandHomePath(initCmd.Flag(utils.FlagNames.Home).Value.String())
+	home, err := globalutils.ExpandHomePath(initCmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		fmt.Println("failed to expand home path: ", err)
 	}
 
-	rollerConfigFilePath := filepath.Join(home, config.RollerConfigFileName)
+	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 	if _, err := toml.DecodeFile(rollerConfigFilePath, &cfg); err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func GetInitConfig(
 
 	// token supply is provided in the pre-created genesis
 	// cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
-	cfg.DA = config.DAType(strings.ToLower(string(cfg.DA)))
+	cfg.DA = consts.DAType(strings.ToLower(string(cfg.DA)))
 
 	var hubID string
 
@@ -105,7 +105,7 @@ func GetInitConfig(
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 
-	if cfg.VMType == config.EVM_ROLLAPP {
+	if cfg.VMType == consts.EVM_ROLLAPP {
 		cfg.Decimals = 18
 	} else {
 		cfg.Decimals = 6

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func InitializeRollappConfig(initConfig config.RollappConfig) error {
@@ -23,7 +23,7 @@ func InitializeRollappConfig(initConfig config.RollappConfig) error {
 		home,
 	)
 
-	_, err := utils.ExecBashCommandWithStdout(initRollappCmd)
+	_, err := bash.ExecCommandWithStdout(initRollappCmd)
 	if err != nil {
 		return err
 	}

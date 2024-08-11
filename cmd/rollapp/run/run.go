@@ -17,13 +17,16 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	tomlconfig "github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
@@ -42,7 +45,7 @@ var (
 // nolint:gocyclo
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "run",
+		Use:   "run [rollapp-id]",
 		Short: "Run the RollApp nodes",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
@@ -53,16 +56,25 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var raID string
+			if len(args) != 0 {
+				raID = args[0]
+			} else {
+				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide a rollapp ID that you want to run the node for",
+				).Show()
+			}
+
 			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
+			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
+			errorhandling.PrettifyErrorIfExists(err)
 
-			seq := sequencer.GetInstance(rollappConfig)
+			seq := sequencer.GetInstance(*rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
 
 			LogPath = filepath.Join(
@@ -75,15 +87,15 @@ func Cmd() *cobra.Command {
 			if rollappConfig.HubData.ID == "mock" {
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()
-				go utils.RunBashCmdAsync(
+				go bash.RunCmdAsync(
 					ctx, startRollappCmd, func() {
-						printOutput(rollappConfig, startRollappCmd)
+						printOutput(*rollappConfig, startRollappCmd)
 						err := createPidFile(RollappDirPath, startRollappCmd)
 						if err != nil {
 							pterm.Warning.Println("failed to create pid file")
 						}
 					}, parseError,
-					utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
+					utils.WithLogging(utils.GetSequencerLogPath(*rollappConfig)),
 				)
 				select {}
 			}
@@ -101,7 +113,7 @@ func Cmd() *cobra.Command {
 					Dir:         filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
 					ID:          consts.KeysIds.HubSequencer,
 					ChainBinary: consts.Executables.Dymension,
-					Type:        config.SDK_ROLLAPP,
+					Type:        consts.SDK_ROLLAPP,
 				}
 				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, hubSeqKC.ChainBinary)
 				if err != nil {
@@ -222,13 +234,13 @@ func Cmd() *cobra.Command {
 					// 		rollappConfig.RollappID,
 					// 	)
 
-					err = populateSequencerMetadata(rollappConfig)
+					err = populateSequencerMetadata(*rollappConfig)
 					if err != nil {
 						pterm.Error.Println("failed to populate sequencer metadata: ", err)
 						return
 					}
 
-					err = sequencerutils.Register(rollappConfig)
+					err = sequencerutils.Register(*rollappConfig)
 					if err != nil {
 						pterm.Error.Println("failed to register sequencer: ", err)
 						return

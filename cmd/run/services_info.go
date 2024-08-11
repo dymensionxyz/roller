@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 

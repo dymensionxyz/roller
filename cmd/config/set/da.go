@@ -7,25 +7,26 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
 )
 
-func setDA(rlpCfg config.RollappConfig, value string) error {
-	daValue := config.DAType(value)
+func setDA(rlpCfg config2.RollappConfig, value string) error {
+	daValue := consts.DAType(value)
 	if daValue == rlpCfg.DA {
 		return nil
 	}
 
-	if !config.IsValidDAType(value) {
-		return fmt.Errorf("invalid DA type. Supported types are: %v", config.SupportedDas)
+	if !config2.IsValidDAType(value) {
+		return fmt.Errorf("invalid DA type. Supported types are: %v", config2.SupportedDas)
 	}
 	return updateDaConfig(rlpCfg, daValue)
 }
 
-func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
+func updateDaConfig(rlpCfg config2.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
 	dirExist, err := globalutils.DirNotEmpty(daCfgDirPath)
 	if err != nil {
@@ -54,12 +55,12 @@ func updateDaConfig(rlpCfg config.RollappConfig, newDa config.DAType) error {
 		return err
 	}
 
-	if err := config.WriteConfigToTOML(rlpCfg); err != nil {
+	if err := toml.WriteConfigToTOML(rlpCfg); err != nil {
 		return err
 	}
 
 	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
-	if newDa != config.Local {
+	if newDa != consts.Local {
 		addresses := make([]utils.KeyInfo, 0)
 		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home)
 		daAddress, err := damanager.GetDAAccountAddress()

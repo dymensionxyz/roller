@@ -3,10 +3,11 @@ package datalayer
 import (
 	"os/exec"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type DataLayer interface {
@@ -29,19 +30,19 @@ type DataLayer interface {
 }
 
 type DAManager struct {
-	datype config.DAType
+	datype consts.DAType
 	DataLayer
 }
 
-func NewDAManager(datype config.DAType, home string) *DAManager {
+func NewDAManager(datype consts.DAType, home string) *DAManager {
 	var dalayer DataLayer
 
 	switch datype {
-	case config.Celestia:
+	case consts.Celestia:
 		dalayer = celestia.NewCelestia(home)
 	// case config.Avail:
 	// 	dalayer = avail.NewAvail(home)
-	case config.Local:
+	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
 		panic("Unknown data layer type")

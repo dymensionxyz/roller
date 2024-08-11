@@ -1,9 +1,9 @@
 package migrate
 
 import (
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type VersionMigratorV018 struct{}

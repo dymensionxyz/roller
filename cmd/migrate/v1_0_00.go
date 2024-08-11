@@ -5,9 +5,9 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type VersionMigratorV1000 struct{}
@@ -27,7 +27,7 @@ func (v *VersionMigratorV1000) PerformMigration(rlpCfg config.RollappConfig) err
 		"--keyring-backend",
 		"test",
 	)
-	out, err := utils.ExecBashCommandWithStdout(migrateRollappKeyCmd)
+	out, err := bash.ExecCommandWithStdout(migrateRollappKeyCmd)
 	if err != nil {
 		return err
 	}
@@ -42,13 +42,17 @@ func (v *VersionMigratorV1000) PerformMigration(rlpCfg config.RollappConfig) err
 		"--keyring-backend",
 		"test",
 	)
-	out, err = utils.ExecBashCommandWithStdout(migrateHubKeyCmd)
+	out, err = bash.ExecCommandWithStdout(migrateHubKeyCmd)
 	if err != nil {
 		return err
 	}
 	fmt.Println(out.String())
 	fmt.Println("💈 Updating relayer configuration to match new relayer key...")
-	if err := relayer.UpdateRlyConfigValue(rlpCfg, []string{"chains", rlpCfg.RollappID, "value", "extra-codecs"}, []string{"ethermint"}); err != nil {
+	if err := relayer.UpdateRlyConfigValue(
+		rlpCfg,
+		[]string{"chains", rlpCfg.RollappID, "value", "extra-codecs"},
+		[]string{"ethermint"},
+	); err != nil {
 		return err
 	}
 	return nil

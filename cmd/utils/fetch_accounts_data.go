@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {

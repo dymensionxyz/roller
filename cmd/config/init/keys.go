@@ -10,7 +10,8 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
@@ -51,14 +52,14 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
 			// Eventhough the hub can get evm signatures, we still use the native
-			Type: config.SDK_ROLLAPP,
+			Type: consts.SDK_ROLLAPP,
 		},
 		{
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubGenesis,
 			ChainBinary: consts.Executables.Dymension,
 			// Eventhough the hub can get evm signatures, we still use the native
-			Type: config.SDK_ROLLAPP,
+			Type: consts.SDK_ROLLAPP,
 		},
 		{
 			Dir:         consts.ConfigDirName.Rollapp,
@@ -81,7 +82,7 @@ func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.HubRelayer,
 			ChainBinary: consts.Executables.Dymension,
-			Type:        config.SDK_ROLLAPP,
+			Type:        consts.SDK_ROLLAPP,
 		},
 	}
 }
@@ -96,7 +97,7 @@ func CreateAddressBinary(
 		"--output", "json",
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := utils.ExecBashCommandWithStdout(createKeyCommand)
+	out, err := bash.ExecCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error)
 		rollappConfig.HubData.ID,
 	)
 
-	out, err := utils.ExecBashCommandWithStdout(showRollappKeyCmd)
+	out, err := bash.ExecCommandWithStdout(showRollappKeyCmd)
 	if err != nil {
 		pterm.Error.Printf("failed to retrieve rollapp key: %v\n", err)
 	}
@@ -127,7 +128,7 @@ func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error)
 	}
 	fmt.Println(relayerRollappAddress)
 
-	out, err = utils.ExecBashCommandWithStdout(showHubKeyCmd)
+	out, err = bash.ExecCommandWithStdout(showHubKeyCmd)
 	if err != nil {
 		pterm.Error.Printf("failed to retrieve hub key: %v\n", err)
 	}
@@ -159,7 +160,7 @@ func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, e
 	createHubKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
 
 	pterm.Info.Println("creating relayer rollapp key")
-	out, err := utils.ExecBashCommandWithStdout(createRollappKeyCmd)
+	out, err := bash.ExecCommandWithStdout(createRollappKeyCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, e
 	)
 
 	pterm.Info.Println("creating relayer hub key")
-	out, err = utils.ExecBashCommandWithStdout(createHubKeyCmd)
+	out, err = bash.ExecCommandWithStdout(createHubKeyCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +192,7 @@ func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, e
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 	coinType := "118"
-	if keyConfig.Type == config.EVM_ROLLAPP {
+	if keyConfig.Type == consts.EVM_ROLLAPP {
 		coinType = "60"
 	}
 	return exec.Command(
@@ -209,7 +210,7 @@ func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 
 func getShowRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 	coinType := "118"
-	if keyConfig.Type == config.EVM_ROLLAPP {
+	if keyConfig.Type == consts.EVM_ROLLAPP {
 		coinType = "60"
 	}
 	return exec.Command(

@@ -15,8 +15,9 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
@@ -44,7 +45,7 @@ func NewCelestia(home string) *Celestia {
 
 func (c *Celestia) GetPrivateKey() (string, error) {
 	exportKeyCmd := c.GetExportKeyCmd()
-	out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
+	out, err := bash.ExecCommandWithStdErr(exportKeyCmd)
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +119,7 @@ func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
-	output, err := utils.ExecBashCommandWithStdout(cmd)
+	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +136,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
 	// err := initLightNodeCmd.Run()
-	out, err := utils.ExecBashCommandWithStdout(initLightNodeCmd)
+	out, err := bash.ExecCommandWithStdout(initLightNodeCmd)
 	if err != nil {
 		return "", err
 	}
@@ -280,7 +281,7 @@ func (c *Celestia) getAuthToken(t string) (string, error) {
 		"--node.store",
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
-	output, err := utils.ExecBashCommandWithStdout(getAuthTokenCmd)
+	output, err := bash.ExecCommandWithStdout(getAuthTokenCmd)
 	if err != nil {
 		return "", err
 	}

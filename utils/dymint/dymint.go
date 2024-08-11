@@ -7,9 +7,9 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	toml2 "github.com/dymensionxyz/roller/utils/config/toml"
 )
 
 // TODO: use dymint instead
@@ -64,7 +64,7 @@ func UpdateDymintConfigForIBC(home string) error {
 	pterm.Info.Println("checking dymint block time settings")
 	dymintPath := sequencer.GetDymintFilePath(home)
 	fmt.Println(dymintPath)
-	dymintCfg, err := config.LoadConfigFromTOML(dymintPath)
+	dymintCfg, err := toml2.LoadConfigFromTOML(dymintPath)
 	if err != nil {
 		return err
 	}

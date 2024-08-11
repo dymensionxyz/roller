@@ -7,10 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	global_utils "github.com/dymensionxyz/roller/utils"
 )
 
@@ -30,7 +30,7 @@ func startCmd() *cobra.Command {
 				fmt.Println("eibc home directory not present, running init")
 				c := GetInitCommand()
 
-				_, err := utils.ExecBashCommandWithStdout(c)
+				_, err := bash.ExecCommandWithStdout(c)
 				if err != nil {
 					return
 				}
@@ -48,7 +48,7 @@ func startCmd() *cobra.Command {
 			}
 
 			c := GetStartCmd()
-			err = utils.ExecBashCmdFollow(c)
+			err = bash.ExecCmdFollow(c)
 			if err != nil {
 				return
 			}

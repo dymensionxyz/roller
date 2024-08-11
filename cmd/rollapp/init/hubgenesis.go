@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 const (
@@ -29,7 +29,7 @@ func getDebugAddrCmd(a string) *exec.Cmd {
 func GetHubGenesisAddress() (string, error) {
 	cmd := getDebugAddrCmd(hubgenesisAddr)
 
-	o, err := utils.ExecBashCommandWithStdout(cmd)
+	o, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}

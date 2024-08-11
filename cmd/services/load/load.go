@@ -13,7 +13,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 type Service struct {
@@ -33,7 +34,7 @@ func Cmd() *cobra.Command {
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
-				utils.PrettifyErrorIfExists(
+				errorhandling.PrettifyErrorIfExists(
 					errors.New("the services commands are only available on linux machines"),
 				)
 			}
@@ -44,14 +45,14 @@ func Cmd() *cobra.Command {
 					UserName: os.Getenv("USER"),
 				}
 				tpl, err := generateServiceTemplate(serviceData)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 				err = writeServiceFile(tpl, service)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 			}
-			_, err := utils.ExecBashCommandWithStdout(
+			_, err := bash.ExecCommandWithStdout(
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			fmt.Println(
 				"💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully.",
 				// " To start them, use 'systemctl start <service>'.",

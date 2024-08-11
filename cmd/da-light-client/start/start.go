@@ -7,10 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 const (
@@ -26,19 +29,19 @@ func Cmd() *cobra.Command {
 		Short: "Runs the DA light client.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
-			utils.RequireMigrateIfNeeded(rollappConfig)
+			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			errorhandling.PrettifyErrorIfExists(err)
+			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
-			if metricsEndpoint != "" && rollappConfig.DA != config.Celestia {
-				utils.PrettifyErrorIfExists(
+			if metricsEndpoint != "" && rollappConfig.DA != consts.Celestia {
+				errorhandling.PrettifyErrorIfExists(
 					errors.New("metrics endpoint can only be set for celestia"),
 				)
 			}
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
 			insufficientBalances, err := damanager.CheckDABalance()
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
@@ -50,7 +53,7 @@ func Cmd() *cobra.Command {
 			}
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
-				utils.PrettifyErrorIfExists(
+				errorhandling.PrettifyErrorIfExists(
 					errors.New(
 						"DA doesn't need to run seperatly. It runs automatically with the app",
 					),
@@ -60,7 +63,7 @@ func Cmd() *cobra.Command {
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(
+			go bash.RunCmdAsync(
 				ctx,
 				startDALCCmd,
 				printOutput,

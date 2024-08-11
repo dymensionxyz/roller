@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 )
 

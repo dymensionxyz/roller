@@ -6,12 +6,14 @@ import (
 	"os/exec"
 	"sync"
 
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	relayer_run "github.com/dymensionxyz/roller/cmd/relayer/run"
 	rollapp_run "github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/relayer"
@@ -31,9 +33,9 @@ func Cmd() *cobra.Command {
 		Short: "Runs the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
-			utils.RequireMigrateIfNeeded(rollappConfig)
+			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			errorhandling.PrettifyErrorIfExists(err)
+			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -48,14 +50,14 @@ func Cmd() *cobra.Command {
 
 			/* ------------------------------ run processes ----------------------------- */
 			seq := sequencer.GetInstance(rollappConfig)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			runSequencerWithRestarts(seq, serviceConfig)
 			runDaWithRestarts(rollappConfig, serviceConfig)
 			runRelayerWithRestarts(rollappConfig, serviceConfig)
 
 			/* ------------------------------ render output ----------------------------- */
 			noOutput, err := cmd.Flags().GetBool(flagNames.NoOutput)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			if noOutput {
 				select {}
 			} else {
@@ -65,7 +67,7 @@ func Cmd() *cobra.Command {
 			spin := utils.GetLoadingSpinner()
 			spin.Suffix = " Stopping rollapp services, please wait..."
 			spin.Start()
-			utils.RunOnInterrupt(spin.Stop)
+			errorhandling.RunOnInterrupt(spin.Stop)
 			waitingGroup.Wait()
 			spin.Stop()
 		},
@@ -74,7 +76,10 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemanager.ServiceConfig) {
+func runRelayerWithRestarts(
+	cfg config2.RollappConfig,
+	serviceConfig *servicemanager.ServiceConfig,
+) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
 
 	rly := relayer.NewRelayer(cfg.Home, cfg.RollappID, cfg.HubData.ID)
@@ -89,7 +94,7 @@ func runRelayerWithRestarts(cfg config.RollappConfig, serviceConfig *servicemana
 	serviceConfig.RunServiceWithRestart("Relayer")
 }
 
-func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
+func getStartRelayerCmd(config config2.RollappConfig) *exec.Cmd {
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -98,7 +103,7 @@ func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 }
 
 func runDaWithRestarts(
-	rollappConfig config.RollappConfig,
+	rollappConfig config2.RollappConfig,
 	serviceConfig *servicemanager.ServiceConfig,
 ) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
@@ -133,19 +138,19 @@ func runSequencerWithRestarts(
 	)
 }
 
-func verifyBalances(rollappConfig config.RollappConfig) {
+func verifyBalances(rollappConfig config2.RollappConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	insufficientBalances, err := damanager.CheckDABalance()
-	utils.PrettifyErrorIfExists(err)
+	errorhandling.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
 		rollappConfig, rollapp_run.OneDaySequencePrice,
 	)
-	utils.PrettifyErrorIfExists(err)
+	errorhandling.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
 
 	rlyAddrs, err := relayer_run.GetRlyHubInsufficientBalances(rollappConfig)
-	utils.PrettifyErrorIfExists(err)
+	errorhandling.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }

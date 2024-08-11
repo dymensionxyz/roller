@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type VersionMigratorV1005 struct{}
@@ -25,7 +25,7 @@ func (v *VersionMigratorV1005) ShouldMigrate(prevVersion VersionData) bool {
 
 func (v *VersionMigratorV1005) PerformMigration(rlpCfg config.RollappConfig) error {
 	// If the DA is not celestia, no-op
-	if rlpCfg.DA != config.Celestia {
+	if rlpCfg.DA != consts.Celestia {
 		return nil
 	}
 	// Update dymint config with celestia new config
