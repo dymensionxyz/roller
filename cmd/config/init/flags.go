@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func AddFlags(cmd *cobra.Command) error {

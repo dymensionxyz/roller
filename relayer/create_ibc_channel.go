@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
