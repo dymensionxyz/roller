@@ -65,7 +65,32 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 	}
 
-	// initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
+	hd := consts.Hubs[env]
+	rollerTomlData := map[string]string{
+		"rollapp_binary":          strings.ToLower(consts.Executables.RollappEVM),
+		"home":                    home,
+		"HubData.ID":              hd.ID,
+		"HubData.api_url":         hd.API_URL,
+		"HubData.rpc_url":         hd.RPC_URL,
+		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
+		"HubData.gas_price":       hd.GAS_PRICE,
+
+		// TODO: create a separate config section for DA, similar to HubData
+		"da": string(consts.Celestia),
+	}
+
+	rollerConfigFilePath := filepath.Join(home, "roller.toml")
+	for key, value := range rollerTomlData {
+		err = globalutils.UpdateFieldInToml(
+			rollerConfigFilePath,
+			key,
+			value,
+		)
+		if err != nil {
+			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+			return err
+		}
+	}
 
 	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
 	if err != nil {
@@ -137,36 +162,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	err = initconfig.UpdateGenesisParams(home, &initConfig)
 	if err != nil {
 		return err
-	}
-
-	rollerConfigFilePath := filepath.Join(home, "roller.toml")
-	err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "home", home)
-	if err != nil {
-		fmt.Println("failed to add home to roller.toml: ", err)
-		return err
-	}
-
-	hd := consts.Hubs[env]
-	rollerTomlData := map[string]string{
-		"HubData.ID":              hd.ID,
-		"HubData.api_url":         hd.API_URL,
-		"HubData.rpc_url":         hd.RPC_URL,
-		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
-		"HubData.gas_price":       hd.GAS_PRICE,
-		"da":                      strings.ToLower(string(initConfig.DA)),
-		"rollapp_binary":          strings.ToLower(consts.Executables.RollappEVM),
-	}
-
-	for key, value := range rollerTomlData {
-		err = globalutils.UpdateFieldInToml(
-			rollerConfigFilePath,
-			key,
-			value,
-		)
-		if err != nil {
-			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-			return err
-		}
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */
