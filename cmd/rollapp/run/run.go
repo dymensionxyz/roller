@@ -419,6 +419,7 @@ func Cmd() *cobra.Command {
 			default:
 				pterm.Error.Println("unsupported node type")
 				return
+
 			}
 
 			pterm.Info.Println("updating dymint configuration")
