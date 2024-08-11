@@ -1,4 +1,4 @@
-package utils
+package bash
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func RunCommandEvery(
@@ -50,15 +50,9 @@ func RunCommandEvery(
 	}()
 }
 
-func GetCommonDymdFlags(rollappConfig config.RollappConfig) []string {
-	return []string{
-		"--node", rollappConfig.HubData.RPC_URL, "--output", "json",
-	}
-}
-
 type CommandOption func(cmd *exec.Cmd)
 
-func RunBashCmdAsync(
+func RunCmdAsync(
 	ctx context.Context,
 	cmd *exec.Cmd,
 	printOutput func(),
@@ -84,9 +78,9 @@ func RunBashCmdAsync(
 	if err != nil {
 		errMsg := parseError(stderr.String())
 		if errMsg == "" {
-			PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 		}
-		PrettifyErrorIfExists(errors.New(errMsg))
+		errorhandling.PrettifyErrorIfExists(errors.New(errMsg))
 	}
 	printOutput()
 
@@ -103,11 +97,11 @@ func RunBashCmdAsync(
 	err = cmd.Wait()
 	if err != nil {
 		errMsg := parseError(stderr.String())
-		PrettifyErrorIfExists(errors.New(errMsg))
+		errorhandling.PrettifyErrorIfExists(errors.New(errMsg))
 	}
 }
 
-func ExecBashCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
@@ -119,7 +113,7 @@ func ExecBashCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
 	return stdout, nil
 }
 
-func ExecBashCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
@@ -131,7 +125,7 @@ func ExecBashCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
 	return stderr, nil
 }
 
-func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
+func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	for _, option := range options {
 		option(cmd)
 	}
@@ -142,7 +136,7 @@ func ExecBashCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecBashCmdFollow(cmd *exec.Cmd) error {
+func ExecCmdFollow(cmd *exec.Cmd) error {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -207,7 +201,7 @@ func ExecBashCmdFollow(cmd *exec.Cmd) error {
 }
 
 // TODO: generalize
-func ExecBashCommandWithInput(cmd *exec.Cmd) error {
+func ExecCommandWithInput(cmd *exec.Cmd) error {
 	// Create pipes for stdin, stdout, and stderr
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

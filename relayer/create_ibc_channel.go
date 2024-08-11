@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -19,7 +20,7 @@ import (
 // and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(
 	override bool,
-	logFileOption utils.CommandOption,
+	logFileOption bash.CommandOption,
 	seq *sequencer.Sequencer,
 ) (ConnectionChannels, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -40,7 +41,7 @@ func (r *Relayer) CreateIBCChannel(
 	}
 
 	sendFundsCmd := seq.GetSendCmd(sequencerAddress)
-	utils.RunCommandEvery(
+	bash.RunCommandEvery(
 		ctx,
 		sendFundsCmd.Path,
 		sendFundsCmd.Args[1:],
@@ -75,7 +76,7 @@ func (r *Relayer) CreateIBCChannel(
 			return ConnectionChannels{}, err
 		}
 
-		if err := utils.ExecBashCmd(createClientsCmd, logFileOption); err != nil {
+		if err := bash.ExecCmd(createClientsCmd, logFileOption); err != nil {
 			fmt.Println(err)
 			return ConnectionChannels{}, err
 		}
@@ -92,7 +93,7 @@ func (r *Relayer) CreateIBCChannel(
 			return ConnectionChannels{}, err
 		}
 		createConnectionCmd := r.getCreateConnectionCmd(override)
-		if err := utils.ExecBashCmd(createConnectionCmd, logFileOption); err != nil {
+		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
 	}
@@ -107,7 +108,7 @@ func (r *Relayer) CreateIBCChannel(
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
-	if err := utils.ExecBashCmd(createChannelCmd, logFileOption); err != nil {
+	if err := bash.ExecCmd(createChannelCmd, logFileOption); err != nil {
 		return ConnectionChannels{}, err
 	}
 	status = ""

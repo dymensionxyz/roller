@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type ChainQueryConfig struct {
@@ -31,7 +32,7 @@ func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error)
 		"--output",
 		"json",
 	)
-	out, err := ExecBashCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return Balance{}, err
 	}

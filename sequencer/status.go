@@ -10,8 +10,8 @@ import (
 	"strconv"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type NodeInfo struct {
@@ -68,15 +68,19 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 	if response.Result.NodeInfo.Network == seq.RlpCfg.RollappID {
 		return response.Result.SyncInfo.LatestBlockHeight, nil
 	} else {
-		return "-1", fmt.Errorf("wrong sequencer is running on the machine. Expected network ID %s,"+
-			" got %s", seq.RlpCfg.RollappID, response.Result.NodeInfo.Network)
+		return "-1", fmt.Errorf(
+			"wrong sequencer is running on the machine. Expected network ID %s,"+
+				" got %s", seq.RlpCfg.RollappID, response.Result.NodeInfo.Network,
+		)
 	}
 }
 
 func (seq *Sequencer) GetHubHeight() (string, error) {
-	cmd := exec.Command(consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
-		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL)
-	out, err := utils.ExecBashCommandWithStdout(cmd)
+	cmd := exec.Command(
+		consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
+		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL,
+	)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}
@@ -140,7 +144,8 @@ func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
 
 	err = seq.GetSequencerHealth()
 	if err != nil {
-		return fmt.Sprintf(`
+		return fmt.Sprintf(
+			`
 status: Unhealthy
 error: %v
 `, err,
@@ -160,16 +165,19 @@ error: %v
 			fmt.Println("failed to retrieve ports: ", err)
 		}
 
-		return fmt.Sprintf(`RollApp
+		return fmt.Sprintf(
+			`RollApp
 status: Healthy
 height: %s
 
 Endpoints:
 rpc: %s
-rest: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint)
+rest: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint,
+		)
 	}
 
-	return fmt.Sprintf(`RollApp:
+	return fmt.Sprintf(
+		`RollApp:
 status: Healthy
 height: %s
 
@@ -178,5 +186,6 @@ rpc: %s
 rest: %s
 
 Hub:
-height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight)
+height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight,
+	)
 }

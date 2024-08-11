@@ -9,8 +9,10 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func Cmd() *cobra.Command {
@@ -19,8 +21,8 @@ func Cmd() *cobra.Command {
 		Short: "Exports the private key of the given key id.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
+			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
+			errorhandling.PrettifyErrorIfExists(err)
 			supportedKeys := []string{
 				consts.KeysIds.HubSequencer,
 				consts.KeysIds.RollappSequencer,
@@ -36,27 +38,27 @@ func Cmd() *cobra.Command {
 					filepath.Join(home, consts.ConfigDirName.HubKeys),
 					consts.Executables.Dymension,
 				)
-				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
-				utils.PrettifyErrorIfExists(err)
+				out, err := bash.ExecCommandWithStdout(exportKeyCmd)
+				errorhandling.PrettifyErrorIfExists(err)
 				printHexKeyOutput(out.String())
 			} else if keyID == consts.KeysIds.RollappSequencer {
 				exportKeyCmd := utils.GetExportKeyCmdBinary(
 					keyID, filepath.Join(home, consts.ConfigDirName.Rollapp),
 					rlpCfg.RollappBinary,
 				)
-				out, err := utils.ExecBashCommandWithStdout(exportKeyCmd)
-				utils.PrettifyErrorIfExists(err)
+				out, err := bash.ExecCommandWithStdout(exportKeyCmd)
+				errorhandling.PrettifyErrorIfExists(err)
 				printHexKeyOutput(out.String())
 			} else if keyID != "" && keyID == damanager.GetKeyName() {
 				privateKey, err := damanager.GetPrivateKey()
-				utils.PrettifyErrorIfExists(err)
-				if rlpCfg.DA == config.Celestia {
+				errorhandling.PrettifyErrorIfExists(err)
+				if rlpCfg.DA == consts.Celestia {
 					printHexKeyOutput(privateKey)
-				} else if rlpCfg.DA == config.Avail {
+				} else if rlpCfg.DA == consts.Avail {
 					printMnemonicKeyOutput(privateKey)
 				}
 			} else {
-				utils.PrettifyErrorIfExists(
+				errorhandling.PrettifyErrorIfExists(
 					fmt.Errorf(
 						"invalid key id: %s. The supported keys are %s", keyID,
 						strings.Join(supportedKeys, ", "),

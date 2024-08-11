@@ -9,8 +9,9 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 var flagNames = struct {
@@ -25,13 +26,13 @@ func Cmd() *cobra.Command {
 		Short: "List all the addresses of roller on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			errorhandling.PrettifyErrorIfExists(err)
 			addresses := make([]utils.KeyInfo, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 
 			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			if daAddr != nil {
 				addresses = append(
 					addresses, utils.KeyInfo{
@@ -47,7 +48,7 @@ func Cmd() *cobra.Command {
 					ID:  consts.KeysIds.HubSequencer,
 				}, consts.Executables.Dymension,
 			)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			addresses = append(
 				addresses, utils.KeyInfo{
 					Address: hubSeqInfo.Address,
@@ -61,7 +62,7 @@ func Cmd() *cobra.Command {
 					ID:  consts.KeysIds.RollappSequencer,
 				}, rollappConfig.RollappBinary,
 			)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			addresses = append(
 				addresses, utils.KeyInfo{
 					Address: raSeqInfo.Address,
@@ -70,7 +71,7 @@ func Cmd() *cobra.Command {
 			)
 
 			hubRlyAddr, err := utils.GetRelayerAddress(rollappConfig.Home, rollappConfig.HubData.ID)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			addresses = append(
 				addresses, utils.KeyInfo{
 					Address: hubRlyAddr,
@@ -82,7 +83,7 @@ func Cmd() *cobra.Command {
 				rollappConfig.Home,
 				rollappConfig.RollappID,
 			)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			addresses = append(
 				addresses, utils.KeyInfo{
@@ -92,7 +93,7 @@ func Cmd() *cobra.Command {
 			)
 			outputType := cmd.Flag(flagNames.outputType).Value.String()
 			if outputType == "json" {
-				utils.PrettifyErrorIfExists(printAsJSON(addresses))
+				errorhandling.PrettifyErrorIfExists(printAsJSON(addresses))
 			} else if outputType == "text" {
 				utils.PrintAddressesWithTitle(addresses)
 			}

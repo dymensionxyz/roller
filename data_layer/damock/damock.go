@@ -4,7 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type DAMock struct{}
@@ -20,11 +20,11 @@ func (d *DAMock) GetStatus(c config.RollappConfig) string {
 	return "Running local DA"
 }
 
-func (c *DAMock) GetRootDirectory() string {
+func (d *DAMock) GetRootDirectory() string {
 	return ""
 }
 
-func (c *DAMock) GetNamespaceID() string {
+func (d *DAMock) GetNamespaceID() string {
 	return ""
 }
 
@@ -56,14 +56,14 @@ func (d *DAMock) GetLightNodeEndpoint() string {
 	return ""
 }
 
-func (d *DAMock) GetSequencerDAConfig() string {
+func (d *DAMock) GetSequencerDAConfig(nt string) string {
 	return ""
 }
 
 func (d *DAMock) SetRPCEndpoint(string) {
 }
 
-func (c *DAMock) GetKeyName() string {
+func (d *DAMock) GetKeyName() string {
 	return ""
 }
 

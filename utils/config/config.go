@@ -4,37 +4,22 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-const RollerConfigFileName = "roller.toml"
-
-type VMType string
-
-const (
-	SDK_ROLLAPP VMType = "sdk"
-	EVM_ROLLAPP VMType = "evm"
-)
-
-type DAType string
-
-const (
-	Local    DAType = "local"
-	Celestia DAType = "celestia"
-	Avail    DAType = "avail"
-)
-
-var SupportedDas = []DAType{Celestia, Avail, Local}
+var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
 
 type RollappConfig struct {
-	Home          string `toml:"home"`
-	RollappID     string `toml:"rollapp_id"`
-	RollappBinary string `toml:"rollapp_binary"`
-	VMType        VMType `toml:"execution"`
-	Denom         string `toml:"denom"`
+	Home          string        `toml:"home"`
+	RollappID     string        `toml:"rollapp_id"`
+	RollappBinary string        `toml:"rollapp_binary"`
+	VMType        consts.VMType `toml:"execution"`
+	Denom         string        `toml:"denom"`
 	// TokenSupply   string
 	Decimals      uint
-	HubData       HubData
-	DA            DAType
+	HubData       consts.HubData
+	DA            consts.DAType
 	RollerVersion string `toml:"roller_version"`
 
 	// new roller.toml
@@ -44,14 +29,6 @@ type RollappConfig struct {
 	Bech32Prefix     string `toml:"bech32_prefix"`
 	BaseDenom        string `toml:"base_denom"`
 	MinGasPrices     string `toml:"minimum_gas_prices"`
-}
-
-type HubData = struct {
-	API_URL         string `toml:"api_url"`
-	ID              string `toml:"id"`
-	RPC_URL         string `toml:"rpc_url"`
-	ARCHIVE_RPC_URL string `toml:"archive_rpc_url"`
-	GAS_PRICE       string `toml:"gas_price"`
 }
 
 func (c RollappConfig) Validate() error {
@@ -86,22 +63,22 @@ func (c RollappConfig) Validate() error {
 }
 
 func IsValidDAType(t string) bool {
-	switch DAType(t) {
-	case Local, Celestia, Avail:
+	switch consts.DAType(t) {
+	case consts.Local, consts.Celestia, consts.Avail:
 		return true
 	}
 	return false
 }
 
 func IsValidVMType(t string) bool {
-	switch VMType(t) {
-	case SDK_ROLLAPP, EVM_ROLLAPP:
+	switch consts.VMType(t) {
+	case consts.SDK_ROLLAPP, consts.EVM_ROLLAPP:
 		return true
 	}
 	return false
 }
 
-func VerifyHubData(data HubData) error {
+func VerifyHubData(data consts.HubData) error {
 	if data.ID == "mock" {
 		return nil
 	}

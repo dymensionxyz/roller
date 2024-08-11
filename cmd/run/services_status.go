@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dymensionxyz/roller/utils/config"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 

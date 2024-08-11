@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
@@ -30,7 +30,7 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		return "", "", nil
 	}
 
-	output, err := cmdutils.ExecBashCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
+	output, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
 	if err != nil {
 		return "", "", err
 	}
@@ -61,7 +61,7 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		// found STATE_OPEN channel
 		// Check if the channel is open on the hub
 		var res HubQueryResult
-		outputHub, err := cmdutils.ExecBashCommandWithStdout(
+		outputHub, err := bash.ExecCommandWithStdout(
 			r.queryChannelsHubCmd(outputStruct.ChannelID),
 		)
 		if err != nil {

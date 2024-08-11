@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	termui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -44,9 +44,11 @@ func updateUITable(
 	cfg config.RollappConfig,
 ) {
 	table.Rows = [][]string{{"Name", "Balance", "Status"}}
-	sort.Slice(serviceData, func(i, j int) bool {
-		return serviceData[i].Name < serviceData[j].Name
-	})
+	sort.Slice(
+		serviceData, func(i, j int) bool {
+			return serviceData[i].Name < serviceData[j].Name
+		},
+	)
 	for _, service := range serviceData {
 		balances := []string{}
 		for _, account := range service.Accounts {

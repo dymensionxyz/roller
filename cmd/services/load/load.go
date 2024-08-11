@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"text/template"
 
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 type Service struct {
@@ -32,28 +34,28 @@ func Cmd() *cobra.Command {
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
-				utils.PrettifyErrorIfExists(
+				errorhandling.PrettifyErrorIfExists(
 					errors.New("the services commands are only available on linux machines"),
 				)
 			}
-			for _, service := range []string{"sequencer", "da-light-client", "relayer"} {
+			for _, service := range []string{"rollapp", "da-light-client", "relayer"} {
 				serviceData := ServiceTemplateData{
 					Name:     service,
 					ExecPath: consts.Executables.Roller,
 					UserName: os.Getenv("USER"),
 				}
 				tpl, err := generateServiceTemplate(serviceData)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 				err = writeServiceFile(tpl, service)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 			}
-			_, err := utils.ExecBashCommandWithStdout(
+			_, err := bash.ExecCommandWithStdout(
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 			fmt.Println(
-				"💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully." +
-					" To start them, use 'systemctl start <service>'.",
+				"💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully.",
+				// " To start them, use 'systemctl start <service>'.",
 			)
 		},
 	}
@@ -61,9 +63,13 @@ func Cmd() *cobra.Command {
 }
 
 func writeServiceFile(serviceTxt *bytes.Buffer, serviceName string) error {
-	filePath := fmt.Sprintf("/etc/systemd/system/%s.service", serviceName)
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("echo '%s' | sudo tee %s",
-		serviceTxt.String(), filePath))
+	filePath := filepath.Join("/etc/systemd/system/", fmt.Sprintf("%s.service", serviceName))
+	cmd := exec.Command(
+		"bash", "-c", fmt.Sprintf(
+			"echo '%s' | sudo tee %s",
+			serviceTxt.String(), filePath,
+		),
+	)
 	// Need to start and wait instead of run to allow sudo to prompt for password
 	err := cmd.Start()
 	if err != nil {

@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	globalutils "github.com/dymensionxyz/roller/utils/bash"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/cmd/utils"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, nil
 	}
@@ -50,7 +50,7 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 		"json",
 	)
 
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -58,7 +58,7 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 	var ra dymensiontypes.QueryGetRollappResponse
 	_ = json.Unmarshal(out.Bytes(), &ra)
 
-	return ra.Rollapp.InitialSequencerAddress, nil
+	return ra.Rollapp.InitialSequencer, nil
 }
 
 func IsInitialSequencer(addr, raID string) (bool, error) {
@@ -66,6 +66,8 @@ func IsInitialSequencer(addr, raID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	fmt.Printf("%s\n%s\n", addr, initSeqAddr)
 
 	if strings.TrimSpace(addr) == strings.TrimSpace(initSeqAddr) {
 		return true, nil
@@ -76,8 +78,8 @@ func IsInitialSequencer(addr, raID string) (bool, error) {
 
 func GetRegisteredSequencers(
 	raID string,
-) (*Sequencers, error) {
-	var seq Sequencers
+) (*sequencerutils.Sequencers, error) {
+	var seq sequencerutils.Sequencers
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q",
@@ -87,7 +89,7 @@ func GetRegisteredSequencers(
 		"--output", "json",
 	)
 
-	out, err := globalutils.ExecBashCommandWithStdout(cmd)
+	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +105,4 @@ func GetRegisteredSequencers(
 type BlockInformation struct {
 	BlockId tmtypes.BlockID `json:"block_id"`
 	Block   tmtypes.Block   `json:"block"`
-}
-
-type Sequencers struct {
-	Sequencers []sequencerutils.Info `json:"sequencers,omitempty"`
 }

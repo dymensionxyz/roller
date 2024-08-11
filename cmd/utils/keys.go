@@ -9,7 +9,8 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 // KeyConfig struct store information about a wallet
@@ -19,7 +20,7 @@ type KeyConfig struct {
 	// TODO: this is not descriptive, Name would be more expressive
 	ID          string
 	ChainBinary string
-	Type        config.VMType
+	Type        consts.VMType
 }
 
 // TODO: KeyInfo and AddressData seem redundant, should be moved into
@@ -34,7 +35,7 @@ func GetRelayerAddress(home string, chainID string) (string, error) {
 		"--home",
 		filepath.Join(home, consts.ConfigDirName.Relayer),
 	)
-	out, err := ExecBashCommandWithStdout(showKeyCmd)
+	out, err := bash.ExecCommandWithStdout(showKeyCmd)
 	if err != nil {
 		pterm.Error.Printf("no relayer address found: %v", err)
 		return "", err
@@ -64,7 +65,7 @@ func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
 
 func GetAddressPrefix(binaryPath string) (string, error) {
 	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff")
-	out, err := ExecBashCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}

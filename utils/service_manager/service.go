@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type ServiceConfig struct {
@@ -76,7 +77,7 @@ func (s *ServiceConfig) AddService(name string, data Service) {
 	s.Services[name] = data
 }
 
-func (s *ServiceConfig) RunServiceWithRestart(name string, options ...utils.CommandOption) {
+func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.CommandOption) {
 	if _, ok := s.Services[name]; !ok {
 		panic("service with that name does not exist")
 	}

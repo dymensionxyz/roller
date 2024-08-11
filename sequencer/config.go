@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
@@ -73,7 +73,7 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 	dymintCfg.Set("da_layer", "mock")
 	// daConfig := damanager.GetSequencerDAConfig()
 	// dymintCfg.Set("da_config", daConfig)
-	if rlpCfg.DA == config.Celestia {
+	if rlpCfg.DA == consts.Celestia {
 		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
 		if !ok {
 			return fmt.Errorf(
@@ -84,7 +84,7 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
 	}
 
-	if rlpCfg.DA == config.Local {
+	if rlpCfg.DA == consts.Local {
 		dymintCfg.Set("da_layer", "mock")
 	}
 

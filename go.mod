@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	cosmossdk.io/math v1.3.0
 	github.com/BurntSushi/toml v1.4.0
 	github.com/briandowns/spinner v1.23.0
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
@@ -16,10 +17,11 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240802123505-afd8254a010c
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240808102132-04bd9df0eec8
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/manifoldco/promptui v0.9.0
+	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pterm/pterm v0.12.79
@@ -27,7 +29,6 @@ require (
 	github.com/tidwall/sjson v1.2.5
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -38,7 +39,6 @@ require (
 	cosmossdk.io/core v0.5.1 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
-	cosmossdk.io/math v1.3.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -88,6 +88,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/dymensionxyz/gerr-cosmos v1.0.0 // indirect
+	github.com/dymensionxyz/sdk-utils v0.2.7 // indirect
 	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -135,6 +136,7 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
+	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/nsf/termbox-go v0.0.0-20190121233118-02980233997d // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
@@ -194,6 +196,7 @@ require (
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )

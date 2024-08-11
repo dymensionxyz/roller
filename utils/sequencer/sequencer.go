@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,8 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func Register(raCfg config.RollappConfig) error {
@@ -40,6 +42,7 @@ func Register(raCfg config.RollappConfig) error {
 		return err
 	}
 
+	// TODO: handle raw_log
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -51,11 +54,11 @@ func Register(raCfg config.RollappConfig) error {
 		fmt.Sprintf("%s%s", seqMinBond.Amount.String(), seqMinBond.Denom),
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
-		"--fees", "1000000000000000000adym",
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultFee, consts.Denoms.Hub),
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 	)
 
-	err = utils.ExecBashCommandWithInput(cmd)
+	err = bash.ExecCommandWithInput(cmd)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
 		"q", "sequencer", "params", "-o", "json",
 	)
 
-	out, err := utils.ExecBashCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +108,59 @@ func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
 
 // TODO: dymd q sequencer show-sequencer could be used instead
 func IsRegisteredAsSequencer(seq []Info, addr string) bool {
+	if len(seq) == 0 {
+		return false
+	}
+
 	return slices.ContainsFunc(
 		seq,
 		func(s Info) bool { return strings.Compare(s.Address, addr) == 0 },
 	)
+}
+
+func GetSequencersByRollappID(raID string) (*Sequencers, error) {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "show-sequencers-by-rollapp",
+		raID, "-o", "json",
+	)
+
+	var sequencers Sequencers
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &sequencers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sequencers, nil
+}
+
+func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
+	sequencers, err := GetSequencersByRollappID(raID)
+	if err != nil {
+		return nil, err
+	}
+
+	var latestSnapshot *SnapshotInfo
+	maxHeight := 0
+
+	for _, s := range sequencers.Sequencers {
+		for _, snapshot := range s.Metadata.Snapshots {
+			height, err := strconv.Atoi(snapshot.Height)
+			if err != nil {
+				continue
+			}
+
+			if height > maxHeight {
+				maxHeight = height
+				latestSnapshot = snapshot
+			}
+		}
+	}
+
+	return latestSnapshot, nil
 }

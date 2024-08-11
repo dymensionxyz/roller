@@ -2,13 +2,12 @@ package consts
 
 import (
 	"fmt"
-
-	"github.com/dymensionxyz/roller/config"
 )
 
 const (
 	binsDir            = "/usr/local/bin"
 	DefaultTokenSupply = "1000000000000000000000000000"
+	DefaultFee         = 100000000000000000 // 0.1
 )
 
 var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
@@ -95,7 +94,15 @@ var SpinnerMsgs = struct {
 	BalancesVerification: " Verifying balances...\n",
 }
 
-var MainnetHubData = config.HubData{
+type HubData = struct {
+	API_URL         string `toml:"api_url"`
+	ID              string `toml:"id"`
+	RPC_URL         string `toml:"rpc_url"`
+	ARCHIVE_RPC_URL string `toml:"archive_rpc_url"`
+	GAS_PRICE       string `toml:"gas_price"`
+}
+
+var MainnetHubData = HubData{
 	API_URL:         "https://dymension-mainnet-rest.public.blastapi.io",
 	ID:              MainnetHubID,
 	RPC_URL:         "https://dymension-mainnet-tendermint.public.blastapi.io",
@@ -103,7 +110,7 @@ var MainnetHubData = config.HubData{
 	GAS_PRICE:       "20000000000",
 }
 
-var TestnetHubData = config.HubData{
+var TestnetHubData = HubData{
 	API_URL:         "https://api-blumbus.mzonder.com",
 	ID:              TestnetHubID,
 	RPC_URL:         "https://rpc-blumbus.mzonder.com",
@@ -111,7 +118,15 @@ var TestnetHubData = config.HubData{
 	GAS_PRICE:       "20000000000",
 }
 
-var LocalHubData = config.HubData{
+var DevnetHubData = HubData{
+	API_URL:         "http://52.58.111.62:1318",
+	ID:              DevnetHubID,
+	RPC_URL:         "http://52.58.111.62:36657",
+	ARCHIVE_RPC_URL: "http://52.58.111.62:36657",
+	GAS_PRICE:       "100000000",
+}
+
+var LocalHubData = HubData{
 	API_URL:         "http://localhost:1318",
 	ID:              LocalHubID,
 	RPC_URL:         "http://localhost:36657",
@@ -119,7 +134,7 @@ var LocalHubData = config.HubData{
 	GAS_PRICE:       "100000000",
 }
 
-var MockHubData = config.HubData{
+var MockHubData = HubData{
 	API_URL:         "",
 	ID:              MockHubID,
 	RPC_URL:         "",
@@ -128,9 +143,10 @@ var MockHubData = config.HubData{
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
-var Hubs = map[string]config.HubData{
+var Hubs = map[string]HubData{
 	MockHubName:    MockHubData,
 	LocalHubName:   LocalHubData,
+	DevnetHubName:  DevnetHubData,
 	TestnetHubName: TestnetHubData,
 	MainnetHubName: MainnetHubData,
 }
@@ -138,6 +154,7 @@ var Hubs = map[string]config.HubData{
 const (
 	MockHubName    = "mock"
 	LocalHubName   = "local"
+	DevnetHubName  = "devnet"
 	TestnetHubName = "testnet"
 	MainnetHubName = "mainnet"
 )
@@ -145,6 +162,40 @@ const (
 const (
 	MockHubID    = "mock"
 	LocalHubID   = "dymension_100-1"
+	DevnetHubID  = "dymension_100-1"
 	TestnetHubID = "blumbus_111-1"
 	MainnetHubID = "dymension_1100-1"
+)
+
+var NodeType = struct {
+	Sequencer string
+	FullNode  string
+}{
+	Sequencer: "sequencer",
+	FullNode:  "fullnode",
+}
+
+var DaAuthTokenType = struct {
+	Admin string
+	Read  string
+}{
+	Admin: "admin",
+	Read:  "read",
+}
+
+const RollerConfigFileName = "roller.toml"
+
+type VMType string
+
+const (
+	SDK_ROLLAPP VMType = "sdk"
+	EVM_ROLLAPP VMType = "evm"
+)
+
+type DAType string
+
+const (
+	Local    DAType = "local"
+	Celestia DAType = "celestia"
+	Avail    DAType = "avail"
 )

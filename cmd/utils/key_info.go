@@ -7,6 +7,8 @@ import (
 	"os/exec"
 
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 // KeyInfo struct stores information about a generated wallet
@@ -74,7 +76,7 @@ func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, err
 		"--output",
 		"json",
 	)
-	output, err := ExecBashCommandWithStdout(showKeyCommand)
+	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +96,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		keyConfig.Dir,
 	)
 
-	output, err := ExecBashCommandWithStdout(showKeyCommand)
+	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return "", err
 	}

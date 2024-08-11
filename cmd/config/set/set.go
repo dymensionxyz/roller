@@ -7,10 +7,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
-var keyUpdateFuncs = map[string]func(cfg config.RollappConfig, value string) error{
+var keyUpdateFuncs = map[string]func(cfg config2.RollappConfig, value string) error{
 	"rollapp-rpc-port":     setRollappRPC,
 	"lc-gateway-port":      setLCGatewayPort,
 	"lc-rpc-port":          setLCRPCPort,
@@ -32,7 +33,7 @@ func Cmd() *cobra.Command {
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := config.LoadRollerConfigFromTOML(home)
+			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				return err
 			}

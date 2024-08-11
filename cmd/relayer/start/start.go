@@ -9,9 +9,12 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -30,9 +33,9 @@ func Start() *cobra.Command {
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := config.LoadRollerConfigFromTOML(home)
-			utils.PrettifyErrorIfExists(err)
-			utils.RequireMigrateIfNeeded(rollappConfig)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			errorhandling.PrettifyErrorIfExists(err)
+			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
@@ -46,7 +49,7 @@ func Start() *cobra.Command {
 			rly.SetLogger(logger)
 
 			_, _, err = rly.LoadActiveChannel()
-			utils.PrettifyErrorIfExists(err)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			override := cmd.Flag(flagOverride).Changed
 			if override {
@@ -56,16 +59,16 @@ func Start() *cobra.Command {
 				fmt.Println("💈 IBC transfer channel is already established!")
 				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
 				err := rly.WriteRelayerStatus(status)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 			} else {
 				fmt.Println("💈 Establishing IBC transfer channel")
 				seq := sequencer.GetInstance(rollappConfig)
 				_, err := rly.CreateIBCChannel(override, logFileOption, seq)
-				utils.PrettifyErrorIfExists(err)
+				errorhandling.PrettifyErrorIfExists(err)
 			}
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			go utils.RunBashCmdAsync(
+			go bash.RunCmdAsync(
 				ctx,
 				rly.GetStartCmd(),
 				func() {},
@@ -89,7 +92,7 @@ func Start() *cobra.Command {
 
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
-	utils.PrettifyErrorIfExists(err)
+	errorhandling.PrettifyErrorIfExists(err)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 

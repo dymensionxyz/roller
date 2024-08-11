@@ -5,13 +5,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/tidwall/sjson"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 // const (
@@ -79,7 +80,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := config.LoadRollerConfigFromTOML(home)
+	cfg, err := tomlconfig.LoadRollerConfig(home)
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 		"test",
 	)
 
-	_, err = utils.ExecBashCommandWithStdout(addGenAccountCmd)
+	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
 		return err
 	}
@@ -143,13 +144,13 @@ func getGenesisOperatorAddress(home string) (string, error) {
 		"val",
 	)
 
-	addr, err := utils.ExecBashCommandWithStdout(getOperatorAddrCommand)
+	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
 	if err != nil {
 		fmt.Println("val addr failed")
 		return "", err
 	}
 
-	a := strings.TrimSpace(addr.String())
+	a := addr.String()
 	return a, nil
 }
 
@@ -159,7 +160,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 		Dir:         rollappConfigDirPath,
 		ID:          consts.KeysIds.RollappSequencer,
 		ChainBinary: consts.Executables.RollappEVM,
-		Type:        config.EVM_ROLLAPP,
+		Type:        consts.EVM_ROLLAPP,
 	}
 	addr, err := utils.GetAddressBinary(seqKeyConfig, consts.Executables.RollappEVM)
 	if err != nil {
@@ -182,7 +183,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 // 		"--home",
 // 		rollappConfigDirPath,
 // 	)
-// 	_, err = utils.ExecBashCommandWithStdout(collectGentx)
+// 	_, err = utils.ExecCommandWithStdout(collectGentx)
 // 	if err != nil {
 // 		return err
 // 	}
@@ -220,7 +221,7 @@ func GetRollappSequencerAddress(home string) (string, error) {
 // 		"--home",
 // 		rollappConfigDirPath,
 // 	)
-// 	_, err = utils.ExecBashCommandWithStdout(gentxCmd)
+// 	_, err = utils.ExecCommandWithStdout(gentxCmd)
 // 	if err != nil {
 // 		return err
 // 	}

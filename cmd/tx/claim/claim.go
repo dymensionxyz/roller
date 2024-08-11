@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func Cmd() *cobra.Command {
@@ -41,7 +42,7 @@ func Cmd() *cobra.Command {
 				consts.Executables.Simd, "keys", "import-hex",
 				consts.KeysIds.HubSequencer, args[0], "--home", tempDir,
 			)
-			_, err = utils.ExecBashCommandWithStdout(importKeyCmd)
+			_, err = bash.ExecCommandWithStdout(importKeyCmd)
 			if err != nil {
 				return err
 			}
@@ -100,7 +101,7 @@ func Cmd() *cobra.Command {
 				"--home",
 				tempDir,
 			)
-			_, err = utils.ExecBashCommandWithStdout(sendAllFundsCmd)
+			_, err = bash.ExecCommandWithStdout(sendAllFundsCmd)
 			if err != nil {
 				return err
 			}

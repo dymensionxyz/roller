@@ -3,8 +3,8 @@ package relayer
 import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func GetRolRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {

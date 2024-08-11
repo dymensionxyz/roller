@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/config"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/run"
+	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/rollapp/status"
 )
 
@@ -17,6 +18,7 @@ func Cmd() *cobra.Command {
 
 	cmd.AddCommand(initrollapp.Cmd())
 	cmd.AddCommand(status.Cmd())
+	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(config.Cmd())
 	cmd.AddCommand(run.Cmd())
 

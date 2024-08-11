@@ -10,7 +10,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type Sequencer struct {

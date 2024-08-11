@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	roller_utils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 type ConnectionsQueryResult struct {
@@ -95,7 +95,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	// END: try to read connection information from the configuration file
 
 	var hubConnectionInfo ConnectionsQueryResult
-	hubConnectionOutput, err := utils.ExecBashCommandWithStdout(r.queryConnectionsHubCmd())
+	hubConnectionOutput, err := bash.ExecCommandWithStdout(r.queryConnectionsHubCmd())
 	if err != nil {
 		r.logger.Printf("couldn't find any open connections for %s", r.HubID)
 		return "", err
@@ -106,7 +106,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 
 	// fetch connection from the chain
-	rollappConnectionOutput, err := utils.ExecBashCommandWithStdout(
+	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
 		r.queryConnectionRollappCmd(
 			hubConnectionInfo.
 				Counterparty.ConnectionID,
@@ -135,7 +135,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 
 	// Check if the connection is open on the hub
 	var res ConnectionQueryResult
-	outputHub, err := utils.ExecBashCommandWithStdout(r.queryConnectionHubCmd(hubConnectionInfo.ID))
+	outputHub, err := bash.ExecCommandWithStdout(r.queryConnectionHubCmd(hubConnectionInfo.ID))
 	if err != nil {
 		return "", err
 	}

@@ -3,6 +3,7 @@ package celestia
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"os/exec"
@@ -14,8 +15,9 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
@@ -43,7 +45,7 @@ func NewCelestia(home string) *Celestia {
 
 func (c *Celestia) GetPrivateKey() (string, error) {
 	exportKeyCmd := c.GetExportKeyCmd()
-	out, err := utils.ExecBashCommandWithStdErr(exportKeyCmd)
+	out, err := bash.ExecCommandWithStdErr(exportKeyCmd)
 	if err != nil {
 		return "", err
 	}
@@ -117,7 +119,7 @@ func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", "test", "--output", "json",
 	)
-	output, err := utils.ExecBashCommandWithStdout(cmd)
+	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +136,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
 	// err := initLightNodeCmd.Run()
-	out, err := utils.ExecBashCommandWithStdout(initLightNodeCmd)
+	out, err := bash.ExecCommandWithStdout(initLightNodeCmd)
 	if err != nil {
 		return "", err
 	}
@@ -233,6 +235,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 			},
 		)
 	}
+
 	return insufficientBalances, nil
 }
 
@@ -267,37 +270,49 @@ func (c *Celestia) GetNamespaceID() string {
 	return c.NamespaceID
 }
 
-func (c *Celestia) getAuthToken() (string, error) {
+func (c *Celestia) getAuthToken(t string) (string, error) {
 	getAuthTokenCmd := exec.Command(
 		consts.Executables.Celestia,
 		"light",
 		"auth",
-		"admin",
+		t,
 		"--p2p.network",
 		DefaultCelestiaNetwork,
 		"--node.store",
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
-	output, err := utils.ExecBashCommandWithStdout(getAuthTokenCmd)
+	output, err := bash.ExecCommandWithStdout(getAuthTokenCmd)
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimSuffix(output.String(), "\n"), nil
 }
 
-func (c *Celestia) GetSequencerDAConfig() string {
+func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	if c.NamespaceID == "" {
 		c.NamespaceID = generateRandNamespaceID()
 	}
 	lcEndpoint := c.GetLightNodeEndpoint()
-	authToken, err := c.getAuthToken()
+
+	var authToken string
+	var err error
+
+	if nt == consts.NodeType.Sequencer {
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin)
+	} else if nt == consts.NodeType.FullNode {
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read)
+	} else {
+		// TODO: don't panic,return an err
+		err := errors.New("invalid node type")
+		panic(err)
+	}
+
 	if err != nil {
 		panic(err)
 	}
 
 	return fmt.Sprintf(
-		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s",
-"auth_token":"%s"},"backoff":{"initial_delay":6000000000,"max_delay":6000000000,"growth_factor":2},"retry_attempts":4,"retry_delay":3000000000}`,
+		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":1.0, "gas_adjustment": 1.3, "namespace_id":"%s","auth_token":"%s","backoff":{"initial_delay":6000000000,"max_delay":6000000000,"growth_factor":2},"retry_attempts":4,"retry_delay":3000000000}`,
 		lcEndpoint,
 		c.NamespaceID,
 		authToken,

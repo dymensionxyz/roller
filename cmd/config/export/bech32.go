@@ -6,7 +6,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func getBech32Prefix(rlpCfg config.RollappConfig) (string, error) {

@@ -6,17 +6,18 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"gopkg.in/natefinch/lumberjack.v2"
+	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func GetRollerLogger(home string) *log.Logger {
 	return GetLogger(filepath.Join(home, "roller.log"))
 }
 
-func WithLogging(logFile string) CommandOption {
+func WithLogging(logFile string) bash.CommandOption {
 	return func(cmd *exec.Cmd) {
 		logger := GetLogger(logFile)
 		cmd.Stdout = logger.Writer()
@@ -24,14 +25,14 @@ func WithLogging(logFile string) CommandOption {
 	}
 }
 
-func WithLoggerLogging(logger *log.Logger) CommandOption {
+func WithLoggerLogging(logger *log.Logger) bash.CommandOption {
 	return func(cmd *exec.Cmd) {
 		cmd.Stdout = logger.Writer()
 		cmd.Stderr = logger.Writer()
 	}
 }
 
-func WithDiscardLogging() CommandOption {
+func WithDiscardLogging() bash.CommandOption {
 	return func(cmd *exec.Cmd) {
 		cmd.Stdout = io.Discard
 		cmd.Stderr = io.Discard
