@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"math/big"
 
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func Cmd() *cobra.Command {
@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 		Short: "Export the rollapp configurations jsons needed to list your rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
+			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			bech32, err := getBech32Prefix(rlpCfg)
 			errorhandling.PrettifyErrorIfExists(err)
@@ -76,7 +76,7 @@ func Cmd() *cobra.Command {
 				Analytics: true,
 			}
 			if rlpCfg.VMType == consts.EVM_ROLLAPP {
-				evmID := config2.GetEthID(rlpCfg.RollappID)
+				evmID := config.GetEthID(rlpCfg.RollappID)
 				hexEvmID, err := decimalToHexStr(evmID)
 				errorhandling.PrettifyErrorIfExists(err)
 				networkJson.Evm = &EvmConfig{

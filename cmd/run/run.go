@@ -6,18 +6,18 @@ import (
 	"os/exec"
 	"sync"
 
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
-	relayer_run "github.com/dymensionxyz/roller/cmd/relayer/run"
-	rollapp_run "github.com/dymensionxyz/roller/cmd/rollapp/run"
+	relayerrun "github.com/dymensionxyz/roller/cmd/relayer/run"
+	rollapprun "github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 			logger := utils.GetRollerLogger(rollappConfig.Home)
@@ -77,7 +77,7 @@ func Cmd() *cobra.Command {
 }
 
 func runRelayerWithRestarts(
-	cfg config2.RollappConfig,
+	cfg config.RollappConfig,
 	serviceConfig *servicemanager.ServiceConfig,
 ) {
 	startRelayerCmd := getStartRelayerCmd(cfg)
@@ -94,7 +94,7 @@ func runRelayerWithRestarts(
 	serviceConfig.RunServiceWithRestart("Relayer")
 }
 
-func getStartRelayerCmd(config config2.RollappConfig) *exec.Cmd {
+func getStartRelayerCmd(config config.RollappConfig) *exec.Cmd {
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
@@ -103,7 +103,7 @@ func getStartRelayerCmd(config config2.RollappConfig) *exec.Cmd {
 }
 
 func runDaWithRestarts(
-	rollappConfig config2.RollappConfig,
+	rollappConfig config.RollappConfig,
 	serviceConfig *servicemanager.ServiceConfig,
 ) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
@@ -138,18 +138,18 @@ func runSequencerWithRestarts(
 	)
 }
 
-func verifyBalances(rollappConfig config2.RollappConfig) {
+func verifyBalances(rollappConfig config.RollappConfig) {
 	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
 	insufficientBalances, err := damanager.CheckDABalance()
 	errorhandling.PrettifyErrorIfExists(err)
 
 	sequencerInsufficientBalances, err := utils.GetSequencerInsufficientAddrs(
-		rollappConfig, rollapp_run.OneDaySequencePrice,
+		rollappConfig, rollapprun.OneDaySequencePrice,
 	)
 	errorhandling.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, sequencerInsufficientBalances...)
 
-	rlyAddrs, err := relayer_run.GetRlyHubInsufficientBalances(rollappConfig)
+	rlyAddrs, err := relayerrun.GetRlyHubInsufficientBalances(rollappConfig)
 	errorhandling.PrettifyErrorIfExists(err)
 	insufficientBalances = append(insufficientBalances, rlyAddrs...)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)

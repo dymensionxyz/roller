@@ -1,4 +1,4 @@
-package toml
+package tomlconfig
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 )
 
-func WriteConfigToTOML(rlpCfg config.RollappConfig) error {
+func Write(rlpCfg config.RollappConfig) error {
 	tomlBytes, err := naoinatoml.Marshal(rlpCfg)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func WriteConfigToTOML(rlpCfg config.RollappConfig) error {
 }
 
 // TODO: should be called from root command
-func LoadRollerConfigFromTOML(root string) (config.RollappConfig, error) {
+func LoadRollerConfig(root string) (config.RollappConfig, error) {
 	var config config.RollappConfig
 	tomlBytes, err := os.ReadFile(filepath.Join(root, consts.RollerConfigFileName))
 	if err != nil {
@@ -39,7 +39,7 @@ func LoadRollerConfigFromTOML(root string) (config.RollappConfig, error) {
 	return config, nil
 }
 
-func LoadConfigFromTOML(path string) ([]byte, error) {
+func Load(path string) ([]byte, error) {
 	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
 		return tomlBytes, err

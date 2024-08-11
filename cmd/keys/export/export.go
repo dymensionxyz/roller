@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func Cmd() *cobra.Command {
@@ -21,7 +21,7 @@ func Cmd() *cobra.Command {
 		Short: "Exports the private key of the given key id.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
+			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			supportedKeys := []string{
 				consts.KeysIds.HubSequencer,

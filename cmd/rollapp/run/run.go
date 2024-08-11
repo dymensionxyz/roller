@@ -17,10 +17,6 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
-	tomlconfig "github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -30,6 +26,10 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	tomlconfig "github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )

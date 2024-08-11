@@ -3,12 +3,12 @@ package migrate
 import (
 	"fmt"
 
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
+	config2 "github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -31,7 +31,7 @@ func Cmd() *cobra.Command {
 		Short: "Migrates the roller configuration to the newly installed version.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := toml.LoadRollerConfigFromTOML(home)
+			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			prevVersionData, err := GetPrevVersionData(rlpCfg)
 			errorhandling.PrettifyErrorIfExists(err)
@@ -42,7 +42,7 @@ func Cmd() *cobra.Command {
 			}
 			trimmedCurrentVersion := version.TrimVersionStr(version.BuildVersion)
 			rlpCfg.RollerVersion = trimmedCurrentVersion
-			err = toml.WriteConfigToTOML(rlpCfg)
+			err = tomlconfig.Write(rlpCfg)
 			errorhandling.PrettifyErrorIfExists(err)
 			fmt.Printf("💈 Roller has migrated successfully to %s!\n", trimmedCurrentVersion)
 		},

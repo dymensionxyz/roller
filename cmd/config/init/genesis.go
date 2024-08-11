@@ -6,13 +6,13 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/utils/bash"
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
 	"github.com/tidwall/sjson"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 // const (
@@ -33,7 +33,7 @@ func GetGenesisFilePath(root string) string {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string, raCfg *config2.RollappConfig,
+	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
@@ -75,12 +75,12 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 	return nil
 }
 
-func UpdateGenesisParams(home string, raCfg *config2.RollappConfig) error {
+func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	oa, err := getGenesisOperatorAddress(home)
 	if err != nil {
 		return err
 	}
-	cfg, err := toml.LoadRollerConfigFromTOML(home)
+	cfg, err := tomlconfig.LoadRollerConfig(home)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func UpdateGenesisParams(home string, raCfg *config2.RollappConfig) error {
 	return UpdateJSONParams(genesisFilePath, params)
 }
 
-func GetAddGenesisAccountCmd(addr, amount string, raCfg *config2.RollappConfig) *exec.Cmd {
+func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
 	home := raCfg.Home
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,

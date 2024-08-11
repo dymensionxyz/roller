@@ -16,7 +16,7 @@ import (
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
@@ -67,7 +67,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	// initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
 
-	initConfigPtr, err := toml.LoadRollappMetadataFromChain(home, raID)
+	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
@@ -178,7 +178,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	// TODO: review, roller config is generated using genesis-creator
 	// some of the config values should be moved there
-	// err = config.WriteConfigToTOML(initConfig)
+	// err = config.Write(initConfig)
 	// if err != nil {
 	// 	return err
 	// }

@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
 	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 type VersionMigratorV0112 struct{}
@@ -22,7 +22,7 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg config2.RollappConfig) er
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	if rlpCfg.DA == "mock" {
 		rlpCfg.DA = consts.Local
-		return toml.WriteConfigToTOML(rlpCfg)
+		return tomlconfig.Write(rlpCfg)
 	}
 	if rlpCfg.DA == consts.Avail {
 		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)

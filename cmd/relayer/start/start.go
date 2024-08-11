@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dymensionxyz/roller/utils/bash"
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -33,7 +33,7 @@ func Start() *cobra.Command {
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
@@ -90,14 +90,14 @@ func Start() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config2.RollappConfig) {
+func VerifyRelayerBalances(rolCfg config.RollappConfig) {
 	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	errorhandling.PrettifyErrorIfExists(err)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 }
 
 func GetRlyHubInsufficientBalances(
-	config config2.RollappConfig,
+	config config.RollappConfig,
 ) ([]utils.NotFundedAddressData, error) {
 	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
 	if err != nil {
@@ -130,7 +130,7 @@ func GetRlyHubInsufficientBalances(
 }
 
 func GetRelayerInsufficientBalances(
-	config config2.RollappConfig,
+	config config.RollappConfig,
 ) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {

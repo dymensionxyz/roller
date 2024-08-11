@@ -19,7 +19,7 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
@@ -43,7 +43,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return

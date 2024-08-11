@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/utils/config/toml"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 var flagNames = struct {
@@ -26,7 +26,7 @@ func Cmd() *cobra.Command {
 		Short: "List all the addresses of roller on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			addresses := make([]utils.KeyInfo, 0)
 			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)

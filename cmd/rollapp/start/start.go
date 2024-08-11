@@ -17,8 +17,8 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	config2 "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
@@ -45,7 +45,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			seq := sequencer.GetInstance(rollappConfig)
@@ -72,7 +72,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func printOutput(rlpCfg config2.RollappConfig, cmd *exec.Cmd) {
+func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	seq := sequencer.GetInstance(rlpCfg)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 	fmt.Println("💈 Endpoints:")

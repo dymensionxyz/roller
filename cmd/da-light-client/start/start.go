@@ -12,7 +12,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/toml"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the DA light client.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := toml.LoadRollerConfigFromTOML(home)
+			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			errorhandling.RequireMigrateIfNeeded(rollappConfig)
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
