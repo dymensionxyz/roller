@@ -38,21 +38,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	// Check if the file already exists
-	if _, err := os.Stat(rollerConfigFilePath); os.IsNotExist(err) {
-		// The file does not exist, so create it
-		_, err = os.Create(rollerConfigFilePath)
-		if err != nil {
-			pterm.Error.Println(
-				fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
-				err,
-			)
-			return err
-		}
-	} else if err != nil {
-		// Some other error occurred when trying to get the file info
-		pterm.Error.Println(fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath), err)
-		return err
-	}
 
 	outputHandler := initconfig.NewOutputHandler(false)
 
@@ -82,6 +67,22 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			err = os.MkdirAll(home, 0o755)
 			if err != nil {
 				errorhandling.PrettifyErrorIfExists(err)
+				return err
+			}
+
+			if _, err := os.Stat(rollerConfigFilePath); os.IsNotExist(err) {
+				// The file does not exist, so create it
+				_, err = os.Create(rollerConfigFilePath)
+				if err != nil {
+					pterm.Error.Println(
+						fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
+						err,
+					)
+					return err
+				}
+			} else if err != nil {
+				// Some other error occurred when trying to get the file info
+				pterm.Error.Println(fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath), err)
 				return err
 			}
 		} else {
