@@ -399,8 +399,6 @@ func Cmd() *cobra.Command {
 			}
 
 			var daConfig string
-			dymintConfigPath := sequencer.GetDymintFilePath(home)
-			daNamespace := damanager.DataLayer.GetNamespaceID()
 
 			switch nodeType {
 			case "sequencer":
@@ -426,6 +424,9 @@ func Cmd() *cobra.Command {
 				return
 
 			}
+
+			dymintConfigPath := sequencer.GetDymintFilePath(home)
+			daNamespace := damanager.DataLayer.GetNamespaceID()
 
 			pterm.Info.Println("updating dymint configuration")
 			_ = globalutils.UpdateFieldInToml(
