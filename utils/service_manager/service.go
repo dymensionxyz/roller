@@ -2,10 +2,13 @@ package servicemanager
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
 	"sync"
 	"time"
+
+	"github.com/coreos/go-systemd/dbus"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -111,4 +114,33 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 			}
 		}
 	}()
+}
+
+func StartSystemdService(serviceName string) error {
+	// Connect to systemd
+	conn, err := dbus.New()
+	if err != nil {
+		return fmt.Errorf("failed to connect to systemd: %v", err)
+	}
+	defer conn.Close()
+
+	// Start the service
+	ch := make(chan string)
+	_, err = conn.StartUnit(serviceName, "replace", ch)
+	if err != nil {
+		return fmt.Errorf("failed to start %s: %v", serviceName, err)
+	}
+
+	// Wait for the job to complete with a timeout
+	select {
+	case result := <-ch:
+		if result != "done" {
+			return fmt.Errorf("failed to start service: %s", result)
+		}
+		fmt.Printf("Service %s started successfully\n", serviceName)
+	case <-time.After(30 * time.Second):
+		return fmt.Errorf("timeout waiting for service to start")
+	}
+
+	return nil
 }
