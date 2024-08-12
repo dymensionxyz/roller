@@ -69,19 +69,6 @@ func Cmd() *cobra.Command {
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 
-			// TODO: check whether the rollapp exists
-
-			if !isRollappRegistered {
-				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
-				return
-			}
-
-			err = runInit(cmd, env, raID)
-			if err != nil {
-				fmt.Printf("failed to initialize the RollApp: %v\n", err)
-				return
-			}
-
 			genesisUrl, err := pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"provide a genesis file url",
 			).Show()
@@ -102,16 +89,41 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			hash, err := calculateSHA256(genesisPath)
+			if genesis.ChainID != raID {
+				pterm.Error.Printf(
+					"the genesis file ChainID (%s) does not match  the rollapp ID you're trying to initialize (%s)",
+					genesis.ChainID,
+					raID,
+				)
+				return
+			}
+
+			downloadedGenesisHash, err := calculateSHA256(genesisPath)
 			if err != nil {
 				pterm.Error.Println("failed to calculate hash of genesis file: ", err)
 			}
+			raGenesisHash, _ := getRollappGenesisHash(raID, hd)
+			if downloadedGenesisHash != raGenesisHash {
+				pterm.Error.Println(
+					"the hash of the downloaded file does not match the one registered with the rollapp",
+				)
+				return
+			}
 
-			fmt.Println(genesis.ChainID)
-			fmt.Println("hash of the downloaded file: ", hash)
-			// nolint:ineffassign
-			raHash, _ := getRollappGenesisHash(raID, hd)
-			fmt.Println("hash of the rollapp: ", raHash)
+			fmt.Println("hash of the rollapp: ", raGenesisHash)
+
+			// TODO: check whether the rollapp exists
+
+			if !isRollappRegistered {
+				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
+				return
+			}
+
+			err = runInit(cmd, env, raID)
+			if err != nil {
+				fmt.Printf("failed to initialize the RollApp: %v\n", err)
+				return
+			}
 		},
 	}
 	return cmd
