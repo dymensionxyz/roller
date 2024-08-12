@@ -31,7 +31,10 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			errorhandling.RequireMigrateIfNeeded(rollappConfig)
+
+			// TODO: refactor the version comparison for migrations
+			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
+
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
 			if metricsEndpoint != "" && rollappConfig.DA != consts.Celestia {
 				errorhandling.PrettifyErrorIfExists(
