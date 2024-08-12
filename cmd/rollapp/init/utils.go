@@ -95,6 +95,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	hd := consts.Hubs[env]
 	rollerTomlData := map[string]string{
+		"rollapp_id":     raID,
 		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
 		"home":           home,
 

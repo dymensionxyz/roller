@@ -164,3 +164,29 @@ func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
 
 	return latestSnapshot, nil
 }
+
+func GetRegisteredSequencers(
+	raID string,
+) (*Sequencers, error) {
+	var seq Sequencers
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencers-by-rollapp",
+		raID,
+		"--output", "json",
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &seq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &seq, nil
+}
