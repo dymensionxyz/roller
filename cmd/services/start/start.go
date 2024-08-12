@@ -11,7 +11,7 @@ import (
 
 func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "load",
+		Use:   "start",
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
