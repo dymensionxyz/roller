@@ -20,5 +20,5 @@ func setHubRPC(rlpCfg config2.RollappConfig, value string) error {
 		return err
 	}
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	return utils.UpdateFieldInToml(dymintTomlPath, "node_address", value)
+	return utils.UpdateFieldInToml(dymintTomlPath, "settlement_node_address", value)
 }
