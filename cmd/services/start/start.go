@@ -1,6 +1,7 @@
 package start
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 
@@ -26,14 +27,14 @@ func RollappCmd() *cobra.Command {
 			}
 			services := []string{"rollapp", "da"}
 			for _, service := range services {
-				err := servicemanager.StartSystemdService(service)
+				err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
 				if err != nil {
-					pterm.Error.Printf("failed to start %s systemd service: %v", service, err)
+					pterm.Error.Printf("failed to start %s systemd service: %v\n", service, err)
 					return
 				}
 			}
 			pterm.Success.Println(
-				"💈 Services %s started successfully.",
+				"💈 Services %s started successfully.\n",
 				strings.Join(services, ", "),
 			)
 		},

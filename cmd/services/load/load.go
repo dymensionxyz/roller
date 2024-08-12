@@ -36,7 +36,7 @@ func RollappCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
 				pterm.Error.Printf(
-					"the %s commands are only available on linux machines",
+					"the %s commands are only available on linux machines\n",
 					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 						Sprintf("'services'"),
 				)
@@ -60,7 +60,7 @@ func RollappCmd() *cobra.Command {
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 			pterm.Success.Printf(
-				"💈 Services %s been loaded successfully.",
+				"💈 Services %s been loaded successfully.\n",
 				strings.Join(services, ", "),
 				// " To start them, use 'systemctl start <service>'.",
 			)
