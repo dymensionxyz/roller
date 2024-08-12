@@ -454,7 +454,7 @@ func Cmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s load the necessary systemd services\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller services load"),
+					Sprintf("roller rollapp services load"),
 			)
 		},
 	}
