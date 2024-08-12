@@ -108,6 +108,20 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		"da": string(consts.Celestia),
 	}
 
+	_, err = os.Stat(rollerConfigFilePath)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			pterm.Info.Println("roller.toml not found, creating")
+			_, err := os.Create(rollerConfigFilePath)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to create %s: %v", rollerConfigFilePath, err,
+				)
+				return err
+			}
+		}
+	}
+
 	for key, value := range rollerTomlData {
 		err = globalutils.UpdateFieldInToml(
 			rollerConfigFilePath,
