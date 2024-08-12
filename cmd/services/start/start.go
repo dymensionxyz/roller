@@ -25,7 +25,7 @@ func RollappCmd() *cobra.Command {
 
 				return
 			}
-			services := []string{"rollapp", "da"}
+			services := []string{"rollapp", "da-light-client"}
 			for _, service := range services {
 				err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
 				if err != nil {
@@ -33,7 +33,7 @@ func RollappCmd() *cobra.Command {
 					return
 				}
 			}
-			pterm.Success.Println(
+			pterm.Success.Printf(
 				"💈 Services %s started successfully.\n",
 				strings.Join(services, ", "),
 			)

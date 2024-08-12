@@ -43,7 +43,7 @@ func RollappCmd() *cobra.Command {
 
 				return
 			}
-			services := []string{"rollapp", "da"}
+			services := []string{"rollapp", "da-light-client"}
 			for _, service := range services {
 				serviceData := ServiceTemplateData{
 					Name:     service,
