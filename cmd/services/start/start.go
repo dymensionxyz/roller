@@ -2,6 +2,7 @@ package start
 
 import (
 	"runtime"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -23,7 +24,8 @@ func RollappCmd() *cobra.Command {
 
 				return
 			}
-			for _, service := range []string{"rollapp", "da"} {
+			services := []string{"rollapp", "da"}
+			for _, service := range services {
 				err := servicemanager.StartSystemdService(service)
 				if err != nil {
 					pterm.Error.Printf("failed to start %s systemd service: %v", service, err)
@@ -31,7 +33,8 @@ func RollappCmd() *cobra.Command {
 				}
 			}
 			pterm.Success.Println(
-				"💈 Services 'sequencer', 'da-light-client' started successfully.",
+				"💈 Services %s started successfully.",
+				strings.Join(services, ", "),
 			)
 		},
 	}

@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 
 	"github.com/pterm/pterm"
@@ -42,7 +43,8 @@ func RollappCmd() *cobra.Command {
 
 				return
 			}
-			for _, service := range []string{"rollapp", "da"} {
+			services := []string{"rollapp", "da"}
+			for _, service := range services {
 				serviceData := ServiceTemplateData{
 					Name:     service,
 					ExecPath: consts.Executables.Roller,
@@ -57,8 +59,9 @@ func RollappCmd() *cobra.Command {
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
-			pterm.Success.Println(
-				"💈 Services 'sequencer', 'da-light-client' been loaded successfully.",
+			pterm.Success.Printf(
+				"💈 Services %s been loaded successfully.",
+				strings.Join(services, ", "),
 				// " To start them, use 'systemctl start <service>'.",
 			)
 		},
