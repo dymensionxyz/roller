@@ -54,6 +54,7 @@ func Cmd() *cobra.Command {
 			if metricsEndpoint != "" {
 				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
+
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
 				errorhandling.PrettifyErrorIfExists(
@@ -62,9 +63,13 @@ func Cmd() *cobra.Command {
 					),
 				)
 			}
+
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
+
+			fmt.Println(startDALCCmd.String())
+
 			defer cancel()
 			go bash.RunCmdAsync(
 				ctx,
