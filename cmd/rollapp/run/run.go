@@ -427,6 +427,10 @@ func Cmd() *cobra.Command {
 
 			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			daNamespace := damanager.DataLayer.GetNamespaceID()
+			if daNamespace == "" {
+				pterm.Error.Println("failed to retrieve da namespace id")
+				return
+			}
 
 			pterm.Info.Println("updating dymint configuration")
 			_ = globalutils.UpdateFieldInToml(
