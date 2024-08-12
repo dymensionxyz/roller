@@ -36,6 +36,7 @@ type Metadata struct {
 	TokenLogoDataUri string `json:"token_logo_data_uri"`
 	Telegram         string `json:"telegram"`
 	X                string `json:"x"`
+	GenesisUrl       string `json:"genesis_url"`
 }
 
 type StateInfoIndex struct {
