@@ -30,7 +30,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -56,18 +55,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			var raID string
-			if len(args) != 0 {
-				raID = args[0]
-			} else {
-				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide a rollapp ID that you want to run the node for",
-				).Show()
-			}
-
 			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
+			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			if err != nil {
+				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
 
@@ -78,7 +74,7 @@ func Cmd() *cobra.Command {
 
 			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(
 				home,
-				raID,
+				rollerData.RollappID,
 				&hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
@@ -137,7 +133,7 @@ func Cmd() *cobra.Command {
 					rollappConfig.RollappID,
 				)
 
-				seq, err := rollapputils.GetRegisteredSequencers(rollappConfig.RollappID)
+				seq, err := sequencerutils.GetRegisteredSequencers(rollappConfig.RollappID)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 				}

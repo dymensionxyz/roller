@@ -11,7 +11,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils/bash"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
@@ -39,17 +38,8 @@ func getCurrentBlockCmd() *exec.Cmd {
 	return cmd
 }
 
-func GetInitialSequencerAddress(raID string) (string, error) {
-	cmd := exec.Command(
-		consts.Executables.Dymension,
-		"q",
-		"rollapp",
-		"show",
-		raID,
-		"-o",
-		"json",
-	)
-
+func GetInitialSequencerAddress(raID string, hd consts.HubData) (string, error) {
+	cmd := GetShowRollappCmd(raID, hd)
 	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		fmt.Println(err)
@@ -61,8 +51,8 @@ func GetInitialSequencerAddress(raID string) (string, error) {
 	return ra.Rollapp.InitialSequencer, nil
 }
 
-func IsInitialSequencer(addr, raID string) (bool, error) {
-	initSeqAddr, err := GetInitialSequencerAddress(raID)
+func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
+	initSeqAddr, err := GetInitialSequencerAddress(raID, hd)
 	if err != nil {
 		return false, err
 	}
@@ -76,33 +66,33 @@ func IsInitialSequencer(addr, raID string) (bool, error) {
 	return false, nil
 }
 
-func GetRegisteredSequencers(
-	raID string,
-) (*sequencerutils.Sequencers, error) {
-	var seq sequencerutils.Sequencers
-	cmd := exec.Command(
-		consts.Executables.Dymension,
-		"q",
-		"sequencer",
-		"show-sequencers-by-rollapp",
-		raID,
-		"--output", "json",
-	)
-
-	out, err := globalutils.ExecCommandWithStdout(cmd)
+// TODO: most of rollapp utility functions should be tied to an entity
+func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
+	cmd := GetShowRollappCmd(raID, hd)
+	_, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return nil, err
+		// tODO: handle NotFound error
+		return false, err
 	}
 
-	err = json.Unmarshal(out.Bytes(), &seq)
-	if err != nil {
-		return nil, err
-	}
-
-	return &seq, nil
+	return true, nil
 }
 
 type BlockInformation struct {
 	BlockId tmtypes.BlockID `json:"block_id"`
 	Block   tmtypes.Block   `json:"block"`
+}
+
+func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"rollapp",
+		"show",
+		raID,
+		"-o", "json",
+		"--node", hd.RPC_URL,
+	)
+
+	return cmd
 }

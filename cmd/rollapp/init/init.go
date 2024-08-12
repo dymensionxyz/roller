@@ -65,8 +65,17 @@ func Cmd() *cobra.Command {
 				WithDefaultText("select the node type you want to run").
 				WithOptions(envs).
 				Show()
+			hd := consts.Hubs[env]
+
+			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 
 			// TODO: check whether the rollapp exists
+
+			if !isRollappRegistered {
+				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
+				return
+			}
+
 			err = runInit(cmd, env, raID)
 			if err != nil {
 				fmt.Printf("failed to initialize the RollApp: %v\n", err)
@@ -98,15 +107,11 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to calculate hash of genesis file: ", err)
 			}
 
-			hd := consts.Hubs[env]
-
 			fmt.Println(genesis.ChainID)
 			fmt.Println("hash of the downloaded file: ", hash)
 			// nolint:ineffassign
 			raHash, _ := getRollappGenesisHash(raID, hd)
 			fmt.Println("hash of the rollapp: ", raHash)
-
-			pterm.Success.Println("finished")
 		},
 	}
 	return cmd
