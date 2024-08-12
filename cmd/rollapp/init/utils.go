@@ -3,6 +3,7 @@ package initrollapp
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,16 +21,13 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
-// in runInit I parse the entire genesis creator zip file twice to extract
-// the file this looks awful but since the archive has only 2 files it's
-// kinda fine
 func runInit(cmd *cobra.Command, env string, raID string) error {
 	home, err := globalutils.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
 	}
-	rollerConfigFilePath := filepath.Join(home, "roller.toml")
+	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
 	err = os.MkdirAll(home, 0o755)
 	if err != nil {
@@ -70,20 +68,25 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				return err
 			}
 
-			if _, err := os.Stat(rollerConfigFilePath); os.IsNotExist(err) {
-				// The file does not exist, so create it
-				_, err = os.Create(rollerConfigFilePath)
-				if err != nil {
+			_, err := os.Stat(rollerConfigFilePath)
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					// The file does not exist, so create it
+					_, err = os.Create(rollerConfigFilePath)
+					if err != nil {
+						pterm.Error.Println(
+							fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
+							err,
+						)
+						return err
+					}
+				} else {
 					pterm.Error.Println(
-						fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
+						fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath),
 						err,
 					)
 					return err
 				}
-			} else if err != nil {
-				// Some other error occurred when trying to get the file info
-				pterm.Error.Println(fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath), err)
-				return err
 			}
 		} else {
 			os.Exit(0)
@@ -92,9 +95,10 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	hd := consts.Hubs[env]
 	rollerTomlData := map[string]string{
-		"rollapp_binary":          strings.ToLower(consts.Executables.RollappEVM),
-		"home":                    home,
-		"HubData.ID":              hd.ID,
+		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
+		"home":           home,
+
+		"HubData.id":              hd.ID,
 		"HubData.api_url":         hd.API_URL,
 		"HubData.rpc_url":         hd.RPC_URL,
 		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
@@ -116,7 +120,11 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 	}
 
-	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
+	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(
+		home,
+		raID,
+		&hd,
+	)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
