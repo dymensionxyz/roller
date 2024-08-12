@@ -2,7 +2,6 @@ package load
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,6 +9,7 @@ import (
 	"runtime"
 	"text/template"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -28,17 +28,21 @@ type ServiceTemplateData struct {
 	UserName string
 }
 
-func Cmd() *cobra.Command {
+func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "load",
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
-				errorhandling.PrettifyErrorIfExists(
-					errors.New("the services commands are only available on linux machines"),
+				pterm.Error.Printf(
+					"the %s commands are only available on linux machines",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("'services'"),
 				)
+
+				return
 			}
-			for _, service := range []string{"rollapp", "da-light-client", "relayer"} {
+			for _, service := range []string{"rollapp", "da"} {
 				serviceData := ServiceTemplateData{
 					Name:     service,
 					ExecPath: consts.Executables.Roller,
@@ -53,8 +57,8 @@ func Cmd() *cobra.Command {
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
-			fmt.Println(
-				"💈 Services 'sequencer', 'da-light-client' and 'relayer' been loaded successfully.",
+			pterm.Success.Println(
+				"💈 Services 'sequencer', 'da-light-client' been loaded successfully.",
 				// " To start them, use 'systemctl start <service>'.",
 			)
 		},

@@ -13,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	"github.com/dymensionxyz/roller/cmd/run"
-	"github.com/dymensionxyz/roller/cmd/services"
 	"github.com/dymensionxyz/roller/cmd/tx"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
@@ -41,7 +40,7 @@ func init() {
 	rootCmd.AddCommand(relayer.Cmd())
 	rootCmd.AddCommand(keys.Cmd())
 	rootCmd.AddCommand(run.Cmd())
-	rootCmd.AddCommand(services.Cmd())
+	// rootCmd.AddCommand(services.Cmd())
 	rootCmd.AddCommand(migrate.Cmd())
 	rootCmd.AddCommand(tx.Cmd())
 	rootCmd.AddCommand(test())
