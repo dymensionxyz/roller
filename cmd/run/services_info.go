@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/gizak/termui/v3"
+	termui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
+	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *widgets.Table {

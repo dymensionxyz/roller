@@ -3,10 +3,10 @@ package eibc
 import (
 	"os/exec"
 
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func scaleCmd() *cobra.Command {

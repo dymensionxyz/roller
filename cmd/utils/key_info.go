@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/pterm/pterm"
 
@@ -101,7 +102,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		return "", err
 	}
 
-	return output.String(), nil
+	return strings.TrimSpace(output.String()), nil
 }
 
 // TODO: refactor into options, with title

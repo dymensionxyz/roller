@@ -3,6 +3,7 @@ package initrollapp
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,15 +21,21 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
-// in runInit I parse the entire genesis creator zip file twice to extract
-// the file this looks awful but since the archive has only 2 files it's
-// kinda fine
 func runInit(cmd *cobra.Command, env string, raID string) error {
 	home, err := globalutils.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
 	}
+	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+
+	err = os.MkdirAll(home, 0o755)
+	if err != nil {
+		pterm.Error.Println("failed to create roller home directory: ", err)
+		return err
+	}
+
+	// Check if the file already exists
 
 	outputHandler := initconfig.NewOutputHandler(false)
 
@@ -60,14 +67,64 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				errorhandling.PrettifyErrorIfExists(err)
 				return err
 			}
+
+			_, err := os.Stat(rollerConfigFilePath)
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					// The file does not exist, so create it
+					_, err = os.Create(rollerConfigFilePath)
+					if err != nil {
+						pterm.Error.Println(
+							fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
+							err,
+						)
+						return err
+					}
+				} else {
+					pterm.Error.Println(
+						fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath),
+						err,
+					)
+					return err
+				}
+			}
 		} else {
 			os.Exit(0)
 		}
 	}
 
-	// initConfigPtr, err := initconfig.GetInitConfig(cmd, options.useMockSettlement)
+	hd := consts.Hubs[env]
+	rollerTomlData := map[string]string{
+		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
+		"home":           home,
 
-	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
+		"HubData.id":              hd.ID,
+		"HubData.api_url":         hd.API_URL,
+		"HubData.rpc_url":         hd.RPC_URL,
+		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
+		"HubData.gas_price":       hd.GAS_PRICE,
+
+		// TODO: create a separate config section for DA, similar to HubData
+		"da": string(consts.Celestia),
+	}
+
+	for key, value := range rollerTomlData {
+		err = globalutils.UpdateFieldInToml(
+			rollerConfigFilePath,
+			key,
+			value,
+		)
+		if err != nil {
+			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+			return err
+		}
+	}
+
+	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(
+		home,
+		raID,
+		&hd,
+	)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
@@ -137,36 +194,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	err = initconfig.UpdateGenesisParams(home, &initConfig)
 	if err != nil {
 		return err
-	}
-
-	rollerConfigFilePath := filepath.Join(home, "roller.toml")
-	err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "home", home)
-	if err != nil {
-		fmt.Println("failed to add home to roller.toml: ", err)
-		return err
-	}
-
-	hd := consts.Hubs[env]
-	rollerTomlData := map[string]string{
-		"HubData.ID":              hd.ID,
-		"HubData.api_url":         hd.API_URL,
-		"HubData.rpc_url":         hd.RPC_URL,
-		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
-		"HubData.gas_price":       hd.GAS_PRICE,
-		"da":                      strings.ToLower(string(initConfig.DA)),
-		"rollapp_binary":          strings.ToLower(consts.Executables.RollappEVM),
-	}
-
-	for key, value := range rollerTomlData {
-		err = globalutils.UpdateFieldInToml(
-			rollerConfigFilePath,
-			key,
-			value,
-		)
-		if err != nil {
-			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-			return err
-		}
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */

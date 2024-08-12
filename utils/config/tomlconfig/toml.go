@@ -7,12 +7,13 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	dymensionratypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	naoinatoml "github.com/naoina/toml"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/version"
 )
 
 func Write(rlpCfg config.RollappConfig) error {
@@ -39,6 +40,20 @@ func LoadRollerConfig(root string) (config.RollappConfig, error) {
 	return config, nil
 }
 
+func LoadHubData(root string) (consts.HubData, error) {
+	var config config.RollappConfig
+	tomlBytes, err := os.ReadFile(filepath.Join(root, consts.RollerConfigFileName))
+	if err != nil {
+		return config.HubData, err
+	}
+	err = naoinatoml.Unmarshal(tomlBytes, &config)
+	if err != nil {
+		return config.HubData, err
+	}
+
+	return config.HubData, nil
+}
+
 func Load(path string) ([]byte, error) {
 	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -48,37 +63,69 @@ func Load(path string) ([]byte, error) {
 	return tomlBytes, nil
 }
 
-func LoadRollappMetadataFromChain(home, raID string) (*config.RollappConfig, error) {
-	var config config.RollappConfig
-	var ra dymensionratypes.QueryGetRollappResponse
-
-	tomlBytes, err := os.ReadFile(filepath.Join(home, consts.RollerConfigFileName))
-	if err != nil {
-		return &config, err
-	}
-	err = naoinatoml.Unmarshal(tomlBytes, &config)
-	if err != nil {
-		return &config, err
-	}
-
-	getRollappCmd := exec.Command(
-		consts.Executables.Dymension,
-		"q", "rollapp", "show",
-		raID,
-	)
-
-	out, err := bash.ExecCommandWithStdout(getRollappCmd)
-	if err != nil {
-		return &config, err
-	}
-
-	err = json.Unmarshal(out.Bytes(), &ra)
-	if err != nil {
-		return &config, err
+func LoadRollappMetadataFromChain(
+	home, raID string,
+	hd *consts.HubData,
+) (*config.RollappConfig, error) {
+	var cfg config.RollappConfig
+	if hd.ID == "mock" {
+		cfg = config.RollappConfig{
+			Home:             home,
+			RollappID:        "mock_1000-1",
+			RollappBinary:    consts.Executables.RollappEVM,
+			VMType:           consts.EVM_ROLLAPP,
+			Denom:            "mock",
+			Decimals:         18,
+			HubData:          *hd,
+			DA:               "local",
+			RollerVersion:    "latest",
+			Environment:      "mock",
+			ExecutionVersion: version.BuildVersion,
+			Bech32Prefix:     "mock",
+			BaseDenom:        "amock",
+			MinGasPrices:     "0",
+		}
+		return &cfg, nil
 	}
 
-	j, _ := json.MarshalIndent(ra, "", "  ")
+	if hd.ID != "mock" {
+		var raResponse rollapp.ShowRollappResponse
+		getRollappCmd := exec.Command(
+			consts.Executables.Dymension,
+			"q", "rollapp", "show",
+			raID, "-o", "json", "--node", hd.RPC_URL,
+		)
+
+		out, err := bash.ExecCommandWithStdout(getRollappCmd)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(out.Bytes(), &raResponse)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg = config.RollappConfig{
+			Home:             home,
+			RollappID:        raResponse.Rollapp.RollappId,
+			RollappBinary:    consts.Executables.RollappEVM,
+			VMType:           consts.EVM_ROLLAPP,
+			Denom:            "mock",
+			Decimals:         18,
+			HubData:          *hd,
+			DA:               consts.Celestia,
+			RollerVersion:    "latest",
+			Environment:      hd.ID,
+			ExecutionVersion: version.BuildVersion,
+			Bech32Prefix:     raResponse.Rollapp.Bech32Prefix,
+			BaseDenom:        "amock",
+			MinGasPrices:     "0",
+		}
+	}
+
+	j, _ := json.Marshal(hd)
 	fmt.Println(string(j))
 
-	return &config, nil
+	return &cfg, nil
 }

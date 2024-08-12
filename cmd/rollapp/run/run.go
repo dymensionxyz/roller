@@ -28,7 +28,7 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	tomlconfig "github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
@@ -71,7 +71,16 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(home, raID)
+			hd, err := tomlconfig.LoadHubData(home)
+			if err != nil {
+				pterm.Error.Println("failed to load hub data from roller.toml")
+			}
+
+			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(
+				home,
+				raID,
+				&hd,
+			)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			seq := sequencer.GetInstance(*rollappConfig)

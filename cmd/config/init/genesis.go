@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/tidwall/sjson"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 // const (
@@ -80,10 +80,6 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := tomlconfig.LoadRollerConfig(home)
-	if err != nil {
-		return err
-	}
 
 	sa, err := GetRollappSequencerAddress(home)
 	if err != nil {
@@ -92,16 +88,8 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	params := getDefaultGenesisParams(sa, oa, raCfg)
 
 	// TODO: move to generalized helper
-	addGenAccountCmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"add-genesis-account",
-		consts.KeysIds.RollappSequencer,
-		fmt.Sprintf("%s%s", consts.DefaultTokenSupply, cfg.BaseDenom),
-		"--home",
-		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
-		"--keyring-backend",
-		"test",
-	)
+	amount := fmt.Sprintf("%s%s", consts.DefaultTokenSupply, raCfg.BaseDenom)
+	addGenAccountCmd := GetAddGenesisAccountCmd(consts.KeysIds.RollappSequencer, amount, raCfg)
 
 	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
@@ -150,7 +138,7 @@ func getGenesisOperatorAddress(home string) (string, error) {
 		return "", err
 	}
 
-	a := addr.String()
+	a := strings.TrimSpace(addr.String())
 	return a, nil
 }
 
