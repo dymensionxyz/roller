@@ -2,7 +2,6 @@ package tomlconfig
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -123,9 +122,6 @@ func LoadRollappMetadataFromChain(
 			MinGasPrices:     "0",
 		}
 	}
-
-	j, _ := json.Marshal(hd)
-	fmt.Println(string(j))
 
 	return &cfg, nil
 }

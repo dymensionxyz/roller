@@ -110,10 +110,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			fmt.Println("hash of the rollapp: ", raGenesisHash)
-
 			// TODO: check whether the rollapp exists
-
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
 				return
