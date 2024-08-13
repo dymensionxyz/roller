@@ -65,7 +65,7 @@ func Cmd() *cobra.Command {
 
 			err = runInit(cmd, env, raID)
 			if err != nil {
-				fmt.Printf("failed to initialize the RollApp: %v\n", err)
+				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
 			}
 		},

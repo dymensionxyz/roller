@@ -96,3 +96,13 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 
 	return cmd
 }
+
+func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "rollapp", "show",
+		raID, "-o", "json", "--node", hd.RPC_URL,
+	)
+
+	return cmd
+}

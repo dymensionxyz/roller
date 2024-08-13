@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -100,11 +99,7 @@ func LoadRollappMetadataFromChain(
 
 	if hd.ID != "mock" {
 		var raResponse rollapp.ShowRollappResponse
-		getRollappCmd := exec.Command(
-			consts.Executables.Dymension,
-			"q", "rollapp", "show",
-			raID, "-o", "json", "--node", hd.RPC_URL,
-		)
+		getRollappCmd := rollapp.GetRollappCmd(raID, *hd)
 
 		out, err := bash.ExecCommandWithStdout(getRollappCmd)
 		if err != nil {
@@ -135,43 +130,56 @@ func LoadRollappMetadataFromChain(
 			MinGasPrices:     "0",
 		}
 
-		genesisPath := initconfig.GetGenesisFilePath(home)
-		genesisUrl := raResponse.Rollapp.Metadata.GenesisUrl
-		err = downloadFile(genesisUrl, genesisPath)
-		if err != nil {
-			return nil, err
-		}
-
-		// move to helper function with a spinner?
-		genesis, err := comettypes.GenesisDocFromFile(genesisPath)
-		if err != nil {
-			return nil, err
-		}
-
-		if genesis.ChainID != raID {
-			err = fmt.Errorf(
-				"the genesis file ChainID (%s) does not match  the rollapp ID you're trying to initialize ("+
-					"%s)",
-				genesis.ChainID,
-				raID,
-			)
-			return nil, err
-		}
-
-		downloadedGenesisHash, err := calculateSHA256(genesisPath)
-		if err != nil {
-			pterm.Error.Println("failed to calculate hash of genesis file: ", err)
-		}
-		raGenesisHash, _ := getRollappGenesisHash(raID, *hd)
-		if downloadedGenesisHash != raGenesisHash {
-			err = errors.New(
-				"the hash of the downloaded file does not match the one registered with the rollapp",
-			)
-			return nil, err
-		}
 	}
 
 	return &cfg, nil
+}
+
+func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
+	genesisPath := initconfig.GetGenesisFilePath(home)
+	genesisUrl := rollappConfig.GenesisUrl
+	err := downloadFile(genesisUrl, genesisPath)
+	if err != nil {
+		return err
+	}
+
+	// move to helper function with a spinner?
+	genesis, err := comettypes.GenesisDocFromFile(genesisPath)
+	if err != nil {
+		return err
+	}
+
+	if genesis.ChainID != rollappConfig.RollappID {
+		err = fmt.Errorf(
+			"the genesis file ChainID (%s) does not match  the rollapp ID you're trying to initialize ("+
+				"%s)",
+			genesis.ChainID,
+			rollappConfig.RollappID,
+		)
+		return err
+	}
+
+	return nil
+}
+
+func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) {
+	genesisPath := initconfig.GetGenesisFilePath(root)
+	downloadedGenesisHash, err := calculateSHA256(genesisPath)
+	if err != nil {
+		pterm.Error.Println("failed to calculate hash of genesis file: ", err)
+		return false, err
+	}
+	raGenesisHash, _ := getRollappGenesisHash(raID, hd)
+	if downloadedGenesisHash != raGenesisHash {
+		err = fmt.Errorf(
+			"the hash of the downloaded file (%s) does not match the one registered with the rollapp (%s)",
+			downloadedGenesisHash,
+			raGenesisHash,
+		)
+		return false, err
+	}
+
+	return true, nil
 }
 
 // TODO: download the file in chunks if possible
@@ -196,7 +204,7 @@ func downloadFile(url, filepath string) error {
 
 	spinner.Success("Successfully downloaded the genesis file")
 	_, err = io.Copy(out, resp.Body)
-	return err
+	return nil
 }
 
 func calculateSHA256(filepath string) (string, error) {
