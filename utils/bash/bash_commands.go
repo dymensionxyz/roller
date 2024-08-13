@@ -231,7 +231,7 @@ func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 		line := scanner.Text()
 		fmt.Println(line)
 
-		if strings.Contains(line, "Do you want to continue?") {
+		if strings.Contains(line, "signatures") {
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
 			input, _ := reader.ReadString('\n')
