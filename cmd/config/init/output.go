@@ -32,8 +32,11 @@ func (o *OutputHandler) PrintInitOutput(
 		"💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n",
 		rollappId,
 	)
-	PrintTokenSupplyLine(rollappConfig)
-	fmt.Println()
+
+	if rollappConfig.HubData.ID == consts.MockHubID {
+		PrintTokenSupplyLine(rollappConfig)
+		fmt.Println()
+	}
 	utils.PrintAddressesWithTitle(addresses)
 
 	if rollappConfig.HubData.ID != consts.MockHubID {
