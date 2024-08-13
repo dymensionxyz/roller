@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -201,39 +202,31 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 }
 
 // TODO: generalize
-func ExecCommandWithInput(cmd *exec.Cmd) error {
-	// Create pipes for stdin, stdout, and stderr
+func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println("Error creating stdin pipe:", err)
-		return err
+		return "", fmt.Errorf("error creating stdin pipe: %v", err)
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println("Error creating stdout pipe:", err)
-		return err
+		return "", fmt.Errorf("error creating stdout pipe: %w", err)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		fmt.Println("Error creating stderr pipe:", err)
-		return err
+		return "", fmt.Errorf("error creating stderr pipe: %w", err)
 	}
 
-	// Start the command
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Error starting command:", err)
-		return err
+		return "", fmt.Errorf("error starting command: %w", err)
 	}
 
-	// Create a scanner to read command output
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
+	var txHash string
 
-	// Read output and handle user input
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
 
-		// Check if the line is asking for confirmation
 		if strings.Contains(line, "signatures") {
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
@@ -242,25 +235,31 @@ func ExecCommandWithInput(cmd *exec.Cmd) error {
 			fmt.Println("input:", input)
 
 			if input == "y" || input == "Y" {
-				_, err := stdin.Write([]byte("y\n"))
-				if err != nil {
-					return err
+				if _, err := stdin.Write([]byte("y\n")); err != nil {
+					return "", err
 				}
 			} else {
-				_, err := stdin.Write([]byte("n\n"))
-				if err != nil {
-					return err
+				if _, err := stdin.Write([]byte("n\n")); err != nil {
+					return "", err
 				}
 				break
 			}
 		}
+
+		// Check for txhash in the output
+		if strings.Contains(line, "\"txhash\":") {
+			var response map[string]interface{}
+			if err := json.Unmarshal([]byte(line), &response); err == nil {
+				if hash, ok := response["txhash"].(string); ok {
+					txHash = hash
+				}
+			}
+		}
 	}
 
-	// Wait for the command to finish
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Command finished with error:", err)
-		return err
+		return "", fmt.Errorf("Command finished with error: %w", err)
 	}
 
-	return nil
+	return txHash, nil
 }
