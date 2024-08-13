@@ -93,6 +93,20 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 	}
 
+	_, err = os.Stat(rollerConfigFilePath)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			pterm.Info.Println("roller.toml not found, creating")
+			_, err := os.Create(rollerConfigFilePath)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to create %s: %v", rollerConfigFilePath, err,
+				)
+				return err
+			}
+		}
+	}
+
 	hd := consts.Hubs[env]
 	rollerTomlData := map[string]string{
 		"rollapp_id":     raID,
@@ -107,20 +121,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 		// TODO: create a separate config section for DA, similar to HubData
 		"da": string(consts.Celestia),
-	}
-
-	_, err = os.Stat(rollerConfigFilePath)
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			pterm.Info.Println("roller.toml not found, creating")
-			_, err := os.Create(rollerConfigFilePath)
-			if err != nil {
-				pterm.Error.Printf(
-					"failed to create %s: %v", rollerConfigFilePath, err,
-				)
-				return err
-			}
-		}
 	}
 
 	for key, value := range rollerTomlData {
@@ -192,7 +192,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
-	// TODO: where to retrieve genesis from?
 	// if configArchivePath != "" {
 	// 	// genesis creator archive
 	// 	err = archives.ExtractFileFromNestedTar(
@@ -211,6 +210,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
+	outputHandler.StopSpinner()
 	/* ------------------------------ Create Init Files ---------------------------- */
 	// 20240607 genesis is generated using the genesis-creator
 	// err = initializeRollappGenesis(initConfig)
@@ -232,10 +232,21 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	// 	err := initLocalHub(initConfig)
 	// 	utils.PrettifyErrorIfExists(err)
 	// }
+	if env != "mock" {
+		err = tomlconfig.DownloadGenesis(home, initConfig)
+		if err != nil {
+			pterm.Error.Println("failed to download genesis file: ", err)
+			return err
+		}
+
+		isChecksumValid, err := tomlconfig.CompareGenesisChecksum(home, raID, hd)
+		if !isChecksumValid {
+			return err
+		}
+	}
 
 	/* ------------------------------ Print output ------------------------------ */
 
-	outputHandler.StopSpinner()
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil

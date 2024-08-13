@@ -23,7 +23,7 @@ import (
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
 	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
-	DefaultCelestiaRPC             = "rpc.celestia-mocha.com"
+	DefaultCelestiaRPC             = "celestia-testnet-consensus.itrocket.net"
 	DefaultCelestiaNetwork         = "mocha"
 )
 

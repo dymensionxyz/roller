@@ -12,6 +12,8 @@ var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
 
 type RollappConfig struct {
 	Home          string        `toml:"home"`
+	GenesisHash   string        `toml:"genesis_hash"`
+	GenesisUrl    string        `toml:"genesis_url"`
 	RollappID     string        `toml:"rollapp_id"`
 	RollappBinary string        `toml:"rollapp_binary"`
 	VMType        consts.VMType `toml:"execution"`

@@ -427,6 +427,10 @@ func Cmd() *cobra.Command {
 
 			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			daNamespace := damanager.DataLayer.GetNamespaceID()
+			if daNamespace == "" {
+				pterm.Error.Println("failed to retrieve da namespace id")
+				return
+			}
 
 			pterm.Info.Println("updating dymint configuration")
 			_ = globalutils.UpdateFieldInToml(
@@ -447,11 +451,6 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("initialization complete")
 			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to create IBC channels and start relaying packets\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer run"),
-			)
 			pterm.Info.Printf(
 				"run %s load the necessary systemd services\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).

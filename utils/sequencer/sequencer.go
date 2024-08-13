@@ -18,6 +18,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 func Register(raCfg config.RollappConfig) error {
@@ -58,7 +59,12 @@ func Register(raCfg config.RollappConfig) error {
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 	)
 
-	err = bash.ExecCommandWithInput(cmd)
+	txHash, err := bash.ExecCommandWithInput(cmd)
+	if err != nil {
+		return err
+	}
+
+	err = tx.MonitorTransaction(raCfg.HubData.RPC_URL, txHash)
 	if err != nil {
 		return err
 	}

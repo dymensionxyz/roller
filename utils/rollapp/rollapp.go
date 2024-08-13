@@ -17,7 +17,7 @@ func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
 	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var blockInfo BlockInformation
@@ -92,6 +92,16 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		raID,
 		"-o", "json",
 		"--node", hd.RPC_URL,
+	)
+
+	return cmd
+}
+
+func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "rollapp", "show",
+		raID, "-o", "json", "--node", hd.RPC_URL,
 	)
 
 	return cmd

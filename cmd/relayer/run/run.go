@@ -89,13 +89,15 @@ func Cmd() *cobra.Command {
 				// preflight checks
 				blockInformation, err := rollapputils.GetCurrentHeight()
 				if err != nil {
-					fmt.Println("failed to retrieve current height")
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
 				}
 				currentHeight, err := strconv.Atoi(
 					strconv.FormatInt(blockInformation.Block.Header.Height, 10),
 				)
 				if err != nil {
-					fmt.Println("failed to retrieve current height")
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
 				}
 				if currentHeight <= 2 {
 					pterm.Warning.Println("current height is too low, updating dymint config")

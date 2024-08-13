@@ -31,7 +31,10 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			errorhandling.RequireMigrateIfNeeded(rollappConfig)
+
+			// TODO: refactor the version comparison for migrations
+			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
+
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
 			if metricsEndpoint != "" && rollappConfig.DA != consts.Celestia {
 				errorhandling.PrettifyErrorIfExists(
@@ -51,6 +54,7 @@ func Cmd() *cobra.Command {
 			if metricsEndpoint != "" {
 				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
+
 			startDALCCmd := damanager.GetStartDACmd()
 			if startDALCCmd == nil {
 				errorhandling.PrettifyErrorIfExists(
@@ -59,9 +63,13 @@ func Cmd() *cobra.Command {
 					),
 				)
 			}
+
 			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
+
+			fmt.Println(startDALCCmd.String())
+
 			defer cancel()
 			go bash.RunCmdAsync(
 				ctx,
