@@ -13,23 +13,25 @@ const (
 var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var Executables = struct {
-	Celestia   string
-	RollappEVM string
-	Relayer    string
-	Dymension  string
-	CelKey     string
-	Roller     string
-	Simd       string
-	Eibc       string
+	Celestia    string
+	RollappEVM  string
+	Relayer     string
+	Dymension   string
+	CelKey      string
+	Roller      string
+	Simd        string
+	Eibc        string
+	CelestiaApp string
 }{
-	Roller:     fmt.Sprintf("%s/roller", binsDir),
-	RollappEVM: fmt.Sprintf("%s/rollapp-evm", binsDir),
-	Dymension:  fmt.Sprintf("%s/dymd", binsDir),
-	Celestia:   fmt.Sprintf("%s/celestia", internalBinsDir),
-	CelKey:     fmt.Sprintf("%s/cel-key", internalBinsDir),
-	Relayer:    fmt.Sprintf("%s/rly", internalBinsDir),
-	Simd:       fmt.Sprintf("%s/simd", internalBinsDir),
-	Eibc:       fmt.Sprintf("%s/eibc", binsDir),
+	Roller:      fmt.Sprintf("%s/roller", binsDir),
+	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
+	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
+	Celestia:    fmt.Sprintf("%s/celestia", internalBinsDir),
+	CelKey:      fmt.Sprintf("%s/cel-key", internalBinsDir),
+	Relayer:     fmt.Sprintf("%s/rly", internalBinsDir),
+	Simd:        fmt.Sprintf("%s/simd", internalBinsDir),
+	Eibc:        fmt.Sprintf("%s/eibc", binsDir),
+	CelestiaApp: fmt.Sprintf("%s/celestia-appd", internalBinsDir),
 }
 
 var KeysIds = struct {
