@@ -184,7 +184,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		var tx rollapp.BlockInformation
 		cmd := exec.Command(
 			consts.Executables.CelestiaApp,
-			"q", "block", "-o", "json",
+			"q", "block",
 		)
 
 		out, err := bash.ExecCommandWithStdout(cmd)
