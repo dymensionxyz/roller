@@ -232,15 +232,17 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	// 	err := initLocalHub(initConfig)
 	// 	utils.PrettifyErrorIfExists(err)
 	// }
-	err = tomlconfig.DownloadGenesis(home, initConfig)
-	if err != nil {
-		fmt.Println("failed to download")
-		return err
-	}
+	if env != "mock" {
+		err = tomlconfig.DownloadGenesis(home, initConfig)
+		if err != nil {
+			fmt.Println("failed to download")
+			return err
+		}
 
-	isChecksumValid, err := tomlconfig.CompareGenesisChecksum(home, raID, hd)
-	if !isChecksumValid {
-		return err
+		isChecksumValid, err := tomlconfig.CompareGenesisChecksum(home, raID, hd)
+		if !isChecksumValid {
+			return err
+		}
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
