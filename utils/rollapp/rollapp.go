@@ -17,7 +17,7 @@ func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
 	out, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var blockInfo BlockInformation
