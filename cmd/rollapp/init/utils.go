@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -19,11 +19,11 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -172,8 +172,12 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
+	mnemonic, err := damanager.InitializeLightNodeConfig()
+	if err != nil {
+		return err
+	}
 
-	sequencers, err := sequencer.GetRegisteredSequencers(raID)
+	sequencers, err := sequencer.GetRegisteredSequencers(raID, hd)
 	if err != nil {
 		return err
 	}
@@ -181,10 +185,9 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	if len(sequencers.Sequencers) == 0 {
 		pterm.Info.Println("no sequencers registered for the rollapp")
 		pterm.Info.Println("using latest height for da-light-client configuration")
-		var tx rollapp.BlockInformation
 		cmd := exec.Command(
 			consts.Executables.CelestiaApp,
-			"q", "block",
+			"q", "block", "--node", celestia.DefaultCelestiaRPC,
 		)
 
 		out, err := bash.ExecCommandWithStdout(cmd)
@@ -192,16 +195,42 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 
+		var tx map[string]interface{}
+		err = json.Unmarshal(out.Bytes(), &tx)
+		if err != nil {
+			log.Fatalf("Failed to unmarshal JSON: %v", err)
+		}
+
+		// Access tx.Block.Header.Height
+		var height string
+		if block, ok := tx["block"].(map[string]interface{}); ok {
+			if header, ok := block["header"].(map[string]interface{}); ok {
+				if h, ok := header["height"].(string); ok {
+					height = h
+				}
+			}
+		}
+
+		// Access tx.BlockId.Hash
+		var blockIdHash string
+		if blockId, ok := tx["block_id"].(map[string]interface{}); ok {
+			if hash, ok := blockId["hash"].(string); ok {
+				blockIdHash = hash
+			}
+		}
 		err = json.Unmarshal(out.Bytes(), &tx)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(tx.BlockId.Hash)
-		fmt.Println(tx.Block.Header.Height)
+		pterm.Info.Printf(
+			"da light client will be initialized at height %s, block hash %s",
+			height,
+			blockIdHash,
+		)
 		daFields := map[string]string{
-			"DASer.SampleFrom":   strconv.FormatInt(tx.Block.Header.Height, 10),
-			"Header.TrustedHash": string(tx.BlockId.Hash),
+			"DASer.SampleFrom":   height,
+			"Header.TrustedHash": blockIdHash,
 		}
 
 		celestiaConfigFilePath := filepath.Join(
@@ -221,11 +250,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				return err
 			}
 		}
-	}
-
-	mnemonic, err := damanager.InitializeLightNodeConfig()
-	if err != nil {
-		return err
 	}
 
 	daAddress, err := damanager.GetDAAccountAddress()
@@ -307,23 +331,4 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
-}
-
-func checkConfigArchive(path string) (string, error) {
-	path = strings.TrimSpace(path)
-
-	if path == "" {
-		return "", errors.New("invalid or no input")
-	}
-
-	archivePath, err := globalutils.ExpandHomePath(path)
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := os.Stat(archivePath); os.IsNotExist(err) {
-		return "", err
-	}
-
-	return archivePath, nil
 }
