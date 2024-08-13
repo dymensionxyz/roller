@@ -62,7 +62,6 @@ func RollappCmd() *cobra.Command {
 			pterm.Success.Printf(
 				"💈 Services %s been loaded successfully.\n",
 				strings.Join(services, ", "),
-				// " To start them, use 'systemctl start <service>'.",
 			)
 
 			pterm.Info.Println("next steps:")
