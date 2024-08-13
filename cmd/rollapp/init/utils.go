@@ -235,7 +235,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	if env != "mock" {
 		err = tomlconfig.DownloadGenesis(home, initConfig)
 		if err != nil {
-			fmt.Println("failed to download")
+			pterm.Error.Println("failed to download genesis file: ", err)
 			return err
 		}
 
