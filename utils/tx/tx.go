@@ -8,6 +8,7 @@ import (
 
 	cometclient "github.com/cometbft/cometbft/rpc/client/http"
 	comettypes "github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
 )
 
 func MonitorTransaction(wsURL, txHash string) error {
@@ -49,6 +50,13 @@ func MonitorTransaction(wsURL, txHash string) error {
 
 	fmt.Println("Monitoring transaction:", txHash)
 
+	spinner, _ := pterm.DefaultSpinner.WithText(
+		fmt.Sprintf(
+			"waiting for tx with hash %s to finalize",
+			pterm.FgYellow.Sprint(txHash),
+		),
+	).Start()
+
 	// Listen for events
 	for {
 		select {
@@ -60,8 +68,8 @@ func MonitorTransaction(wsURL, txHash string) error {
 			}
 
 			if txEvent.Result.Code == 0 {
-				fmt.Println("Transaction successful!")
-				fmt.Printf(
+				spinner.Success("transaction succeeded")
+				pterm.Info.Printf(
 					"Gas wanted: %d, Gas used: %d\n",
 					txEvent.Result.GasWanted,
 					txEvent.Result.GasUsed,
