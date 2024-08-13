@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
@@ -202,10 +203,11 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 }
 
 // TODO: generalize
+
 func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		return "", fmt.Errorf("error creating stdin pipe: %v", err)
+		return "", fmt.Errorf("error creating stdin pipe: %w", err)
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -222,12 +224,14 @@ func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
 	var txHash string
+	var yamlOutput strings.Builder
+	var captureYAML bool
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
 
-		if strings.Contains(line, "signatures") {
+		if strings.Contains(line, "Do you want to continue?") {
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
 			input, _ := reader.ReadString('\n')
@@ -238,27 +242,31 @@ func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 				if _, err := stdin.Write([]byte("y\n")); err != nil {
 					return "", err
 				}
+				captureYAML = true
 			} else {
 				if _, err := stdin.Write([]byte("n\n")); err != nil {
 					return "", err
 				}
 				break
 			}
-		}
-
-		// Check for txhash in the output
-		if strings.Contains(line, "\"txhash\":") {
-			var response map[string]interface{}
-			if err := json.Unmarshal([]byte(line), &response); err == nil {
-				if hash, ok := response["txhash"].(string); ok {
-					txHash = hash
-				}
-			}
+		} else if captureYAML {
+			yamlOutput.WriteString(line + "\n")
 		}
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return "", fmt.Errorf("Command finished with error: %w", err)
+		return "", fmt.Errorf("command finished with error: %w", err)
+	}
+
+	// Parse YAML output
+	var result map[string]interface{}
+	if err := yaml.Unmarshal([]byte(yamlOutput.String()), &result); err != nil {
+		return "", fmt.Errorf("error parsing YAML output: %w", err)
+	}
+
+	// Extract txhash
+	if hash, ok := result["txhash"].(string); ok {
+		txHash = hash
 	}
 
 	return txHash, nil
