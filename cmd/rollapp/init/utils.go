@@ -1,11 +1,14 @@
 package initrollapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -17,8 +20,11 @@ import (
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -166,6 +172,57 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
+
+	sequencers, err := sequencer.GetRegisteredSequencers(raID)
+	if err != nil {
+		return err
+	}
+
+	if len(sequencers.Sequencers) == 0 {
+		pterm.Info.Println("no sequencers registered for the rollapp")
+		pterm.Info.Println("using latest height for da-light-client configuration")
+		var tx rollapp.BlockInformation
+		cmd := exec.Command(
+			consts.Executables.CelestiaApp,
+			"q", "block", "-o", "json",
+		)
+
+		out, err := bash.ExecCommandWithStdout(cmd)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(out.Bytes(), &tx)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(tx.BlockId.Hash)
+		fmt.Println(tx.Block.Header.Height)
+		daFields := map[string]string{
+			"DASer.SampleFrom":   strconv.FormatInt(tx.Block.Header.Height, 10),
+			"Header.TrustedHash": string(tx.BlockId.Hash),
+		}
+
+		celestiaConfigFilePath := filepath.Join(
+			home,
+			consts.ConfigDirName.DALightNode,
+			"config.toml",
+		)
+
+		for key, value := range daFields {
+			err = globalutils.UpdateFieldInToml(
+				celestiaConfigFilePath,
+				key,
+				value,
+			)
+			if err != nil {
+				fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+				return err
+			}
+		}
+	}
+
 	mnemonic, err := damanager.InitializeLightNodeConfig()
 	if err != nil {
 		return err
