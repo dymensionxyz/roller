@@ -57,7 +57,6 @@ func Register(raCfg config.RollappConfig) error {
 		"--keyring-backend", "test",
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultFee, consts.Denoms.Hub),
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
-		"-o", "json",
 	)
 
 	txHash, err := bash.ExecCommandWithInput(cmd)
