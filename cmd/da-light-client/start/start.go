@@ -55,7 +55,7 @@ func Cmd() *cobra.Command {
 			if startDALCCmd == nil {
 				errorhandling.PrettifyErrorIfExists(
 					errors.New(
-						"DA doesn't need to run seperatly. It runs automatically with the app",
+						"DA doesn't need to run separately. It runs automatically with the app",
 					),
 				)
 			}
