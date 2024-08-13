@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -228,8 +229,13 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			height,
 			blockIdHash,
 		)
-		daFields := map[string]string{
-			"DASer.SampleFrom":   height,
+		heightInt, err := strconv.Atoi(height)
+		if err != nil {
+			return err
+		}
+
+		daFields := map[string]interface{}{
+			"DASer.SampleFrom":   heightInt,
 			"Header.TrustedHash": blockIdHash,
 		}
 

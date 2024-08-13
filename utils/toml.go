@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pelletier/go-toml"
+	toml "github.com/pelletier/go-toml"
 )
 
 func WriteTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
@@ -31,11 +31,19 @@ func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
 	return tomlTree.Get(key).(string), nil
 }
 
-func UpdateFieldInToml(tmlFilePath, key, value string) error {
+// TODO: improve
+func UpdateFieldInToml(tmlFilePath, key string, value interface{}) error {
 	tomlCfg, err := toml.LoadFile(tmlFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)
 	}
-	tomlCfg.Set(key, value)
+
+	switch v := value.(type) {
+	case string, int, int64, float64, bool:
+		tomlCfg.Set(key, v)
+	default:
+		return fmt.Errorf("unsupported type for key %s: %T", key, value)
+	}
+
 	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
 }
