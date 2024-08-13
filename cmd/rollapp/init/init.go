@@ -68,6 +68,14 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
 			}
+
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s prepare node configuration for %s RollApp\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp run"),
+				raID,
+			)
 		},
 	}
 	return cmd

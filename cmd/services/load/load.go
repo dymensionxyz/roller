@@ -64,6 +64,7 @@ func RollappCmd() *cobra.Command {
 				strings.Join(services, ", "),
 				// " To start them, use 'systemctl start <service>'.",
 			)
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"run %s to start rollapp and da-light-client on your local machine\n",
