@@ -193,6 +193,7 @@ func downloadFile(url, filepath string) error {
 		spinner.Fail("failed to download file: ", err)
 		return err
 	}
+	// nolint:errcheck
 	defer resp.Body.Close()
 
 	out, err := os.Create(filepath)
@@ -200,10 +201,14 @@ func downloadFile(url, filepath string) error {
 		spinner.Fail("failed to download file: ", err)
 		return err
 	}
+	// nolint:errcheck
 	defer out.Close()
 
 	spinner.Success("Successfully downloaded the genesis file")
 	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -212,6 +217,7 @@ func calculateSHA256(filepath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %v", err)
 	}
+	// nolint:errcheck
 	defer file.Close()
 
 	hash := sha256.New()
