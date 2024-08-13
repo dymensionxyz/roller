@@ -37,6 +37,12 @@ func RollappCmd() *cobra.Command {
 				"💈 Services %s started successfully.\n",
 				strings.Join(services, ", "),
 			)
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to set up IBC channels and start relaying packets\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller relayer run"),
+			)
 		},
 	}
 	return cmd
