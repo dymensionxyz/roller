@@ -32,7 +32,7 @@ func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
 }
 
 // TODO: improve
-func UpdateFieldInToml(tmlFilePath, key string, value interface{}) error {
+func UpdateFieldInToml(tmlFilePath, key string, value any) error {
 	tomlCfg, err := toml.LoadFile(tmlFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)

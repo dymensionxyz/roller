@@ -235,8 +235,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 
 		daFields := map[string]interface{}{
-			"DASer.SampleFrom":   heightInt,
-			"Header.TrustedHash": blockIdHash,
+			"DASer.SampleFrom": heightInt,
 		}
 
 		celestiaConfigFilePath := filepath.Join(
