@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -88,7 +87,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaRPC, "The DA rpc endpoint to connect to.")
+		StringP(rpcEndpointFlag, "", "celestia-testnet-consensus.itrocket.net", "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

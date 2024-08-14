@@ -77,11 +77,6 @@ type Balance struct {
 	Amount *big.Int `json:"amount"`
 }
 
-type BalanceString struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
-}
-
 func (b *Balance) String() string {
 	return b.Amount.String() + b.Denom
 }

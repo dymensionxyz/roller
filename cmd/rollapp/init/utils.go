@@ -184,7 +184,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 
-		height, blockIdHash, err := getLatestDABlock()
+		height, blockIdHash, err := GetLatestDABlock()
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				"config.toml",
 			)
 
-			err = updateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
+			err = UpdateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
 			if err != nil {
 				return err
 			}
@@ -246,12 +246,12 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				return err
 			}
 
-			h, err := extractHeightfromDAPath(result.StateInfo.DAPath)
+			h, err := ExtractHeightfromDAPath(result.StateInfo.DAPath)
 			if err != nil {
 				return err
 			}
 
-			height, hash, err := getDABlockByHeight(h)
+			height, hash, err := GetDABlockByHeight(h)
 			if err != nil {
 				return err
 			}
@@ -268,7 +268,8 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			)
 
 			pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
-			err = updateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+			pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+			err = UpdateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
 			if err != nil {
 				return err
 			}
@@ -291,7 +292,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		daSpinner.Success("successfully initialized da light client")
 	}
 	/* --------------------------- Initialize Rollapp -------------------------- */
-	raSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+	raSpinner, _ := pterm.DefaultSpinner.Start("initializing rollapp client")
 
 	err = initconfig.InitializeRollappConfig(&initConfig, hd)
 	if err != nil {
@@ -346,7 +347,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	return nil
 }
 
-func updateCelestiaConfig(file, hash string, height int) error {
+func UpdateCelestiaConfig(file, hash string, height int) error {
 	// Read existing config
 	data, err := os.ReadFile(file)
 	if err != nil {
@@ -388,11 +389,11 @@ func updateCelestiaConfig(file, hash string, height int) error {
 	return nil
 }
 
-// getLatestDABlock returns the latest DA (Data Availability) block information.
+// GetLatestDABlock returns the latest DA (Data Availability) block information.
 // It executes the CelestiaApp command "q block --node" to retrieve the block data.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func getLatestDABlock() (string, string, error) {
+func GetLatestDABlock() (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
 		"q", "block", "--node", celestia.DefaultCelestiaRPC,
@@ -434,12 +435,12 @@ func getLatestDABlock() (string, string, error) {
 	return height, blockIdHash, nil
 }
 
-// getDABlockByHeight returns the DA (Data Availability) block information for the given height.
+// GetDABlockByHeight returns the DA (Data Availability) block information for the given height.
 // It executes the CelestiaApp command "q block <height> --node" to retrieve the block data,
 // where <height> is the input parameter.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func getDABlockByHeight(h string) (string, string, error) {
+func GetDABlockByHeight(h string) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
 		"q", "block", h, "--node", celestia.DefaultCelestiaRPC,
@@ -506,7 +507,7 @@ type Result struct {
 	StateInfo StateInfo `yaml:"stateInfo"`
 }
 
-func extractHeightfromDAPath(input string) (string, error) {
+func ExtractHeightfromDAPath(input string) (string, error) {
 	parts := strings.Split(input, "|")
 	if len(parts) < 2 {
 		return "", fmt.Errorf("input string does not have enough parts")

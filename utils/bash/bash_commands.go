@@ -110,7 +110,7 @@ func ExecCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
 	return stdout, nil
 }

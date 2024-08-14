@@ -15,7 +15,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -26,7 +25,11 @@ type AppState struct {
 }
 
 type Bank struct {
-	Supply []utils.BalanceString `json:"supply"`
+	Supply []Denom `json:"supply"`
+}
+
+type Denom struct {
+	Denom string `json:"denom"`
 }
 
 func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
