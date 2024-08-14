@@ -24,16 +24,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
-
-type AppState struct {
-	Bank Bank `json:"bank"`
-}
-
-type Bank struct {
-	Supply []utils.Balance `json:"supply"`
-}
 
 // TODO: Test relaying on 35-C and update the prices
 var (
@@ -60,7 +53,7 @@ func Cmd() *cobra.Command {
 			}
 
 			// TODO: refactor
-			var need AppState
+			var need genesisutils.AppState
 			j, _ := genesis.AppState.MarshalJSON()
 			json.Unmarshal(j, &need)
 			rollappDenom := need.Bank.Supply[0].Denom
@@ -174,7 +167,9 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				pterm.Info.Println("updating dymint config")
+				pterm.Info.Println(
+					"updating dymint config to 5s block time for relayer configuration",
+				)
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
 				if err != nil {
 					pterm.Error.Println(
