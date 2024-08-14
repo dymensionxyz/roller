@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -78,8 +79,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			json, _ := genesis.AppState.MarshalJSON()
-			fmt.Println(string(json))
+			var need AppState
+			j, _ := genesis.AppState.MarshalJSON()
+			json.Unmarshal(j, &need)
+			fmt.Println(need.Bank.Supply[0].Denom)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
