@@ -24,21 +24,19 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
 			return "", "", nil
 		} else {
-			r.logger.Println("another err", err)
+			r.logger.Println("something bad happened", err)
 			return "", "", err
 		}
 	}
 	if activeConnectionID == "" {
+		r.logger.Println("no active connection found")
 		return "", "", nil
 	}
-	fmt.Println("act conn:", activeConnectionID)
 
 	output, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
 	if err != nil {
 		return "", "", err
 	}
-
-	fmt.Println(output)
 
 	if output.Len() == 0 {
 		return "", "", nil
