@@ -268,8 +268,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		if err != nil {
 			return err
 		}
-
-		return nil
 	}
 
 	daAddress, err := damanager.GetDAAccountAddress()
