@@ -176,7 +176,7 @@ func Cmd() *cobra.Command {
 			}
 			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
-			errorhandling.RequireMigrateIfNeeded(rollappConfig)
+			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			err = rollappConfig.Validate()
 			if err != nil {
