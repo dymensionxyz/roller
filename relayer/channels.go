@@ -30,6 +30,7 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 	if activeConnectionID == "" {
 		return "", "", nil
 	}
+	fmt.Println(activeConnectionID)
 
 	output, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
 	if err != nil {
