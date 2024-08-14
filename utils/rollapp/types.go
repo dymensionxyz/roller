@@ -98,5 +98,5 @@ type Header struct {
 
 type Consensus struct {
 	Block string `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
-	App   uint64 `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
+	App   string `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
 }
