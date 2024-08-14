@@ -5,14 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	comettypes "github.com/cometbft/cometbft/types"
+	naoinatoml "github.com/naoina/toml"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/version"
-	naoinatoml "github.com/naoina/toml"
 )
 
 func Write(rlpCfg config.RollappConfig) error {
@@ -103,21 +102,6 @@ func LoadRollappMetadataFromChain(
 			return nil, err
 		}
 
-		genesisDoc, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO: refactor
-		var need genesisutils.AppState
-		j, _ := genesisDoc.AppState.MarshalJSON()
-		err = json.Unmarshal(j, &need)
-		if err != nil {
-			return nil, err
-		}
-		rollappBaseDenom := need.Bank.Supply[0].Denom
-		rollappDenom := rollappBaseDenom[1:]
-
 		cfg = config.RollappConfig{
 			Home:             home,
 			GenesisHash:      raResponse.Rollapp.GenesisChecksum,
@@ -125,7 +109,7 @@ func LoadRollappMetadataFromChain(
 			RollappID:        raResponse.Rollapp.RollappId,
 			RollappBinary:    consts.Executables.RollappEVM,
 			VMType:           consts.EVM_ROLLAPP,
-			Denom:            rollappDenom,
+			Denom:            "",
 			Decimals:         18,
 			HubData:          *hd,
 			DA:               consts.Celestia,
@@ -133,7 +117,7 @@ func LoadRollappMetadataFromChain(
 			Environment:      hd.ID,
 			ExecutionVersion: version.BuildVersion,
 			Bech32Prefix:     raResponse.Rollapp.Bech32Prefix,
-			BaseDenom:        rollappBaseDenom,
+			BaseDenom:        "",
 			MinGasPrices:     "0",
 		}
 

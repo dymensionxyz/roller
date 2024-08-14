@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pelletier/go-toml/v2"
+	toml "github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -293,7 +293,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	raSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 
-	err = initconfig.InitializeRollappConfig(initConfig, hd)
+	err = initconfig.InitializeRollappConfig(&initConfig, hd)
 	if err != nil {
 		return err
 	}
