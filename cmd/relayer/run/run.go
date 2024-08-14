@@ -261,7 +261,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				err = VerifyRelayerBalances(rollappConfig, rollappDenom)
+				err = VerifyRelayerBalances(rollappConfig)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 					return
@@ -301,8 +301,8 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config2.RollappConfig, denom string) error {
-	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg, denom)
+func VerifyRelayerBalances(rolCfg config2.RollappConfig) error {
+	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
 	if err != nil {
 		return err
 	}
@@ -350,7 +350,6 @@ func GetRlyHubInsufficientBalances(
 
 func GetRelayerInsufficientBalances(
 	config config2.RollappConfig,
-	denom string,
 ) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {
