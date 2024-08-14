@@ -72,8 +72,9 @@ func Cmd() *cobra.Command {
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			genesis, err := comettypes.GenesisDocFromFile(home)
+			genesis, err := comettypes.GenesisDocFromFile(initconfig.GetGenesisFilePath(home))
 			if err != nil {
+				pterm.Error.Println("failed to load genesis doc")
 				return
 			}
 
