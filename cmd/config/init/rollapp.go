@@ -29,7 +29,7 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 	)
 
 	if initConfig.HubData.ID != "mock" {
-		err := genesisutils.DownloadGenesis(home, *initConfig)
+		err := genesisutils.DownloadGenesis(initConfig.Home, *initConfig)
 		if err != nil {
 			pterm.Error.Println("failed to download genesis file: ", err)
 			return err
