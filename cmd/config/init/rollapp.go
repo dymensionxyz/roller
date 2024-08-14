@@ -54,7 +54,9 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 			return err
 		}
 
-		genesisDoc, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
+		genesisDoc, err := comettypes.GenesisDocFromFile(
+			genesisutils.GetGenesisFilePath(initConfig.Home),
+		)
 		if err != nil {
 			return err
 		}
