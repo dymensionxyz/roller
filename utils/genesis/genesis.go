@@ -26,7 +26,7 @@ type AppState struct {
 }
 
 type Bank struct {
-	Supply []utils.Balance `json:"supply"`
+	Supply []utils.BalanceString `json:"supply"`
 }
 
 func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
