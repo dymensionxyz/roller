@@ -137,7 +137,7 @@ func Cmd() *cobra.Command {
 				}
 				if currentHeight <= 2 {
 					pterm.Warning.Println("current height is too low, updating dymint config")
-					err := dymintutils.UpdateDymintConfigForIBC(home)
+					err := dymintutils.UpdateDymintConfigForIBC(home, "5s")
 					if err != nil {
 						pterm.Error.Println("failed to update dymint config")
 						return
@@ -150,6 +150,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				pterm.Info.Println("initializing relayer config")
 				err = initconfig.InitializeRelayerConfig(
 					relayer.ChainConfig{
 						ID:            rollappConfig.RollappID,
@@ -173,7 +174,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = dymintutils.UpdateDymintConfigForIBC(home)
+				pterm.Info.Println("updating dymint config")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
 				if err != nil {
 					pterm.Error.Println(
 						"failed to update dymint config for ibc creation",
@@ -291,6 +293,13 @@ func Cmd() *cobra.Command {
 				rly.SrcChannel,
 				rly.DstChannel,
 			)
+
+			pterm.Info.Println("reverting dymint config to 1h")
+			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s")
+			if err != nil {
+				pterm.Error.Println("failed to update dymint config")
+				return
+			}
 
 			select {}
 		},

@@ -2,6 +2,7 @@ package dymint
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -9,7 +10,8 @@ import (
 
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	tomlconfig "github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 // TODO: use dymint instead
@@ -60,7 +62,7 @@ type dymintInstrumentationConfig struct {
 	PrometheusListenAddr string `toml:"prometheus_listen_addr"`
 }
 
-func UpdateDymintConfigForIBC(home string) error {
+func UpdateDymintConfigForIBC(home string, t string) error {
 	pterm.Info.Println("checking dymint block time settings")
 	dymintPath := sequencer.GetDymintFilePath(home)
 	fmt.Println(dymintPath)
@@ -76,7 +78,11 @@ func UpdateDymintConfigForIBC(home string) error {
 		return err
 	}
 
-	want := time.Second * 5
+	want, err := time.ParseDuration(t)
+	if err != nil {
+		return err
+	}
+
 	have, err := time.ParseDuration(cfg.MaxIdleTime)
 	if err != nil {
 		return err
@@ -97,15 +103,27 @@ func UpdateDymintConfigForIBC(home string) error {
 		if err != nil {
 			return err
 		}
-		err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
-		if err != nil {
-			return err
+
+		if want < time.Minute*1 {
+			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
+			if err != nil {
+				return err
+			}
+		} else {
+			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", "1m40s")
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like roller to restart your rollapp process?",
+	cmd := exec.Command(
+		"sudo", "systemctl", "restart", "rollapp",
 	)
+	_, err = bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
