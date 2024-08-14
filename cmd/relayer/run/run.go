@@ -47,7 +47,7 @@ func Cmd() *cobra.Command {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
-			genesis, err := comettypes.GenesisDocFromFile(initconfig.GetGenesisFilePath(home))
+			genesis, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
 			if err != nil {
 				return
 			}

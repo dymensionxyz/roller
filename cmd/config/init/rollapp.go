@@ -4,13 +4,16 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/genesis"
 )
 
-func InitializeRollappConfig(initConfig config.RollappConfig) error {
+func InitializeRollappConfig(initConfig config.RollappConfig, hd consts.HubData) error {
 	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 
 	initRollappCmd := exec.Command(
@@ -22,6 +25,19 @@ func InitializeRollappConfig(initConfig config.RollappConfig) error {
 		"--home",
 		home,
 	)
+
+	if initConfig.HubData.ID != "mock" {
+		err := genesis.DownloadGenesis(home, initConfig)
+		if err != nil {
+			pterm.Error.Println("failed to download genesis file: ", err)
+			return err
+		}
+
+		isChecksumValid, err := genesis.CompareGenesisChecksum(home, initConfig.RollappID, hd)
+		if !isChecksumValid {
+			return err
+		}
+	}
 
 	_, err := bash.ExecCommandWithStdout(initRollappCmd)
 	if err != nil {
@@ -47,8 +63,4 @@ func setRollappConfig(rlpCfg config.RollappConfig) error {
 		return err
 	}
 	return nil
-}
-
-func RollappConfigDir(root string) string {
-	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
 }

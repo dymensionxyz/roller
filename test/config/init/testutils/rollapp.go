@@ -5,6 +5,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 func getRollappKeysDir(root string) string {
@@ -46,11 +47,11 @@ func VerifyRollappKeys(root string) error {
 }
 
 func getNodeKeyPath(root string) string {
-	return filepath.Join(initconfig.RollappConfigDir(root), "node_key.json")
+	return filepath.Join(rollapp.RollappConfigDir(root), "node_key.json")
 }
 
 func getPrivValKeyPath(root string) string {
-	return filepath.Join(initconfig.RollappConfigDir(root), "priv_validator_key.json")
+	return filepath.Join(rollapp.RollappConfigDir(root), "priv_validator_key.json")
 }
 
 func SanitizeGenesis(genesisPath string) error {

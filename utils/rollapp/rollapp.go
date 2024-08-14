@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -99,4 +100,8 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	)
 
 	return cmd
+}
+
+func RollappConfigDir(root string) string {
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
 }

@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	toml "github.com/pelletier/go-toml/v2"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -170,125 +170,130 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	/* ------------------------ Initialize DA light node ------------------------ */
-	daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+	if env != "mock" {
+		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 
-	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
-	mnemonic, err := damanager.InitializeLightNodeConfig()
-	if err != nil {
-		return err
-	}
-
-	sequencers, err := sequencer.GetRegisteredSequencers(raID, hd)
-	if err != nil {
-		return err
-	}
-
-	height, blockIdHash, err := getLatestDABlock()
-	if err != nil {
-		return err
-	}
-
-	if len(sequencers.Sequencers) == 0 {
-		pterm.Info.Println("no sequencers registered for the rollapp")
-		pterm.Info.Println("using latest height for da-light-client configuration")
-
-		pterm.Info.Printf(
-			"da light client will be initialized at height %s, block hash %s",
-			height,
-			blockIdHash,
-		)
-		heightInt, err := strconv.Atoi(height)
+		damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
+		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return err
 		}
 
-		celestiaConfigFilePath := filepath.Join(
-			home,
-			consts.ConfigDirName.DALightNode,
-			"config.toml",
-		)
-
-		err = updateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
+		sequencers, err := sequencer.GetRegisteredSequencers(raID, hd)
 		if err != nil {
 			return err
 		}
-	} else {
-		daSpinner.UpdateText("checking for state update ")
-		cmd := exec.Command(
-			consts.Executables.Dymension,
-			"q",
-			"rollapp",
-			"state",
-			raID,
-			"--index",
-			"1",
-			"--node",
-			hd.RPC_URL,
-		)
 
-		out, err := bash.ExecCommandWithStdout(cmd)
+		height, blockIdHash, err := getLatestDABlock()
 		if err != nil {
-			if strings.Contains(out.String(), "NotFound") {
-				pterm.Info.Printf("no state found for %s, da light client will be initialized with latest height", raID)
-			} else {
+			return err
+		}
+
+		if len(sequencers.Sequencers) == 0 {
+			pterm.Info.Println("no sequencers registered for the rollapp")
+			pterm.Info.Println("using latest height for da-light-client configuration")
+
+			pterm.Info.Printf(
+				"da light client will be initialized at height %s, block hash %s",
+				height,
+				blockIdHash,
+			)
+			heightInt, err := strconv.Atoi(height)
+			if err != nil {
+				return err
+			}
+
+			celestiaConfigFilePath := filepath.Join(
+				home,
+				consts.ConfigDirName.DALightNode,
+				"config.toml",
+			)
+
+			err = updateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
+			if err != nil {
+				return err
+			}
+		} else {
+			daSpinner.UpdateText("checking for state update ")
+			cmd := exec.Command(
+				consts.Executables.Dymension,
+				"q",
+				"rollapp",
+				"state",
+				raID,
+				"--index",
+				"1",
+				"--node",
+				hd.RPC_URL,
+			)
+
+			out, err := bash.ExecCommandWithStdout(cmd)
+			if err != nil {
+				if strings.Contains(out.String(), "NotFound") {
+					pterm.Info.Printf(
+						"no state found for %s, da light client will be initialized with latest height",
+						raID,
+					)
+				} else {
+					return err
+				}
+			}
+
+			daSpinner.UpdateText("state update found, extracting da height")
+
+			var result Result
+			if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+				return err
+			}
+
+			h, err := extractHeightfromDAPath(result.StateInfo.DAPath)
+			if err != nil {
+				return err
+			}
+
+			height, hash, err := getDABlockByHeight(h)
+			if err != nil {
+				return err
+			}
+
+			heightInt, err := strconv.Atoi(height)
+			if err != nil {
+				return err
+			}
+
+			celestiaConfigFilePath := filepath.Join(
+				home,
+				consts.ConfigDirName.DALightNode,
+				"config.toml",
+			)
+
+			pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
+			err = updateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+			if err != nil {
 				return err
 			}
 		}
 
-		daSpinner.UpdateText("state update found, extracting da height")
-
-		var result Result
-		if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
-			return err
-		}
-
-		h, err := extractHeightfromDAPath(result.StateInfo.DAPath)
+		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return err
 		}
 
-		height, hash, err := getDABlockByHeight(h)
-		if err != nil {
-			return err
+		if daAddress != nil {
+			addresses = append(
+				addresses, utils.KeyInfo{
+					Name:     damanager.GetKeyName(),
+					Address:  daAddress.Address,
+					Mnemonic: mnemonic,
+				},
+			)
 		}
-
-		heightInt, err := strconv.Atoi(height)
-		if err != nil {
-			return err
-		}
-
-		celestiaConfigFilePath := filepath.Join(
-			home,
-			consts.ConfigDirName.DALightNode,
-			"config.toml",
-		)
-
-		pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
-		err = updateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
-		if err != nil {
-			return err
-		}
+		daSpinner.Success("successfully initialized da light client")
 	}
-
-	daAddress, err := damanager.GetDAAccountAddress()
-	if err != nil {
-		return err
-	}
-
-	if daAddress != nil {
-		addresses = append(
-			addresses, utils.KeyInfo{
-				Name:     damanager.GetKeyName(),
-				Address:  daAddress.Address,
-				Mnemonic: mnemonic,
-			},
-		)
-	}
-	daSpinner.Success("successfully initialized da light client")
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	raSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 
-	err = initconfig.InitializeRollappConfig(initConfig)
+	err = initconfig.InitializeRollappConfig(initConfig, hd)
 	if err != nil {
 		return err
 	}
@@ -332,18 +337,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	// 	err := initLocalHub(initConfig)
 	// 	utils.PrettifyErrorIfExists(err)
 	// }
-	if env != "mock" {
-		err = tomlconfig.DownloadGenesis(home, initConfig)
-		if err != nil {
-			pterm.Error.Println("failed to download genesis file: ", err)
-			return err
-		}
-
-		isChecksumValid, err := tomlconfig.CompareGenesisChecksum(home, raID, hd)
-		if !isChecksumValid {
-			return err
-		}
-	}
 
 	raSpinner.Success("rollapp initialized successfully")
 	/* ------------------------------ Print output ------------------------------ */

@@ -24,13 +24,6 @@ type PathValue struct {
 	Value interface{}
 }
 
-func GetGenesisFilePath(root string) string {
-	return filepath.Join(
-		RollappConfigDir(root),
-		"genesis.json",
-	)
-}
-
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
 	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
