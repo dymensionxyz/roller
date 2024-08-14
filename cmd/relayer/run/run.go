@@ -53,6 +53,21 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
+
+			genesis, err := comettypes.GenesisDocFromFile(initconfig.GetGenesisFilePath(home))
+			if err != nil {
+				return
+			}
+
+			// TODO: refactor
+			var need AppState
+			j, _ := genesis.AppState.MarshalJSON()
+			json.Unmarshal(j, &need)
+			rollappDenom := need.Bank.Supply[0].Denom
+
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
+
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
@@ -72,18 +87,6 @@ func Cmd() *cobra.Command {
 				&hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
-
-			genesis, err := comettypes.GenesisDocFromFile(initconfig.GetGenesisFilePath(home))
-			if err != nil {
-				pterm.Error.Println("failed to load genesis doc")
-				return
-			}
-
-			// TODO: refactor
-			var need AppState
-			j, _ := genesis.AppState.MarshalJSON()
-			json.Unmarshal(j, &need)
-			rollappDenom := need.Bank.Supply[0].Denom
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
@@ -258,7 +261,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				err = VerifyRelayerBalances(rollappConfig)
+				err = VerifyRelayerBalances(rollappConfig, rollappDenom)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 					return
@@ -298,8 +301,8 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config2.RollappConfig) error {
-	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
+func VerifyRelayerBalances(rolCfg config2.RollappConfig, denom string) error {
+	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg, denom)
 	if err != nil {
 		return err
 	}
@@ -347,6 +350,7 @@ func GetRlyHubInsufficientBalances(
 
 func GetRelayerInsufficientBalances(
 	config config2.RollappConfig,
+	denom string,
 ) ([]utils.NotFundedAddressData, error) {
 	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
 	if err != nil {
