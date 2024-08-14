@@ -1,5 +1,13 @@
 package rollapp
 
+import (
+	"time"
+
+	cmtbytes "github.com/tendermint/tendermint/libs/bytes"
+	cmtversion "github.com/tendermint/tendermint/proto/tendermint/version"
+	tmtypes "github.com/tendermint/tendermint/types"
+)
+
 type ShowRollappResponse struct {
 	Rollapp                   Rollapp         `json:"rollapp"`
 	LatestStateIndex          *StateInfoIndex `json:"latestStateIndex"`
@@ -47,4 +55,49 @@ type StateInfoIndex struct {
 	// index is a sequential increasing number, updating on each
 	// state update used for indexing to a specific state info, the first index is 1
 	Index string `protobuf:"varint,2,opt,name=index,proto3"    json:"index,omitempty"`
+}
+
+type BlockInformation struct {
+	BlockId tmtypes.BlockID `json:"block_id"`
+	Block   tmtypes.Block   `json:"block"`
+}
+
+type Block struct {
+	Header       `json:"header"`
+	tmtypes.Data `json:"data"`
+	Evidence     tmtypes.EvidenceData `json:"evidence"`
+	LastCommit   *tmtypes.Commit      `json:"last_commit"`
+}
+
+type Header struct {
+	// basic block info
+	Version cmtversion.Consensus `json:"version"`
+	ChainID string               `json:"chain_id"`
+	Height  int64                `json:"height"`
+	Time    time.Time            `json:"time"`
+
+	// prev block info
+	LastBlockID tmtypes.BlockID `json:"last_block_id"`
+
+	// hashes of block data
+	LastCommitHash cmtbytes.HexBytes `json:"last_commit_hash"` // commit from validators from the last block
+	DataHash       cmtbytes.HexBytes `json:"data_hash"`        // transactions
+
+	// hashes from the app output from the prev block
+	ValidatorsHash     cmtbytes.HexBytes `json:"validators_hash"`      // validators for the current block
+	NextValidatorsHash cmtbytes.HexBytes `json:"next_validators_hash"` // validators for the next block
+	ConsensusHash      cmtbytes.HexBytes `json:"consensus_hash"`       // consensus params for current block
+	AppHash            cmtbytes.HexBytes `json:"app_hash"`             // state after txs from the previous block
+	// root hash of all results from the txs from the previous block
+	// see `deterministicResponseDeliverTx` to understand which parts of a tx is hashed into here
+	LastResultsHash cmtbytes.HexBytes `json:"last_results_hash"`
+
+	// consensus info
+	EvidenceHash    cmtbytes.HexBytes `json:"evidence_hash"`    // evidence included in the block
+	ProposerAddress tmtypes.Address   `json:"proposer_address"` // original proposer of the block
+}
+
+type Consensus struct {
+	Block string `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
+	App   uint64 `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
 }

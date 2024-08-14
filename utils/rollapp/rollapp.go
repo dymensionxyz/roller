@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils/bash"
@@ -76,11 +75,6 @@ func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
 	}
 
 	return true, nil
-}
-
-type BlockInformation struct {
-	BlockId tmtypes.BlockID `json:"block_id"`
-	Block   tmtypes.Block   `json:"block"`
 }
 
 func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
