@@ -58,7 +58,7 @@ type StateInfoIndex struct {
 
 type BlockInformation struct {
 	BlockId tmtypes.BlockID `json:"block_id"`
-	Block   tmtypes.Block   `json:"block"`
+	Block   Block           `json:"block"`
 }
 
 type Block struct {
