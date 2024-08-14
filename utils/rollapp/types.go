@@ -64,7 +64,6 @@ type Block struct {
 	Header       `json:"header"`
 	tmtypes.Data `json:"data"`
 	Evidence     tmtypes.EvidenceData `json:"evidence"`
-	LastCommit   *tmtypes.Commit      `json:"last_commit"`
 }
 
 type Header struct {
