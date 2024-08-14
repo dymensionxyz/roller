@@ -124,29 +124,8 @@ func IsRegisteredAsSequencer(seq []Info, addr string) bool {
 	)
 }
 
-func GetSequencersByRollappID(raID string) (*Sequencers, error) {
-	cmd := exec.Command(
-		consts.Executables.Dymension,
-		"q", "sequencer", "show-sequencers-by-rollapp",
-		raID, "-o", "json",
-	)
-
-	var sequencers Sequencers
-	out, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(out.Bytes(), &sequencers)
-	if err != nil {
-		return nil, err
-	}
-
-	return &sequencers, nil
-}
-
-func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
-	sequencers, err := GetSequencersByRollappID(raID)
+func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
+	sequencers, err := GetRegisteredSequencers(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -172,17 +151,10 @@ func GetLatestSnapshot(raID string) (*SnapshotInfo, error) {
 }
 
 func GetRegisteredSequencers(
-	raID string,
+	raID string, hd consts.HubData,
 ) (*Sequencers, error) {
 	var seq Sequencers
-	cmd := exec.Command(
-		consts.Executables.Dymension,
-		"q",
-		"sequencer",
-		"show-sequencers-by-rollapp",
-		raID,
-		"--output", "json",
-	)
+	cmd := GetShowSequencerByRollappCmd(raID, hd)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -195,4 +167,12 @@ func GetRegisteredSequencers(
 	}
 
 	return &seq, nil
+}
+
+func GetShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
+	return exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "show-sequencers-by-rollapp",
+		raID, "-o", "json", "--node", hd.RPC_URL,
+	)
 }

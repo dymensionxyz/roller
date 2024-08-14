@@ -133,7 +133,7 @@ func Cmd() *cobra.Command {
 					rollappConfig.RollappID,
 				)
 
-				seq, err := sequencerutils.GetRegisteredSequencers(rollappConfig.RollappID)
+				seq, err := sequencerutils.GetRegisteredSequencers(rollappConfig.RollappID, hd)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 				}
@@ -316,7 +316,7 @@ func Cmd() *cobra.Command {
 
 			case "fullnode":
 				pterm.Info.Println("retrieving the latest available snapshot")
-				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID)
+				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID, hd)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve ")
 				}

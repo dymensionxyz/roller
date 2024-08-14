@@ -1,11 +1,15 @@
 package initrollapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -16,9 +20,12 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -171,6 +178,85 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
+	sequencers, err := sequencer.GetRegisteredSequencers(raID, hd)
+	if err != nil {
+		return err
+	}
+
+	if len(sequencers.Sequencers) == 0 {
+		pterm.Info.Println("no sequencers registered for the rollapp")
+		pterm.Info.Println("using latest height for da-light-client configuration")
+		cmd := exec.Command(
+			consts.Executables.CelestiaApp,
+			"q", "block", "--node", celestia.DefaultCelestiaRPC,
+		)
+
+		out, err := bash.ExecCommandWithStdout(cmd)
+		if err != nil {
+			return err
+		}
+
+		var tx map[string]interface{}
+		err = json.Unmarshal(out.Bytes(), &tx)
+		if err != nil {
+			log.Fatalf("Failed to unmarshal JSON: %v", err)
+		}
+
+		// Access tx.Block.Header.Height
+		var height string
+		if block, ok := tx["block"].(map[string]interface{}); ok {
+			if header, ok := block["header"].(map[string]interface{}); ok {
+				if h, ok := header["height"].(string); ok {
+					height = h
+				}
+			}
+		}
+
+		// Access tx.BlockId.Hash
+		var blockIdHash string
+		if blockId, ok := tx["block_id"].(map[string]interface{}); ok {
+			if hash, ok := blockId["hash"].(string); ok {
+				blockIdHash = hash
+			}
+		}
+		err = json.Unmarshal(out.Bytes(), &tx)
+		if err != nil {
+			return err
+		}
+
+		pterm.Info.Printf(
+			"da light client will be initialized at height %s, block hash %s",
+			height,
+			blockIdHash,
+		)
+		heightInt, err := strconv.Atoi(height)
+		if err != nil {
+			return err
+		}
+
+		daFields := map[string]interface{}{
+			"DASer.SampleFrom": heightInt,
+		}
+
+		celestiaConfigFilePath := filepath.Join(
+			home,
+			consts.ConfigDirName.DALightNode,
+			"config.toml",
+		)
+
+		for key, value := range daFields {
+			err = globalutils.UpdateFieldInToml(
+				celestiaConfigFilePath,
+				key,
+				value,
+			)
+			if err != nil {
+				fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+				return err
+			}
+		}
+	}
+
 	daAddress, err := damanager.GetDAAccountAddress()
 	if err != nil {
 		return err
@@ -250,23 +336,4 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
-}
-
-func checkConfigArchive(path string) (string, error) {
-	path = strings.TrimSpace(path)
-
-	if path == "" {
-		return "", errors.New("invalid or no input")
-	}
-
-	archivePath, err := globalutils.ExpandHomePath(path)
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := os.Stat(archivePath); os.IsNotExist(err) {
-		return "", err
-	}
-
-	return archivePath, nil
 }
