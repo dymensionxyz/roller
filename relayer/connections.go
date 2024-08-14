@@ -195,6 +195,8 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 		return "", err
 	}
 
+	fmt.Println(hubConnectionInfo.Counterparty)
+
 	return hubConnectionInfo.Counterparty.ConnectionID, nil
 }
 
