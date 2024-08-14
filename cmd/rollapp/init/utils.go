@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	toml "github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -46,8 +47,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 
 	outputHandler := initconfig.NewOutputHandler(false)
 
-	defer outputHandler.StopSpinner()
-
 	// TODO: extract into util
 	isRootExist, err := globalutils.DirNotEmpty(home)
 	if err != nil {
@@ -56,7 +55,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	if isRootExist {
-		outputHandler.StopSpinner()
 		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(home)
 		if err != nil {
 			errorhandling.PrettifyErrorIfExists(err)
@@ -154,7 +152,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	initConfig := *initConfigPtr
 
 	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
-	outputHandler.StartSpinner(consts.SpinnerMsgs.UniqueIdVerification)
+	// daSpinner.Start(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
@@ -162,7 +160,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	// TODO: create all dirs here
-	outputHandler.StartSpinner(" Initializing RollApp configuration files...\n")
+	// nolint:errcheck
 
 	/* ------------------------------ Generate keys ----------------------------- */
 	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
@@ -172,6 +170,8 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	/* ------------------------ Initialize DA light node ------------------------ */
+	daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+
 	damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
 	mnemonic, err := damanager.InitializeLightNodeConfig()
 	if err != nil {
@@ -183,46 +183,14 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
+	height, blockIdHash, err := getLatestDABlock()
+	if err != nil {
+		return err
+	}
+
 	if len(sequencers.Sequencers) == 0 {
 		pterm.Info.Println("no sequencers registered for the rollapp")
 		pterm.Info.Println("using latest height for da-light-client configuration")
-		cmd := exec.Command(
-			consts.Executables.CelestiaApp,
-			"q", "block", "--node", celestia.DefaultCelestiaRPC,
-		)
-
-		out, err := bash.ExecCommandWithStdout(cmd)
-		if err != nil {
-			return err
-		}
-
-		var tx map[string]interface{}
-		err = json.Unmarshal(out.Bytes(), &tx)
-		if err != nil {
-			log.Fatalf("Failed to unmarshal JSON: %v", err)
-		}
-
-		// Access tx.Block.Header.Height
-		var height string
-		if block, ok := tx["block"].(map[string]interface{}); ok {
-			if header, ok := block["header"].(map[string]interface{}); ok {
-				if h, ok := header["height"].(string); ok {
-					height = h
-				}
-			}
-		}
-
-		// Access tx.BlockId.Hash
-		var blockIdHash string
-		if blockId, ok := tx["block_id"].(map[string]interface{}); ok {
-			if hash, ok := blockId["hash"].(string); ok {
-				blockIdHash = hash
-			}
-		}
-		err = json.Unmarshal(out.Bytes(), &tx)
-		if err != nil {
-			return err
-		}
 
 		pterm.Info.Printf(
 			"da light client will be initialized at height %s, block hash %s",
@@ -234,8 +202,59 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 
-		daFields := map[string]interface{}{
-			"DASer.SampleFrom": heightInt,
+		celestiaConfigFilePath := filepath.Join(
+			home,
+			consts.ConfigDirName.DALightNode,
+			"config.toml",
+		)
+
+		err = updateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
+		if err != nil {
+			return err
+		}
+	} else {
+		daSpinner.UpdateText("checking for state update ")
+		cmd := exec.Command(
+			consts.Executables.Dymension,
+			"q",
+			"rollapp",
+			"state",
+			raID,
+			"--index",
+			"1",
+			"--node",
+			hd.RPC_URL,
+		)
+
+		out, err := bash.ExecCommandWithStdout(cmd)
+		if err != nil {
+			if strings.Contains(out.String(), "NotFound") {
+				pterm.Info.Printf("no state found for %s, da light client will be initialized with latest height", raID)
+			} else {
+				return err
+			}
+		}
+
+		daSpinner.UpdateText("state update found, extracting da height")
+
+		var result Result
+		if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+			return err
+		}
+
+		h, err := extractHeightfromDAPath(result.StateInfo.DAPath)
+		if err != nil {
+			return err
+		}
+
+		height, hash, err := getDABlockByHeight(h)
+		if err != nil {
+			return err
+		}
+
+		heightInt, err := strconv.Atoi(height)
+		if err != nil {
+			return err
 		}
 
 		celestiaConfigFilePath := filepath.Join(
@@ -244,17 +263,13 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			"config.toml",
 		)
 
-		for key, value := range daFields {
-			err = globalutils.UpdateFieldInToml(
-				celestiaConfigFilePath,
-				key,
-				value,
-			)
-			if err != nil {
-				fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-				return err
-			}
+		pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
+		err = updateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+		if err != nil {
+			return err
 		}
+
+		return nil
 	}
 
 	daAddress, err := damanager.GetDAAccountAddress()
@@ -271,8 +286,10 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			},
 		)
 	}
-
+	daSpinner.Success("successfully initialized da light client")
 	/* --------------------------- Initialize Rollapp -------------------------- */
+	raSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+
 	err = initconfig.InitializeRollappConfig(initConfig)
 	if err != nil {
 		return err
@@ -296,7 +313,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
-	outputHandler.StopSpinner()
 	/* ------------------------------ Create Init Files ---------------------------- */
 	// 20240607 genesis is generated using the genesis-creator
 	// err = initializeRollappGenesis(initConfig)
@@ -331,9 +347,178 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 	}
 
+	raSpinner.Success("rollapp initialized successfully")
 	/* ------------------------------ Print output ------------------------------ */
 
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
+}
+
+func updateCelestiaConfig(file, hash string, height int) error {
+	// Read existing config
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	// Parse TOML into a map
+	var config map[string]interface{}
+	if err := toml.Unmarshal(data, &config); err != nil {
+		return err
+	}
+
+	// Update DASer.SampleFrom
+	if daser, ok := config["DASer"].(map[string]interface{}); ok {
+		daser["SampleFrom"] = height
+	}
+
+	// Update Header.TrustedHash
+	if header, ok := config["Header"].(map[string]interface{}); ok {
+		header["TrustedHash"] = hash
+	}
+
+	// Write updated config
+	f, err := os.Create(file)
+	if err != nil {
+		return err
+	}
+
+	// nolint:errcheck
+	defer f.Close()
+
+	encoder := toml.NewEncoder(f)
+	encoder.SetIndentTables(true)
+
+	if err := encoder.Encode(config); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getLatestDABlock returns the latest DA (Data Availability) block information.
+// It executes the CelestiaApp command "q block --node" to retrieve the block data.
+// It then extracts the block height and block ID hash from the JSON response.
+// Returns the block height, block ID hash, and any error encountered during the process.
+func getLatestDABlock() (string, string, error) {
+	cmd := exec.Command(
+		consts.Executables.CelestiaApp,
+		"q", "block", "--node", celestia.DefaultCelestiaRPC,
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", "", err
+	}
+
+	var tx map[string]interface{}
+	err = json.Unmarshal(out.Bytes(), &tx)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Access tx.Block.Header.Height
+	var height string
+	if block, ok := tx["block"].(map[string]interface{}); ok {
+		if header, ok := block["header"].(map[string]interface{}); ok {
+			if h, ok := header["height"].(string); ok {
+				height = h
+			}
+		}
+	}
+
+	// Access tx.BlockId.Hash
+	var blockIdHash string
+	if blockId, ok := tx["block_id"].(map[string]interface{}); ok {
+		if hash, ok := blockId["hash"].(string); ok {
+			blockIdHash = hash
+		}
+	}
+	err = json.Unmarshal(out.Bytes(), &tx)
+	if err != nil {
+		return "", "", err
+	}
+
+	return height, blockIdHash, nil
+}
+
+// getDABlockByHeight returns the DA (Data Availability) block information for the given height.
+// It executes the CelestiaApp command "q block <height> --node" to retrieve the block data,
+// where <height> is the input parameter.
+// It then extracts the block height and block ID hash from the JSON response.
+// Returns the block height, block ID hash, and any error encountered during the process.
+func getDABlockByHeight(h string) (string, string, error) {
+	cmd := exec.Command(
+		consts.Executables.CelestiaApp,
+		"q", "block", h, "--node", celestia.DefaultCelestiaRPC,
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", "", err
+	}
+
+	var tx map[string]interface{}
+	err = json.Unmarshal(out.Bytes(), &tx)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Access tx.Block.Header.Height
+	var height string
+	if block, ok := tx["block"].(map[string]interface{}); ok {
+		if header, ok := block["header"].(map[string]interface{}); ok {
+			if h, ok := header["height"].(string); ok {
+				height = h
+			}
+		}
+	}
+
+	// Access tx.BlockId.Hash
+	var blockIdHash string
+	if blockId, ok := tx["block_id"].(map[string]interface{}); ok {
+		if hash, ok := blockId["hash"].(string); ok {
+			blockIdHash = hash
+		}
+	}
+	err = json.Unmarshal(out.Bytes(), &tx)
+	if err != nil {
+		return "", "", err
+	}
+
+	return height, blockIdHash, nil
+}
+
+type BD struct {
+	Height    string `yaml:"height"`
+	StateRoot string `yaml:"stateRoot"`
+}
+
+type StateInfo struct {
+	BDs struct {
+		BD []BD `yaml:"BD"`
+	} `yaml:"BDs"`
+	DAPath         string `yaml:"DAPath"`
+	CreationHeight string `yaml:"creationHeight"`
+	NumBlocks      string `yaml:"numBlocks"`
+	Sequencer      string `yaml:"sequencer"`
+	StartHeight    string `yaml:"startHeight"`
+	StateInfoIndex struct {
+		Index     string `yaml:"index"`
+		RollappId string `yaml:"rollappId"`
+	} `yaml:"stateInfoIndex"`
+	Status string `yaml:"status"`
+}
+
+type Result struct {
+	StateInfo StateInfo `yaml:"stateInfo"`
+}
+
+func extractHeightfromDAPath(input string) (string, error) {
+	parts := strings.Split(input, "|")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("input string does not have enough parts")
+	}
+	return parts[1], nil
 }
