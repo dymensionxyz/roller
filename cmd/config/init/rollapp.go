@@ -45,7 +45,11 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 			return err
 		}
 
-		isChecksumValid, err := genesisutils.CompareGenesisChecksum(home, initConfig.RollappID, hd)
+		isChecksumValid, err := genesisutils.CompareGenesisChecksum(
+			initConfig.Home,
+			initConfig.RollappID,
+			hd,
+		)
 		if !isChecksumValid {
 			return err
 		}
