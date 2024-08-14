@@ -48,9 +48,20 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
 			}
-			rollerConfigFilePath := filepath.Join(home, "roller.toml")
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			relayerLogger := utils.GetLogger(relayerLogFilePath)
+
+			hd, err := tomlconfig.LoadHubData(home)
+			if err != nil {
+				pterm.Error.Println("failed to load hub data from roller.toml")
+			}
+
+			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
+				home,
+				rollappConfig.RollappID,
+				&hd,
+			)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
@@ -108,10 +119,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				rollappPrefix, err := globalutils.GetKeyFromTomlFile(
-					rollerConfigFilePath,
-					"bech32_prefix",
-				)
+				rollappPrefix := rollappChainData.Bech32Prefix
 				if err != nil {
 					pterm.Error.Printf("failed to retrieve bech32_prefix: %v\n", err)
 					return
