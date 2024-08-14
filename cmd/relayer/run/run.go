@@ -79,10 +79,11 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			// TODO: refactor
 			var need AppState
 			j, _ := genesis.AppState.MarshalJSON()
 			json.Unmarshal(j, &need)
-			fmt.Println(need.Bank.Supply[0].Denom)
+			rollappDenom := need.Bank.Supply[0].Denom
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
@@ -150,9 +151,9 @@ func Cmd() *cobra.Command {
 					relayer.ChainConfig{
 						ID:            rollappConfig.RollappID,
 						RPC:           consts.DefaultRollappRPC,
-						Denom:         rollappConfig.Denom,
+						Denom:         rollappDenom,
 						AddressPrefix: rollappPrefix,
-						GasPrices:     "0",
+						GasPrices:     "1000000000",
 					}, relayer.ChainConfig{
 						ID:            rollappConfig.HubData.ID,
 						RPC:           rollappConfig.HubData.RPC_URL,
