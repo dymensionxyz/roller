@@ -89,6 +89,8 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 		break
 	}
 
+	fmt.Println(foundOpenChannel)
+
 	r.SrcChannel = foundOpenChannel.ChannelID
 	r.DstChannel = foundOpenChannel.Counterparty.ChannelID
 	return "", "", nil
