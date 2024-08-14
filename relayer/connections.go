@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -101,6 +102,8 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 		return "", err
 	}
 	err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
+	j, _ := json.Marshal(hubConnectionInfo)
+	fmt.Println(string(j))
 	if err != nil {
 		r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
 	}
