@@ -152,6 +152,7 @@ func LoadRollappMetadataFromChain(
 }
 
 func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
+	pterm.Info.Println("downloading genesis file")
 	genesisPath := initconfig.GetGenesisFilePath(home)
 	genesisUrl := rollappConfig.GenesisUrl
 	err := downloadFile(genesisUrl, genesisPath)
