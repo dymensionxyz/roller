@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -24,6 +25,14 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
+
+type AppState struct {
+	Bank Bank `json:"bank"`
+}
+
+type Bank struct {
+	Supply []utils.Balance `json:"supply"`
+}
 
 // TODO: Test relaying on 35-C and update the prices
 var (
@@ -62,6 +71,14 @@ func Cmd() *cobra.Command {
 				&hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			genesis, err := comettypes.GenesisDocFromFile(home)
+			if err != nil {
+				return
+			}
+
+			json, _ := genesis.AppState.MarshalJSON()
+			fmt.Println(string(json))
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
@@ -244,6 +261,7 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("establishing IBC transfer channel")
 				seq := sequencer.GetInstance(rollappConfig)
+
 				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, seq)
 				if err != nil {
 					pterm.Error.Printf("failed to create IBC channel: %v\n", err)
