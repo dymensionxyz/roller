@@ -28,6 +28,16 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 		home,
 	)
 
+	_, err := bash.ExecCommandWithStdout(initRollappCmd)
+	if err != nil {
+		return err
+	}
+
+	err = setRollappConfig(*initConfig)
+	if err != nil {
+		return err
+	}
+
 	if initConfig.HubData.ID != "mock" {
 		err := genesisutils.DownloadGenesis(initConfig.Home, *initConfig)
 		if err != nil {
@@ -57,16 +67,6 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 
 		initConfig.BaseDenom = rollappBaseDenom
 		initConfig.Denom = rollappDenom
-	}
-
-	_, err := bash.ExecCommandWithStdout(initRollappCmd)
-	if err != nil {
-		return err
-	}
-
-	err = setRollappConfig(*initConfig)
-	if err != nil {
-		return err
 	}
 
 	return nil
