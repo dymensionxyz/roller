@@ -93,7 +93,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 				currentHeight, err := strconv.Atoi(
-					strconv.FormatInt(blockInformation.Block.Header.Height, 10),
+					blockInformation.Block.Header.Height,
 				)
 				if err != nil {
 					pterm.Error.Printf("failed to get current block height: %v\n", err)

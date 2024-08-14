@@ -72,7 +72,7 @@ type Header struct {
 	// basic block info
 	Version Consensus `json:"version"`
 	ChainID string    `json:"chain_id"`
-	Height  int64     `json:"height"`
+	Height  string    `json:"height"`
 	Time    time.Time `json:"time"`
 
 	// prev block info
