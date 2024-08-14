@@ -4,7 +4,6 @@ import (
 	"time"
 
 	cmtbytes "github.com/tendermint/tendermint/libs/bytes"
-	cmtversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -71,10 +70,10 @@ type Block struct {
 
 type Header struct {
 	// basic block info
-	Version cmtversion.Consensus `json:"version"`
-	ChainID string               `json:"chain_id"`
-	Height  int64                `json:"height"`
-	Time    time.Time            `json:"time"`
+	Version Consensus `json:"version"`
+	ChainID string    `json:"chain_id"`
+	Height  int64     `json:"height"`
+	Time    time.Time `json:"time"`
 
 	// prev block info
 	LastBlockID tmtypes.BlockID `json:"last_block_id"`
