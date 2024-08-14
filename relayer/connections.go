@@ -103,7 +103,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 	err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
 	j, _ := json.Marshal(hubConnectionInfo)
-	fmt.Println(string(j))
+	r.logger.Println(string(j))
 	if err != nil {
 		r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
 	}
