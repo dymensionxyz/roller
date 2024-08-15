@@ -1,10 +1,13 @@
 package relayer
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	roller_utils "github.com/dymensionxyz/roller/utils"
@@ -103,6 +106,34 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 	err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
 	r.logger.Println(hubConnectionOutput.String())
+
+	scanner := bufio.NewScanner(strings.NewReader(hubConnectionOutput.String()))
+
+	// Process each line
+	for scanner.Scan() {
+		line := scanner.Text()
+		var conn ConnectionsQueryResult
+		err := json.Unmarshal([]byte(line), &conn)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error unmarshaling JSON: %v\n", err)
+			continue
+		}
+
+		// Check if this is the connection we're looking for
+		if conn.ID == "connection-0" {
+			// Print the details of the connection
+			fmt.Println("Found connection-0:")
+			fmt.Printf("  ID: %s\n", conn.ID)
+			fmt.Printf("  Client ID: %s\n", conn.ClientID)
+			fmt.Printf("  State: %s\n", conn.State)
+			fmt.Printf("  Counterparty Client ID: %s\n", conn.Counterparty.ClientID)
+			fmt.Printf("  Counterparty Connection ID: %s\n", conn.Counterparty.ConnectionID)
+
+			// If you need to use this connection object elsewhere in your program,
+			// you could return it or perform further processing here
+		}
+	}
+
 	if err != nil {
 		r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
 	}

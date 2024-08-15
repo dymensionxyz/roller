@@ -13,7 +13,6 @@ import (
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
 func (r *Relayer) LoadActiveChannel() (string, string, error) {
-	fmt.Println("inside")
 	var outputStruct RollappQueryResult
 	var foundOpenChannel RollappQueryResult
 
