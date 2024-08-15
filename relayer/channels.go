@@ -90,11 +90,8 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 
 		// Found open channel on both ends
 		foundOpenChannel = outputStruct
-		fmt.Println("found", foundOpenChannel)
 		break
 	}
-
-	fmt.Println(foundOpenChannel)
 
 	r.SrcChannel = foundOpenChannel.ChannelID
 	r.DstChannel = foundOpenChannel.Counterparty.ChannelID

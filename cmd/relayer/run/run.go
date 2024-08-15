@@ -296,7 +296,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			select {}
+			// select {}
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to start rollapp and da-light-client on your local machine\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller relayer services load"),
+			)
 		},
 	}
 
