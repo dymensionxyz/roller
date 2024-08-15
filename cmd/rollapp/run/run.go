@@ -321,7 +321,7 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("retrieving the latest available snapshot")
 				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID, hd)
 				if err != nil {
-					pterm.Error.Println("failed to retrieve ")
+					pterm.Error.Println("failed to retrieve latest snapshot")
 				}
 
 				if si == nil {
@@ -338,13 +338,18 @@ func Cmd() *cobra.Command {
 					)
 				}
 
-				options := []string{"p2p", "da"}
-				syncMode, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the desired syncing mode").
-					WithOptions(options).
-					Show()
+				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
+				// defaults to syncing only from the DA
+				peers, err := sequencerutils.GetAllP2pPeers(rollappConfig.RollappID, hd)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve p2p peers ")
+				}
 
-				fmt.Printf("the node is set to sync from %s\n", syncMode)
+				if len(peers) == 0 {
+					pterm.Info.Println(
+						"none of the sequencers provide p2p seed nodes this node will sync only from DA",
+					)
+				}
 			}
 
 			// DA
