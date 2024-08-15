@@ -16,27 +16,13 @@ func RollappCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			if runtime.GOOS != "linux" {
-				pterm.Error.Printf(
-					"the %s commands are only available on linux machines",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("'services'"),
-				)
-
+			services := []string{"rollapp", "da-light-client"}
+			err := startSystemdServices(services)
+			if err != nil {
+				pterm.Error.Println("failed to start systemd services:", err)
 				return
 			}
-			services := []string{"rollapp", "da-light-client"}
-			for _, service := range services {
-				err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
-				if err != nil {
-					pterm.Error.Printf("failed to start %s systemd service: %v\n", service, err)
-					return
-				}
-			}
-			pterm.Success.Printf(
-				"💈 Services %s started successfully.\n",
-				strings.Join(services, ", "),
-			)
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"run %s to set up IBC channels and start relaying packets\n",
@@ -53,34 +39,39 @@ func RelayerCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Loads the different rollapp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			if runtime.GOOS != "linux" {
-				pterm.Error.Printf(
-					"the %s commands are only available on linux machines",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("'services'"),
-				)
-
+			services := []string{"relayer"}
+			err := startSystemdServices(services)
+			if err != nil {
+				pterm.Error.Println("failed to start systemd services:", err)
 				return
 			}
-			services := []string{"rollapp", "da-light-client"}
-			for _, service := range services {
-				err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
-				if err != nil {
-					pterm.Error.Printf("failed to start %s systemd service: %v\n", service, err)
-					return
-				}
-			}
-			pterm.Success.Printf(
-				"💈 Services %s started successfully.\n",
-				strings.Join(services, ", "),
-			)
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s to set up IBC channels and start relaying packets\n",
+				"run %s to join the eibc market\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer run"),
+					Sprintf("roller eibc run"),
 			)
 		},
 	}
 	return cmd
+}
+
+func startSystemdServices(services []string) error {
+	if runtime.GOOS != "linux" {
+		return fmt.Errorf(
+			"the services commands are only available on linux machines",
+		)
+	}
+	for _, service := range services {
+		err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
+		if err != nil {
+			return fmt.Errorf("failed to start %s systemd service: %v", service, err)
+		}
+	}
+	pterm.Success.Printf(
+		"💈 Services %s started successfully.\n",
+		strings.Join(services, ", "),
+	)
+	return nil
 }
