@@ -1,13 +1,9 @@
 package relayer
 
 import (
-	"bufio"
 	"encoding/json"
-	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	roller_utils "github.com/dymensionxyz/roller/utils"
@@ -98,50 +94,17 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	}
 	// END: try to read connection information from the configuration file
 
-	var hubConnectionInfo ConnectionsQueryResult
-	hubConnectionOutput, err := bash.ExecCommandWithStdout(r.queryConnectionsHubCmd())
-	if err != nil {
-		r.logger.Printf("couldn't find any open connections for %s", r.HubID)
-		return "", err
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(hubConnectionOutput.String()))
-
-	// Process each line
-	for scanner.Scan() {
-		line := scanner.Text()
-		var conn ConnectionsQueryResult
-		err := json.Unmarshal([]byte(line), &conn)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error unmarshaling JSON: %v\n", err)
-			continue
-		}
-
-		// Check if this is the connection we're looking for
-		if conn.ID == "connection-0" {
-			// Print the details of the connection
-			fmt.Println("Found connection-0:")
-			fmt.Printf("  ID: %s\n", conn.ID)
-			fmt.Printf("  Client ID: %s\n", conn.ClientID)
-			fmt.Printf("  State: %s\n", conn.State)
-			fmt.Printf("  Counterparty Client ID: %s\n", conn.Counterparty.ClientID)
-			fmt.Printf("  Counterparty Connection ID: %s\n", conn.Counterparty.ConnectionID)
-
-			// If you need to use this connection object elsewhere in your program,
-			// you could return it or perform further processing here
-			err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
-			r.logger.Println(hubConnectionOutput.String())
-			if err != nil {
-				r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
-			}
-		}
-	}
+	// var hubConnectionInfo ConnectionsQueryResult
+	// hubConnectionOutput, err := bash.ExecCommandWithStdout(r.queryConnectionsHubCmd())
+	// if err != nil {
+	// 	r.logger.Printf("couldn't find any open connections for %s", r.HubID)
+	// 	return "", err
+	// }
 
 	// fetch connection from the chain
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
 		r.queryConnectionRollappCmd(
-			hubConnectionInfo.
-				Counterparty.ConnectionID,
+			"connection-0",
 		),
 	)
 	if err != nil {
@@ -164,10 +127,13 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	if outputStruct.Connection.State != "STATE_OPEN" {
 		return "", nil
 	}
+	hubConnectionID := outputStruct.Connection.Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
 	var res ConnectionQueryResult
-	outputHub, err := bash.ExecCommandWithStdout(r.queryConnectionHubCmd(hubConnectionInfo.ID))
+	outputHub, err := bash.ExecCommandWithStdout(
+		r.queryConnectionHubCmd(hubConnectionID),
+	)
 	if err != nil {
 		return "", err
 	}
@@ -191,7 +157,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	err = roller_utils.SetNestedValue(
 		rlyCfg,
 		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
-		hubConnectionInfo.ID,
+		hubConnectionID,
 	)
 	if err != nil {
 		return "", err
@@ -199,17 +165,8 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 
 	err = roller_utils.SetNestedValue(
 		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
-		hubConnectionInfo.ID,
-	)
-	if err != nil {
-		return "", err
-	}
-
-	err = roller_utils.SetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
-		hubConnectionInfo.ID,
+		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
+		"connection-0",
 	)
 	if err != nil {
 		return "", err
@@ -218,15 +175,22 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	err = roller_utils.SetNestedValue(
 		rlyCfg,
 		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
-		hubConnectionInfo.ID,
+		outputStruct.Connection.Counterparty.ClientID,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	fmt.Println(hubConnectionInfo.Counterparty)
+	err = roller_utils.SetNestedValue(
+		rlyCfg,
+		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
+		"07-tendermint-0",
+	)
+	if err != nil {
+		return "", err
+	}
 
-	return hubConnectionInfo.Counterparty.ConnectionID, nil
+	return "connection-0", nil
 }
 
 func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
