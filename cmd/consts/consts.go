@@ -41,6 +41,7 @@ var KeysIds = struct {
 	RollappRelayer   string
 	HubRelayer       string
 	Celestia         string
+	Eibc             string
 }{
 	HubSequencer:     "hub_sequencer",
 	HubGenesis:       "hub_genesis",
@@ -48,6 +49,7 @@ var KeysIds = struct {
 	RollappRelayer:   "relayer-rollapp-key",
 	HubRelayer:       "relayer-hub-key",
 	Celestia:         "my_celes_key",
+	Eibc:             "whale",
 }
 
 var AddressPrefixes = struct {
@@ -69,7 +71,7 @@ var ConfigDirName = struct {
 	DALightNode: "da-light-node",
 	HubKeys:     "hub-keys",
 	LocalHub:    "local-hub",
-	Eibc:        ".order-client",
+	Eibc:        ".eibc-client",
 }
 
 var Denoms = struct {
