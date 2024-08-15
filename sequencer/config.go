@@ -98,7 +98,8 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
 
-	appCfg.Set("minimum-gas-prices", "1000000000"+rlpCfg.BaseDenom)
+	appCfg.Set("minimum-gas-prices", "2000000000"+rlpCfg.BaseDenom)
+	appCfg.Set("gas-adjustment", 1.3)
 	appCfg.Set("api.enable", true)
 	appCfg.Set("api.enabled-unsafe-cors", true)
 
