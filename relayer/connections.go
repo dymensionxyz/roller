@@ -104,8 +104,6 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 		r.logger.Printf("couldn't find any open connections for %s", r.HubID)
 		return "", err
 	}
-	err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
-	r.logger.Println(hubConnectionOutput.String())
 
 	scanner := bufio.NewScanner(strings.NewReader(hubConnectionOutput.String()))
 
@@ -131,11 +129,12 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 
 			// If you need to use this connection object elsewhere in your program,
 			// you could return it or perform further processing here
+			err = json.Unmarshal(hubConnectionOutput.Bytes(), &hubConnectionInfo)
+			r.logger.Println(hubConnectionOutput.String())
+			if err != nil {
+				r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
+			}
 		}
-	}
-
-	if err != nil {
-		r.logger.Printf("couldn't unmarshal hub connection info: %v", err)
 	}
 
 	// fetch connection from the chain
