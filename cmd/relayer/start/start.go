@@ -27,7 +27,7 @@ const (
 	flagOverride = "override"
 )
 
-func Start() *cobra.Command {
+func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",

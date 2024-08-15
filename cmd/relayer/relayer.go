@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/relayer/run"
+	"github.com/dymensionxyz/roller/cmd/relayer/start"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
@@ -16,7 +17,7 @@ func Cmd() *cobra.Command {
 		Short: "Commands for running and managing the RollApp relayer.",
 	}
 	cmd.AddCommand(run.Cmd())
-	// cmd.AddCommand(start.Cmd())
+	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
 
 	cmd.AddCommand(services.Cmd(loadservices.RelayerCmd(), startservices.RelayerCmd()))
