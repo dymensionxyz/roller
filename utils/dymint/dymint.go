@@ -1,7 +1,6 @@
 package dymint
 
 import (
-	"fmt"
 	"os/exec"
 	"time"
 
@@ -65,7 +64,6 @@ type dymintInstrumentationConfig struct {
 func UpdateDymintConfigForIBC(home string, t string) error {
 	pterm.Info.Println("checking dymint block time settings")
 	dymintPath := sequencer.GetDymintFilePath(home)
-	fmt.Println(dymintPath)
 	dymintCfg, err := tomlconfig.Load(dymintPath)
 	if err != nil {
 		return err

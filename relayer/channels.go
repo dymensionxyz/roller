@@ -60,9 +60,6 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 			continue
 		}
 
-		j, _ := json.MarshalIndent(outputStruct, "", "  ")
-		fmt.Println(string(j))
-
 		// found STATE_OPEN channel
 		// Check if the channel is open on the hub
 		var res HubQueryResult
