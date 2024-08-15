@@ -246,7 +246,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		// "--gateway.deprecated-endpoints",
-		"--p2p.network", "celestia-testnet-consensus.itrocket.net",
+		"--p2p.network", DefaultCelestiaNetwork,
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)

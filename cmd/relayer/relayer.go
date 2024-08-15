@@ -19,7 +19,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(run.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
-
 	cmd.AddCommand(services.Cmd(loadservices.RelayerCmd(), startservices.RelayerCmd()))
+
 	return cmd
 }
