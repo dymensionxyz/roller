@@ -454,11 +454,11 @@ func Cmd() *cobra.Command {
 						pterm.Error.Println("failed to retrieve rollapp state update: ", err)
 						return
 					}
-					// nolint:errcheck
+					// nolint:errcheck,gosec
 					daSpinner.Stop()
 				} else {
 					daSpinner.UpdateText("state update found, extracting da height")
-					// nolint:errcheck
+					// nolint:errcheck,gosec
 					daSpinner.Stop()
 
 					var result initrollapp.Result
