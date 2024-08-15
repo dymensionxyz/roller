@@ -326,7 +326,7 @@ func Cmd() *cobra.Command {
 
 				if si == nil {
 					pterm.Warning.Printf(
-						"no snapshots were found for %s\n",
+						"no snapshots were found for %s, the node will sync from genesis block\n",
 						rollappConfig.RollappID,
 					)
 				} else {
@@ -346,7 +346,7 @@ func Cmd() *cobra.Command {
 				}
 
 				if len(peers) == 0 {
-					pterm.Info.Println(
+					pterm.Warning.Println(
 						"none of the sequencers provide p2p seed nodes this node will sync only from DA",
 					)
 				}
