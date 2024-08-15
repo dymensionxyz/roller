@@ -113,14 +113,18 @@ func UpdateDymintConfigForIBC(home string, t string) error {
 				return err
 			}
 		}
-	}
+		cmd := exec.Command(
+			"sudo", "systemctl", "restart", "rollapp",
+		)
 
-	cmd := exec.Command(
-		"sudo", "systemctl", "restart", "rollapp",
-	)
-	_, err = bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return err
+		// TODO: check for the systemd service status and /health endpoint instead
+		time.Sleep(time.Second * 2)
+		_, err = bash.ExecCommandWithStdout(cmd)
+		if err != nil {
+			return err
+		}
+	} else {
+		pterm.Info.Println("block time settings already up to date")
 	}
 
 	return nil

@@ -68,7 +68,6 @@ func Cmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 
 			fmt.Println(startDALCCmd.String())
-
 			defer cancel()
 			go bash.RunCmdAsync(
 				ctx,
