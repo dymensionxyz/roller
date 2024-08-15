@@ -1,5 +1,11 @@
 package rollapp
 
+import (
+	"time"
+
+	tmtypes "github.com/tendermint/tendermint/types"
+)
+
 type ShowRollappResponse struct {
 	Rollapp                   Rollapp         `json:"rollapp"`
 	LatestStateIndex          *StateInfoIndex `json:"latestStateIndex"`
@@ -47,4 +53,28 @@ type StateInfoIndex struct {
 	// index is a sequential increasing number, updating on each
 	// state update used for indexing to a specific state info, the first index is 1
 	Index string `protobuf:"varint,2,opt,name=index,proto3"    json:"index,omitempty"`
+}
+
+type BlockInformation struct {
+	BlockId tmtypes.BlockID `json:"block_id"`
+	Block   Block           `json:"block"`
+}
+
+type Block struct {
+	Header       `json:"header"`
+	tmtypes.Data `json:"data"`
+	Evidence     tmtypes.EvidenceData `json:"evidence"`
+}
+
+type Header struct {
+	// basic block info
+	Version Consensus `json:"version"`
+	ChainID string    `json:"chain_id"`
+	Height  string    `json:"height"`
+	Time    time.Time `json:"time"`
+}
+
+type Consensus struct {
+	Block string `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
+	App   string `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
 }

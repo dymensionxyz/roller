@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	cosmossdkmath "cosmossdk.io/math"
@@ -19,9 +20,11 @@ import (
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
@@ -396,6 +399,111 @@ func Cmd() *cobra.Command {
 				}
 				daWalletInfo.Mnemonic = mnemonic
 				daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
+
+				daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+					Start("initializing da light client")
+				daSpinner.UpdateText("checking for state update ")
+				cmd := exec.Command(
+					consts.Executables.Dymension,
+					"q",
+					"rollapp",
+					"state",
+					rollappConfig.RollappID,
+					"--index",
+					"1",
+					"--node",
+					hd.RPC_URL,
+				)
+
+				out, err := bash.ExecCommandWithStdout(cmd)
+				if err != nil {
+					if strings.Contains(out.String(), "key not found") {
+						pterm.Info.Printf(
+							"no state found for %s, da light client will be initialized with latest height",
+							rollappConfig.RollappID,
+						)
+
+						height, blockIdHash, err := initrollapp.GetLatestDABlock()
+						if err != nil {
+							return
+						}
+
+						heightInt, err := strconv.Atoi(height)
+						if err != nil {
+							pterm.Error.Println("failed to convert height to int: ", err)
+							return
+						}
+
+						celestiaConfigFilePath := filepath.Join(
+							home,
+							consts.ConfigDirName.DALightNode,
+							"config.toml",
+						)
+
+						pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+						err = initrollapp.UpdateCelestiaConfig(
+							celestiaConfigFilePath,
+							blockIdHash,
+							heightInt,
+						)
+						if err != nil {
+							pterm.Error.Println("failed to update celestia config: ", err)
+							return
+						}
+					} else {
+						pterm.Error.Println("failed to retrieve rollapp state update: ", err)
+						return
+					}
+					// nolint:errcheck,gosec
+					daSpinner.Stop()
+				} else {
+					daSpinner.UpdateText("state update found, extracting da height")
+					// nolint:errcheck,gosec
+					daSpinner.Stop()
+
+					var result initrollapp.Result
+					if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+						pterm.Error.Println("failed to unmarshal result: ", err)
+						return
+					}
+
+					h, err := initrollapp.ExtractHeightfromDAPath(result.StateInfo.DAPath)
+					if err != nil {
+						pterm.Error.Println("failed to extract height: ", err)
+						return
+					}
+
+					height, hash, err := initrollapp.GetDABlockByHeight(h)
+					if err != nil {
+						pterm.Error.Println("failed to retrieve block: ", err)
+						return
+					}
+
+					heightInt, err := strconv.Atoi(height)
+					if err != nil {
+						pterm.Error.Println("failed to convert height to int: ", err)
+						return
+					}
+
+					celestiaConfigFilePath := filepath.Join(
+						home,
+						consts.ConfigDirName.DALightNode,
+						"config.toml",
+					)
+
+					pterm.Info.Printf(
+						"the first %s state update has DA height of %s with hash %s\n",
+						rollappConfig.RollappID,
+						height,
+						hash,
+					)
+					pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+					err = initrollapp.UpdateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+					if err != nil {
+						pterm.Error.Println("failed to update celestia config: ", err)
+						return
+					}
+				}
 			}
 
 			var daConfig string

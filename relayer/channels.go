@@ -23,10 +23,12 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
 			return "", "", nil
 		} else {
+			r.logger.Println("something bad happened", err)
 			return "", "", err
 		}
 	}
 	if activeConnectionID == "" {
+		r.logger.Println("no active connection found")
 		return "", "", nil
 	}
 
@@ -85,7 +87,6 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 
 		// Found open channel on both ends
 		foundOpenChannel = outputStruct
-		fmt.Println("found", foundOpenChannel)
 		break
 	}
 

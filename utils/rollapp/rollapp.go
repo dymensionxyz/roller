@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils/bash"
@@ -78,11 +78,6 @@ func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
 	return true, nil
 }
 
-type BlockInformation struct {
-	BlockId tmtypes.BlockID `json:"block_id"`
-	Block   tmtypes.Block   `json:"block"`
-}
-
 func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -105,4 +100,8 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	)
 
 	return cmd
+}
+
+func RollappConfigDir(root string) string {
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
 }

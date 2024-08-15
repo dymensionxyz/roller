@@ -1,21 +1,13 @@
 package initrollapp
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"os/exec"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
@@ -87,71 +79,4 @@ func Cmd() *cobra.Command {
 		},
 	}
 	return cmd
-}
-
-// TODO: download the file in chunks if possible
-func downloadFile(url, filepath string) error {
-	spinner, _ := pterm.DefaultSpinner.
-		Start("Downloading genesis file from ", url)
-
-	// nolint:gosec
-	resp, err := http.Get(url)
-	if err != nil {
-		spinner.Fail("failed to download file: ", err)
-		return err
-	}
-
-	// nolint:errcheck
-	defer resp.Body.Close()
-
-	out, err := os.Create(filepath)
-	if err != nil {
-		spinner.Fail("failed to download file: ", err)
-		return err
-	}
-	// nolint:errcheck
-	defer out.Close()
-
-	spinner.Success("Successfully downloaded the genesis file")
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func calculateSHA256(filepath string) (string, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return "", fmt.Errorf("error opening file: %v", err)
-	}
-	// nolint:errcheck
-	defer file.Close()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("error calculating hash: %v", err)
-	}
-
-	return hex.EncodeToString(hash.Sum(nil)), nil
-}
-
-func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
-	var raResponse rollapp.ShowRollappResponse
-	getRollappCmd := exec.Command(
-		consts.Executables.Dymension,
-		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL,
-	)
-
-	out, err := bash.ExecCommandWithStdout(getRollappCmd)
-	if err != nil {
-		return "", err
-	}
-
-	err = json.Unmarshal(out.Bytes(), &raResponse)
-	if err != nil {
-		return "", err
-	}
-	return raResponse.Rollapp.GenesisChecksum, nil
 }

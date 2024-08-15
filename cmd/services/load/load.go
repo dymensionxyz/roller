@@ -75,6 +75,52 @@ func RollappCmd() *cobra.Command {
 	return cmd
 }
 
+func RelayerCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "load",
+		Short: "Loads the different rollapp services on the local machine",
+		Run: func(cmd *cobra.Command, args []string) {
+			if runtime.GOOS != "linux" {
+				pterm.Error.Printf(
+					"the %s commands are only available on linux machines\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("'services'"),
+				)
+
+				return
+			}
+			services := []string{"relayer"}
+			for _, service := range services {
+				serviceData := ServiceTemplateData{
+					Name:     service,
+					ExecPath: consts.Executables.Roller,
+					UserName: os.Getenv("USER"),
+				}
+				tpl, err := generateServiceTemplate(serviceData)
+				errorhandling.PrettifyErrorIfExists(err)
+				err = writeServiceFile(tpl, service)
+				errorhandling.PrettifyErrorIfExists(err)
+			}
+			_, err := bash.ExecCommandWithStdout(
+				exec.Command("sudo", "systemctl", "daemon-reload"),
+			)
+			errorhandling.PrettifyErrorIfExists(err)
+			pterm.Success.Printf(
+				"💈 Services %s been loaded successfully.\n",
+				strings.Join(services, ", "),
+			)
+
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to start rollapp and da-light-client on your local machine\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp services start"),
+			)
+		},
+	}
+	return cmd
+}
+
 func writeServiceFile(serviceTxt *bytes.Buffer, serviceName string) error {
 	filePath := filepath.Join("/etc/systemd/system/", fmt.Sprintf("%s.service", serviceName))
 	cmd := exec.Command(

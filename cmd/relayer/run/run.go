@@ -2,12 +2,14 @@ package run
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
 
+	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -22,6 +24,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
 
@@ -43,14 +46,40 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
+
+			genesis, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
+			if err != nil {
+				return
+			}
+
+			// TODO: refactor
+			var need genesisutils.AppState
+			j, _ := genesis.AppState.MarshalJSON()
+			json.Unmarshal(j, &need)
+			rollappDenom := need.Bank.Supply[0].Denom
+
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
+
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
 			}
-			rollerConfigFilePath := filepath.Join(home, "roller.toml")
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
 			relayerLogger := utils.GetLogger(relayerLogFilePath)
+
+			hd, err := tomlconfig.LoadHubData(home)
+			if err != nil {
+				pterm.Error.Println("failed to load hub data from roller.toml")
+			}
+
+			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
+				home,
+				rollappConfig.RollappID,
+				&hd,
+			)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			outputHandler := initconfig.NewOutputHandler(false)
@@ -93,7 +122,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 				currentHeight, err := strconv.Atoi(
-					strconv.FormatInt(blockInformation.Block.Header.Height, 10),
+					blockInformation.Block.Header.Height,
 				)
 				if err != nil {
 					pterm.Error.Printf("failed to get current block height: %v\n", err)
@@ -101,29 +130,27 @@ func Cmd() *cobra.Command {
 				}
 				if currentHeight <= 2 {
 					pterm.Warning.Println("current height is too low, updating dymint config")
-					err := dymintutils.UpdateDymintConfigForIBC(home)
+					err := dymintutils.UpdateDymintConfigForIBC(home, "5s")
 					if err != nil {
 						pterm.Error.Println("failed to update dymint config")
 						return
 					}
 				}
 
-				rollappPrefix, err := globalutils.GetKeyFromTomlFile(
-					rollerConfigFilePath,
-					"bech32_prefix",
-				)
+				rollappPrefix := rollappChainData.Bech32Prefix
 				if err != nil {
 					pterm.Error.Printf("failed to retrieve bech32_prefix: %v\n", err)
 					return
 				}
 
+				pterm.Info.Println("initializing relayer config")
 				err = initconfig.InitializeRelayerConfig(
 					relayer.ChainConfig{
 						ID:            rollappConfig.RollappID,
 						RPC:           consts.DefaultRollappRPC,
-						Denom:         rollappConfig.Denom,
+						Denom:         rollappDenom,
 						AddressPrefix: rollappPrefix,
-						GasPrices:     "0",
+						GasPrices:     "1000000000",
 					}, relayer.ChainConfig{
 						ID:            rollappConfig.HubData.ID,
 						RPC:           rollappConfig.HubData.RPC_URL,
@@ -140,7 +167,10 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = dymintutils.UpdateDymintConfigForIBC(home)
+				pterm.Info.Println(
+					"updating dymint config to 5s block time for relayer configuration",
+				)
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
 				if err != nil {
 					pterm.Error.Println(
 						"failed to update dymint config for ibc creation",
@@ -168,7 +198,7 @@ func Cmd() *cobra.Command {
 			}
 			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
-			errorhandling.RequireMigrateIfNeeded(rollappConfig)
+			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			err = rollappConfig.Validate()
 			if err != nil {
@@ -236,6 +266,7 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("establishing IBC transfer channel")
 				seq := sequencer.GetInstance(rollappConfig)
+
 				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, seq)
 				if err != nil {
 					pterm.Error.Printf("failed to create IBC channel: %v\n", err)
@@ -258,7 +289,20 @@ func Cmd() *cobra.Command {
 				rly.DstChannel,
 			)
 
-			select {}
+			pterm.Info.Println("reverting dymint config to 1h")
+			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s")
+			if err != nil {
+				pterm.Error.Println("failed to update dymint config")
+				return
+			}
+
+			// select {}
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to start rollapp and da-light-client on your local machine\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller relayer services load"),
+			)
 		},
 	}
 

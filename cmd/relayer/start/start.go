@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -27,7 +27,7 @@ const (
 	flagOverride = "override"
 )
 
-func Start() *cobra.Command {
+func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a relayer between the Dymension hub and the rollapp.",
@@ -35,7 +35,7 @@ func Start() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			errorhandling.RequireMigrateIfNeeded(rollappConfig)
+			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			VerifyRelayerBalances(rollappConfig)
 			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
@@ -51,23 +51,28 @@ func Start() *cobra.Command {
 			_, _, err = rly.LoadActiveChannel()
 			errorhandling.PrettifyErrorIfExists(err)
 
-			override := cmd.Flag(flagOverride).Changed
-			if override {
-				fmt.Println("💈 Overriding the existing relayer channel")
-			}
-			if rly.ChannelReady() && !override {
+			// override := cmd.Flag(flagOverride).Changed
+			//
+			// if override {
+			// 	fmt.Println("💈 Overriding the existing relayer channel")
+			// }
+
+			if rly.ChannelReady() {
 				fmt.Println("💈 IBC transfer channel is already established!")
 				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
 				err := rly.WriteRelayerStatus(status)
 				errorhandling.PrettifyErrorIfExists(err)
 			} else {
-				fmt.Println("💈 Establishing IBC transfer channel")
-				seq := sequencer.GetInstance(rollappConfig)
-				_, err := rly.CreateIBCChannel(override, logFileOption, seq)
-				errorhandling.PrettifyErrorIfExists(err)
+				pterm.Error.Println("💈 No channels found, ensure you've setup the relayer")
+				// seq := sequencer.GetInstance(rollappConfig)
+				// _, err := rly.CreateIBCChannel(override, logFileOption, seq)
+				// errorhandling.PrettifyErrorIfExists(err)
+				return
 			}
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
+
 			go bash.RunCmdAsync(
 				ctx,
 				rly.GetStartCmd(),
@@ -75,6 +80,7 @@ func Start() *cobra.Command {
 				func(errMessage string) string { return errMessage },
 				logFileOption,
 			)
+
 			fmt.Printf(
 				"💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
 				rly.SrcChannel,

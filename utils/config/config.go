@@ -45,20 +45,8 @@ func (c RollappConfig) Validate() error {
 	// 	return err
 	// }
 
-	err = IsValidDenom(c.BaseDenom)
-	if err != nil {
-		return err
-	}
-	if err := ValidateDecimals(c.Decimals); err != nil {
-		return err
-	}
-
 	if !IsValidDAType(string(c.DA)) {
 		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
-	}
-
-	if !IsValidVMType(string(c.VMType)) {
-		return fmt.Errorf("invalid VM type: %s", c.VMType)
 	}
 
 	return nil
