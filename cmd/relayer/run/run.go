@@ -197,6 +197,19 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				updatedData, err := yaml.Marshal(&node)
+				if err != nil {
+					fmt.Printf("Error marshaling YAML: %v\n", err)
+					return
+				}
+
+				// Write the updated YAML back to the original file
+				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
+				if err != nil {
+					fmt.Printf("Error writing file: %v\n", err)
+					return
+				}
+
 				pterm.Info.Println(
 					"updating dymint config to 5s block time for relayer configuration",
 				)
