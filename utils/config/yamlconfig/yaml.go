@@ -2,14 +2,16 @@ package yamlconfig
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
 
 	yaml "gopkg.in/yaml.v3"
 )
 
-func UpdateNestedYAML(node *yaml.Node, path []string, value string) error {
+func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 	if len(path) == 0 {
-		node.Value = value
-		return nil
+		return setNodeValue(node, value)
 	}
 
 	if node.Kind != yaml.MappingNode {
@@ -23,6 +25,42 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value string) error {
 	}
 
 	return fmt.Errorf("path not found: %v", path[0])
+}
+
+func setNodeValue(node *yaml.Node, value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		node.Value = v
+		node.Tag = "!!str"
+	case int:
+		node.Value = strconv.Itoa(v)
+		node.Tag = "!!int"
+	case float64:
+		node.Value = strconv.FormatFloat(v, 'f', -1, 64)
+		node.Tag = "!!float"
+	default:
+		return fmt.Errorf("unsupported type: %T", value)
+	}
+	return nil
+}
+
+func CreateYamlNodeFromFile(home, filename string) (*yaml.Node, error) {
+	eibcConfigPath := filepath.Join(home, filename)
+	data, err := os.ReadFile(eibcConfigPath)
+	if err != nil {
+		fmt.Printf("Error reading file: %v\n", err)
+		return nil, err
+	}
+
+	// Parse the YAML
+	var node yaml.Node
+	err = yaml.Unmarshal(data, &node)
+	if err != nil {
+		fmt.Printf("Error parsing YAML: %v\n", err)
+		return nil, err
+	}
+
+	return &node, nil
 }
 
 func PrintYAMLStructure(node *yaml.Node, indent string) {
