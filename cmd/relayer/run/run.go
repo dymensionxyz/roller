@@ -176,19 +176,26 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("updating application relayer config")
 				path := filepath.Join(relayerHome, "config")
-				node, err := yamlconfig.CreateYamlNodeFromFile(path, "config.yaml")
+				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
 				if err != nil {
-					fmt.Printf("failed to retrieve yaml config: %v\n", err)
+					fmt.Printf("Error reading file: %v\n", err)
+				}
+
+				// Parse the YAML
+				var node yaml.Node
+				err = yaml.Unmarshal(data, &node)
+				if err != nil {
+					pterm.Error.Println("failed to unmarshal config.yaml")
 					return
 				}
 
 				contentNode := &node
 				if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-					contentNode = &node.Content[0]
+					contentNode = node.Content[0]
 				}
 
 				err = yamlconfig.UpdateNestedYAML(
-					*contentNode,
+					contentNode,
 					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
 					1.3,
 				)
@@ -196,8 +203,6 @@ func Cmd() *cobra.Command {
 					fmt.Printf("Error updating YAML: %v\n", err)
 					return
 				}
-
-				yamlconfig.PrintYAMLStructure(node, " ")
 
 				updatedData, err := yaml.Marshal(&node)
 				if err != nil {

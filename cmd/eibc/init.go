@@ -96,21 +96,28 @@ func initCmd() *cobra.Command {
 			}
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			node, err := yamlconfig.CreateYamlNodeFromFile(eibcHome, "config.yaml")
+			data, err := os.ReadFile(eibcConfigPath)
 			if err != nil {
-				fmt.Printf("failed to retrieve yaml config: %v\n", err)
+				fmt.Printf("Error reading file: %v\n", err)
+			}
+
+			// Parse the YAML
+			var node yaml.Node
+			err = yaml.Unmarshal(data, &node)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal config.yaml")
 				return
 			}
 
 			// Get the actual content node (usually the first child of the document node)
 			contentNode := &node
 			if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-				contentNode = &node.Content[0]
+				contentNode = node.Content[0]
 			}
 
 			// Update the nested fields
 			err = yamlconfig.UpdateNestedYAML(
-				*contentNode,
+				contentNode,
 				[]string{"node_address"},
 				rollerConfig.HubData.RPC_URL,
 			)
@@ -120,7 +127,7 @@ func initCmd() *cobra.Command {
 			}
 
 			err = yamlconfig.UpdateNestedYAML(
-				*contentNode,
+				contentNode,
 				[]string{"whale", "account_name"},
 				consts.KeysIds.Eibc,
 			)

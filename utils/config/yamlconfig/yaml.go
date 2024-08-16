@@ -2,8 +2,6 @@ package yamlconfig
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	yaml "gopkg.in/yaml.v3"
@@ -57,25 +55,6 @@ func setNodeValue(node *yaml.Node, value interface{}) error {
 		return fmt.Errorf("unsupported type: %T", value)
 	}
 	return nil
-}
-
-func CreateYamlNodeFromFile(home, filename string) (*yaml.Node, error) {
-	eibcConfigPath := filepath.Join(home, filename)
-	data, err := os.ReadFile(eibcConfigPath)
-	if err != nil {
-		fmt.Printf("Error reading file: %v\n", err)
-		return nil, err
-	}
-
-	// Parse the YAML
-	var node yaml.Node
-	err = yaml.Unmarshal(data, &node)
-	if err != nil {
-		fmt.Printf("Error parsing YAML: %v\n", err)
-		return nil, err
-	}
-
-	return &node, nil
 }
 
 func PrintYAMLStructure(node *yaml.Node, indent string) {
