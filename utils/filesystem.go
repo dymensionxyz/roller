@@ -3,13 +3,13 @@ package utils
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/user"
 	"path/filepath"
-	"strings"
 
 	"github.com/pterm/pterm"
 )
@@ -100,38 +100,73 @@ func DownloadFile(url, filepath string) error {
 	return nil
 }
 
-func DownloadArchive(url string) (io.ReadCloser, error) {
-	// nolint:gosec
+func DownloadAndSaveArchive(url string, destPath string) (string, error) {
+	spinner, _ := pterm.DefaultSpinner.Start("Downloading file...")
+
+	// Create the destination directory if it doesn't exist
+	err := os.MkdirAll(filepath.Dir(destPath), 0o755)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Failed to create destination directory: %v", err))
+		return "", fmt.Errorf("failed to create destination directory: %v", err)
+	}
+
+	// Download the file
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download file: %v", err)
+		spinner.Fail(fmt.Sprintf("Failed to download file: %v", err))
+		return "", fmt.Errorf("failed to download file: %v", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		// nolint:errcheck
-		resp.Body.Close()
-		return nil, fmt.Errorf("bad status: %s", resp.Status)
+		spinner.Fail(fmt.Sprintf("Bad status: %s", resp.Status))
+		return "", fmt.Errorf("bad status: %s", resp.Status)
 	}
 
-	return resp.Body, nil
+	// Create the destination file
+	out, err := os.Create(destPath)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Failed to create file: %v", err))
+		return "", fmt.Errorf("failed to create file: %v", err)
+	}
+	defer out.Close()
+
+	// Create a hash writer
+	hash := sha256.New()
+	writer := io.MultiWriter(out, hash)
+
+	// Copy the body to file and hash
+	_, err = io.Copy(writer, resp.Body)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Failed to save file: %v", err))
+		return "", fmt.Errorf("failed to save file: %v", err)
+	}
+
+	hashStr := fmt.Sprintf("%x", hash.Sum(nil))
+	spinner.Success("File downloaded and saved successfully")
+	return hashStr, nil
 }
 
-func ExtractTarGz(gzipStream io.Reader, destDir string) error {
+func ExtractTarGz(sourcePath, destDir string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
-	// nolint:errcheck
 	defer spinner.Stop()
 
-	uncompressedStream, err := gzip.NewReader(gzipStream)
+	file, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %v", err)
+	}
+	defer file.Close()
+
+	gzr, err := gzip.NewReader(file)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %v", err)
 	}
-	defer uncompressedStream.Close()
+	defer gzr.Close()
 
-	tarReader := tar.NewReader(uncompressedStream)
+	tr := tar.NewReader(gzr)
 
-	var foundDataDir bool
 	for {
-		header, err := tarReader.Next()
+		header, err := tr.Next()
 		if err == io.EOF {
 			break
 		}
@@ -139,17 +174,11 @@ func ExtractTarGz(gzipStream io.Reader, destDir string) error {
 			return fmt.Errorf("tar reading error: %v", err)
 		}
 
-		// Check if the archive contains a 'data' directory at its root
-		if header.Name == "data/" || header.Name == "data" {
-			foundDataDir = true
-		}
-
-		// Only process files within the 'data' directory
-		if !strings.HasPrefix(header.Name, "data/") && header.Name != "data" {
+		// Ensure we only extract the 'data' directory
+		if header.Name != "data" && !filepath.HasPrefix(header.Name, "data/") {
 			continue
 		}
 
-		// nolint:gosec
 		target := filepath.Join(destDir, header.Name)
 
 		switch header.Typeflag {
@@ -165,14 +194,10 @@ func ExtractTarGz(gzipStream io.Reader, destDir string) error {
 			defer f.Close()
 
 			// nolint:gosec
-			if _, err := io.Copy(f, tarReader); err != nil {
+			if _, err := io.Copy(f, tr); err != nil {
 				return fmt.Errorf("failed to write to file %s: %v", target, err)
 			}
 		}
-	}
-
-	if !foundDataDir {
-		return fmt.Errorf("archive does not contain a 'data' directory at its root")
 	}
 
 	spinner.Success("Archive extracted successfully")

@@ -387,16 +387,34 @@ func Cmd() *cobra.Command {
 							return
 						}
 
+						tmpDir, err := os.MkdirTemp("", "download-*")
+						if err != nil {
+							fmt.Printf("Error creating temp directory: %v\n", err)
+							return
+						}
+
+						// Print the path of the temporary directory
+						fmt.Printf("Temporary directory created: %s\n", tmpDir)
+
+						// The directory will be deleted when the program exits
+						defer os.RemoveAll(tmpDir)
 						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
-						df, err := globalutils.DownloadArchive(si.SnapshotUrl)
+						downloadedFileHash, err := globalutils.DownloadAndSaveArchive(
+							si.SnapshotUrl,
+							tmpDir,
+						)
 						if err != nil {
 							spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
 							os.Exit(1)
 						}
 						spinner.Success("file downloaded successfully")
 
-						// TODO: compare the checksum
-						err = globalutils.ExtractTarGz(df, dataDir)
+						// compare the checksum
+						if downloadedFileHash != si.Checksum {
+							pterm.Error.Println()
+						}
+
+						err = globalutils.ExtractTarGz(tmpDir, filepath.Join(RollappDirPath))
 						if err != nil {
 							pterm.Error.Println("failed to extract snapshot: ", err)
 							return
