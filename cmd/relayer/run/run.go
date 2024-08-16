@@ -197,6 +197,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				yamlconfig.PrintYAMLStructure(node, " ")
+
 				updatedData, err := yaml.Marshal(&node)
 				if err != nil {
 					fmt.Printf("Error marshaling YAML: %v\n", err)
