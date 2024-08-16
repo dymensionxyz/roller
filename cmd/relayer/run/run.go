@@ -175,7 +175,8 @@ func Cmd() *cobra.Command {
 				}
 
 				pterm.Info.Println("updating application relayer config")
-				node, err := yamlconfig.CreateYamlNodeFromFile(relayerHome, "config.yaml")
+				path := filepath.Join(relayerHome, "config")
+				node, err := yamlconfig.CreateYamlNodeFromFile(path, "config.yaml")
 				if err != nil {
 					fmt.Printf("failed to retrieve yaml config: %v\n", err)
 					return
