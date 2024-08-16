@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/docker/docker/client"
+	"github.com/pterm/pterm"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -19,28 +20,20 @@ func ensureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := utils.KeyConfig{
 		Dir:         consts.ConfigDirName.Eibc,
-		ID:          "client",
+		ID:          consts.KeysIds.Eibc,
 		ChainBinary: consts.Executables.Dymension,
 		Type:        "",
 	}
 
 	_, err := utils.GetAddressInfoBinary(kc, consts.Executables.Dymension)
 	if err != nil {
-		fmt.Println("whale account not found in the keyring, creating it now")
+		pterm.Info.Println("whale account not found in the keyring, creating it now")
 		addressInfo, err := initconfig.CreateAddressBinary(kc, home)
 		if err != nil {
 			return err
 		}
 
-		whaleAddress := utils.SecretAddressData{
-			AddressData: utils.AddressData{
-				Name: addressInfo.Name,
-				Addr: addressInfo.Address,
-			},
-			Mnemonic: addressInfo.Mnemonic,
-		}
-
-		utils.PrintSecretAddressesWithTitle([]utils.SecretAddressData{whaleAddress})
+		addressInfo.Print(utils.WithName(), utils.WithMnemonic())
 	}
 
 	return nil
