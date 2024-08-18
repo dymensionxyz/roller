@@ -50,22 +50,22 @@ func Cmd() *cobra.Command {
 
 			envs := []string{"devnet", "testnet", "mainnet"}
 			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the node type you want to run").
+				WithDefaultText("select the environment you want to initialize for").
 				WithOptions(envs).
 				Show()
 			hd := consts.Hubs[env]
+
+			err = runInit(cmd, env, raID)
+			if err != nil {
+				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
+				return
+			}
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 
 			// TODO: check whether the rollapp exists
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
-				return
-			}
-
-			err = runInit(cmd, env, raID)
-			if err != nil {
-				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
 			}
 
