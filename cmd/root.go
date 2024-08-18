@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/cmd/version"
 )
 
 var rootCmd = &cobra.Command{
@@ -40,6 +41,7 @@ func init() {
 	// rootCmd.AddCommand(test())
 	rootCmd.AddCommand(rollapp.Cmd())
 	rootCmd.AddCommand(eibc.Cmd())
+	rootCmd.AddCommand(version.Cmd())
 	utils.AddGlobalFlags(rootCmd)
 }
 
