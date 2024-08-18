@@ -331,7 +331,7 @@ func Cmd() *cobra.Command {
 					)
 				} else {
 					fmt.Printf(
-						"found a snapshot for height %s\nchecksum: %s\nurl: %s",
+						"found a snapshot for height %s\nchecksum: %s\nurl: %s\n",
 						si.Height,
 						si.Checksum,
 						si.SnapshotUrl,
@@ -398,10 +398,11 @@ func Cmd() *cobra.Command {
 
 						// The directory will be deleted when the program exits
 						defer os.RemoveAll(tmpDir)
+						archivePath := filepath.Join(tmpDir, "backup.tar.gz")
 						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
 						downloadedFileHash, err := globalutils.DownloadAndSaveArchive(
 							si.SnapshotUrl,
-							filepath.Join(tmpDir, "backup.tar.gz"),
+							archivePath,
 						)
 						if err != nil {
 							spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
@@ -414,7 +415,7 @@ func Cmd() *cobra.Command {
 							pterm.Error.Println()
 						}
 
-						err = globalutils.ExtractTarGz(tmpDir, filepath.Join(RollappDirPath))
+						err = globalutils.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
 						if err != nil {
 							pterm.Error.Println("failed to extract snapshot: ", err)
 							return
