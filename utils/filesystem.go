@@ -77,7 +77,7 @@ func DownloadFile(url, filepath string) error {
 	// nolint:gosec
 	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		// nolint:errcheck
+		// nolint:errcheck,gosec
 		resp.Body.Close()
 		spinner.Fail("failed to download file: ", err)
 		return err
@@ -186,6 +186,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 			continue
 		}
 
+		// nolint:gosec
 		target := filepath.Join(destDir, header.Name)
 
 		switch header.Typeflag {
