@@ -413,7 +413,13 @@ func Cmd() *cobra.Command {
 
 						// compare the checksum
 						if downloadedFileHash != si.Checksum {
-							pterm.Error.Println()
+							pterm.Error.Printf(
+								"snapshot archive checksum mismatch, have: %s, want: %s.",
+								downloadedFileHash,
+								si.Checksum,
+							)
+
+							return
 						}
 
 						err = globalutils.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
