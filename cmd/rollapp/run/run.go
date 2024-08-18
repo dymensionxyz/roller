@@ -584,6 +584,7 @@ func Cmd() *cobra.Command {
 			}
 
 			var daConfig string
+			dymintConfigPath := sequencer.GetDymintFilePath(home)
 
 			switch nodeType {
 			case "sequencer":
@@ -591,6 +592,16 @@ func Cmd() *cobra.Command {
 				insufficientBalances, err := damanager.CheckDABalance()
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
+				}
+
+				err = globalutils.UpdateFieldInToml(
+					dymintConfigPath,
+					"p2p_advertising_enabled",
+					"false",
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					return
 				}
 
 				utils.PrintInsufficientBalancesIfAny(insufficientBalances)
@@ -604,13 +615,22 @@ func Cmd() *cobra.Command {
 				daConfig = damanager.DataLayer.GetSequencerDAConfig(
 					consts.NodeType.FullNode,
 				)
+
+				err = globalutils.UpdateFieldInToml(
+					dymintConfigPath,
+					"p2p_advertising_enabled",
+					"true",
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					return
+				}
 			default:
 				pterm.Error.Println("unsupported node type")
 				return
 
 			}
 
-			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			daNamespace := damanager.DataLayer.GetNamespaceID()
 			if daNamespace == "" {
 				pterm.Error.Println("failed to retrieve da namespace id")
