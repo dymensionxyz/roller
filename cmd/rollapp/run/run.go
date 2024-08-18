@@ -401,7 +401,7 @@ func Cmd() *cobra.Command {
 						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
 						downloadedFileHash, err := globalutils.DownloadAndSaveArchive(
 							si.SnapshotUrl,
-							tmpDir,
+							filepath.Join(tmpDir, "backup.tar.gz"),
 						)
 						if err != nil {
 							spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
