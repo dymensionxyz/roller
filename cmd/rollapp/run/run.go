@@ -397,6 +397,7 @@ func Cmd() *cobra.Command {
 						fmt.Printf("Temporary directory created: %s\n", tmpDir)
 
 						// The directory will be deleted when the program exits
+						// nolint:errcheck
 						defer os.RemoveAll(tmpDir)
 						archivePath := filepath.Join(tmpDir, "backup.tar.gz")
 						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")

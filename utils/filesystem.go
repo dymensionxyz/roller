@@ -77,6 +77,7 @@ func DownloadFile(url, filepath string) error {
 	// nolint:gosec
 	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
+		// nolint:errcheck
 		resp.Body.Close()
 		spinner.Fail("failed to download file: ", err)
 		return err
@@ -111,11 +112,13 @@ func DownloadAndSaveArchive(url string, destPath string) (string, error) {
 	}
 
 	// Download the file
+	// nolint:gosec
 	resp, err := http.Get(url)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Failed to download file: %v", err))
 		return "", fmt.Errorf("failed to download file: %v", err)
 	}
+	// nolint:errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -129,6 +132,7 @@ func DownloadAndSaveArchive(url string, destPath string) (string, error) {
 		spinner.Fail(fmt.Sprintf("Failed to create file: %v", err))
 		return "", fmt.Errorf("failed to create file: %v", err)
 	}
+	// nolint:errcheck
 	defer out.Close()
 
 	// Create a hash writer
@@ -149,18 +153,21 @@ func DownloadAndSaveArchive(url string, destPath string) (string, error) {
 
 func ExtractTarGz(sourcePath, destDir string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
+	// nolint:errcheck
 	defer spinner.Stop()
 
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
 	}
+	// nolint:errcheck
 	defer file.Close()
 
 	gzr, err := gzip.NewReader(file)
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %v", err)
 	}
+	// nolint:errcheck
 	defer gzr.Close()
 
 	tr := tar.NewReader(gzr)
@@ -191,6 +198,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create file %s: %v", target, err)
 			}
+			// nolint:errcheck
 			defer f.Close()
 
 			// nolint:gosec
