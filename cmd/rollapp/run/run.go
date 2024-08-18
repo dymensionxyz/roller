@@ -321,30 +321,108 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("retrieving the latest available snapshot")
 				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID, hd)
 				if err != nil {
-					pterm.Error.Println("failed to retrieve ")
+					pterm.Error.Println("failed to retrieve latest snapshot")
 				}
 
 				if si == nil {
 					pterm.Warning.Printf(
-						"no snapshots were found for %s\n",
+						"no snapshots were found for %s, the node will sync from genesis block\n",
 						rollappConfig.RollappID,
 					)
 				} else {
 					fmt.Printf(
-						"found a snapshot for height %s\nchecksum: %s\nurl: %s",
+						"found a snapshot for height %s\nchecksum: %s\nurl: %s\n",
 						si.Height,
 						si.Checksum,
 						si.SnapshotUrl,
 					)
 				}
 
-				options := []string{"p2p", "da"}
-				syncMode, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the desired syncing mode").
-					WithOptions(options).
-					Show()
+				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
+				// defaults to syncing only from the DA
+				peers, err := sequencerutils.GetAllP2pPeers(rollappConfig.RollappID, hd)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve p2p peers ")
+				}
 
-				fmt.Printf("the node is set to sync from %s\n", syncMode)
+				if len(peers) == 0 {
+					pterm.Warning.Println(
+						"none of the sequencers provide p2p seed nodes this node will sync only from DA",
+					)
+				}
+
+				// approve the data directory deletion before downloading the snapshot,
+				dataDir := filepath.Join(RollappDirPath, "data")
+				if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
+					dataDirNotEmpty, err := globalutils.DirNotEmpty(dataDir)
+					if err != nil {
+						pterm.Error.Printf("failed to check if data directory is empty: %v\n", err)
+						os.Exit(1)
+					}
+
+					var replaceExistingData bool
+					if dataDirNotEmpty {
+						pterm.Warning.Println("the ~/.roller/rollapp/data directory is not empty.")
+						replaceExistingData, _ = pterm.DefaultInteractiveConfirm.Show(
+							"Do you want to replace its contents?",
+						)
+						if !replaceExistingData {
+							pterm.Info.Println(
+								"operation cancelled, node will be synced from genesis block ",
+							)
+						}
+					}
+
+					if !dataDirNotEmpty || replaceExistingData {
+						// TODO: this should be a util "RecreateDir"
+						err = os.RemoveAll(dataDir)
+						if err != nil {
+							pterm.Error.Printf("failed to remove %s dir: %v", dataDir, err)
+							return
+						}
+
+						err = os.MkdirAll(dataDir, 0o755)
+						if err != nil {
+							pterm.Error.Printf("failed to create %s: %v\n", dataDir, err)
+							return
+						}
+
+						tmpDir, err := os.MkdirTemp("", "download-*")
+						if err != nil {
+							fmt.Printf("Error creating temp directory: %v\n", err)
+							return
+						}
+
+						// Print the path of the temporary directory
+						fmt.Printf("Temporary directory created: %s\n", tmpDir)
+
+						// The directory will be deleted when the program exits
+						// nolint:errcheck,gosec
+						defer os.RemoveAll(tmpDir)
+						archivePath := filepath.Join(tmpDir, "backup.tar.gz")
+						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
+						downloadedFileHash, err := globalutils.DownloadAndSaveArchive(
+							si.SnapshotUrl,
+							archivePath,
+						)
+						if err != nil {
+							spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
+							os.Exit(1)
+						}
+						spinner.Success("file downloaded successfully")
+
+						// compare the checksum
+						if downloadedFileHash != si.Checksum {
+							pterm.Error.Println()
+						}
+
+						err = globalutils.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
+						if err != nil {
+							pterm.Error.Println("failed to extract snapshot: ", err)
+							return
+						}
+					}
+				}
 			}
 
 			// DA
@@ -507,6 +585,7 @@ func Cmd() *cobra.Command {
 			}
 
 			var daConfig string
+			dymintConfigPath := sequencer.GetDymintFilePath(home)
 
 			switch nodeType {
 			case "sequencer":
@@ -514,6 +593,16 @@ func Cmd() *cobra.Command {
 				insufficientBalances, err := damanager.CheckDABalance()
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
+				}
+
+				err = globalutils.UpdateFieldInToml(
+					dymintConfigPath,
+					"p2p_advertising_enabled",
+					"false",
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					return
 				}
 
 				utils.PrintInsufficientBalancesIfAny(insufficientBalances)
@@ -527,13 +616,22 @@ func Cmd() *cobra.Command {
 				daConfig = damanager.DataLayer.GetSequencerDAConfig(
 					consts.NodeType.FullNode,
 				)
+
+				err = globalutils.UpdateFieldInToml(
+					dymintConfigPath,
+					"p2p_advertising_enabled",
+					"true",
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					return
+				}
 			default:
 				pterm.Error.Println("unsupported node type")
 				return
 
 			}
 
-			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			daNamespace := damanager.DataLayer.GetNamespaceID()
 			if daNamespace == "" {
 				pterm.Error.Println("failed to retrieve da namespace id")

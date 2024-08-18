@@ -98,15 +98,15 @@ func initCmd() *cobra.Command {
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			data, err := os.ReadFile(eibcConfigPath)
 			if err != nil {
-				fmt.Printf("Error reading file: %v\n", err)
-				return // Assume this is in a function that returns an error
+				pterm.Error.Printf("Error reading file: %v\n", err)
+				return
 			}
 
 			// Parse the YAML
 			var node yaml.Node
 			err = yaml.Unmarshal(data, &node)
 			if err != nil {
-				fmt.Printf("Error parsing YAML: %v\n", err)
+				pterm.Error.Println("failed to unmarshal config.yaml")
 				return
 			}
 

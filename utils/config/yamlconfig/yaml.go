@@ -2,14 +2,21 @@ package yamlconfig
 
 import (
 	"fmt"
+	"strconv"
 
 	yaml "gopkg.in/yaml.v3"
 )
 
-func UpdateNestedYAML(node *yaml.Node, path []string, value string) error {
+func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
+	if node.Kind == yaml.DocumentNode {
+		if len(node.Content) == 0 {
+			return fmt.Errorf("empty document node")
+		}
+		return UpdateNestedYAML(node.Content[0], path, value)
+	}
+
 	if len(path) == 0 {
-		node.Value = value
-		return nil
+		return setNodeValue(node, value)
 	}
 
 	if node.Kind != yaml.MappingNode {
@@ -22,7 +29,32 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value string) error {
 		}
 	}
 
-	return fmt.Errorf("path not found: %v", path[0])
+	// If the path doesn't exist, create it
+	newNode := &yaml.Node{
+		Kind:  yaml.ScalarNode,
+		Value: path[0],
+		Tag:   "!!str",
+	}
+	valueNode := &yaml.Node{Kind: yaml.ScalarNode}
+	node.Content = append(node.Content, newNode, valueNode)
+	return UpdateNestedYAML(valueNode, path[1:], value)
+}
+
+func setNodeValue(node *yaml.Node, value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		node.Value = v
+		node.Tag = "!!str"
+	case int:
+		node.Value = strconv.Itoa(v)
+		node.Tag = "!!int"
+	case float64:
+		node.Value = strconv.FormatFloat(v, 'f', -1, 64)
+		node.Tag = "!!float"
+	default:
+		return fmt.Errorf("unsupported type: %T", value)
+	}
+	return nil
 }
 
 func PrintYAMLStructure(node *yaml.Node, indent string) {

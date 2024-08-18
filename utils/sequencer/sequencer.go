@@ -150,6 +150,25 @@ func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
 	return latestSnapshot, nil
 }
 
+func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
+	sequencers, err := GetRegisteredSequencers(raID, hd)
+	if err != nil {
+		return nil, err
+	}
+
+	var peers []string
+
+	for _, s := range sequencers.Sequencers {
+		if len(sequencers.Sequencers) > 1 {
+			peers = append(peers, s.Metadata.P2PSeeds[0])
+		} else {
+			peers = append(peers, s.Metadata.P2PSeeds...)
+		}
+	}
+
+	return peers, nil
+}
+
 func GetRegisteredSequencers(
 	raID string, hd consts.HubData,
 ) (*Sequencers, error) {

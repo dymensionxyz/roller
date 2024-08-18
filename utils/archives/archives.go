@@ -18,21 +18,22 @@ func ExtractFileFromNestedTar(sourceZipFilePath, fileName, outputDir string) err
 	if err != nil {
 		return err
 	}
-	// nolint errcheck
+
+	// nolint:errcheck
 	defer os.RemoveAll(tmpDir)
 
 	zipReader, err := zip.OpenReader(sourceZipFilePath)
 	if err != nil {
 		return err
 	}
-	// nolint errcheck
+	// nolint:errcheck
 	defer zipReader.Close()
 
 	var tarFilePath string
 
 	for _, f := range zipReader.File {
 		if filepath.Ext(f.Name) == ".tar" {
-			// nolint gosec
+			// nolint:gosec
 			tarFilePath = filepath.Join(tmpDir, f.Name)
 			if err := extractFileFromZip(f, tarFilePath); err != nil {
 				return fmt.Errorf("failed to extract .tar file %s: %w", tarFilePath, err)
@@ -59,7 +60,7 @@ func TraverseTARFile(tarFile, fileName, outputDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open tar file: %w", err)
 	}
-	// nolint errcheck
+	// nolint:errcheck
 	defer file.Close()
 	tarReader := tar.NewReader(file)
 
@@ -107,11 +108,11 @@ func createFileFromArchive(outputPath string, tarReader *tar.Reader) error {
 	}
 
 	if _, err := io.Copy(outFile, tarReader); err != nil {
-		// nolint errcheck
+		// nolint:errcheck
 		outFile.Close()
 		return fmt.Errorf("ExtractTar: Copy() failed: %w", err)
 	}
-	// nolint errcheck
+	// nolint:errcheck
 	outFile.Close()
 	return nil
 }
@@ -122,17 +123,17 @@ func extractFileFromZip(f *zip.File, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open file in zip: %w", err)
 	}
-	// nolint errcheck
+	// nolint:errcheck
 	defer rc.Close()
 
 	outFile, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	// nolint errcheck
+	// nolint:errcheck
 	defer outFile.Close()
 
-	// nolint gosec
+	// nolint:gosec
 	if _, err := io.Copy(outFile, rc); err != nil {
 		return fmt.Errorf("failed to copy file contents: %w", err)
 	}

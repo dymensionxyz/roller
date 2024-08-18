@@ -12,6 +12,7 @@ import (
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -22,6 +23,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	config2 "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -116,24 +118,29 @@ func Cmd() *cobra.Command {
 
 			if !isRelayerInitialized || shouldOverwrite {
 				// preflight checks
-				blockInformation, err := rollapputils.GetCurrentHeight()
-				if err != nil {
-					pterm.Error.Printf("failed to get current block height: %v\n", err)
-					return
-				}
-				currentHeight, err := strconv.Atoi(
-					blockInformation.Block.Header.Height,
-				)
-				if err != nil {
-					pterm.Error.Printf("failed to get current block height: %v\n", err)
-					return
-				}
-				if currentHeight <= 2 {
-					pterm.Warning.Println("current height is too low, updating dymint config")
-					err := dymintutils.UpdateDymintConfigForIBC(home, "5s")
+				for {
+					blockInformation, err := rollapputils.GetCurrentHeight()
 					if err != nil {
-						pterm.Error.Println("failed to update dymint config")
+						pterm.Error.Printf("failed to get current block height: %v\n", err)
 						return
+					}
+					currentHeight, err := strconv.Atoi(
+						blockInformation.Block.Header.Height,
+					)
+					if err != nil {
+						pterm.Error.Printf("failed to get current block height: %v\n", err)
+						return
+					}
+
+					if currentHeight <= 2 {
+						pterm.Warning.Println("current height is too low, updating dymint config")
+						err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
+						if err != nil {
+							pterm.Error.Println("failed to update dymint config")
+							return
+						}
+					} else {
+						break
 					}
 				}
 
@@ -150,7 +157,7 @@ func Cmd() *cobra.Command {
 						RPC:           consts.DefaultRollappRPC,
 						Denom:         rollappDenom,
 						AddressPrefix: rollappPrefix,
-						GasPrices:     "1000000000",
+						GasPrices:     "2000000000",
 					}, relayer.ChainConfig{
 						ID:            rollappConfig.HubData.ID,
 						RPC:           rollappConfig.HubData.RPC_URL,
@@ -164,6 +171,49 @@ func Cmd() *cobra.Command {
 						"failed to initialize relayer config: %v\n",
 						err,
 					)
+					return
+				}
+
+				pterm.Info.Println("updating application relayer config")
+				path := filepath.Join(relayerHome, "config")
+				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
+				if err != nil {
+					fmt.Printf("Error reading file: %v\n", err)
+				}
+
+				// Parse the YAML
+				var node yaml.Node
+				err = yaml.Unmarshal(data, &node)
+				if err != nil {
+					pterm.Error.Println("failed to unmarshal config.yaml")
+					return
+				}
+
+				contentNode := &node
+				if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
+					contentNode = node.Content[0]
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
+					1.3,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				updatedData, err := yaml.Marshal(&node)
+				if err != nil {
+					fmt.Printf("Error marshaling YAML: %v\n", err)
+					return
+				}
+
+				// Write the updated YAML back to the original file
+				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
+				if err != nil {
+					fmt.Printf("Error writing file: %v\n", err)
 					return
 				}
 

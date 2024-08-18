@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,9 +14,11 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 type AppState struct {
@@ -39,7 +40,7 @@ func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 	if genesisUrl == "" {
 		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
-	err := downloadFile(genesisUrl, genesisPath)
+	err := globalutils.DownloadFile(genesisUrl, genesisPath)
 	if err != nil {
 		return err
 	}
@@ -60,36 +61,6 @@ func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 		return err
 	}
 
-	return nil
-}
-
-// TODO: download the file in chunks if possible
-func downloadFile(url, filepath string) error {
-	spinner, _ := pterm.DefaultSpinner.
-		Start("Downloading genesis file from ", url)
-
-	// nolint:gosec
-	resp, err := http.Get(url)
-	if err != nil {
-		spinner.Fail("failed to download file: ", err)
-		return err
-	}
-	// nolint:errcheck
-	defer resp.Body.Close()
-
-	out, err := os.Create(filepath)
-	if err != nil {
-		spinner.Fail("failed to download file: ", err)
-		return err
-	}
-	// nolint:errcheck
-	defer out.Close()
-
-	spinner.Success("Successfully downloaded the genesis file")
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -142,6 +113,28 @@ func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) 
 			"the hash of the downloaded file (%s) does not match the one registered with the rollapp (%s)",
 			downloadedGenesisHash,
 			raGenesisHash,
+		)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func CompareRollappArchiveChecksum(
+	filepath string,
+	si sequencer.SnapshotInfo,
+) (bool, error) {
+	downloadedGenesisHash, err := calculateSHA256(filepath)
+	if err != nil {
+		pterm.Error.Println("failed to calculate hash of genesis file: ", err)
+		return false, err
+	}
+	onChainHash := si.Checksum
+	if downloadedGenesisHash != onChainHash {
+		err = fmt.Errorf(
+			"the hash of the downloaded file (%s) does not match the one registered with the rollapp (%s)",
+			downloadedGenesisHash,
+			onChainHash,
 		)
 		return false, err
 	}
