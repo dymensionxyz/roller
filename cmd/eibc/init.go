@@ -42,10 +42,12 @@ func initCmd() *cobra.Command {
 			home, err := os.UserHomeDir()
 			if err != nil {
 				pterm.Error.Println("failed to get user home dir", err)
+				return
 			}
 
 			rollerConfig, err := tomlconfig.LoadRollerConfig(rollerHome)
 			if err != nil {
+				pterm.Error.Println("load roller confiload roller configg", err)
 				return
 			}
 
@@ -83,9 +85,9 @@ func initCmd() *cobra.Command {
 			}
 
 			c := GetInitCommand()
-
 			err = bash.ExecCmd(c)
 			if err != nil {
+				pterm.Error.Println("failed to initialize eibc client", err)
 				return
 			}
 
