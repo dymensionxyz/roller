@@ -98,7 +98,8 @@ func initCmd() *cobra.Command {
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			data, err := os.ReadFile(eibcConfigPath)
 			if err != nil {
-				fmt.Printf("Error reading file: %v\n", err)
+        pterm.Error.Printf("Error reading file: %v\n", err)
+				return
 			}
 
 			// Parse the YAML
