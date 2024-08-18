@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -66,6 +67,12 @@ func CheckAndCreateMongoDBContainer(
 			}
 		}
 	}
+
+	pull, err := cli.ImagePull(ctx, imageName, image.PullOptions{})
+	if err != nil {
+		return err
+	}
+	defer pull.Close()
 
 	resp, err := cli.ContainerCreate(ctx, config, hostConfig, nil, nil, containerName)
 	if err != nil {
