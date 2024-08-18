@@ -30,7 +30,7 @@ var Executables = struct {
 	CelKey:      fmt.Sprintf("%s/cel-key", internalBinsDir),
 	Relayer:     fmt.Sprintf("%s/rly", internalBinsDir),
 	Simd:        fmt.Sprintf("%s/simd", internalBinsDir),
-	Eibc:        fmt.Sprintf("%s/eibc", binsDir),
+	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", internalBinsDir),
 }
 
