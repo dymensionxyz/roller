@@ -20,7 +20,7 @@ func startCmd() *cobra.Command {
 		Short: "Start the eibc client",
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := os.UserHomeDir()
-			eibcHome := filepath.Join(home, ".order-client")
+			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
 			ok, err := global_utils.DirNotEmpty(eibcHome)
 			if err != nil {
 				return
