@@ -48,7 +48,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			envs := []string{"devnet", "playground", "testnet", "mainnet"}
+			envs := []string{"devnet", "playground"}
 			env, _ := pterm.DefaultInteractiveSelect.
 				WithDefaultText("select the node type you want to run").
 				WithOptions(envs).
