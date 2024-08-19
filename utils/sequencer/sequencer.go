@@ -206,10 +206,7 @@ func GetMetadata(
 		return nil, err
 	}
 
-	err = json.Unmarshal(out.Bytes(), &seqinfo)
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println(out.String())
 
 	return &seqinfo, nil
 }
