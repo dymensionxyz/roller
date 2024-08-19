@@ -192,8 +192,8 @@ func GetRegisteredSequencers(
 func GetMetadata(
 	addr string,
 	hd consts.HubData,
-) (*dymensionseqtypes.SequencerMetadata, error) {
-	var seqinfo dymensionseqtypes.QueryGetSequencerResponse
+) (*Metadata, error) {
+	var seqinfo ShowSequencerResponse
 
 	cmd := exec.Command(
 		consts.Executables.Dymension,

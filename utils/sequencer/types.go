@@ -13,6 +13,10 @@ type Sequencers struct {
 	Sequencers []Info `json:"sequencers,omitempty"`
 }
 
+type ShowSequencerResponse struct {
+	Sequencer Info `json:"sequencers,omitempty"`
+}
+
 type Info struct {
 	// address is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3"                                                       json:"address,omitempty"`
