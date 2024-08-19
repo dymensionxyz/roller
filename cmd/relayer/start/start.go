@@ -30,8 +30,8 @@ const (
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
-		Short: "Starts the relayer process interactively.",
-		Long: `Starts the relayer process interactively.
+		Short: "Start the relayer process interactively.",
+		Long: `Start the relayer process interactively.
 
 Consider using 'services' if you want to run a 'systemd' service instead.
 `,

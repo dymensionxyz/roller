@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the RollApp node interactively",
-		Long: `Starts the RollApp node interactively.
+		Long: `Start the RollApp node interactively.
 
 Consider using 'services' if you want to run a 'systemd' service instead.
 `,
