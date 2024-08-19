@@ -94,6 +94,7 @@ func Cmd() *cobra.Command {
 
 			metadata, err := sequencer.GetMetadata(seqAddrInfo.Address, hd)
 			if err != nil {
+				pterm.Error.Println("failed to retrieve metadata, ", err)
 				return
 			}
 
