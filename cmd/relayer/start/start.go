@@ -30,7 +30,11 @@ const (
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "start",
-		Short: "Starts a relayer between the Dymension hub and the rollapp.",
+		Short: "Start the relayer process interactively.",
+		Long: `Start the relayer process interactively.
+
+Consider using 'services' if you want to run a 'systemd' service instead.
+`,
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
@@ -82,7 +86,7 @@ func Cmd() *cobra.Command {
 			)
 
 			fmt.Printf(
-				"💈 The relayer is running successfully on you local machine! Channels: src, %s <-> %s, dst",
+				"💈 The relayer is running successfully on you local machine!\nChannels: src, %s <-> %s, dst",
 				rly.SrcChannel,
 				rly.DstChannel,
 			)

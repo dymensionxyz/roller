@@ -32,7 +32,11 @@ var (
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Show the status of the sequencer on the local machine.",
+		Short: "Start the RollApp node interactively",
+		Long: `Start the RollApp node interactively.
+
+Consider using 'services' if you want to run a 'systemd' service instead.
+`,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
