@@ -198,7 +198,7 @@ func GetMetadata(
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencer", addr,
-		"--node", hd.RPC_URL,
+		"--node", hd.RPC_URL, "-o", "json",
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
