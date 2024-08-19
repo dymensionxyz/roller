@@ -1,8 +1,6 @@
 package export
 
 import (
-	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -92,19 +90,11 @@ func Cmd() *cobra.Command {
 				"retrieving existing metadata",
 			)
 
-			metadata, err := sequencer.GetMetadata(seqAddrInfo.Address, hd)
+			_, err = sequencer.GetMetadata(seqAddrInfo.Address, hd)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve metadata, ", err)
 				return
 			}
-
-			j, err := json.MarshalIndent(metadata, "", "  ")
-			if err != nil {
-				fmt.Println("failed to marshal metadata")
-				return
-			}
-
-			fmt.Println(string(j))
 
 			pterm.Info.Println("ok")
 		},
