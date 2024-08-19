@@ -50,7 +50,7 @@ func Cmd() *cobra.Command {
 
 			envs := []string{"devnet", "playground"}
 			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the node type you want to run").
+				WithDefaultText("select the environment you want to initialize for").
 				WithOptions(envs).
 				Show()
 			hd := consts.Hubs[env]

@@ -184,24 +184,29 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 
-		height, blockIdHash, err := GetLatestDABlock()
+		latestHeight, latestBlockIdHash, err := GetLatestDABlock()
+		if err != nil {
+			return err
+		}
+		heightInt, err := strconv.Atoi(latestHeight)
 		if err != nil {
 			return err
 		}
 
+		celestiaConfigFilePath := filepath.Join(
+			home,
+			consts.ConfigDirName.DALightNode,
+			"config.toml",
+		)
 		if len(sequencers.Sequencers) == 0 {
 			pterm.Info.Println("no sequencers registered for the rollapp")
 			pterm.Info.Println("using latest height for da-light-client configuration")
 
 			pterm.Info.Printf(
 				"da light client will be initialized at height %s, block hash %s",
-				height,
-				blockIdHash,
+				latestHeight,
+				latestBlockIdHash,
 			)
-			heightInt, err := strconv.Atoi(height)
-			if err != nil {
-				return err
-			}
 
 			celestiaConfigFilePath := filepath.Join(
 				home,
@@ -209,7 +214,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				"config.toml",
 			)
 
-			err = UpdateCelestiaConfig(celestiaConfigFilePath, blockIdHash, heightInt)
+			err = UpdateCelestiaConfig(celestiaConfigFilePath, latestBlockIdHash, heightInt)
 			if err != nil {
 				return err
 			}
@@ -231,48 +236,50 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			if err != nil {
 				if strings.Contains(out.String(), "NotFound") {
 					pterm.Info.Printf(
-						"no state found for %s, da light client will be initialized with latest height",
+						"no state found for %s, da light client will be initialized with latest height\n",
 						raID,
 					)
+					err = UpdateCelestiaConfig(celestiaConfigFilePath, latestBlockIdHash, heightInt)
+					if err != nil {
+						return err
+					}
 				} else {
+					return err
+				}
+			} else {
+				daSpinner.UpdateText("state update found, extracting da height")
+
+				var result Result
+				if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+					pterm.Error.Println("failed to extract state update: ", err)
+					return err
+				}
+
+				h, err := ExtractHeightfromDAPath(result.StateInfo.DAPath)
+				if err != nil {
+					pterm.Error.Println("failed to extract height from state update da path: ", err)
+					return err
+				}
+
+				height, hash, err := GetDABlockByHeight(h)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve DA height: ", err)
+					return err
+				}
+
+				heightInt, err := strconv.Atoi(height)
+				if err != nil {
+					return err
+				}
+
+				pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
+				pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+				err = UpdateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+				if err != nil {
 					return err
 				}
 			}
 
-			daSpinner.UpdateText("state update found, extracting da height")
-
-			var result Result
-			if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
-				return err
-			}
-
-			h, err := ExtractHeightfromDAPath(result.StateInfo.DAPath)
-			if err != nil {
-				return err
-			}
-
-			height, hash, err := GetDABlockByHeight(h)
-			if err != nil {
-				return err
-			}
-
-			heightInt, err := strconv.Atoi(height)
-			if err != nil {
-				return err
-			}
-
-			celestiaConfigFilePath := filepath.Join(
-				home,
-				consts.ConfigDirName.DALightNode,
-				"config.toml",
-			)
-
-			pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", raID, height, hash)
-			pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-			err = UpdateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
-			if err != nil {
-				return err
-			}
 		}
 
 		daAddress, err := damanager.GetDAAccountAddress()
