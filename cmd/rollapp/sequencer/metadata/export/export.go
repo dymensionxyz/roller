@@ -1,6 +1,8 @@
 package export
 
 import (
+	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -74,7 +76,7 @@ func Cmd() *cobra.Command {
 			ok := sequencer.IsRegisteredAsSequencer(seq.Sequencers, seqAddrInfo.Address)
 			if !ok {
 				pterm.Error.Printf(
-					"%s is not registered as a sequencer for %s",
+					"%s is not registered as a sequencer for %s\n",
 					seqAddrInfo.Address,
 					rollappConfig.RollappID,
 				)
@@ -82,13 +84,26 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Printf(
-				"%s is registered as a sequencer for %s",
+				"%s is registered as a sequencer for %s\n",
 				seqAddrInfo.Address,
 				rollappConfig.RollappID,
 			)
 			pterm.Info.Println(
 				"retrieving existing metadata",
 			)
+
+			metadata, err := sequencer.GetMetadata(seqAddrInfo.Address, hd)
+			if err != nil {
+				return
+			}
+
+			_, err = json.MarshalIndent(metadata, "", "  ")
+			if err != nil {
+				fmt.Println("failed to marshal metadata")
+				return
+			}
+
+			pterm.Info.Println("ok")
 		},
 	}
 
