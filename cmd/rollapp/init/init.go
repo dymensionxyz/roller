@@ -14,7 +14,7 @@ import (
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init [rollapp-id]",
-		Short: "Inititlize a RollApp",
+		Short: "Initialize a RollApp configuration.",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

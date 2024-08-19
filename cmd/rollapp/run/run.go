@@ -47,8 +47,8 @@ var (
 // nolint:gocyclo
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "run [rollapp-id]",
-		Short: "Run the RollApp nodes",
+		Use:   "run",
+		Short: "Run a RollApp node.",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
