@@ -189,8 +189,11 @@ func GetRegisteredSequencers(
 	return &seq, nil
 }
 
-func GetMetadata(addr string, hd consts.HubData) (*Metadata, error) {
-	var seqinfo Info
+func GetMetadata(
+	addr string,
+	hd consts.HubData,
+) (*dymensionseqtypes.QueryGetSequencerResponse, error) {
+	var seqinfo dymensionseqtypes.QueryGetSequencerResponse
 
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -208,7 +211,7 @@ func GetMetadata(addr string, hd consts.HubData) (*Metadata, error) {
 		return nil, err
 	}
 
-	return &seqinfo.Metadata, nil
+	return &seqinfo, nil
 }
 
 func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
