@@ -14,7 +14,7 @@ type Sequencers struct {
 }
 
 type ShowSequencerResponse struct {
-	Sequencer Info `json:"sequencers,omitempty"`
+	Sequencer Info `json:"sequencer,omitempty"`
 }
 
 type Info struct {
