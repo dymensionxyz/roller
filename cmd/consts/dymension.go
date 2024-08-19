@@ -40,27 +40,38 @@ var MockHubData = HubData{
 	GAS_PRICE:       "",
 }
 
+var PlaygroundHubData = HubData{
+	API_URL:         "http://api-dymension-pg.mzonder.com:1318",
+	ID:              PlaygroundHubID,
+	RPC_URL:         "http://rpc-dymension-pg.mzonder.com:36657",
+	ARCHIVE_RPC_URL: "http://rpc-dymension-pg.mzonder.com:36657",
+	GAS_PRICE:       "2000000000",
+}
+
 // TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]HubData{
-	MockHubName:    MockHubData,
-	LocalHubName:   LocalHubData,
-	DevnetHubName:  DevnetHubData,
-	TestnetHubName: TestnetHubData,
-	MainnetHubName: MainnetHubData,
+	MockHubName:       MockHubData,
+	LocalHubName:      LocalHubData,
+	DevnetHubName:     DevnetHubData,
+	TestnetHubName:    TestnetHubData,
+	PlaygroundHubName: PlaygroundHubData,
+	MainnetHubName:    MainnetHubData,
 }
 
 const (
-	MockHubName    = "mock"
-	LocalHubName   = "local"
-	DevnetHubName  = "devnet"
-	TestnetHubName = "testnet"
-	MainnetHubName = "mainnet"
+	MockHubName       = "mock"
+	LocalHubName      = "local"
+	DevnetHubName     = "devnet"
+	TestnetHubName    = "testnet"
+	PlaygroundHubName = "playground"
+	MainnetHubName    = "mainnet"
 )
 
 const (
-	MockHubID    = "mock"
-	LocalHubID   = "dymension_100-1"
-	DevnetHubID  = "dymension_100-1"
-	TestnetHubID = "blumbus_111-1"
-	MainnetHubID = "dymension_1100-1"
+	MockHubID       = "mock"
+	LocalHubID      = "dymension_100-1"
+	DevnetHubID     = "dymension_100-1"
+	PlaygroundHubID = "dymension_100-1"
+	TestnetHubID    = "blumbus_111-1"
+	MainnetHubID    = "dymension_1100-1"
 )
