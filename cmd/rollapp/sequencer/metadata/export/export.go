@@ -80,6 +80,15 @@ func Cmd() *cobra.Command {
 				)
 				return
 			}
+
+			pterm.Info.Printf(
+				"%s is registered as a sequencer for %s",
+				seqAddrInfo.Address,
+				rollappConfig.RollappID,
+			)
+			pterm.Info.Println(
+				"retrieving existing metadata",
+			)
 		},
 	}
 
