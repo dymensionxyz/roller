@@ -98,11 +98,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			_, err = json.MarshalIndent(metadata, "", "  ")
+			j, err := json.MarshalIndent(metadata, "", "  ")
 			if err != nil {
 				fmt.Println("failed to marshal metadata")
 				return
 			}
+
+			fmt.Println(string(j))
 
 			pterm.Info.Println("ok")
 		},
