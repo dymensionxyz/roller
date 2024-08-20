@@ -7,6 +7,8 @@ import (
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/types"
+
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func InitializeMetadata(v reflect.Value) {
@@ -64,8 +66,9 @@ func InitializeMetadata(v reflect.Value) {
 	}
 }
 
-func ExportStructToFile(data interface{}, filename string) error {
+func ExportStructToFile(data *sequencerutils.Metadata, filename string) error {
 	// Initialize the struct with default values
+	fmt.Println(reflect.ValueOf(data))
 	InitializeMetadata(reflect.ValueOf(data))
 
 	// Marshal the struct to JSON
