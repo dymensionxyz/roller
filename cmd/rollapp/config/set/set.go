@@ -46,7 +46,7 @@ func Cmd() *cobra.Command {
 			switch k {
 			case "rollapp_minimum_gas_price":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "settlement_node_address", v)
+				err := utils.UpdateFieldInToml(cfg, "minimum-gas-prices", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
@@ -98,7 +98,7 @@ func Cmd() *cobra.Command {
 				fmt.Printf("Setting DA node address to: %s\n", v)
 				// Add your logic here
 			default:
-				pterm.Error.Printf("unknown configuration key: %s", k)
+				pterm.Error.Printf("unknown configuration key: %s\n", k)
 				return
 			}
 
