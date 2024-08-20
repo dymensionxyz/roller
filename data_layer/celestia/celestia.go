@@ -23,8 +23,11 @@ import (
 // TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
 const (
 	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
-	DefaultCelestiaRPC             = "http://celestia-testnet-consensus.itrocket.net:26657"
-	DefaultCelestiaNetwork         = "mocha"
+	DefaultCelestiaRPC             = "http://mocha-4-consensus.mesa.newmetric.xyz:26657"
+
+	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
+	DefaultCelestiaStateNode = "full.consensus.mocha-4.celestia-mocha.com"
+	DefaultCelestiaNetwork   = "mocha"
 )
 
 var lcMinBalance = big.NewInt(1)

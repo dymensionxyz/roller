@@ -3,6 +3,7 @@ package rollapp
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/rollapp/config"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer"
@@ -22,7 +23,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(initrollapp.Cmd())
 	cmd.AddCommand(status.Cmd())
 	cmd.AddCommand(start.Cmd())
-	// cmd.AddCommand(config.Cmd())
+	cmd.AddCommand(config.Cmd())
 	cmd.AddCommand(run.Cmd())
 	cmd.AddCommand(sequencer.Cmd())
 	cmd.AddCommand(services.Cmd(loadservices.RollappCmd(), startservices.RollappCmd()))
