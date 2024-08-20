@@ -4,72 +4,56 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	cosmossdkmath "cosmossdk.io/math"
+	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func InitializeMetadata(v reflect.Value) {
-	if v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			v.Set(reflect.New(v.Type().Elem()))
-		}
-		v = v.Elem()
+func InitializeMetadata(m sequencerutils.Metadata) {
+	if m.Moniker == "" {
+		m.Moniker = ""
 	}
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		switch field.Kind() {
-		case reflect.String:
-			if field.String() == "" {
-				field.SetString("")
-			}
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if field.Int() == 0 {
-				field.SetInt(0)
-			}
-		case reflect.Float32, reflect.Float64:
-			if field.Float() == 0 {
-				field.SetFloat(0)
-			}
-		case reflect.Bool:
-			if !field.Bool() {
-				field.SetBool(false)
-			}
-		case reflect.Slice:
-			if field.IsNil() {
-				field.Set(reflect.MakeSlice(field.Type(), 0, 0))
-			}
-		case reflect.Map:
-			if field.IsNil() {
-				field.Set(reflect.MakeMap(field.Type()))
-			}
-		case reflect.Struct:
-			InitializeMetadata(field)
-		case reflect.Ptr:
-			if field.IsNil() {
-				field.Set(reflect.New(field.Type().Elem()))
-			}
-			InitializeMetadata(field.Elem())
-		}
+	if m.Details == "" {
+		m.Details = ""
 	}
-
-	// Special handling for cosmossdkmath.Int
-	if v.Type().Name() == "Metadata" {
-		if gasPriceField := v.FieldByName("GasPrice"); gasPriceField.IsValid() {
-			if gasPriceField.IsNil() {
-				gasPriceField.Set(reflect.ValueOf(types.NewInt(0)))
-			}
-		}
+	if m.P2PSeeds == nil {
+		m.P2PSeeds = []string{}
+	}
+	if m.Rpcs == nil {
+		m.Rpcs = []string{}
+	}
+	if m.EvmRpcs == nil {
+		m.EvmRpcs = []string{}
+	}
+	if m.RestApiUrls == nil {
+		m.RestApiUrls = []string{}
+	}
+	if m.ExplorerUrl == "" {
+		m.ExplorerUrl = ""
+	}
+	if m.GenesisUrls == nil {
+		m.GenesisUrls = []string{}
+	}
+	if m.ContactDetails == nil {
+		m.ContactDetails = &dymensionseqtypes.ContactDetails{}
+	}
+	if m.ExtraData == nil {
+		m.ExtraData = []byte{}
+	}
+	if m.Snapshots == nil {
+		m.Snapshots = []*sequencerutils.SnapshotInfo{}
+	}
+	if m.GasPrice == nil {
+		zero := cosmossdkmath.NewInt(0)
+		m.GasPrice = &zero
 	}
 }
 
-func ExportStructToFile(data *sequencerutils.Metadata, filename string) error {
+func ExportStructToFile(data sequencerutils.Metadata, filename string) error {
 	// Initialize the struct with default values
-	fmt.Println(reflect.ValueOf(data))
-	InitializeMetadata(reflect.ValueOf(data))
+	InitializeMetadata(data)
 
 	// Marshal the struct to JSON
 	jsonData, err := json.MarshalIndent(data, "", "  ")

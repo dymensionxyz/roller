@@ -98,7 +98,7 @@ func Cmd() *cobra.Command {
 			}
 
 			err = structs.ExportStructToFile(
-				metadata,
+				*metadata,
 				filepath.Join(
 					home, consts.ConfigDirName.Rollapp, "init",
 					"sequencer-metadata.json",
