@@ -15,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/dymensionxyz/roller/utils/structs"
 )
 
 func Cmd() *cobra.Command {
@@ -90,9 +91,21 @@ func Cmd() *cobra.Command {
 				"retrieving existing metadata",
 			)
 
-			_, err = sequencer.GetMetadata(seqAddrInfo.Address, hd)
+			metadata, err := sequencer.GetMetadata(seqAddrInfo.Address, hd)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve metadata, ", err)
+				return
+			}
+
+			err = structs.ExportStructToFile(
+				metadata,
+				filepath.Join(
+					home, consts.ConfigDirName.Rollapp, "init",
+					"sequencer-metadata.json",
+				),
+			)
+			if err != nil {
+				pterm.Error.Println("failed to export metadata", err)
 				return
 			}
 
