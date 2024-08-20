@@ -2,10 +2,14 @@ package config
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"unicode"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
+	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
 var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
@@ -133,4 +137,132 @@ func IsValidTokenSymbol(s string) bool {
 		}
 	}
 	return true
+}
+
+func GetConfigurableRollappValues(home string) (map[string]string, error) {
+	dymintConfigPath := filepath.Join(
+		home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"dymint.toml",
+	)
+	appConfigPath := filepath.Join(
+		home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"app.toml",
+	)
+	// nice name, ik
+	configConfigPath := filepath.Join(
+		home,
+		consts.ConfigDirName.Rollapp,
+		"config",
+		"config.toml",
+	)
+
+	settlementNodeAddress, err := globalutils.GetKeyFromTomlFile(
+		dymintConfigPath,
+		"settlement_node_address",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current settlement node address", err)
+		return nil, err
+	}
+
+	rollappMinimumGasPrice, err := globalutils.GetKeyFromTomlFile(
+		appConfigPath,
+		"minimum-gas-prices",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current minimum gas price", err)
+		return nil, err
+	}
+
+	apiAddress, err := globalutils.GetKeyFromTomlFile(
+		appConfigPath,
+		"api.address",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current rest api addr", err)
+		return nil, err
+	}
+
+	jsonRpcAddress, err := globalutils.GetKeyFromTomlFile(
+		appConfigPath,
+		"json-rpc.address",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current settlement json-rpc addr", err)
+		return nil, err
+	}
+
+	wsAddress, err := globalutils.GetKeyFromTomlFile(
+		appConfigPath,
+		"json-rpc.ws-address",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current json-rpc addr ", err)
+		return nil, err
+	}
+
+	grpcAddress, err := globalutils.GetKeyFromTomlFile(
+		appConfigPath,
+		"grpc-web.address",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current grpc-web addr", err)
+		return nil, err
+	}
+
+	rpcAddr, err := globalutils.GetKeyFromTomlFile(
+		configConfigPath,
+		"rpc.laddr",
+	)
+	if err != nil {
+		pterm.Error.Println("failed to get the current rpc addr", err)
+		return nil, err
+	}
+
+	values := map[string]string{
+		"rollapp_minimum_gas_price": rollappMinimumGasPrice,
+		"rollapp_rpc_port":          rpcAddr,
+		"rollapp_grpc_port":         grpcAddress,
+		"rollapp_rest_api_port":     apiAddress,
+		"rollapp_json_rpc_port":     jsonRpcAddress,
+		"rollapp_ws_port":           wsAddress,
+		"settlement_node_address":   settlementNodeAddress,
+		"da_node_address":           "",
+	}
+
+	return values, nil
+}
+
+func TableDataFromMap(values map[string]string) ([][]string, error) {
+	tableData := [][]string{
+		{"Key", "Current Value"}, // Header row
+	}
+
+	for k, v := range values {
+		tableData = append(tableData, []string{k, v})
+	}
+
+	return tableData, nil
+}
+
+func ShowCurrentConfigurableValues(home string) error {
+	cv, err := GetConfigurableRollappValues(home)
+	if err != nil {
+		return err
+	}
+	td, err := TableDataFromMap(cv)
+	if err != nil {
+		return err
+	}
+	err = pterm.DefaultTable.WithHasHeader().WithData(td).Render()
+	if err != nil {
+		fmt.Printf("Error rendering table: %v\n", err)
+		return err
+	}
+
+	return nil
 }

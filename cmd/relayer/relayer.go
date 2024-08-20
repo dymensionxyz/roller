@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
+	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
 )
 
@@ -19,7 +20,13 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(run.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
-	cmd.AddCommand(services.Cmd(loadservices.RelayerCmd(), startservices.RelayerCmd()))
+	cmd.AddCommand(
+		services.Cmd(
+			loadservices.RelayerCmd(),
+			startservices.RelayerCmd(),
+			restartservices.RelayerCmd(),
+		),
+	)
 
 	return cmd
 }

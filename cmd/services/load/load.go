@@ -32,7 +32,7 @@ type ServiceTemplateData struct {
 func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "load",
-		Short: "Loads the different rollapp services on the local machine",
+		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
 				pterm.Error.Printf(
@@ -78,7 +78,7 @@ func RollappCmd() *cobra.Command {
 func RelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "load",
-		Short: "Loads the different rollapp services on the local machine",
+		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS != "linux" {
 				pterm.Error.Printf(
