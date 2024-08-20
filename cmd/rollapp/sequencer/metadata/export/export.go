@@ -41,6 +41,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			// redundant
 			hd, err := tomlconfig.LoadHubData(home)
 			if err != nil {
 				pterm.Error.Println("failed to load hub data from roller.toml")

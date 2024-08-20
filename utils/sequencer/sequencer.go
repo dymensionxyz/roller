@@ -43,7 +43,6 @@ func Register(raCfg config.RollappConfig) error {
 		return err
 	}
 
-	// TODO: handle raw_log
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
