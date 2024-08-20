@@ -123,3 +123,14 @@ func StartSystemdService(serviceName string) error {
 
 	return nil
 }
+
+func RestartSystemdService(serviceName string) error {
+	// not ideal, shouldn't run sudo commands from within roller
+	cmd := exec.Command("sudo", "systemctl", "restart", serviceName)
+	err := bash.ExecCmd(cmd)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

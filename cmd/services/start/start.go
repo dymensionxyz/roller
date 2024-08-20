@@ -14,7 +14,7 @@ import (
 func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Loads the different rollapp services on the local machine",
+		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			services := []string{"rollapp", "da-light-client"}
 			err := startSystemdServices(services)
@@ -37,7 +37,7 @@ func RollappCmd() *cobra.Command {
 func RelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Loads the different rollapp services on the local machine",
+		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			services := []string{"relayer"}
 			err := startSystemdServices(services)

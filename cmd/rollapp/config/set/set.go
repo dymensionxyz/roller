@@ -107,7 +107,7 @@ func Cmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s to restart the systemd services and apply the new values\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer run"),
+					Sprintf("roller rollapp services restart"),
 			)
 		},
 	}
