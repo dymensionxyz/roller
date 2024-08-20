@@ -42,34 +42,31 @@ type Info struct {
 
 type Metadata struct {
 	// moniker defines a human-readable name for the sequencer.
-	Moniker string `protobuf:"bytes,1,opt,name=moniker,proto3"                                                                    json:"moniker,omitempty"`
+	Moniker string `json:"moniker"`
 	// details define other optional details.
-	Details string `protobuf:"bytes,5,opt,name=details,proto3"                                                                    json:"details,omitempty"`
+	Details string `json:"details"`
 	// bootstrap nodes list
-	P2PSeeds []string `protobuf:"bytes,6,rep,name=p2p_seeds,json=p2pSeeds,proto3"                                                    json:"p2p_seeds,omitempty"`
+	P2PSeeds []string `json:"p2p_seeds"`
 	// RPCs list
-	Rpcs []string `protobuf:"bytes,7,rep,name=rpcs,proto3"                                                                       json:"rpcs,omitempty"`
+	Rpcs []string `json:"rpcs"`
 	// evm RPCs list
-	EvmRpcs []string `protobuf:"bytes,8,rep,name=evm_rpcs,json=evmRpcs,proto3"                                                      json:"evm_rpcs,omitempty"`
+	EvmRpcs []string `json:"evm_rpcs"`
 	// REST API URLs
-	RestApiUrls []string `protobuf:"bytes,9,rep,name=rest_api_urls,json=restApiUrls,proto3"                                             json:"rest_api_urls,omitempty"`
+	RestApiUrls []string `json:"rest_api_urls"`
 	// block explorer URL
-	ExplorerUrl string `protobuf:"bytes,10,opt,name=explorer_url,json=explorerUrl,proto3"                                             json:"explorer_url,omitempty"`
+	ExplorerUrl string `json:"explorer_url"`
 	// genesis URLs
-	GenesisUrls []string `protobuf:"bytes,11,rep,name=genesis_urls,json=genesisUrls,proto3"                                             json:"genesis_urls,omitempty"`
+	GenesisUrls []string `json:"genesis_urls"`
 	// contact details
 	// nolint:govet,staticcheck
-	ContactDetails *dymensionseqtypes.ContactDetails `protobuf:"bytes,12,opt,name=contact_details,
-json=contactDetails,
-proto3"                                       json:"contact_details,omitempty"`
+	ContactDetails *dymensionseqtypes.ContactDetails `json:"contact_details"`
 	// json dump the sequencer can add (limited by size)
-	ExtraData []byte `protobuf:"bytes,13,opt,name=extra_data,json=extraData,proto3"                                                 json:"extra_data,omitempty"`
+	ExtraData []byte `json:"extra_data"`
 	// snapshots of the sequencer
-	Snapshots []*SnapshotInfo `protobuf:"bytes,14,rep,name=snapshots,proto3"                                                                 json:"snapshots,omitempty"`
+	Snapshots []*SnapshotInfo `json:"snapshots"`
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
-	GasPrice *cosmossdkmath.Int `protobuf:"bytes,15,opt,name=gas_price,json=gasPrice,proto3,
-customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"gas_price,omitempty"`
+	GasPrice *cosmossdkmath.Int `json:"gas_price"`
 }
 
 type SnapshotInfo struct {
