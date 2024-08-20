@@ -83,7 +83,7 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 	}
 	cmd := s.Services[name].Command
 	if cmd == nil {
-		s.Logger.Printf("service %s does not need to run seperatly", name)
+		s.Logger.Printf("service %s does not need to run separately", name)
 		return
 	}
 

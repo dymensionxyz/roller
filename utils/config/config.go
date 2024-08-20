@@ -82,7 +82,7 @@ func VerifyHubData(data consts.HubData) error {
 	}
 
 	if data.RPC_URL == "" {
-		return fmt.Errorf("invalid RPC endoint: %s. RPC URL cannot be empty", data.ID)
+		return fmt.Errorf("invalid RPC endpoint: %s. RPC URL cannot be empty", data.ID)
 	}
 	return nil
 }
