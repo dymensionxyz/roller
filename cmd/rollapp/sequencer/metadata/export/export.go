@@ -110,7 +110,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Printf("metadata successfully exported to %s", metadataFilePath)
+			pterm.Info.Printf("metadata successfully exported to %s\n", metadataFilePath)
 			pterm.Info.Println("next steps:")
 			pterm.Info.Println("update the metadata file")
 			pterm.Info.Printf(
