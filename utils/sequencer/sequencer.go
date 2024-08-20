@@ -211,13 +211,6 @@ func GetMetadata(
 		return nil, err
 	}
 
-	j, err := json.MarshalIndent(seqinfo.Sequencer.Metadata, "", "  ")
-	if err != nil {
-		fmt.Println("failed to marshal metadata")
-		return nil, err
-	}
-
-	fmt.Println(string(j))
 	return &seqinfo.Sequencer.Metadata, nil
 }
 
