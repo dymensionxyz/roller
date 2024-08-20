@@ -43,7 +43,6 @@ func Register(raCfg config.RollappConfig) error {
 		return err
 	}
 
-	// TODO: handle raw_log
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -174,7 +173,7 @@ func GetRegisteredSequencers(
 	raID string, hd consts.HubData,
 ) (*Sequencers, error) {
 	var seq Sequencers
-	cmd := GetShowSequencerByRollappCmd(raID, hd)
+	cmd := getShowSequencerByRollappCmd(raID, hd)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -189,7 +188,32 @@ func GetRegisteredSequencers(
 	return &seq, nil
 }
 
-func GetShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
+func GetMetadata(
+	addr string,
+	hd consts.HubData,
+) (*Metadata, error) {
+	var seqinfo ShowSequencerResponse
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "show-sequencer", addr,
+		"--node", hd.RPC_URL, "-o", "json",
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &seqinfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &seqinfo.Sequencer.Metadata, nil
+}
+
+func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
