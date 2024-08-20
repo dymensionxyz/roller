@@ -61,8 +61,6 @@ func ExportStructToFile(data sequencerutils.Metadata, filename string) error {
 		return fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	fmt.Println(string(jsonData))
-
 	// Write to file
 	err = os.WriteFile(filename, jsonData, 0o644)
 	if err != nil {

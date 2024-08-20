@@ -97,19 +97,27 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			metadataFilePath := filepath.Join(
+				home, consts.ConfigDirName.Rollapp, "init",
+				"sequencer-metadata.json",
+			)
 			err = structs.ExportStructToFile(
 				*metadata,
-				filepath.Join(
-					home, consts.ConfigDirName.Rollapp, "init",
-					"sequencer-metadata.json",
-				),
+				metadataFilePath,
 			)
 			if err != nil {
 				pterm.Error.Println("failed to export metadata", err)
 				return
 			}
 
-			pterm.Info.Println("ok")
+			pterm.Info.Printf("metadata successfully exported to %s", metadataFilePath)
+			pterm.Info.Println("next steps:")
+			pterm.Info.Println("update the metadata file")
+			pterm.Info.Printf(
+				"run %s to submit a transaction to update the sequencer metadata\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp sequencer metadata update"),
+			)
 		},
 	}
 
