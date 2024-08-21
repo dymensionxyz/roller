@@ -2,6 +2,7 @@ package initconfig
 
 import (
 	"encoding/json"
+	"errors"
 	"os/exec"
 	"path/filepath"
 
@@ -58,11 +59,20 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 
 		// TODO: refactor
 		var need genesisutils.AppState
-		j, _ := genesisDoc.AppState.MarshalJSON()
+		j, err := genesisDoc.AppState.MarshalJSON()
+		if err != nil {
+			return err
+		}
+
 		err = json.Unmarshal(j, &need)
 		if err != nil {
 			return err
 		}
+
+		if len(need.Bank.Supply) == 0 {
+			return errors.New("token supply is not defined in the genesis file")
+		}
+
 		rollappBaseDenom := need.Bank.Supply[0].Denom
 		rollappDenom := rollappBaseDenom[1:]
 
