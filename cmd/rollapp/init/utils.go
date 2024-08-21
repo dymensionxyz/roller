@@ -208,12 +208,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				latestBlockIdHash,
 			)
 
-			celestiaConfigFilePath := filepath.Join(
-				home,
-				consts.ConfigDirName.DALightNode,
-				"config.toml",
-			)
-
 			err = UpdateCelestiaConfig(celestiaConfigFilePath, latestBlockIdHash, heightInt)
 			if err != nil {
 				return err
@@ -299,10 +293,14 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		daSpinner.Success("successfully initialized da light client")
 	}
 	/* --------------------------- Initialize Rollapp -------------------------- */
-	raSpinner, _ := pterm.DefaultSpinner.Start("initializing rollapp client")
+	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
+	if err != nil {
+		return err
+	}
 
 	err = initconfig.InitializeRollappConfig(&initConfig, hd)
 	if err != nil {
+		raSpinner.Fail("failed to initialize rollapp client")
 		return err
 	}
 
@@ -321,6 +319,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	// adds the sequencer address to the whitelists
 	err = initconfig.UpdateGenesisParams(home, &initConfig)
 	if err != nil {
+		pterm.Error.Println("failed to update genesis")
 		return err
 	}
 
