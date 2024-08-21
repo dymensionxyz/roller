@@ -35,11 +35,13 @@ type Denom struct {
 
 func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 	pterm.Info.Println("downloading genesis file")
+
 	genesisPath := GetGenesisFilePath(home)
 	genesisUrl := rollappConfig.GenesisUrl
 	if genesisUrl == "" {
 		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
+
 	err := globalutils.DownloadFile(genesisUrl, genesisPath)
 	if err != nil {
 		return err
