@@ -62,6 +62,7 @@ func Cmd() *cobra.Command {
 				"1.3",
 				"--keyring-dir",
 				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
 			)
 
 			txHash, err := bash.ExecCommandWithInput(updateSeqCmd)
