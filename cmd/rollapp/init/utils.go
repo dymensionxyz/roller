@@ -317,10 +317,12 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	// }
 
 	// adds the sequencer address to the whitelists
-	err = initconfig.UpdateGenesisParams(home, &initConfig)
-	if err != nil {
-		pterm.Error.Println("failed to update genesis")
-		return err
+	if env == "mock" {
+		err = initconfig.UpdateGenesisParams(home, &initConfig)
+		if err != nil {
+			pterm.Error.Println("failed to update genesis")
+			return err
+		}
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */

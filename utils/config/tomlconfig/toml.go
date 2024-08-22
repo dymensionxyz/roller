@@ -69,7 +69,7 @@ func LoadRollappMetadataFromChain(
 	if hd.ID == "mock" {
 		cfg = config.RollappConfig{
 			Home:             home,
-			RollappID:        "mock_1000-1",
+			RollappID:        raID,
 			GenesisHash:      "",
 			GenesisUrl:       "",
 			RollappBinary:    consts.Executables.RollappEVM,

@@ -79,6 +79,8 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	seq := sequencer.GetInstance(rlpCfg)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+	fmt.Printf("💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+		Sprintf(rlpCfg.RollappID))
 	fmt.Println("💈 Endpoints:")
 
 	fmt.Printf("💈 EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
