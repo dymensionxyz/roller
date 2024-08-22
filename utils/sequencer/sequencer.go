@@ -2,7 +2,6 @@ package sequencer
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -21,7 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
-func Register(raCfg config.RollappConfig) error {
+func Register(raCfg config.RollappConfig, desiredBond string) error {
 	seqPubKey, err := utils.GetSequencerPubKey(raCfg)
 	if err != nil {
 		return err
@@ -38,11 +37,6 @@ func Register(raCfg config.RollappConfig) error {
 		return err
 	}
 
-	seqMinBond, err := GetMinSequencerBond()
-	if err != nil {
-		return err
-	}
-
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -51,7 +45,7 @@ func Register(raCfg config.RollappConfig) error {
 		seqPubKey,
 		raCfg.RollappID,
 		seqMetadataPath,
-		fmt.Sprintf("%s%s", seqMinBond.Amount.String(), seqMinBond.Denom),
+		desiredBond,
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
 		"--fees", "1dym",
@@ -96,11 +90,11 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	return true, err
 }
 
-func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
+func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json",
+		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)

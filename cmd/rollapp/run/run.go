@@ -147,7 +147,7 @@ func Cmd() *cobra.Command {
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencerutils.GetMinSequencerBond()
+					minBond, _ := sequencerutils.GetMinSequencerBond(hd)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 
@@ -248,7 +248,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					err = sequencerutils.Register(*rollappConfig)
+					err = sequencerutils.Register(*rollappConfig, desiredBond.String())
 					if err != nil {
 						pterm.Error.Println("failed to register sequencer: ", err)
 						return
