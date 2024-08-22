@@ -147,7 +147,11 @@ func Cmd() *cobra.Command {
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencerutils.GetMinSequencerBond(hd)
+					minBond, err := sequencerutils.GetMinSequencerBond(hd)
+					if err != nil {
+						pterm.Error.Println("failed to retrieve min bond for sequencer: ", err)
+						return
+					}
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 
