@@ -39,10 +39,10 @@ func getDefaultGenesisParams(
 		{"app_state.bank.denom_metadata", getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals)},
 
 		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
-		{
-			"app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
-			map[string]string{"address": sequencerAddr},
-		},
+		// {
+		// 	"app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
+		// 	map[string]string{"address": sequencerAddr},
+		// },
 		{"app_state.denommetadata.params.allowed_addresses.0", sequencerAddr},
 	}
 }
@@ -79,10 +79,11 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 		return err
 	}
 	params := getDefaultGenesisParams(sa, oa, raCfg)
-
-	// TODO: move to generalized helper
-	amount := fmt.Sprintf("%s%s", consts.DefaultTokenSupply, raCfg.BaseDenom)
-	addGenAccountCmd := GetAddGenesisAccountCmd(consts.KeysIds.RollappSequencer, amount, raCfg)
+	addGenAccountCmd := GetAddGenesisAccountCmd(
+		consts.KeysIds.RollappSequencer,
+		consts.DefaultTokenSupply,
+		raCfg,
+	)
 
 	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
