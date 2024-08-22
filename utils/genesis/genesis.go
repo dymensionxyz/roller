@@ -87,7 +87,7 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 	getRollappCmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL,
+		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(getRollappCmd)

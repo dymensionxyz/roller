@@ -497,6 +497,7 @@ func Cmd() *cobra.Command {
 					"1",
 					"--node",
 					hd.RPC_URL,
+					"--chain-id", hd.ID,
 				)
 
 				out, err := bash.ExecCommandWithStdout(cmd)

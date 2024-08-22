@@ -224,6 +224,8 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				"1",
 				"--node",
 				hd.RPC_URL,
+				"--chain-id",
+				hd.ID,
 			)
 
 			out, err := bash.ExecCommandWithStdout(cmd)

@@ -52,6 +52,7 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
 	txHash, err := bash.ExecCommandWithInput(cmd)
@@ -94,7 +95,7 @@ func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL,
+		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -192,7 +193,7 @@ func GetMetadata(
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencer", addr,
-		"--node", hd.RPC_URL, "-o", "json",
+		"--node", hd.RPC_URL, "-o", "json", "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -212,6 +213,6 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
-		raID, "-o", "json", "--node", hd.RPC_URL,
+		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 }
