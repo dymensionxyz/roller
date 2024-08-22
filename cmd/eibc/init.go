@@ -154,6 +154,16 @@ func initCmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("eibc config updated successfully")
+			pterm.Info.Printf("eibc client initialized successfully at %s\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf(eibcHome),
+			)
+			pterm.Info.Println("next steps:")
+			pterm.Info.Printf(
+				"run %s to start the eibc client in interactive mode\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller eibc start"),
+			)
 		},
 	}
 	return cmd
