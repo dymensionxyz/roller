@@ -23,6 +23,8 @@ const (
 
 var LCEndpoint = ""
 
+var LogFilePath = ""
+
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "start",
@@ -65,7 +67,7 @@ func Cmd() *cobra.Command {
 				)
 			}
 
-			logFilePath := utils.GetDALogFilePath(rollappConfig.Home)
+			LogFilePath = utils.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
 
@@ -76,7 +78,7 @@ func Cmd() *cobra.Command {
 				startDALCCmd,
 				printOutput,
 				parseError,
-				utils.WithLogging(logFilePath),
+				utils.WithLogging(LogFilePath),
 			)
 			select {}
 		},
@@ -95,7 +97,8 @@ func addFlags(cmd *cobra.Command) {
 
 func printOutput() {
 	fmt.Println("💈 The data availability light node is running on your local machine!")
-	fmt.Printf("💈 Light node endpoint: %s", LCEndpoint)
+	fmt.Printf("💈 Light node endpoint: %s\n", LCEndpoint)
+	fmt.Printf("💈 Log file path: %s\n", LogFilePath)
 }
 
 func parseError(errMsg string) string {
