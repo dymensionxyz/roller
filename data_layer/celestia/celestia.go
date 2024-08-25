@@ -188,7 +188,7 @@ func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
 		celAddress.Address,
 		"--node",
 		DefaultCelestiaRPC,
-		"chain-id",
+		"--chain-id",
 		DefaultCelestiaNetwork,
 		"-o", "json",
 	)
