@@ -158,4 +158,5 @@ func parseError(errMsg string) string {
 func printDALightClientOutput() {
 	fmt.Println("💈 The data availability light node is running on your local machine!")
 	fmt.Printf("💈 Light node endpoint: %s", LCEndpoint)
+	fmt.Println("💈 Log file path: ", LogPath)
 }
