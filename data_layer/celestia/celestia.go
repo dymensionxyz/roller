@@ -2,6 +2,7 @@ package celestia
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -173,20 +174,35 @@ func extractMnemonic(output string) string {
 	return strings.Join(mnemonicLines, " ")
 }
 
-func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error) {
+func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
 	celAddress, err := c.GetDAAccountAddress()
 	if err != nil {
 		return nil, err
 	}
-	restQueryUrl := fmt.Sprintf(
-		"%s/cosmos/bank/v1beta1/balances/%s",
-		DefaultCelestiaRestApiEndpoint, celAddress.Address,
+
+	cmd := exec.Command(
+		consts.Executables.CelestiaApp,
+		"q",
+		"bank",
+		"balances",
+		celAddress.Address,
+		"--node",
+		DefaultCelestiaRPC,
+		"chain-id",
+		DefaultCelestiaNetwork,
+		"-o", "json",
 	)
-	balancesJson, err := utils.RestQueryJson(restQueryUrl)
+
+	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
-	balance, err := utils.ParseBalanceFromResponse(*balancesJson, consts.Denoms.Celestia)
+	b := bytes.NewBuffer(output.Bytes())
+
+	balance, err := utils.ParseBalanceFromResponse(
+		*b,
+		consts.Denoms.Celestia,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +213,7 @@ func (c *Celestia) getDAAccData(config.RollappConfig) (*utils.AccountData, error
 }
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
-	celAddress, err := c.getDAAccData(cfg)
+	celAddress, err := c.getDAAccData()
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +236,7 @@ func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
-	accData, err := c.getDAAccData(config.RollappConfig{})
+	accData, err := c.getDAAccData()
 	if err != nil {
 		return nil, err
 	}
