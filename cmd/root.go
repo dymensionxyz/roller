@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
@@ -30,7 +31,7 @@ func Execute() {
 func init() {
 	// rootCmd.AddCommand(config.Cmd())
 	// rootCmd.AddCommand(version.Cmd())
-	// rootCmd.AddCommand(da_light_client.DALightClientCmd())
+	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
 	// rootCmd.AddCommand(keys.Cmd())
 	// rootCmd.AddCommand(run.Cmd())
