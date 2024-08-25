@@ -28,7 +28,7 @@ const (
 
 	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
 	DefaultCelestiaStateNode = "full.consensus.mocha-4.celestia-mocha.com"
-	DefaultCelestiaNetwork   = "mocha"
+	DefaultCelestiaNetwork   = "mocha-4"
 )
 
 var lcMinBalance = big.NewInt(1)
