@@ -193,8 +193,6 @@ func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
 		"-o", "json",
 	)
 
-	fmt.Println(cmd.String())
-
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err

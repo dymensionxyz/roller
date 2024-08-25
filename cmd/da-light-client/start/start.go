@@ -58,7 +58,6 @@ func Cmd() *cobra.Command {
 			}
 
 			startDALCCmd := damanager.GetStartDACmd()
-			fmt.Println(startDALCCmd.String())
 			if startDALCCmd == nil {
 				errorhandling.PrettifyErrorIfExists(
 					errors.New(
