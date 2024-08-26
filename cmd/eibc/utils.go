@@ -49,9 +49,16 @@ func createMongoDbContainer() error {
 		return err
 	}
 
-	err = utils.CheckAndCreateMongoDBContainer(
+	cfg := utils.ContainerConfigOptions{
+		Name:  "eibc-mongodb",
+		Image: "mongo:7.0",
+		Port:  "27017",
+	}
+
+	err = utils.CreateContainer(
 		context.Background(),
 		cc,
+		&cfg,
 	)
 	if err != nil {
 		fmt.Printf("failed to run mongodb container: %v\n", err)
