@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	termui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -31,7 +31,7 @@ func NewServicesInfoTable(rollappConfig config.RollappConfig, termWidth int) *wi
 		{"Relayer", utils.GetRelayerLogPath(rollappConfig), ""},
 	}
 
-	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 	lcEndPoint := damanager.GetLightNodeEndpoint()
 	if lcEndPoint != "" {
 		parts := strings.Split(lcEndPoint, ":")

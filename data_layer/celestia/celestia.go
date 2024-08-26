@@ -19,16 +19,7 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-)
-
-// TODO: test how much is enough to run the LC for one day and set the minimum balance accordingly.
-const (
-	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
-	DefaultCelestiaRPC             = "http://mocha-4-consensus.mesa.newmetric.xyz:26657"
-
-	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
-	DefaultCelestiaStateNode = "rpc-mocha.pops.one"
-	DefaultCelestiaNetwork   = "mocha-4"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 var lcMinBalance = big.NewInt(1)
@@ -132,11 +123,15 @@ func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 }
 
 func (c *Celestia) InitializeLightNodeConfig() (string, error) {
-	// c.Root should be the directory of the da, not the roller.
+	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	if err != nil {
+		return "", err
+	}
+
 	initLightNodeCmd := exec.Command(
 		consts.Executables.Celestia, "light", "init",
 		"--p2p.network",
-		DefaultCelestiaNetwork,
+		raCfg.DA.ID,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
 	// err := initLightNodeCmd.Run()
@@ -174,8 +169,14 @@ func extractMnemonic(output string) string {
 	return strings.Join(mnemonicLines, " ")
 }
 
-func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
+func (c *Celestia) getDAAccData(home string) (*utils.AccountData, error) {
 	celAddress, err := c.GetDAAccountAddress()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: refactor to support multiple DA chains
+	raCfg, err := tomlconfig.LoadRollerConfig(home)
 	if err != nil {
 		return nil, err
 	}
@@ -187,9 +188,9 @@ func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
 		"balances",
 		celAddress.Address,
 		"--node",
-		DefaultCelestiaRPC,
+		raCfg.DA.RpcUrl,
 		"--chain-id",
-		DefaultCelestiaNetwork,
+		raCfg.DA.ID,
 		"-o", "json",
 	)
 
@@ -213,7 +214,7 @@ func (c *Celestia) getDAAccData() (*utils.AccountData, error) {
 }
 
 func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
-	celAddress, err := c.getDAAccData()
+	celAddress, err := c.getDAAccData(c.Root)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +237,12 @@ func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
 }
 
 func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
-	accData, err := c.getDAAccData()
+	accData, err := c.getDAAccData(c.Root)
+	if err != nil {
+		return nil, err
+	}
+
+	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +256,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 				RequiredBalance: lcMinBalance,
 				KeyName:         c.GetKeyName(),
 				Denom:           consts.Denoms.Celestia,
-				Network:         DefaultCelestiaNetwork,
+				Network:         raCfg.DA.ID,
 			},
 		)
 	}
@@ -259,13 +265,18 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 }
 
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
+	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	if err != nil {
+		return nil
+	}
+
 	args := []string{
 		"light", "start",
-		"--core.ip", c.rpcEndpoint,
+		"--core.ip", raCfg.DA.StateNode,
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		// "--gateway.deprecated-endpoints",
-		"--p2p.network", DefaultCelestiaNetwork,
+		"--p2p.network", raCfg.DA.ID,
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
@@ -282,21 +293,21 @@ func (c *Celestia) SetRPCEndpoint(rpc string) {
 }
 
 func (c *Celestia) GetNetworkName() string {
-	return DefaultCelestiaNetwork
+	return consts.DefaultCelestiaNetwork
 }
 
 func (c *Celestia) GetNamespaceID() string {
 	return c.NamespaceID
 }
 
-func (c *Celestia) getAuthToken(t string) (string, error) {
+func (c *Celestia) getAuthToken(t string, raCfg config.RollappConfig) (string, error) {
 	getAuthTokenCmd := exec.Command(
 		consts.Executables.Celestia,
 		"light",
 		"auth",
 		t,
 		"--p2p.network",
-		DefaultCelestiaNetwork,
+		raCfg.DA.ID,
 		"--node.store",
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
@@ -316,10 +327,15 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	var authToken string
 	var err error
 
+	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	if err != nil {
+		return ""
+	}
+
 	if nt == consts.NodeType.Sequencer {
-		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin)
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin, raCfg)
 	} else if nt == consts.NodeType.FullNode {
-		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read)
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read, raCfg)
 	} else {
 		// TODO: don't panic,return an err
 		err := errors.New("invalid node type")

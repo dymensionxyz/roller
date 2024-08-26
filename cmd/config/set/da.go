@@ -10,23 +10,23 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
-func setDA(rlpCfg config2.RollappConfig, value string) error {
+func setDA(rlpCfg configutils.RollappConfig, value string) error {
 	daValue := consts.DAType(value)
-	if daValue == rlpCfg.DA {
+	if daValue == rlpCfg.DA.Backend {
 		return nil
 	}
 
-	if !config2.IsValidDAType(value) {
-		return fmt.Errorf("invalid DA type. Supported types are: %v", config2.SupportedDas)
+	if !configutils.IsValidDAType(value) {
+		return fmt.Errorf("invalid DA type. Supported types are: %v", configutils.SupportedDas)
 	}
 	return updateDaConfig(rlpCfg, daValue)
 }
 
-func updateDaConfig(rlpCfg config2.RollappConfig, newDa consts.DAType) error {
+func updateDaConfig(rlpCfg configutils.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
 	dirExist, err := globalutils.DirNotEmpty(daCfgDirPath)
 	if err != nil {
@@ -50,7 +50,7 @@ func updateDaConfig(rlpCfg config2.RollappConfig, newDa consts.DAType) error {
 		return err
 	}
 
-	rlpCfg.DA = newDa
+	rlpCfg.DA.Backend = newDa
 	if err := sequencer.UpdateDymintDAConfig(rlpCfg); err != nil {
 		return err
 	}

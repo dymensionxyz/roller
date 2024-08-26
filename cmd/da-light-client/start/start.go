@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -38,21 +37,18 @@ func Cmd() *cobra.Command {
 			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
-			if metricsEndpoint != "" && rollappConfig.DA != consts.Celestia {
+			if metricsEndpoint != "" && rollappConfig.DA.Backend != consts.Celestia {
 				errorhandling.PrettifyErrorIfExists(
 					errors.New("metrics endpoint can only be set for celestia"),
 				)
 			}
-			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 
 			insufficientBalances, err := damanager.CheckDABalance()
 			errorhandling.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
-			rpcEndpoint := cmd.Flag(rpcEndpointFlag).Value.String()
-			if rpcEndpoint != "" {
-				damanager.SetRPCEndpoint(rpcEndpoint)
-			}
+			damanager.SetRPCEndpoint(rollappConfig.DA.StateNode)
 			if metricsEndpoint != "" {
 				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
@@ -89,7 +85,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", celestia.DefaultCelestiaStateNode, "The DA rpc endpoint to connect to.")
+		StringP(rpcEndpointFlag, "", consts.DefaultCelestiaStateNode, "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

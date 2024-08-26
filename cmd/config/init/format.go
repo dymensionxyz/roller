@@ -16,7 +16,7 @@ func formatAddresses(
 	rollappConfig config.RollappConfig,
 	addresses []utils.KeyInfo,
 ) []utils.KeyInfo {
-	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 	requireFundingKeys := map[string]string{
 		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", rollappConfig.HubData.ID),
 		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", rollappConfig.HubData.ID),

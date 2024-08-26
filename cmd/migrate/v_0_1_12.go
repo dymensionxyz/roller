@@ -20,17 +20,17 @@ func (v *VersionMigratorV0112) ShouldMigrate(prevVersion VersionData) bool {
 
 func (v *VersionMigratorV0112) PerformMigration(rlpCfg config2.RollappConfig) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	if rlpCfg.DA == "mock" {
-		rlpCfg.DA = consts.Local
+	if rlpCfg.DA.Backend == "mock" {
+		rlpCfg.DA.Backend = consts.Local
 		return tomlconfig.Write(rlpCfg)
 	}
-	if rlpCfg.DA == consts.Avail {
+	if rlpCfg.DA.Backend == consts.Avail {
 		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
 		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
 			return err
 		}
 	}
-	da := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	da := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home)
 	sequencerDaConfig := da.GetSequencerDAConfig(consts.NodeType.Sequencer)
 	if sequencerDaConfig == "" {
 		return nil

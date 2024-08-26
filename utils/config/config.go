@@ -24,9 +24,9 @@ type RollappConfig struct {
 	Denom         string        `toml:"denom"`
 	// TokenSupply   string
 	Decimals      uint
-	HubData       consts.HubData
-	DA            consts.DAType
-	RollerVersion string `toml:"roller_version"`
+	HubData       consts.HubData `toml:"HubData"`
+	DA            consts.DaData  `toml:"DA"`
+	RollerVersion string         `toml:"roller_version"`
 
 	// new roller.toml
 	Environment string `toml:"environment"`
@@ -49,7 +49,8 @@ func (c RollappConfig) Validate() error {
 	// 	return err
 	// }
 
-	if !IsValidDAType(string(c.DA)) {
+	if !IsValidDAType(string(c.DA.Backend)) {
+		fmt.Println(c.DA.Backend)
 		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
 	}
 
