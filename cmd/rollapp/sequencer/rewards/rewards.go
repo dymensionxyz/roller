@@ -81,6 +81,8 @@ func Cmd() *cobra.Command {
                 rollerCfg.RollappID,
             )
 
+            fmt.Println(updSeqCmd.String())
+
             txHash, err := bash.ExecCommandWithInput(updSeqCmd)
             if err != nil {
                 pterm.Error.Println("failed to update sequencer: ", err)
