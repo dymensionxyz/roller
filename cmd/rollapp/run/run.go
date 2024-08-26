@@ -20,7 +20,7 @@ import (
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -663,6 +663,7 @@ func Cmd() *cobra.Command {
 			)
 
 			pterm.Info.Println("initialization complete")
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"%s:run %s load the necessary systemd services\n",
