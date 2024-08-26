@@ -20,7 +20,7 @@ import (
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -665,9 +665,19 @@ func Cmd() *cobra.Command {
 			pterm.Info.Println("initialization complete")
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s load the necessary systemd services\n",
+				"%s:run %s load the necessary systemd services\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Linux"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller rollapp services load"),
+			)
+
+			pterm.Info.Printf(
+				"%s:run %s to start the rollapp processes interactively\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Other OSs"),
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp start"),
 			)
 		},
 	}
