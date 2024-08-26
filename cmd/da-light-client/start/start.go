@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -30,6 +31,7 @@ func Cmd() *cobra.Command {
 		Short: "Runs the DA light client.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			pterm.Info.Println("loading roller config file")
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -44,6 +46,7 @@ func Cmd() *cobra.Command {
 			}
 			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 
+			pterm.Info.Println("checking for da address balance")
 			insufficientBalances, err := damanager.CheckDABalance()
 			errorhandling.PrettifyErrorIfExists(err)
 			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
