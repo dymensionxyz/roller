@@ -79,6 +79,7 @@ func Cmd() *cobra.Command {
                 "tx", "sequencer", "update-sequencer",
                 address, "--keyring-backend", "test", "--node", "http://localhost:26657", "--chain-id",
                 rollerCfg.RollappID,
+                "--from", "rollapp",
             )
 
             fmt.Println(updSeqCmd.String())
