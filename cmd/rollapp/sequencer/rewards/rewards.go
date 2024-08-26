@@ -77,8 +77,8 @@ func Cmd() *cobra.Command {
             updSeqCmd := exec.Command(
                 consts.Executables.RollappEVM,
                 "tx", "sequencer", "update-sequencer",
-                address, "--keyring-backend", "test", "--node", "http://localhost:26657", "--chain-id",
-                rollerCfg.RollappID,
+                address, "--keyring-backend", "test", "--node", "http://localhost:26657",
+                "--chain-id", rollerCfg.RollappID,
                 "--from", "rollapp",
                 "--gas-prices", "100000000000aRUN",
             )
