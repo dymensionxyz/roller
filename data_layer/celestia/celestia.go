@@ -27,7 +27,7 @@ const (
 	DefaultCelestiaRPC             = "http://mocha-4-consensus.mesa.newmetric.xyz:26657"
 
 	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
-	DefaultCelestiaStateNode = "full.consensus.mocha-4.celestia-mocha.com"
+	DefaultCelestiaStateNode = "rpc-mocha.pops.one"
 	DefaultCelestiaNetwork   = "mocha-4"
 )
 
