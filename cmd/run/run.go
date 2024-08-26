@@ -12,7 +12,6 @@ import (
 	rollapprun "github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -106,8 +105,8 @@ func runDaWithRestarts(
 	rollappConfig config.RollappConfig,
 	serviceConfig *servicemanager.ServiceConfig,
 ) {
-	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
-	damanager.SetRPCEndpoint(celestia.DefaultCelestiaRPC)
+	damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
+	damanager.SetRPCEndpoint(rollappConfig.DA.RpcUrl)
 	daLogFilePath := utils.GetDALogFilePath(rollappConfig.Home)
 	service := servicemanager.Service{
 		Command:  damanager.GetStartDACmd(),
@@ -139,7 +138,7 @@ func runSequencerWithRestarts(
 }
 
 func verifyBalances(rollappConfig config.RollappConfig) {
-	damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+	damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 	insufficientBalances, err := damanager.CheckDABalance()
 	errorhandling.PrettifyErrorIfExists(err)
 

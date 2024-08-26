@@ -11,17 +11,17 @@ import (
 	"strconv"
 	"strings"
 
-	toml "github.com/pelletier/go-toml/v2"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
-	"github.com/dymensionxyz/roller/data_layer/celestia"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -113,6 +113,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	hd := consts.Hubs[env]
+	mochaData := consts.DaNetworks[consts.DefaultCelestiaNetwork]
 	rollerTomlData := map[string]string{
 		"rollapp_id":     raID,
 		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
@@ -124,8 +125,12 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
 		"HubData.gas_price":       hd.GAS_PRICE,
 
-		// TODO: create a separate config section for DA, similar to HubData
-		"da": string(consts.Celestia),
+		"DA.backend":    string(mochaData.Backend),
+		"DA.id":         mochaData.ID,
+		"DA.api_url":    mochaData.ApiUrl,
+		"DA.rpc_url":    mochaData.RpcUrl,
+		"DA.state_node": mochaData.StateNode,
+		"DA.gas_price":  "0.02",
 	}
 
 	for key, value := range rollerTomlData {
@@ -152,15 +157,11 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	initConfig := *initConfigPtr
 
 	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
-	// daSpinner.Start(consts.SpinnerMsgs.UniqueIdVerification)
 	err = initConfig.Validate()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
-
-	// TODO: create all dirs here
-	// nolint:errcheck
 
 	/* ------------------------------ Generate keys ----------------------------- */
 	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
@@ -173,7 +174,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	if env != "mock" {
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 
-		damanager := datalayer.NewDAManager(initConfig.DA, initConfig.Home)
+		damanager := datalayer.NewDAManager(initConfig.DA.Backend, initConfig.Home)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return err
@@ -184,7 +185,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 
-		latestHeight, latestBlockIdHash, err := GetLatestDABlock()
+		latestHeight, latestBlockIdHash, err := GetLatestDABlock(initConfig)
 		if err != nil {
 			return err
 		}
@@ -257,7 +258,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 					return err
 				}
 
-				height, hash, err := GetDABlockByHeight(h)
+				height, hash, err := GetDABlockByHeight(h, initConfig)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve DA height: ", err)
 					return err
@@ -403,10 +404,10 @@ func UpdateCelestiaConfig(file, hash string, height int) error {
 // It executes the CelestiaApp command "q block --node" to retrieve the block data.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func GetLatestDABlock() (string, string, error) {
+func GetLatestDABlock(raCfg config.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
-		"q", "block", "--node", celestia.DefaultCelestiaRPC,
+		"q", "block", "--node", raCfg.DA.RpcUrl, "--chain-id", raCfg.DA.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -450,10 +451,10 @@ func GetLatestDABlock() (string, string, error) {
 // where <height> is the input parameter.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func GetDABlockByHeight(h string) (string, string, error) {
+func GetDABlockByHeight(h string, raCfg config.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
-		"q", "block", h, "--node", celestia.DefaultCelestiaRPC,
+		"q", "block", h, "--node", raCfg.DA.RpcUrl, "--chain-id", raCfg.DA.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)

@@ -82,7 +82,7 @@ func GetInitConfig(
 
 	// token supply is provided in the pre-created genesis
 	// cfg.TokenSupply = initCmd.Flag(FlagNames.TokenSupply).Value.String()
-	cfg.DA = consts.DAType(strings.ToLower(string(cfg.DA)))
+	cfg.DA.Backend = consts.DAType(strings.ToLower(string(cfg.DA.Backend)))
 
 	var hubID string
 

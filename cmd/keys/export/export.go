@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 				consts.KeysIds.HubSequencer,
 				consts.KeysIds.RollappSequencer,
 			}
-			damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+			damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home)
 			if damanager.GetKeyName() != "" {
 				supportedKeys = append(supportedKeys, damanager.GetKeyName())
 			}
@@ -52,9 +52,9 @@ func Cmd() *cobra.Command {
 			} else if keyID != "" && keyID == damanager.GetKeyName() {
 				privateKey, err := damanager.GetPrivateKey()
 				errorhandling.PrettifyErrorIfExists(err)
-				if rlpCfg.DA == consts.Celestia {
+				if rlpCfg.DA.Backend == consts.Celestia {
 					printHexKeyOutput(privateKey)
-				} else if rlpCfg.DA == consts.Avail {
+				} else if rlpCfg.DA.Backend == consts.Avail {
 					printMnemonicKeyOutput(privateKey)
 				}
 			} else {

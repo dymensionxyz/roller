@@ -20,7 +20,7 @@ import (
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -433,7 +433,7 @@ func Cmd() *cobra.Command {
 
 			// DA
 			oh := initconfig.NewOutputHandler(false)
-			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,
@@ -508,7 +508,7 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 
-						height, blockIdHash, err := initrollapp.GetLatestDABlock()
+						height, blockIdHash, err := initrollapp.GetLatestDABlock(rollerData)
 						if err != nil {
 							return
 						}
@@ -558,7 +558,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					height, hash, err := initrollapp.GetDABlockByHeight(h)
+					height, hash, err := initrollapp.GetDABlockByHeight(h, rollerData)
 					if err != nil {
 						pterm.Error.Println("failed to retrieve block: ", err)
 						return
@@ -649,7 +649,7 @@ func Cmd() *cobra.Command {
 			_ = globalutils.UpdateFieldInToml(
 				dymintConfigPath,
 				"da_layer",
-				string(rollappConfig.DA),
+				string(rollappConfig.DA.Backend),
 			)
 			_ = globalutils.UpdateFieldInToml(
 				dymintConfigPath,
