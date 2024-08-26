@@ -1,7 +1,6 @@
 package relayer
 
 import (
-	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -23,32 +22,32 @@ func (r *Relayer) CreateIBCChannel(
 	logFileOption bash.CommandOption,
 	seq *sequencer.Sequencer,
 ) (ConnectionChannels, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
 
 	// Run send funds command from sequencer to itself to make sure the chain is
 	// progressing for connection and channel creation.
 	// replaced update clients to avoid account sequence mismatch and
 	// premature heights updates e.g "TrustedHeight {1 x} must be less than header height {1 y}"
-	sequencerAddress, err := utils.GetAddressBinary(
-		utils.KeyConfig{
-			Dir: filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp),
-			ID:  consts.KeysIds.RollappSequencer,
-		}, consts.Executables.RollappEVM,
-	)
-	if err != nil {
-		return ConnectionChannels{}, err
-	}
-
-	sendFundsCmd := seq.GetSendCmd(sequencerAddress)
-	bash.RunCommandEvery(
-		ctx,
-		sendFundsCmd.Path,
-		sendFundsCmd.Args[1:],
-		5,
-		utils.WithDiscardLogging(),
-	)
-
+	// sequencerAddress, err := utils.GetAddressBinary(
+	// 	utils.KeyConfig{
+	// 		Dir: filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp),
+	// 		ID:  consts.KeysIds.RollappSequencer,
+	// 	}, consts.Executables.RollappEVM,
+	// )
+	// if err != nil {
+	// 	return ConnectionChannels{}, err
+	// }
+	//
+	// sendFundsCmd := seq.GetSendCmd(sequencerAddress)
+	// bash.RunCommandEvery(
+	// 	ctx,
+	// 	sendFundsCmd.Path,
+	// 	sendFundsCmd.Args[1:],
+	// 	5,
+	// 	utils.WithDiscardLogging(),
+	// )
+	//
 	var status string
 
 	// Create client if it doesn't exist or override is true
@@ -117,7 +116,7 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
-	_, _, err = r.LoadActiveChannel()
+	_, _, err := r.LoadActiveChannel()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
