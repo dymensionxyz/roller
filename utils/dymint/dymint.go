@@ -1,6 +1,10 @@
 package dymint
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"os/exec"
 	"time"
 
@@ -61,7 +65,16 @@ type dymintInstrumentationConfig struct {
 	PrometheusListenAddr string `toml:"prometheus_listen_addr"`
 }
 
-func UpdateDymintConfigForIBC(home string, t string) error {
+type RollappHealthResponse struct {
+	JSONRPC string `json:"jsonrpc"`
+	Result  struct {
+		IsHealthy bool   `json:"isHealthy"`
+		Error     string `json:"error"`
+	} `json:"result"`
+	ID int `json:"id"`
+}
+
+func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 	pterm.Info.Println("checking dymint block time settings")
 	dymintPath := sequencer.GetDymintFilePath(home)
 	dymintCfg, err := tomlconfig.Load(dymintPath)
@@ -86,11 +99,13 @@ func UpdateDymintConfigForIBC(home string, t string) error {
 		return err
 	}
 
-	if want < have {
-		pterm.Info.Println(
-			"block time is higher then recommended when creating ibc channels: ",
-			have,
-		)
+	if want < have || forceUpdate {
+		if want < have {
+			pterm.Info.Println(
+				"block time is higher then recommended when creating ibc channels: ",
+				have,
+			)
+		}
 		pterm.Info.Println("updating dymint config")
 
 		err = utils.UpdateFieldInToml(dymintPath, "max_idle_time", want.String())
@@ -117,8 +132,8 @@ func UpdateDymintConfigForIBC(home string, t string) error {
 			"sudo", "systemctl", "restart", "rollapp",
 		)
 
-		// TODO: check for the systemd service status and /health endpoint instead
 		time.Sleep(time.Second * 2)
+		waitForHealthyRollApp("http://localhost:26657")
 		_, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return err
@@ -128,4 +143,47 @@ func UpdateDymintConfigForIBC(home string, t string) error {
 	}
 
 	return nil
+}
+
+func waitForHealthyRollApp(url string) {
+	timeout := time.After(20 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	spinner, _ := pterm.DefaultSpinner.Start("waiting for rollapp to become healthy")
+
+	for {
+		select {
+		case <-timeout:
+			spinner.Fail("Timeout: Failed to receive expected response within 20 seconds")
+			return
+		case <-ticker.C:
+			// nolint:gosec
+			resp, err := http.Get(url)
+			if err != nil {
+				fmt.Printf("Error making request: %v\n", err)
+				continue
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Printf("Error reading response body: %v\n", err)
+				continue
+			}
+
+			var response RollappHealthResponse
+			err = json.Unmarshal(body, &response)
+			if err != nil {
+				fmt.Printf("Error unmarshaling JSON: %v\n", err)
+				continue
+			}
+
+			if response.Result.IsHealthy {
+				spinner.Success("RollApp is healthy")
+				fmt.Printf("%+v\n", response)
+				return
+			}
+		}
+	}
 }
