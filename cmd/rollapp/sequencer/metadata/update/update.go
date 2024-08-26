@@ -50,7 +50,6 @@ func Cmd() *cobra.Command {
 				"tx",
 				"sequencer",
 				"update-sequencer",
-				rollerData.RollappID,
 				metadataFilePath,
 				"--from",
 				consts.KeysIds.HubSequencer,
