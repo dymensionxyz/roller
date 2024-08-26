@@ -80,6 +80,8 @@ func Cmd() *cobra.Command {
                 address, "--keyring-backend", "test", "--node", "http://localhost:26657", "--chain-id",
                 rollerCfg.RollappID,
                 "--from", "rollapp",
+                "--gas", "auto",
+                "--gas-adjustment", "1.3",
             )
 
             fmt.Println(updSeqCmd.String())
