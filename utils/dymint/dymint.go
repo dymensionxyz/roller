@@ -164,7 +164,7 @@ func waitForHealthyRollApp(url string) {
 				fmt.Printf("Error making request: %v\n", err)
 				continue
 			}
-			// noling:errcheck
+			// nolint:errcheck
 			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)
