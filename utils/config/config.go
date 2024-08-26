@@ -24,9 +24,9 @@ type RollappConfig struct {
 	Denom         string        `toml:"denom"`
 	// TokenSupply   string
 	Decimals      uint
-	HubData       consts.HubData `toml:"HubData"`
-	DA            consts.DaData  `toml:"DA"`
-	RollerVersion string         `toml:"roller_version"`
+	HubData       consts.HubData
+	DA            consts.DaData
+	RollerVersion string `toml:"roller_version"`
 
 	// new roller.toml
 	Environment string `toml:"environment"`
