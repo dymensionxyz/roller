@@ -126,6 +126,7 @@ func Cmd() *cobra.Command {
                 privValidatorKeyPath := filepath.Join(
                     home,
                     consts.ConfigDirName.RollappSequencerKeys,
+                    consts.KeysIds.RollappSequencerPrivValidator,
                 )
                 impPrivValKeyCmd := exec.Command(
                     consts.Executables.RollappEVM,
