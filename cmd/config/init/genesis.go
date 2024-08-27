@@ -26,7 +26,7 @@ type PathValue struct {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
+	sequencerAddr string, raCfg *config.RollappConfig,
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
@@ -63,16 +63,11 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 }
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
-	oa, err := getGenesisOperatorAddress(home)
-	if err != nil {
-		return err
-	}
-
 	sa, err := GetRollappSequencerAddress(home)
 	if err != nil {
 		return err
 	}
-	params := getDefaultGenesisParams(sa, oa, raCfg)
+	params := getDefaultGenesisParams(sa, raCfg)
 	addGenAccountCmd := GetAddGenesisAccountCmd(
 		consts.KeysIds.RollappSequencer,
 		consts.DefaultTokenSupply,

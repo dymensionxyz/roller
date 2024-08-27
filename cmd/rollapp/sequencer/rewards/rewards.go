@@ -79,13 +79,13 @@ func Cmd() *cobra.Command {
 						Type:        consts.EVM_ROLLAPP,
 					}
 
-					address, err = utils.GetAddressBinary(kc, home)
+					isKeyInKeyring, err := utils.IsAddressWithNameInKeyring(kc)
 					if err != nil {
-						pterm.Error.Printf("failed to retrieve %s: %v", kc.ID, err)
+						pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
 						return
 					}
 
-					if address == "" {
+					if !isKeyInKeyring {
 						pterm.Info.Println("existing reward wallet not found, creating new")
 						ki, err := initconfig.CreateAddressBinary(kc, home)
 						if err != nil {
@@ -111,7 +111,7 @@ func Cmd() *cobra.Command {
 
 			err = validateAddress(address, bech32Prefix)
 			if err != nil {
-				pterm.Error.Printf("address %s is invalid: %v", address, err)
+				pterm.Error.Printf("address %s is invalid: %v\n", address, err)
 				return
 			}
 
@@ -199,6 +199,9 @@ func Cmd() *cobra.Command {
 
 func validateAddress(a string, prefix string) error {
 	var addr []byte
+	if len(a) == 0 {
+		return fmt.Errorf("address cannot be empty")
+	}
 
 	// TODO: review
 	// from cosmos sdk (https://github.com/cosmos/cosmos-sdk/blob/v0.46.16/client/debug/main.go#L203)

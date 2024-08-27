@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -114,23 +115,37 @@ func PrintAddressesWithTitle(addresses []KeyInfo) {
 	}
 }
 
-// TODO: remove this function as it's redundant to PrintAddressesWithTitle
-func PrintSecretAddressesWithTitle(addresses []SecretAddressData) {
-	fmt.Printf("🔑 Addresses:\n")
-	PrintSecretAddresses(addresses)
+func IsAddressWithNameInKeyring(info KeyConfig) (bool, error) {
+	cmd := exec.Command(
+		info.ChainBinary,
+		"keys", "list", "--output", "json",
+		"--keyring-backend", "test",
+	)
+
+	var ki []KeyInfo
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &ki)
+	if err != nil {
+		return false, err
+	}
+
+	if len(ki) == 0 {
+		return false, nil
+	}
+
+	return slices.ContainsFunc(
+		ki, func(i KeyInfo) bool {
+			return strings.EqualFold(i.Name, info.ID)
+		},
+	), nil
 }
 
 // TODO: remove this struct as it's redundant to KeyInfo
 type SecretAddressData struct {
 	AddressData
 	Mnemonic string
-}
-
-// TODO: remove this function as it's redundant to *KeyInfo.Print
-func PrintSecretAddresses(addresses []SecretAddressData) {
-	for _, address := range addresses {
-		fmt.Println(address.AddressData.Name)
-		fmt.Println(address.AddressData.Addr)
-		fmt.Println(address.Mnemonic)
-	}
 }
