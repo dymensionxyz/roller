@@ -80,6 +80,7 @@ func Cmd() *cobra.Command {
 
                     address, err := utils.GetAddressBinary(kc, consts.Executables.RollappEVM)
                     if err != nil {
+                        pterm.Error.Printf("failed to retrieve %s: %v", kc.ID, err)
                         return
                     }
 
