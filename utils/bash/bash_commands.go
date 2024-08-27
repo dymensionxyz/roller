@@ -224,7 +224,6 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
@@ -245,6 +244,8 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 				}
 				break
 			}
+		} else {
+			return "", errors.New("string not found")
 		}
 	}
 
