@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
@@ -204,7 +204,7 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 
 // TODO: generalize
 
-func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
+func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdin pipe: %w", err)
@@ -231,7 +231,7 @@ func ExecCommandWithInput(cmd *exec.Cmd) (string, error) {
 		line := scanner.Text()
 		fmt.Println(line)
 
-		if strings.Contains(line, "signatures") {
+		if strings.Contains(line, text) {
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
 			input, _ := reader.ReadString('\n')
