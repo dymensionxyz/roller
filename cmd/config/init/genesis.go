@@ -37,12 +37,6 @@ func getDefaultGenesisParams(
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.bank.denom_metadata", getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals)},
-
-		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
-		// {
-		// 	"app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
-		// 	map[string]string{"address": sequencerAddr},
-		// },
 		{"app_state.denommetadata.params.allowed_addresses.0", sequencerAddr},
 	}
 }
