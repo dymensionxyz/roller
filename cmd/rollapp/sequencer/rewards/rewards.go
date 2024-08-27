@@ -84,6 +84,7 @@ func Cmd() *cobra.Command {
                     }
 
                     if address == "" {
+                        pterm.Info.Println("existing reward wallet not found, creating new")
                         ki, err := initconfig.CreateAddressBinary(kc, home)
                         if err != nil {
                             pterm.Error.Println("failed to create wallet", err)
@@ -92,7 +93,6 @@ func Cmd() *cobra.Command {
 
                         ki.Print(utils.WithName(), utils.WithMnemonic())
                         address = ki.Address
-                        return
                     }
                 }
             }
