@@ -201,7 +201,6 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 }
 
 // TODO: generalize
-
 func ExecCommandWithInput(cmd *exec.Cmd, promptText string) (string, error) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -216,12 +215,26 @@ func ExecCommandWithInput(cmd *exec.Cmd, promptText string) (string, error) {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
 
-	// Wait for the prompt
-	for {
-		if strings.Contains(outputBuffer.String(), promptText) {
-			break
+	// Create a channel to signal when the prompt is found
+	promptFound := make(chan bool)
+
+	// Start a goroutine to watch for the prompt
+	go func() {
+		scanner := bufio.NewScanner(&outputBuffer)
+		for scanner.Scan() {
+			if strings.Contains(scanner.Text(), promptText) {
+				promptFound <- true
+				return
+			}
 		}
-		time.Sleep(100 * time.Millisecond)
+	}()
+
+	// Wait for the prompt or timeout
+	select {
+	case <-promptFound:
+		// Prompt found, continue with user input
+	case <-time.After(10 * time.Second):
+		return "", fmt.Errorf("timeout waiting for prompt")
 	}
 
 	// Prompt user for input
