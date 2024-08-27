@@ -18,7 +18,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240816184020-d34233020797
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240823151307-f42674aede1d
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/manifoldco/promptui v0.9.0
@@ -96,7 +96,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/dymensionxyz/gerr-cosmos v1.0.0 // indirect
-	github.com/dymensionxyz/sdk-utils v0.2.7 // indirect
+	github.com/dymensionxyz/sdk-utils v0.2.8-0.20240823083607-ea6d7a482d69 // indirect
 	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

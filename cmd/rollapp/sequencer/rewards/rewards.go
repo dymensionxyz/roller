@@ -15,6 +15,7 @@ import (
     "github.com/dymensionxyz/roller/utils/bash"
     "github.com/dymensionxyz/roller/utils/config/tomlconfig"
     "github.com/dymensionxyz/roller/utils/rollapp"
+    "github.com/dymensionxyz/roller/utils/sequencer"
     "github.com/dymensionxyz/roller/utils/tx"
     "github.com/pterm/pterm"
     "github.com/spf13/cobra"
@@ -100,63 +101,69 @@ func Cmd() *cobra.Command {
                 return
             }
 
-            privValidatorKeyPath := filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys)
-            impPrivValKeyCmd := exec.Command(
-                consts.Executables.RollappEVM,
-                "tx", "sequencer", "unsafe-import-cons-key",
-                consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
-            )
-            _, err = bash.ExecCommandWithStdout(impPrivValKeyCmd)
-            if err != nil {
-                pterm.Error.Println("failed to import sequencer key", err)
-            }
+            raSequencers, _ := sequencer.RegisteredRollappSequencers(raResponse.Rollapp.RollappId)
 
-            regSeqCmd := exec.Command(
-                consts.Executables.RollappEVM,
-                "tx",
-                "sequencer",
-                "create-sequencer",
-                consts.KeysIds.RollappSequencerPrivValidator,
-                "--from",
-                "rollapp",
-                "--gas-prices",
-                fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
-            )
-            fmt.Println(regSeqCmd.String())
+            if len(raSequencers.Sequencers) == 0 {
+                pterm.Info.Println("no sequencers registered, registering")
 
-            txHash, err := bash.ExecCommandWithInput(regSeqCmd)
-            if err != nil {
-                pterm.Error.Println("failed to update sequencer: ", err)
-                return
-            }
+                privValidatorKeyPath := filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys)
+                impPrivValKeyCmd := exec.Command(
+                    consts.Executables.RollappEVM,
+                    "tx", "sequencer", "unsafe-import-cons-key",
+                    consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
+                )
+                _, err = bash.ExecCommandWithStdout(impPrivValKeyCmd)
+                if err != nil {
+                    pterm.Error.Println("failed to import sequencer key", err)
+                }
 
-            err = tx.MonitorTransaction("http://localhost:26657", txHash)
-            if err != nil {
-                pterm.Error.Println("failed to update sequencer: ", err)
-                return
-            }
+                regSeqCmd := exec.Command(
+                    consts.Executables.RollappEVM,
+                    "tx",
+                    "sequencer",
+                    "create-sequencer",
+                    consts.KeysIds.RollappSequencerPrivValidator,
+                    "--from",
+                    "rollapp",
+                    "--gas-prices",
+                    fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
+                )
+                fmt.Println(regSeqCmd.String())
 
-            updSeqCmd := exec.Command(
-                consts.Executables.RollappEVM,
-                "tx", "sequencer", "update-sequencer",
-                address, "--keyring-backend", "test", "--node", "http://localhost:26657",
-                "--chain-id", rollerCfg.RollappID,
-                "--from", "rollapp",
-                "--gas-prices", "100000000000aRUN",
-            )
+                txHash, err := bash.ExecCommandWithInput(regSeqCmd)
+                if err != nil {
+                    pterm.Error.Println("failed to update sequencer: ", err)
+                    return
+                }
 
-            fmt.Println(updSeqCmd.String())
+                err = tx.MonitorTransaction("http://localhost:26657", txHash)
+                if err != nil {
+                    pterm.Error.Println("failed to update sequencer: ", err)
+                    return
+                }
 
-            uTxHash, err := bash.ExecCommandWithInput(updSeqCmd)
-            if err != nil {
-                pterm.Error.Println("failed to update sequencer: ", err)
-                return
-            }
+                updSeqCmd := exec.Command(
+                    consts.Executables.RollappEVM,
+                    "tx", "sequencer", "update-sequencer",
+                    address, "--keyring-backend", "test", "--node", "http://localhost:26657",
+                    "--chain-id", rollerCfg.RollappID,
+                    "--from", "rollapp",
+                    "--gas-prices", "100000000000aRUN",
+                )
 
-            err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
-            if err != nil {
-                pterm.Error.Println("failed to update sequencer: ", err)
-                return
+                fmt.Println(updSeqCmd.String())
+
+                uTxHash, err := bash.ExecCommandWithInput(updSeqCmd)
+                if err != nil {
+                    pterm.Error.Println("failed to update sequencer: ", err)
+                    return
+                }
+
+                err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
+                if err != nil {
+                    pterm.Error.Println("failed to update sequencer: ", err)
+                    return
+                }
             }
         },
     }

@@ -185,10 +185,10 @@ func RegisteredRollappSequencersOnHub(
 }
 
 func RegisteredRollappSequencers(
-    hd consts.HubData,
+    raID string,
 ) (*Sequencers, error) {
     var seq Sequencers
-    cmd := getShowSequencerCmd(hd)
+    cmd := getShowSequencerCmd(raID)
 
     out, err := bash.ExecCommandWithStdout(cmd)
     if err != nil {
