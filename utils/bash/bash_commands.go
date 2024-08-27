@@ -228,6 +228,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
+			fmt.Println()
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
 			input, _ := reader.ReadString('\n')
