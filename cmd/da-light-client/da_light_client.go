@@ -1,8 +1,9 @@
 package da_light_client
 
 import (
-	da_start "github.com/dymensionxyz/roller/cmd/da-light-client/start"
 	"github.com/spf13/cobra"
+
+	da_start "github.com/dymensionxyz/roller/cmd/da-light-client/start"
 )
 
 func DALightClientCmd() *cobra.Command {

@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -24,6 +23,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/sequencer"

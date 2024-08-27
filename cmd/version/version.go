@@ -3,9 +3,9 @@ package version
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/roller/version"
-
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/version"
 )
 
 func Cmd() *cobra.Command {

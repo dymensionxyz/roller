@@ -1,10 +1,10 @@
 package sequencer
 
 import (
-	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer/rewards"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer/metadata"
+	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer/rewards"
 )
 
 func Cmd() *cobra.Command {
