@@ -1,115 +1,115 @@
 package consts
 
 import (
-    "fmt"
+	"fmt"
 )
 
 const (
-    binsDir            = "/usr/local/bin"
-    DefaultTokenSupply = "1000000000000000000000000000"
-    DefaultFee         = 2000000000000000000 // 2
+	binsDir            = "/usr/local/bin"
+	DefaultTokenSupply = "1000000000000000000000000000"
+	DefaultFee         = 2000000000000000000 // 2
 )
 
 var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var Executables = struct {
-    Celestia    string
-    RollappEVM  string
-    Relayer     string
-    Dymension   string
-    CelKey      string
-    Roller      string
-    Simd        string
-    Eibc        string
-    CelestiaApp string
+	Celestia    string
+	RollappEVM  string
+	Relayer     string
+	Dymension   string
+	CelKey      string
+	Roller      string
+	Simd        string
+	Eibc        string
+	CelestiaApp string
 }{
-    Roller:      fmt.Sprintf("%s/roller", binsDir),
-    RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
-    Dymension:   fmt.Sprintf("%s/dymd", binsDir),
-    Celestia:    fmt.Sprintf("%s/celestia", internalBinsDir),
-    CelKey:      fmt.Sprintf("%s/cel-key", internalBinsDir),
-    Relayer:     fmt.Sprintf("%s/rly", internalBinsDir),
-    Simd:        fmt.Sprintf("%s/simd", internalBinsDir),
-    Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
-    CelestiaApp: fmt.Sprintf("%s/celestia-appd", internalBinsDir),
+	Roller:      fmt.Sprintf("%s/roller", binsDir),
+	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
+	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
+	Celestia:    fmt.Sprintf("%s/celestia", internalBinsDir),
+	CelKey:      fmt.Sprintf("%s/cel-key", internalBinsDir),
+	Relayer:     fmt.Sprintf("%s/rly", internalBinsDir),
+	Simd:        fmt.Sprintf("%s/simd", internalBinsDir),
+	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
+	CelestiaApp: fmt.Sprintf("%s/celestia-appd", internalBinsDir),
 }
 
 var KeysIds = struct {
-    HubSequencer                  string
-    HubGenesis                    string
-    RollappSequencer              string
-    RollappSequencerReward        string
-    RollappSequencerPrivValidator string
-    RollappRelayer                string
-    HubRelayer                    string
-    Celestia                      string
-    Eibc                          string
+	HubSequencer                  string
+	HubGenesis                    string
+	RollappSequencer              string
+	RollappSequencerReward        string
+	RollappSequencerPrivValidator string
+	RollappRelayer                string
+	HubRelayer                    string
+	Celestia                      string
+	Eibc                          string
 }{
-    HubSequencer:                  "hub_sequencer",
-    HubGenesis:                    "hub_genesis",
-    RollappSequencer:              "rollapp_genesis_account",
-    RollappSequencerReward:        "rollapp_sequencer_rewards",
-    RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
-    RollappRelayer:                "relayer-rollapp-key",
-    HubRelayer:                    "relayer-hub-key",
-    Celestia:                      "my_celes_key",
-    Eibc:                          "whale",
+	HubSequencer:                  "hub_sequencer",
+	HubGenesis:                    "hub_genesis",
+	RollappSequencer:              "rollapp_genesis_account",
+	RollappSequencerReward:        "rollapp_sequencer_rewards",
+	RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
+	RollappRelayer:                "relayer-rollapp-key",
+	HubRelayer:                    "relayer-hub-key",
+	Celestia:                      "my_celes_key",
+	Eibc:                          "whale",
 }
 
 var AddressPrefixes = struct {
-    Hub string
+	Hub string
 }{
-    Hub: "dym",
+	Hub: "dym",
 }
 
 var ConfigDirName = struct {
-    Rollapp              string
-    Relayer              string
-    DALightNode          string
-    HubKeys              string
-    RollappSequencerKeys string
-    LocalHub             string
-    Eibc                 string
+	Rollapp              string
+	Relayer              string
+	DALightNode          string
+	HubKeys              string
+	RollappSequencerKeys string
+	LocalHub             string
+	Eibc                 string
 }{
-    Rollapp:              "rollapp",
-    Relayer:              "relayer",
-    DALightNode:          "da-light-node",
-    HubKeys:              "hub-keys",
-    RollappSequencerKeys: "rollapp-sequencer-keys",
-    LocalHub:             "local-hub",
-    Eibc:                 ".eibc-client",
+	Rollapp:              "rollapp",
+	Relayer:              "relayer",
+	DALightNode:          "da-light-node",
+	HubKeys:              "hub-keys",
+	RollappSequencerKeys: "rollapp-sequencer-keys",
+	LocalHub:             "local-hub",
+	Eibc:                 ".eibc-client",
 }
 
 var Denoms = struct {
-    Hub      string
-    Celestia string
-    Avail    string
+	Hub      string
+	Celestia string
+	Avail    string
 }{
-    Hub:      "adym",
-    Celestia: "utia",
-    Avail:    "aAVL",
+	Hub:      "adym",
+	Celestia: "utia",
+	Avail:    "aAVL",
 }
 
 const (
-    KeysDirName        = "keys"
-    DefaultRelayerPath = "hub-rollapp"
-    DefaultRollappRPC  = "http://localhost:26657"
+	KeysDirName        = "keys"
+	DefaultRelayerPath = "hub-rollapp"
+	DefaultRollappRPC  = "http://localhost:26657"
 )
 
 var SpinnerMsgs = struct {
-    UniqueIdVerification string
-    BalancesVerification string
+	UniqueIdVerification string
+	BalancesVerification string
 }{
-    UniqueIdVerification: " Verifying unique RollApp ID...\n",
-    BalancesVerification: " Verifying balances...\n",
+	UniqueIdVerification: " Verifying unique RollApp ID...\n",
+	BalancesVerification: " Verifying balances...\n",
 }
 
 var NodeType = struct {
-    Sequencer string
-    FullNode  string
+	Sequencer string
+	FullNode  string
 }{
-    Sequencer: "sequencer",
-    FullNode:  "fullnode",
+	Sequencer: "sequencer",
+	FullNode:  "fullnode",
 }
 
 const RollerConfigFileName = "roller.toml"
@@ -117,6 +117,6 @@ const RollerConfigFileName = "roller.toml"
 type VMType string
 
 const (
-    SDK_ROLLAPP VMType = "sdk"
-    EVM_ROLLAPP VMType = "evm"
+	SDK_ROLLAPP VMType = "sdk"
+	EVM_ROLLAPP VMType = "evm"
 )

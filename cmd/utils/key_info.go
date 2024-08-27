@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -84,9 +85,9 @@ func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, err
 	return ParseAddressFromOutput(output)
 }
 
-func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
+func GetAddressBinary(keyConfig KeyConfig, home string) (string, error) {
 	showKeyCommand := exec.Command(
-		binaryPath,
+		keyConfig.ChainBinary,
 		"keys",
 		"show",
 		keyConfig.ID,
@@ -94,7 +95,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		"--keyring-backend",
 		"test",
 		"--keyring-dir",
-		keyConfig.Dir,
+		filepath.Join(home, keyConfig.Dir),
 	)
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)

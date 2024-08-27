@@ -137,14 +137,13 @@ func getGenesisOperatorAddress(home string) (string, error) {
 }
 
 func GetRollappSequencerAddress(home string) (string, error) {
-	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
 	seqKeyConfig := utils.KeyConfig{
-		Dir:         rollappConfigDirPath,
+		Dir:         consts.ConfigDirName.Rollapp,
 		ID:          consts.KeysIds.RollappSequencer,
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        consts.EVM_ROLLAPP,
 	}
-	addr, err := utils.GetAddressBinary(seqKeyConfig, consts.Executables.RollappEVM)
+	addr, err := utils.GetAddressBinary(seqKeyConfig, home)
 	if err != nil {
 		return "", err
 	}
