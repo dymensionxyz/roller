@@ -134,6 +134,7 @@ func Cmd() *cobra.Command {
                     "tx", "sequencer", "unsafe-import-cons-key",
                     consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
                 )
+                fmt.Println(impPrivValKeyCmd.String())
                 _, err = bash.ExecCommandWithStdout(impPrivValKeyCmd)
                 if err != nil {
                     pterm.Error.Println("failed to import sequencer key", err)
