@@ -96,6 +96,7 @@ func Cmd() *cobra.Command {
 						ki.Print(utils.WithName(), utils.WithMnemonic())
 						address = ki.Address
 					}
+
 				}
 			}
 
@@ -154,10 +155,10 @@ func Cmd() *cobra.Command {
 
 				txHash, err := bash.ExecCommandWithInput(
 					regSeqCmd,
-					"Double check: is this the expected consensus addr",
+					"Double check",
 				)
 				if err != nil {
-					pterm.Error.Println("failed to update sequencer: ", err)
+					pterm.Error.Println("failed to create sequencer: ", err)
 					return
 				}
 

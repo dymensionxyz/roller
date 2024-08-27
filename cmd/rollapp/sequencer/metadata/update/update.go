@@ -64,9 +64,14 @@ func Cmd() *cobra.Command {
 				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
 			)
 
-			txHash, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
+			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update sequencer metadata", err)
+				return
+			}
+
+			txHash, err := bash.ExtractTxHash(txOutput)
+			if err != nil {
 				return
 			}
 
