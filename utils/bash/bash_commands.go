@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"gopkg.in/yaml.v2"
 )
 
 func RunCommandEvery(
@@ -201,58 +202,67 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 }
 
 // TODO: generalize
-func ExecCommandWithInput(cmd *exec.Cmd, promptText string) (string, error) {
+func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdin pipe: %w", err)
 	}
-
-	var outputBuffer bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, &outputBuffer)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &outputBuffer)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("error creating stdout pipe: %w", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "", fmt.Errorf("error creating stderr pipe: %w", err)
+	}
 
 	if err := cmd.Start(); err != nil {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
 
-	// Create a channel to signal when the prompt is found
-	promptFound := make(chan bool)
+	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
+	var txHash string
+	var yamlOutput strings.Builder
+	var captureYAML bool
 
-	// Start a goroutine to watch for the prompt
-	go func() {
-		scanner := bufio.NewScanner(&outputBuffer)
-		for scanner.Scan() {
-			if strings.Contains(scanner.Text(), promptText) {
-				promptFound <- true
-				return
+	for scanner.Scan() {
+		line := scanner.Text()
+		fmt.Println(line)
+
+		if strings.Contains(line, text) {
+			fmt.Print("Do you want to continue? (y/n): ")
+			reader := bufio.NewReader(os.Stdin)
+			input, _ := reader.ReadString('\n')
+			input = strings.TrimSpace(input)
+			fmt.Println("input:", input)
+
+			if input == "y" || input == "Y" {
+				if _, err := stdin.Write([]byte("y\n")); err != nil {
+					return "", err
+				}
+				captureYAML = true
+			} else {
+				if _, err := stdin.Write([]byte("n\n")); err != nil {
+					return "", err
+				}
+				break
 			}
+		} else if captureYAML {
+			yamlOutput.WriteString(line + "\n")
 		}
-	}()
-
-	// Wait for the prompt or timeout
-	select {
-	case <-promptFound:
-		// Prompt found, continue with user input
-	case <-time.After(10 * time.Second):
-		return "", fmt.Errorf("timeout waiting for prompt")
-	}
-
-	// Prompt user for input
-	fmt.Print("Do you want to continue? (y/N): ")
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	input = strings.TrimSpace(input)
-
-	// Send the user's input
-	if _, err := stdin.Write([]byte(input + "\n")); err != nil {
-		return "", fmt.Errorf("error writing to stdin: %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
 		return "", fmt.Errorf("command finished with error: %w", err)
 	}
 
-	return outputBuffer.String(), nil
+	// Parse YAML output
+	var result map[string]interface{}
+	if err := yaml.Unmarshal([]byte(yamlOutput.String()), &result); err != nil {
+		return "", fmt.Errorf("error parsing YAML output: %w", err)
+	}
+
+	return result, nil
 }
 
 func ExtractTxHash(output string) (string, error) {
@@ -262,5 +272,7 @@ func ExtractTxHash(output string) (string, error) {
 			return strings.TrimSpace(strings.TrimPrefix(line, "txhash:")), nil
 		}
 	}
+
+	return txHash, nil
 	return "", fmt.Errorf("txhash not found in output")
 }
