@@ -135,7 +135,7 @@ func Cmd() *cobra.Command {
 					consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
 				)
 				fmt.Println(impPrivValKeyCmd.String())
-				_, err = bash.ExecCommandWithStdout(impPrivValKeyCmd)
+				_, err = bash.ExecCommandWithInput(impPrivValKeyCmd, "Double check")
 				if err != nil {
 					pterm.Error.Println("failed to import sequencer key", err)
 				}
