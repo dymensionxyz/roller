@@ -78,12 +78,12 @@ func Cmd() *cobra.Command {
                         Type:        consts.EVM_ROLLAPP,
                     }
 
-                    addr, err := utils.GetAddressBinary(kc, consts.Executables.RollappEVM)
+                    address, err := utils.GetAddressBinary(kc, consts.Executables.RollappEVM)
                     if err != nil {
                         return
                     }
 
-                    if addr == "" {
+                    if address == "" {
                         ki, err := initconfig.CreateAddressBinary(kc, home)
                         if err != nil {
                             pterm.Error.Println("failed to create wallet", err)
@@ -94,8 +94,6 @@ func Cmd() *cobra.Command {
                         address = ki.Address
                         return
                     }
-
-                    address = addr
                 }
             }
 
