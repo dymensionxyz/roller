@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"gopkg.in/yaml.v2"
 )
 
 func RunCommandEvery(
@@ -221,13 +220,12 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 	}
 
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
-	var txHash string
-	var yamlOutput strings.Builder
-	var captureYAML bool
+	var output strings.Builder
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
+		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
 			fmt.Print("Do you want to continue? (y/n): ")
@@ -240,15 +238,12 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 				if _, err := stdin.Write([]byte("y\n")); err != nil {
 					return "", err
 				}
-				captureYAML = true
 			} else {
 				if _, err := stdin.Write([]byte("n\n")); err != nil {
 					return "", err
 				}
 				break
 			}
-		} else if captureYAML {
-			yamlOutput.WriteString(line + "\n")
 		}
 	}
 
@@ -256,13 +251,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 		return "", fmt.Errorf("command finished with error: %w", err)
 	}
 
-	// Parse YAML output
-	var result map[string]interface{}
-	if err := yaml.Unmarshal([]byte(yamlOutput.String()), &result); err != nil {
-		return "", fmt.Errorf("error parsing YAML output: %w", err)
-	}
-
-	return result, nil
+	return output.String(), nil
 }
 
 func ExtractTxHash(output string) (string, error) {
@@ -273,6 +262,5 @@ func ExtractTxHash(output string) (string, error) {
 		}
 	}
 
-	return txHash, nil
 	return "", fmt.Errorf("txhash not found in output")
 }
