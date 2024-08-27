@@ -55,7 +55,12 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
-	txHash, err := bash.ExecCommandWithInput(cmd, "signatures")
+	txOutput, err := bash.ExecCommandWithInput(cmd, "signatures")
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput)
 	if err != nil {
 		return err
 	}
