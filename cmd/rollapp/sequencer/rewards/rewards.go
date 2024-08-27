@@ -101,7 +101,10 @@ func Cmd() *cobra.Command {
                 return
             }
 
-            raSequencers, _ := sequencer.RegisteredRollappSequencers(raResponse.Rollapp.RollappId)
+            raSequencers, err := sequencer.RegisteredRollappSequencers(raResponse.Rollapp.RollappId)
+            if err != nil {
+                pterm.Error.Println("failed to retrieve RollApp sequencers: ", err)
+            }
 
             if len(raSequencers.Sequencers) == 0 {
                 pterm.Info.Println("no sequencers registered, registering")
