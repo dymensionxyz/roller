@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "fmt"
     "os/exec"
+    "path/filepath"
 
     cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
     initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -25,7 +26,7 @@ func Cmd() *cobra.Command {
     cmd := &cobra.Command{
         Use:   "rewards [address]",
         Short: "temporary command to handle sequencer rewards address",
-        Args:  cobra.ExactArgs(1),
+        Args:  cobra.MaximumNArgs(1),
         Run: func(cmd *cobra.Command, args []string) {
             err := initconfig.AddFlags(cmd)
             if err != nil {
@@ -38,8 +39,6 @@ func Cmd() *cobra.Command {
                 pterm.Error.Println("failed to expand home directory")
                 return
             }
-
-            address := args[0]
 
             rollerCfg, err := tomlconfig.LoadRollerConfig(home)
             if err != nil {
@@ -62,6 +61,33 @@ func Cmd() *cobra.Command {
 
             bech32Prefix = raResponse.Rollapp.Bech32Prefix
 
+            var address string
+            if len(args) != 0 {
+                address = args[0]
+            } else {
+                address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+                    "Sequencer reward address (press enter to create a new wallet)",
+                ).Show()
+
+                if address == "" {
+                    kc := utils.KeyConfig{
+                        Dir:         consts.ConfigDirName.RollappSequencerKeys,
+                        ID:          consts.KeysIds.RollappSequencerReward,
+                        ChainBinary: consts.Executables.RollappEVM,
+                        Type:        consts.EVM_ROLLAPP,
+                    }
+                    ki, err := initconfig.CreateAddressBinary(kc, home)
+                    if err != nil {
+                        pterm.Error.Println("failed to create wallet", err)
+                        return
+                    }
+
+                    ki.Print(utils.WithName(), utils.WithMnemonic())
+
+                    address = ki.Address
+                }
+            }
+
             // Set the bech32 prefix for the SDK
             config := cosmossdktypes.GetConfig()
             config.SetBech32PrefixForAccount(bech32Prefix, bech32Prefix+"pub")
@@ -71,6 +97,42 @@ func Cmd() *cobra.Command {
             err = validateAddress(address, bech32Prefix)
             if err != nil {
                 pterm.Error.Printf("address %s is invalid: %v", address, err)
+                return
+            }
+
+            privValidatorKeyPath := filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys)
+            impPrivValKeyCmd := exec.Command(
+                consts.Executables.RollappEVM,
+                "tx", "sequencer", "unsafe-import-cons-key",
+                consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
+            )
+            _, err = bash.ExecCommandWithStdout(impPrivValKeyCmd)
+            if err != nil {
+                pterm.Error.Println("failed to import sequencer key", err)
+            }
+
+            regSeqCmd := exec.Command(
+                consts.Executables.RollappEVM,
+                "tx",
+                "sequencer",
+                "create-sequencer",
+                consts.KeysIds.RollappSequencerPrivValidator,
+                "--from",
+                "rollapp",
+                "--gas-prices",
+                fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
+            )
+            fmt.Println(regSeqCmd.String())
+
+            txHash, err := bash.ExecCommandWithInput(regSeqCmd)
+            if err != nil {
+                pterm.Error.Println("failed to update sequencer: ", err)
+                return
+            }
+
+            err = tx.MonitorTransaction("http://localhost:26657", txHash)
+            if err != nil {
+                pterm.Error.Println("failed to update sequencer: ", err)
                 return
             }
 
@@ -85,13 +147,13 @@ func Cmd() *cobra.Command {
 
             fmt.Println(updSeqCmd.String())
 
-            txHash, err := bash.ExecCommandWithInput(updSeqCmd)
+            uTxHash, err := bash.ExecCommandWithInput(updSeqCmd)
             if err != nil {
                 pterm.Error.Println("failed to update sequencer: ", err)
                 return
             }
 
-            err = tx.MonitorTransaction("http://localhost:26657", txHash)
+            err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
             if err != nil {
                 pterm.Error.Println("failed to update sequencer: ", err)
                 return
