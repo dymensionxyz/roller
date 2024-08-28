@@ -55,7 +55,12 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
-	txHash, err := bash.ExecCommandWithInput(cmd)
+	txOutput, err := bash.ExecCommandWithInput(cmd, "signatures")
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput)
 	if err != nil {
 		return err
 	}
@@ -121,7 +126,7 @@ func IsRegisteredAsSequencer(seq []Info, addr string) bool {
 }
 
 func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
-	sequencers, err := GetRegisteredSequencers(raID, hd)
+	sequencers, err := RegisteredRollappSequencersOnHub(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +152,7 @@ func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
 }
 
 func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
-	sequencers, err := GetRegisteredSequencers(raID, hd)
+	sequencers, err := RegisteredRollappSequencersOnHub(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -165,11 +170,30 @@ func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
 	return peers, nil
 }
 
-func GetRegisteredSequencers(
+func RegisteredRollappSequencersOnHub(
 	raID string, hd consts.HubData,
 ) (*Sequencers, error) {
 	var seq Sequencers
 	cmd := getShowSequencerByRollappCmd(raID, hd)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &seq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &seq, nil
+}
+
+func RegisteredRollappSequencers(
+	raID string,
+) (*Sequencers, error) {
+	var seq Sequencers
+	cmd := getShowSequencerCmd(raID)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -214,5 +238,13 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
 		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+	)
+}
+
+func getShowSequencerCmd(raID string) *exec.Cmd {
+	return exec.Command(
+		consts.Executables.RollappEVM,
+		"q", "sequencers", "sequencers",
+		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
 	)
 }

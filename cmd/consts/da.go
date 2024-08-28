@@ -20,7 +20,7 @@ const (
 type DAType string
 
 const (
-	Local    DAType = "local"
+	Local    DAType = "mock"
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
 )

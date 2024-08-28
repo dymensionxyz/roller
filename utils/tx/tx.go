@@ -3,6 +3,7 @@ package tx
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -76,6 +77,9 @@ func MonitorTransaction(wsURL, txHash string) error {
 				)
 				return nil
 			} else {
+				j, _ := json.MarshalIndent(txEvent.Result, "", " ")
+				fmt.Println(string(j))
+
 				return fmt.Errorf("transaction failed with code %d: %v", txEvent.Result.Code, txEvent.Result.Log)
 			}
 

@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"path/filepath"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
 )
@@ -11,8 +9,8 @@ func GetSequencerData(cfg config.RollappConfig) ([]AccountData, error) {
 	seqAddr, err := GetAddressBinary(
 		KeyConfig{
 			ID:  consts.KeysIds.HubSequencer,
-			Dir: filepath.Join(cfg.Home, consts.ConfigDirName.HubKeys),
-		}, consts.Executables.Dymension,
+			Dir: consts.ConfigDirName.HubKeys,
+		}, cfg.Home,
 	)
 	if err != nil {
 		return nil, err

@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
-	"github.com/dymensionxyz/roller/cmd/utils"
+	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 )
 
@@ -42,7 +42,7 @@ func init() {
 	rootCmd.AddCommand(rollapp.Cmd())
 	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(version.Cmd())
-	utils.AddGlobalFlags(rootCmd)
+	rollerutils.AddGlobalFlags(rootCmd)
 }
 
 func test() *cobra.Command {

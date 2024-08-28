@@ -4,7 +4,8 @@ ROLLER_BINS_DIR="$BINS_DIR/roller_bins"
 
 ROLLAPP_EVN_VERSION="main"
 DYMD_VERSION="main"
-DYMD_COMMIT="f42674aede1d"
+DYMD_COMMIT="f42674ae"
+
 EIBC_VERSION="main"
 RLY_VERSION="v0.3.4-v2.5.2-relayer"
 CELESTIA_VERSION="v0.14.1"
@@ -54,6 +55,7 @@ if [ "$DYMD_VERSION" != "main" ]; then
     install_or_update "dymension" "$current_version" "$DYMD_VERSION" \
         "https://github.com/dymensionxyz/dymension.git" "make build" "./build/dymd" "$BINS_DIR"
 else
+
     if [ "$DYMD_COMMIT" != "" ]; then
         echo "Installing dymd from main branch with specific commit $DYMD_COMMIT"
         cd ~/ && rm -rf dymension/

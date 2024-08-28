@@ -35,21 +35,25 @@ var Executables = struct {
 }
 
 var KeysIds = struct {
-	HubSequencer     string
-	HubGenesis       string
-	RollappSequencer string
-	RollappRelayer   string
-	HubRelayer       string
-	Celestia         string
-	Eibc             string
+	HubSequencer                  string
+	HubGenesis                    string
+	RollappSequencer              string
+	RollappSequencerReward        string
+	RollappSequencerPrivValidator string
+	RollappRelayer                string
+	HubRelayer                    string
+	Celestia                      string
+	Eibc                          string
 }{
-	HubSequencer:     "hub_sequencer",
-	HubGenesis:       "hub_genesis",
-	RollappSequencer: "rollapp_genesis_account",
-	RollappRelayer:   "relayer-rollapp-key",
-	HubRelayer:       "relayer-hub-key",
-	Celestia:         "my_celes_key",
-	Eibc:             "whale",
+	HubSequencer:                  "hub_sequencer",
+	HubGenesis:                    "hub_genesis",
+	RollappSequencer:              "rollapp_genesis_account",
+	RollappSequencerReward:        "rollapp_sequencer_rewards",
+	RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
+	RollappRelayer:                "relayer-rollapp-key",
+	HubRelayer:                    "relayer-hub-key",
+	Celestia:                      "my_celes_key",
+	Eibc:                          "whale",
 }
 
 var AddressPrefixes = struct {
@@ -59,19 +63,21 @@ var AddressPrefixes = struct {
 }
 
 var ConfigDirName = struct {
-	Rollapp     string
-	Relayer     string
-	DALightNode string
-	HubKeys     string
-	LocalHub    string
-	Eibc        string
+	Rollapp              string
+	Relayer              string
+	DALightNode          string
+	HubKeys              string
+	RollappSequencerKeys string
+	LocalHub             string
+	Eibc                 string
 }{
-	Rollapp:     "rollapp",
-	Relayer:     "relayer",
-	DALightNode: "da-light-node",
-	HubKeys:     "hub-keys",
-	LocalHub:    "local-hub",
-	Eibc:        ".eibc-client",
+	Rollapp:              "rollapp",
+	Relayer:              "relayer",
+	DALightNode:          "da-light-node",
+	HubKeys:              "hub-keys",
+	RollappSequencerKeys: "rollapp-sequencer-keys",
+	LocalHub:             "local-hub",
+	Eibc:                 ".eibc-client",
 }
 
 var Denoms = struct {

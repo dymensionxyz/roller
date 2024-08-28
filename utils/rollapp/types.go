@@ -38,11 +38,12 @@ type GenesisState struct {
 type Metadata struct {
 	Website          string `json:"website"`
 	Description      string `json:"description"`
-	LogoDataUri      string `json:"logo_data_uri"`
+	LogoUrl          string `json:"logo_url"`
 	TokenLogoDataUri string `json:"token_logo_data_uri"`
 	Telegram         string `json:"telegram"`
 	X                string `json:"x"`
 	GenesisUrl       string `json:"genesis_url"`
+	TokenSymbol      string `json:"token_symbol"`
 }
 
 type StateInfoIndex struct {

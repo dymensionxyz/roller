@@ -1,13 +1,5 @@
 package relayer
 
-import (
-	"encoding/json"
-	"os/exec"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
-)
-
 type Channels struct {
 	Channels []struct {
 		State        string `json:"state"`
@@ -29,31 +21,4 @@ type Channels struct {
 		RevisionNumber string `json:"revision_number"`
 		RevisionHeight string `json:"revision_height"`
 	} `json:"height"`
-}
-
-func GetRegisteredSequencers(
-	raID string, hd consts.HubData,
-) (*Channels, error) {
-	var ibcChannels Channels
-	cmd := GetQueryRollappIBCChannels()
-
-	out, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(out.Bytes(), &ibcChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ibcChannels, nil
-}
-
-func GetQueryRollappIBCChannels() *exec.Cmd {
-	return exec.Command(
-		consts.Executables.RollappEVM,
-		"q", "ibc", "channels",
-		"-o", "json",
-	)
 }

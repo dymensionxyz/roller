@@ -68,7 +68,7 @@ func Cmd() *cobra.Command {
 			}
 			seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
-			seq, err := sequencerutils.GetRegisteredSequencers(rollappConfig.RollappID, hd)
+			seq, err := sequencerutils.RegisteredRollappSequencersOnHub(rollappConfig.RollappID, hd)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 			}
