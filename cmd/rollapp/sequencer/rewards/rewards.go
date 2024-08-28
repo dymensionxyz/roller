@@ -73,16 +73,17 @@ func Cmd() *cobra.Command {
 			// TODO: check whether the key is already in the keyring before importing it
 			// Asked Dan where it's imported
 			pterm.Info.Println("importing the validator key")
-			impPrivValKeyCmd := exec.Command(
-				consts.Executables.RollappEVM,
-				"tx", "sequencer", "unsafe-import-cons-key",
-				consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
-			)
-			fmt.Println(impPrivValKeyCmd.String())
 			err = bash.ExecCommandWithInteractions(
 				consts.Executables.RollappEVM,
-				"tx", "sequencer", "unsafe-import-cons-key",
-				consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
+				"tx",
+				"sequencer",
+				"unsafe-import-cons-key",
+				consts.KeysIds.RollappSequencerPrivValidator,
+				privValidatorKeyPath,
+				"--keyring-backend",
+				"test",
+				"--keyring-dir",
+				filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 			)
 			if err != nil {
 				pterm.Error.Println("failed to import sequencer key", err)
