@@ -212,7 +212,13 @@ func Cmd() *cobra.Command {
 
 				fmt.Println(updSeqCmd.String())
 
-				uTxHash, err := bash.ExecCommandWithInput(updSeqCmd, "signatures")
+				uTxOutput, err := bash.ExecCommandWithInput(updSeqCmd, "signatures")
+				if err != nil {
+					pterm.Error.Println("failed to update sequencer: ", err)
+					return
+				}
+
+				uTxHash, err := bash.ExtractTxHash(uTxOutput)
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
 					return
