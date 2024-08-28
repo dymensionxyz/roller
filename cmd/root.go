@@ -29,7 +29,6 @@ func Execute() {
 }
 
 func init() {
-
 	// rootCmd.AddCommand(config.Cmd())
 	// rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
