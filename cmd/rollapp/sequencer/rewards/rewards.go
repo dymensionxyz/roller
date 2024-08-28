@@ -175,6 +175,7 @@ func Cmd() *cobra.Command {
 					"rollapp",
 					"--gas-prices",
 					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
+					"--keyring-backend", "test",
 				)
 				fmt.Println(createSeqCmd.String())
 
