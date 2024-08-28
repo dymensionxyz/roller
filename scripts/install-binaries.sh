@@ -4,13 +4,13 @@ ROLLER_BINS_DIR="$BINS_DIR/roller_bins"
 
 ROLLAPP_EVN_VERSION="main"
 DYMD_VERSION="main"
-DYMD_COMMIT="b9d863e6"
+DYMD_COMMIT="f42674aede1d"
 EIBC_VERSION="main"
 RLY_VERSION="v0.3.4-v2.5.2-relayer"
 CELESTIA_VERSION="v0.14.1"
 CELESTIA_APP_VERSION="v1.11.0"
 
-if [ -z "$BECH32_PREFIX" ]; then
+if [ "$BECH32_PREFIX" = "" ]; then
   echo "please provide BECH32_PREFIX of the RollApp before running this script"
   exit 1
 fi
@@ -54,11 +54,11 @@ if [ "$DYMD_VERSION" != "main" ]; then
     install_or_update "dymension" "$current_version" "$DYMD_VERSION" \
         "https://github.com/dymensionxyz/dymension.git" "make build" "./build/dymd" "$BINS_DIR"
 else
-    if [ -n "$DYMD_COMMIT" ]; then
+    if [ "$DYMD_COMMIT" != "" ]; then
         echo "Installing dymd from main branch with specific commit $DYMD_COMMIT"
         cd ~/ && rm -rf dymension/
         git clone https://github.com/dymensionxyz/dymension.git && cd dymension || exit 1
-        git checkout $DYMD_COMMIT
+        git checkout "$DYMD_COMMIT"
         make build && sudo mv ./build/dymd "$BINS_DIR"
         cd ../ && rm -rf dymension/
     else
@@ -82,7 +82,7 @@ current_version=$("$ROLLER_BINS_DIR/celestia" version 2>/dev/null | awk '/Semant
 if [ "$current_version" != "$CELESTIA_VERSION" ] || ! command -v "$ROLLER_BINS_DIR/cel-key" &> /dev/null; then
     echo "Installing/Updating Celestia from version $current_version to $CELESTIA_VERSION"
     cd ~/ && rm -rf celestia-node
-    git clone https://github.com/celestiaorg/celestia-node.git --branch $CELESTIA_VERSION && cd celestia-node || exit 1
+    git clone https://github.com/celestiaorg/celestia-node.git --branch "$CELESTIA_VERSION" && cd celestia-node || exit 1
     make build && sudo mv build/celestia "$ROLLER_BINS_DIR"
     make cel-key && sudo mv cel-key "$ROLLER_BINS_DIR"
     cd ../ && rm -rf celestia-node
@@ -97,7 +97,7 @@ install_or_update "celestia-app" "v$current_version" "$CELESTIA_APP_VERSION" \
 
 # rly
 current_version=$("$ROLLER_BINS_DIR/rly" version 2>/dev/null | awk '/^version:/ {print $2}' || echo "")
-if [ -z "$current_version" ] || [ "$current_version" != "${RLY_VERSION#v}" ]; then
+if [ "$current_version" = "" ] || [ "$current_version" != "${RLY_VERSION#v}" ]; then
     install_or_update "go-relayer" "$current_version" "$RLY_VERSION" \
         "https://github.com/dymensionxyz/go-relayer.git" "make build" "build/rly" "$ROLLER_BINS_DIR"
 else
