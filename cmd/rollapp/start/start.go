@@ -2,10 +2,12 @@ package start
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -14,6 +16,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -27,6 +30,8 @@ import (
 var (
 	RollappDirPath string
 	LogPath        string
+	DaLcEndpoint   string
+	DaLogPath      string
 )
 
 func Cmd() *cobra.Command {
@@ -70,6 +75,34 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				}, parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
 			)
+
+			// TODO: this is an ugly workaround to start a light client for those
+			// who run a rollapp locally on their non-linux boxes ( why would you )
+			// refactor and remove repetition with da-light-client start command
+			if runtime.GOOS != "linux" {
+				damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
+				startDALCCmd := damanager.GetStartDACmd()
+				if startDALCCmd == nil {
+					errorhandling.PrettifyErrorIfExists(
+						errors.New(
+							"DA doesn't need to run separately. It runs automatically with the app",
+						),
+					)
+				}
+
+				DaLcEndpoint = damanager.GetLightNodeEndpoint()
+				DaLogPath = utils.GetDALogFilePath(rollappConfig.Home)
+
+				defer cancel()
+				go bash.RunCmdAsync(
+					ctx,
+					startDALCCmd,
+					printDaOutput,
+					parseError,
+					utils.WithLogging(DaLogPath),
+				)
+			}
+
 			select {}
 		},
 	}
@@ -79,8 +112,10 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	seq := sequencer.GetInstance(rlpCfg)
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
-	fmt.Printf("💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-		Sprintf(rlpCfg.RollappID))
+	fmt.Printf(
+		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+			Sprintf(rlpCfg.RollappID),
+	)
 	fmt.Println("💈 Endpoints:")
 
 	fmt.Printf("💈 EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
@@ -90,6 +125,12 @@ func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	fmt.Println("💈 Log file path: ", LogPath)
 	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
 	fmt.Println("💈 PID: ", cmd.Process.Pid)
+}
+
+func printDaOutput() {
+	fmt.Println("💈 The data availability light node is running on your local machine!")
+	fmt.Printf("💈 Light node endpoint: %s\n", DaLcEndpoint)
+	fmt.Printf("💈 Log file path: %s\n", DaLogPath)
 }
 
 func createPidFile(path string, cmd *exec.Cmd) error {
