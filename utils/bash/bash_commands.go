@@ -200,38 +200,57 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 	return nil
 }
 
+func ExecCommandWithInteractions(cmdName string, args ...string) error {
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, cmdName, args...)
+
+	// Use the current process's standard input, output, and error
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	fmt.Println("Starting command execution...")
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("error starting command: %w", err)
+	}
+
+	fmt.Println("Command started, waiting for it to finish...")
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("command finished with error: %w", err)
+	}
+
+	fmt.Println("Command finished successfully.")
+	return nil
+}
+
 // TODO: generalize
 func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdin pipe: %w", err)
 	}
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return "", fmt.Errorf("error creating stdout pipe: %w", err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return "", fmt.Errorf("error creating stderr pipe: %w", err)
-	}
 
+	fmt.Println("Starting command execution...")
 	if err := cmd.Start(); err != nil {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
 
-	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
-	var output strings.Builder
+	fmt.Println("Command started, waiting for output...")
+	scanner := bufio.NewScanner(io.MultiReader(&stdoutBuf, &stderrBuf))
 	textFound := false
+	lineCount := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		output.WriteString(line + "\n")
-		fmt.Println(line)
+		lineCount++
+		fmt.Printf("Read line %d: %s\n", lineCount, line)
 
 		if strings.Contains(line, text) {
-			fmt.Println("text found")
 			textFound = true
-			fmt.Println()
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
 			input, err := reader.ReadString('\n')
@@ -254,19 +273,24 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 		}
 	}
 
+	fmt.Println("Finished reading output. Lines read:", lineCount)
+
 	if err := scanner.Err(); err != nil {
 		return "", fmt.Errorf("error reading command output: %w", err)
 	}
+
+	fmt.Println("Waiting for command to finish...")
+	if err := cmd.Wait(); err != nil {
+		return "", fmt.Errorf("command finished with error: %w", err)
+	}
+	fmt.Println("Command finished.")
 
 	if !textFound {
 		return "", fmt.Errorf("specified text '%s' not found in command output", text)
 	}
 
-	if err := cmd.Wait(); err != nil {
-		return "", fmt.Errorf("command finished with error: %w", err)
-	}
-
-	return output.String(), nil
+	output := stdoutBuf.String() + stderrBuf.String()
+	return output, nil
 }
 
 func ExtractTxHash(output string) (string, error) {

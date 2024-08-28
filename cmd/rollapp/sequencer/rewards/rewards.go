@@ -61,30 +61,73 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			bech32Prefix = raResponse.Rollapp.Bech32Prefix
+			// check whether the address is imported
+			pterm.Info.Println("checking whether the validator key is present in the keyring")
+			privValidatorKeyPath := filepath.Join(
+				home,
+				consts.ConfigDirName.Rollapp,
+				"config",
+				"priv_validator_key.json",
+			)
 
+			// TODO: check whether the key is already in the keyring before importing it
+			// Asked Dan where it's imported
+			pterm.Info.Println("importing the validator key")
+			impPrivValKeyCmd := exec.Command(
+				consts.Executables.RollappEVM,
+				"tx", "sequencer", "unsafe-import-cons-key",
+				consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
+			)
+			fmt.Println(impPrivValKeyCmd.String())
+			err = bash.ExecCommandWithInteractions(
+				consts.Executables.RollappEVM,
+				"tx", "sequencer", "unsafe-import-cons-key",
+				consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to import sequencer key", err)
+			}
+
+			// check for existing sequencer with the imported address
+
+			// when the sequencer isn't registered go through the flow
+			// of registering the sequencer and settings the reward address
 			var address string
+			bech32Prefix = raResponse.Rollapp.Bech32Prefix
+			kc := utils.KeyConfig{
+				Dir:         consts.ConfigDirName.RollappSequencerKeys,
+				ID:          consts.KeysIds.RollappSequencerReward,
+				ChainBinary: consts.Executables.RollappEVM,
+				Type:        consts.EVM_ROLLAPP,
+			}
+
+			isKeyInKeyring, err := utils.IsAddressWithNameInKeyring(kc, home)
+			if err != nil {
+				pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
+				return
+			}
+
+			if isKeyInKeyring {
+				pterm.Info.Println("key already present in the keyring")
+			}
+
 			if len(args) != 0 {
 				address = args[0]
-			} else {
+			}
+
+			if isKeyInKeyring {
+				address, err = utils.GetAddressBinary(kc, home)
+				if err != nil {
+					pterm.Error.Println("failed to get address", err)
+				}
+			}
+
+			if !isKeyInKeyring && len(args) == 0 {
 				address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 					"Sequencer reward address (press enter to create a new wallet)",
 				).Show()
 
 				if address == "" {
-					kc := utils.KeyConfig{
-						Dir:         consts.ConfigDirName.RollappSequencerKeys,
-						ID:          consts.KeysIds.RollappSequencerReward,
-						ChainBinary: consts.Executables.RollappEVM,
-						Type:        consts.EVM_ROLLAPP,
-					}
-
-					isKeyInKeyring, err := utils.IsAddressWithNameInKeyring(kc)
-					if err != nil {
-						pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
-						return
-					}
-
 					if !isKeyInKeyring {
 						pterm.Info.Println("existing reward wallet not found, creating new")
 						ki, err := initconfig.CreateAddressBinary(kc, home)
@@ -96,7 +139,6 @@ func Cmd() *cobra.Command {
 						ki.Print(utils.WithName(), utils.WithMnemonic())
 						address = ki.Address
 					}
-
 				}
 			}
 
@@ -123,24 +165,7 @@ func Cmd() *cobra.Command {
 			if len(raSequencers.Sequencers) == 0 {
 				pterm.Info.Println("no sequencers registered, registering")
 
-				privValidatorKeyPath := filepath.Join(
-					home,
-					consts.ConfigDirName.Rollapp,
-					"config",
-					"priv_validator_key.json",
-				)
-				impPrivValKeyCmd := exec.Command(
-					consts.Executables.RollappEVM,
-					"tx", "sequencer", "unsafe-import-cons-key",
-					consts.KeysIds.RollappSequencerPrivValidator, privValidatorKeyPath,
-				)
-				fmt.Println(impPrivValKeyCmd.String())
-				_, err = bash.ExecCommandWithInput(impPrivValKeyCmd, "Double check")
-				if err != nil {
-					pterm.Error.Println("failed to import sequencer key", err)
-				}
-
-				regSeqCmd := exec.Command(
+				createSeqCmd := exec.Command(
 					consts.Executables.RollappEVM,
 					"tx",
 					"sequencer",
@@ -151,14 +176,19 @@ func Cmd() *cobra.Command {
 					"--gas-prices",
 					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
 				)
-				fmt.Println(regSeqCmd.String())
+				fmt.Println(createSeqCmd.String())
 
-				txHash, err := bash.ExecCommandWithInput(
-					regSeqCmd,
-					"Double check",
+				createSeqOut, err := bash.ExecCommandWithInput(
+					createSeqCmd,
+					"signatures",
 				)
 				if err != nil {
 					pterm.Error.Println("failed to create sequencer: ", err)
+					return
+				}
+
+				txHash, err := bash.ExtractTxHash(createSeqOut)
+				if err != nil {
 					return
 				}
 
