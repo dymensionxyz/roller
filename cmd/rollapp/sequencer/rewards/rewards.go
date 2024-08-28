@@ -70,8 +70,6 @@ func Cmd() *cobra.Command {
 				"priv_validator_key.json",
 			)
 
-			// TODO: check whether the key is already in the keyring before importing it
-			// Asked Dan where it's imported
 			pterm.Info.Println("importing the validator key")
 			err = bash.ExecCommandWithInteractions(
 				consts.Executables.RollappEVM,
@@ -177,6 +175,7 @@ func Cmd() *cobra.Command {
 					"--gas-prices",
 					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
 					"--keyring-backend", "test",
+					"--keyring-dir", filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 				)
 				fmt.Println(createSeqCmd.String())
 
@@ -207,6 +206,8 @@ func Cmd() *cobra.Command {
 					"--chain-id", rollerCfg.RollappID,
 					"--from", "rollapp",
 					"--gas-prices", "100000000000aRUN",
+					"--keyring-backend", "test",
+					"--keyring-dir", filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 				)
 
 				fmt.Println(updSeqCmd.String())
