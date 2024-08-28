@@ -221,32 +221,45 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
 	var output strings.Builder
+	textFound := false
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		output.WriteString(line + "\n")
+		fmt.Println(line)
 
 		if strings.Contains(line, text) {
+			fmt.Println("text found")
+			textFound = true
 			fmt.Println()
 			fmt.Print("Do you want to continue? (y/n): ")
 			reader := bufio.NewReader(os.Stdin)
-			input, _ := reader.ReadString('\n')
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				return "", fmt.Errorf("error reading user input: %w", err)
+			}
 			input = strings.TrimSpace(input)
 			fmt.Println("input:", input)
 
 			if input == "y" || input == "Y" {
 				if _, err := stdin.Write([]byte("y\n")); err != nil {
-					return "", err
+					return "", fmt.Errorf("error writing to stdin: %w", err)
 				}
 			} else {
 				if _, err := stdin.Write([]byte("n\n")); err != nil {
-					return "", err
+					return "", fmt.Errorf("error writing to stdin: %w", err)
 				}
 				break
 			}
-		} else {
-			return "", errors.New("string not found")
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error reading command output: %w", err)
+	}
+
+	if !textFound {
+		return "", fmt.Errorf("specified text '%s' not found in command output", text)
 	}
 
 	if err := cmd.Wait(); err != nil {
