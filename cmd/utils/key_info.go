@@ -115,11 +115,11 @@ func PrintAddressesWithTitle(addresses []KeyInfo) {
 	}
 }
 
-func IsAddressWithNameInKeyring(info KeyConfig) (bool, error) {
+func IsAddressWithNameInKeyring(info KeyConfig, home string) (bool, error) {
 	cmd := exec.Command(
 		info.ChainBinary,
 		"keys", "list", "--output", "json",
-		"--keyring-backend", "test",
+		"--keyring-backend", "test", "--keyring-dir", filepath.Join(home, info.Dir),
 	)
 
 	var ki []KeyInfo
