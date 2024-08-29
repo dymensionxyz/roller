@@ -148,6 +148,8 @@ func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
 		chainID,
 	)
 
+	fmt.Println(addKeyCmd.String())
+
 	out, err := bash.ExecCommandWithStdout(addKeyCmd)
 	if err != nil {
 		return nil, err
@@ -158,12 +160,12 @@ func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
 		return nil, err
 	}
 
-	return ki, err
+	return ki, nil
 }
 
 func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	pterm.Info.Println("creating relayer keys")
-	relayerAddresses := make([]utils.KeyInfo, 0)
+	var relayerAddresses []utils.KeyInfo
 	keys := GetRelayerKeysConfig(rollappConfig)
 
 	pterm.Info.Println("creating relayer rollapp key")
