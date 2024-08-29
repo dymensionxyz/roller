@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -21,7 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
@@ -31,11 +30,6 @@ import (
 )
 
 // TODO: Test relaying on 35-C and update the prices
-var (
-	oneDayRelayPriceHub     = big.NewInt(1)
-	oneDayRelayPriceRollapp = big.NewInt(1)
-)
-
 const (
 	flagOverride = "override"
 )
@@ -117,6 +111,27 @@ func Cmd() *cobra.Command {
 			}
 
 			if !isRelayerInitialized || shouldOverwrite {
+				keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
+				if err != nil {
+					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
+					return
+				}
+
+				for _, key := range keys {
+					key.Print(utils.WithMnemonic(), utils.WithName())
+				}
+
+				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
+				for _, k := range keys {
+					k.Print(utils.WithName())
+				}
+				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Press enter when the keys are funded: ",
+				).WithDefaultValue(true).Show()
+				if !interactiveContinue {
+					return
+				}
+
 				// preflight checks
 				blockInformation, err := rollapputils.GetCurrentHeight()
 				if err != nil {
@@ -281,30 +296,8 @@ func Cmd() *cobra.Command {
 
 			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
-				if shouldOverwrite {
-					keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
-					if err != nil {
-						pterm.Error.Printf("failed to create relayer keys: %v\n", err)
-						return
-					}
 
-					for _, key := range keys {
-						key.Print(utils.WithMnemonic(), utils.WithName())
-					}
-
-					pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
-					for _, k := range keys {
-						k.Print(utils.WithName())
-					}
-					interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-						"Press enter when the keys are funded: ",
-					).WithDefaultValue(true).Show()
-					if !interactiveContinue {
-						return
-					}
-				}
-
-				err = VerifyRelayerBalances(rollappConfig)
+				err = verifyRelayerBalances(rollappConfig)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 					return
@@ -357,78 +350,12 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config2.RollappConfig) error {
-	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
+func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
+	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(rolCfg)
 	if err != nil {
 		return err
 	}
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 	return nil
-}
-
-func GetRlyHubInsufficientBalances(
-	config config2.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
-	if err != nil {
-		pterm.Error.Printf("failed to get relayer address: %v", err)
-		return nil, err
-	}
-
-	HubRlyBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
-			RPC:    config.HubData.RPC_URL,
-			Denom:  consts.Denoms.Hub,
-			Binary: consts.Executables.Dymension,
-		}, HubRlyAddr,
-	)
-	if err != nil {
-		pterm.Error.Printf("failed to query %s balances: %v", HubRlyAddr, err)
-		return nil, err
-	}
-
-	insufficientBalances := make([]utils.NotFundedAddressData, 0)
-	if HubRlyBalance.Amount.Cmp(oneDayRelayPriceHub) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.HubRelayer,
-				Address:         HubRlyAddr,
-				CurrentBalance:  HubRlyBalance.Amount,
-				RequiredBalance: oneDayRelayPriceHub,
-				Denom:           consts.Denoms.Hub,
-				Network:         config.HubData.ID,
-			},
-		)
-	}
-	return insufficientBalances, nil
-}
-
-func GetRelayerInsufficientBalances(
-	config config2.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-
-	rolRlyData, err := relayer.GetRolRlyAccData(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-
-	if rolRlyData.Balance.Amount.Cmp(oneDayRelayPriceRollapp) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.RollappRelayer,
-				Address:         rolRlyData.Address,
-				CurrentBalance:  rolRlyData.Balance.Amount,
-				RequiredBalance: oneDayRelayPriceRollapp,
-				Denom:           config.Denom,
-				Network:         config.RollappID,
-			},
-		)
-	}
-
-	return insufficientBalances, nil
 }
