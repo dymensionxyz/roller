@@ -64,7 +64,7 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 	}
 }
 
-func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.KeyConfig {
+func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.KeyConfig {
 	return map[string]utils.KeyConfig{
 		consts.KeysIds.RollappRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
@@ -101,7 +101,7 @@ func CreateAddressBinary(
 func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	pterm.Info.Println("getting relayer keys")
 	relayerAddresses := make([]utils.KeyInfo, 0)
-	keys := getRelayerKeysConfig(rollappConfig)
+	keys := GetRelayerKeysConfig(rollappConfig)
 
 	showRollappKeyCmd := getShowRlyKeyCmd(
 		keys[consts.KeysIds.RollappRelayer],
@@ -145,7 +145,7 @@ func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error)
 func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	pterm.Info.Println("creating relayer keys")
 	relayerAddresses := make([]utils.KeyInfo, 0)
-	keys := getRelayerKeysConfig(rollappConfig)
+	keys := GetRelayerKeysConfig(rollappConfig)
 
 	createRollappKeyCmd := getAddRlyKeyCmd(
 		keys[consts.KeysIds.RollappRelayer],

@@ -9,10 +9,6 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -27,6 +23,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -244,6 +243,29 @@ func Cmd() *cobra.Command {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
+			}
+
+			if isRelayerInitialized && !shouldOverwrite {
+				pterm.Info.Println("ensuring relayer keys are present")
+				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+
+				for k, v := range kc {
+					j, _ := json.MarshalIndent(v, "", "  ")
+					fmt.Println(string(j))
+
+					pterm.Info.Printf("checking %s in %s", k, v.Dir)
+					isPresent, err := utils.IsAddressWithNameInKeyring(v, home)
+					if err != nil {
+					}
+
+					if !isPresent {
+						pterm.Warning.Printf(
+							"key %s not found in the keyring, would you like to create it?",
+							k,
+						)
+					}
+				}
+
 			}
 
 			rly := relayer.NewRelayer(
