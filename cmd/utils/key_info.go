@@ -11,6 +11,7 @@ import (
 
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -115,11 +116,17 @@ func PrintAddressesWithTitle(addresses []KeyInfo) {
 	}
 }
 
-func IsAddressWithNameInKeyring(info KeyConfig, home string) (bool, error) {
+// TODO: refactor customkeyringdir into options?
+func IsAddressWithNameInKeyring(
+	info KeyConfig,
+	home string,
+) (bool, error) {
+	keyringDir := filepath.Join(home, info.Dir)
+
 	cmd := exec.Command(
 		info.ChainBinary,
 		"keys", "list", "--output", "json",
-		"--keyring-backend", "test", "--keyring-dir", filepath.Join(home, info.Dir),
+		"--keyring-backend", "test", "--keyring-dir", keyringDir,
 	)
 
 	var ki []KeyInfo
@@ -144,6 +151,28 @@ func IsAddressWithNameInKeyring(info KeyConfig, home string) (bool, error) {
 			return strings.EqualFold(i.Name, info.ID)
 		},
 	), nil
+}
+
+func IsRlyAddressWithNameInKeyring(
+	info KeyConfig,
+	home string,
+	chainId string,
+) (bool, error) {
+	cmd := exec.Command(
+		consts.Executables.Relayer,
+		"keys", "list", chainId, "--home", filepath.Join(home, info.Dir),
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return false, err
+	}
+
+	if strings.Contains(out.String(), fmt.Sprintf("no keys found for chain %s", chainId)) {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 // TODO: remove this struct as it's redundant to KeyInfo

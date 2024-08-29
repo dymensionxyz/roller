@@ -252,36 +252,46 @@ func Cmd() *cobra.Command {
 
 				for k, v := range kc {
 					pterm.Info.Printf("checking %s\n", k)
-					isPresent, err := utils.IsAddressWithNameInKeyring(v, home)
-					if err != nil {
-						pterm.Error.Printf("failed to check address: %v\n", err)
-						return
-					}
 
-					if !isPresent {
-						pterm.Info.Printf("%s not found in keyring, creating", k)
+					var key *utils.KeyInfo
+					var err error
+					switch v.ID {
+					case consts.KeysIds.RollappRelayer:
+						chainId := rollappConfig.RollappID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, home, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
 
-						var key *utils.KeyInfo
-						var err error
-						switch v.ID {
-						case consts.KeysIds.RollappRelayer:
+						if !isPresent {
 							key, err = initconfig.AddRlyKey(v, rollappConfig.RollappID)
-						case consts.KeysIds.HubRelayer:
+						}
+					case consts.KeysIds.HubRelayer:
+						chainId := rollappConfig.RollappID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, home, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+						if !isPresent {
 							key, err = initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
 						}
-						if err != nil {
-							pterm.Error.Printf("failed to create relayer key: %v", err)
-						}
-						key.Print(utils.WithMnemonic(), utils.WithName())
+					default:
+						pterm.Error.Println("incalid key name", err)
+						return
 					}
-				}
-
-				err = verifyRelayerBalances(rollappConfig)
-				if err != nil {
-					return
+					if err != nil {
+						pterm.Error.Printf("failed to create relayer key: %v", err)
+					}
+					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 			}
 
+			err = verifyRelayerBalances(rollappConfig)
+			if err != nil {
+				return
+			}
 			rly := relayer.NewRelayer(
 				rollappConfig.Home,
 				rollappConfig.RollappID,
