@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/pterm/pterm"
 )
 
+// TODO: add the keyring to use for the key
 // KeyConfig struct store information about a wallet
 // Dir refers to the keyringDir where the key is created
 type KeyConfig struct {

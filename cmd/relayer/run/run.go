@@ -111,27 +111,6 @@ func Cmd() *cobra.Command {
 			}
 
 			if !isRelayerInitialized || shouldOverwrite {
-				keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
-				if err != nil {
-					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
-					return
-				}
-
-				for _, key := range keys {
-					key.Print(utils.WithMnemonic(), utils.WithName())
-				}
-
-				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
-				for _, k := range keys {
-					k.Print(utils.WithName())
-				}
-				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-					"Press enter when the keys are funded: ",
-				).WithDefaultValue(true).Show()
-				if !interactiveContinue {
-					return
-				}
-
 				// preflight checks
 				blockInformation, err := rollapputils.GetCurrentHeight()
 				if err != nil {
@@ -182,6 +161,27 @@ func Cmd() *cobra.Command {
 						"failed to initialize relayer config: %v\n",
 						err,
 					)
+					return
+				}
+
+				keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
+				if err != nil {
+					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
+					return
+				}
+
+				for _, key := range keys {
+					key.Print(utils.WithMnemonic(), utils.WithName())
+				}
+
+				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
+				for _, k := range keys {
+					k.Print(utils.WithName())
+				}
+				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Press enter when the keys are funded: ",
+				).WithDefaultValue(true).Show()
+				if !interactiveContinue {
 					return
 				}
 
