@@ -159,6 +159,7 @@ func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	ki.Name = kc.ID
 
 	return ki, nil
 }
