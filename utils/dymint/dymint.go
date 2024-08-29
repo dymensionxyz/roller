@@ -164,17 +164,18 @@ func waitForHealthyRollApp(url string) {
 				fmt.Printf("Error making request: %v\n", err)
 				continue
 			}
-			// nolint:errcheck
-			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				fmt.Printf("Error reading response body: %v\n", err)
 				continue
 			}
+			// nolint:errcheck
+			resp.Body.Close()
 
 			var response RollappHealthResponse
 			err = json.Unmarshal(body, &response)
+			fmt.Println(string(body))
 			if err != nil {
 				fmt.Printf("Error unmarshaling JSON: %v\n", err)
 				continue
