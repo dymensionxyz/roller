@@ -9,10 +9,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/pterm/pterm"
 )
 
 // KeyInfo struct stores information about a generated wallet
@@ -155,12 +154,11 @@ func IsAddressWithNameInKeyring(
 
 func IsRlyAddressWithNameInKeyring(
 	info KeyConfig,
-	home string,
 	chainId string,
 ) (bool, error) {
 	cmd := exec.Command(
 		consts.Executables.Relayer,
-		"keys", "list", chainId, "--home", filepath.Join(home, info.Dir),
+		"keys", "list", chainId, "--home", info.Dir,
 	)
 	fmt.Println(cmd.String())
 

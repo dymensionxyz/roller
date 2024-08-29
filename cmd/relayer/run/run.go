@@ -258,7 +258,7 @@ func Cmd() *cobra.Command {
 					switch v.ID {
 					case consts.KeysIds.RollappRelayer:
 						chainId := rollappConfig.RollappID
-						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, home, chainId)
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
 							return
@@ -269,7 +269,7 @@ func Cmd() *cobra.Command {
 						}
 					case consts.KeysIds.HubRelayer:
 						chainId := rollappConfig.RollappID
-						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, home, chainId)
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
 							return
