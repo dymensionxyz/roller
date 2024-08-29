@@ -12,7 +12,7 @@ import (
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -118,29 +118,25 @@ func Cmd() *cobra.Command {
 
 			if !isRelayerInitialized || shouldOverwrite {
 				// preflight checks
-				for {
-					blockInformation, err := rollapputils.GetCurrentHeight()
-					if err != nil {
-						pterm.Error.Printf("failed to get current block height: %v\n", err)
-						return
-					}
-					currentHeight, err := strconv.Atoi(
-						blockInformation.Block.Header.Height,
-					)
-					if err != nil {
-						pterm.Error.Printf("failed to get current block height: %v\n", err)
-						return
-					}
+				blockInformation, err := rollapputils.GetCurrentHeight()
+				if err != nil {
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
+				}
+				currentHeight, err := strconv.Atoi(
+					blockInformation.Block.Header.Height,
+				)
+				if err != nil {
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
+				}
 
-					if currentHeight <= 2 {
-						pterm.Warning.Println("current height is too low, updating dymint config")
-						err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
-						if err != nil {
-							pterm.Error.Println("failed to update dymint config")
-							return
-						}
-					} else {
-						break
+				if currentHeight <= 2 {
+					pterm.Warning.Println("current height is too low, updating dymint config")
+					err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
+					if err != nil {
+						pterm.Error.Println("failed to update dymint config")
+						return
 					}
 				}
 
