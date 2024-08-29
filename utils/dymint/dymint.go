@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: use dymint instead
@@ -181,8 +181,10 @@ func waitForHealthyRollApp(url string) {
 			resp.Body.Close()
 
 			var response RollappHealthResponse
+
 			err = json.Unmarshal(body, &response)
-			fmt.Println(string(body))
+			fmt.Println("response: ", string(body))
+
 			if err != nil {
 				fmt.Printf("Error unmarshaling JSON: %v\n", err)
 				continue
