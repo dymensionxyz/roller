@@ -6,8 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -139,8 +137,6 @@ func InitializeRelayerConfig(
 	hubConfig relayer.ChainConfig,
 	initConfig config.RollappConfig,
 ) error {
-	pterm.Info.Println("initializing relayer config")
-
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 
 	if err := initRelayer(relayerHome); err != nil {

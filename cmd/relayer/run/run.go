@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -231,6 +232,13 @@ func Cmd() *cobra.Command {
 				}
 			}
 
+			pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
+			err = servicemanager.RestartSystemdService("rollapp")
+			if err != nil {
+				pterm.Error.Printf("failed to restart systemd service: %v\n", err)
+				return
+			}
+
 			rly := relayer.NewRelayer(
 				rollappConfig.Home,
 				rollappConfig.RollappID,
@@ -292,7 +300,7 @@ func Cmd() *cobra.Command {
 						key.Print(utils.WithMnemonic(), utils.WithName())
 					}
 
-					pterm.Info.Println("please fund the keys below with X <tokens> respectively: ")
+					pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
 					for _, k := range keys {
 						k.Print(utils.WithName())
 					}
