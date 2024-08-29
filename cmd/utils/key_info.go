@@ -169,8 +169,7 @@ func IsRlyAddressWithNameInKeyring(
 	}
 	lookFor := fmt.Sprintf("no keys found for chain %s", chainId)
 
-	fmt.Printf("looking for '%s' inside '%s'", lookFor, out.String())
-	return strings.Contains(out.String(), lookFor), nil
+	return !strings.Contains(out.String(), lookFor), nil
 }
 
 // TODO: remove this struct as it's redundant to KeyInfo
