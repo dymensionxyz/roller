@@ -128,6 +128,8 @@ func IsAddressWithNameInKeyring(info KeyConfig, home string) (bool, error) {
 		return false, err
 	}
 
+	fmt.Println(out.String())
+
 	err = json.Unmarshal(out.Bytes(), &ki)
 	if err != nil {
 		return false, err
