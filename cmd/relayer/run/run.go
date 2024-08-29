@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -230,13 +229,6 @@ func Cmd() *cobra.Command {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
-			}
-
-			pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
-			err = servicemanager.RestartSystemdService("rollapp")
-			if err != nil {
-				pterm.Error.Printf("failed to restart systemd service: %v\n", err)
-				return
 			}
 
 			rly := relayer.NewRelayer(

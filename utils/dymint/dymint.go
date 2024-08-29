@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/sequencer"
@@ -140,6 +141,12 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		}
 	} else {
 		pterm.Info.Println("block time settings already up to date")
+		pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
+		err = servicemanager.RestartSystemdService("rollapp")
+		if err != nil {
+			return err
+		}
+		waitForHealthyRollApp("localhost:26657")
 	}
 
 	return nil
