@@ -9,6 +9,10 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -23,9 +27,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -250,13 +251,11 @@ func Cmd() *cobra.Command {
 				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
 
 				for k, v := range kc {
-					j, _ := json.MarshalIndent(v, "", "  ")
-					fmt.Println(string(j))
-
-					pterm.Info.Printf("checking %s in %s", k, v.Dir)
+					pterm.Info.Printf("checking %s\n", k)
 					isPresent, err := utils.IsAddressWithNameInKeyring(v, home)
 					if err != nil {
-						pterm.Error.Printf("failed to check address: %v", err)
+						pterm.Error.Printf("failed to check address: %v\n", err)
+						return
 					}
 
 					if !isPresent {
