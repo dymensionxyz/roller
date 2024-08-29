@@ -256,16 +256,31 @@ func Cmd() *cobra.Command {
 					pterm.Info.Printf("checking %s in %s", k, v.Dir)
 					isPresent, err := utils.IsAddressWithNameInKeyring(v, home)
 					if err != nil {
+						pterm.Error.Printf("failed to check address: %v", err)
 					}
 
 					if !isPresent {
-						pterm.Warning.Printf(
-							"key %s not found in the keyring, would you like to create it?",
-							k,
-						)
+						pterm.Info.Printf("%s not found in keyring, creating", k)
+
+						var key *utils.KeyInfo
+						var err error
+						switch v.ID {
+						case consts.KeysIds.RollappRelayer:
+							key, err = initconfig.AddRlyKey(v, rollappConfig.RollappID)
+						case consts.KeysIds.HubRelayer:
+							key, err = initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+						}
+						if err != nil {
+							pterm.Error.Printf("failed to create relayer key: %v", err)
+						}
+						key.Print(utils.WithMnemonic(), utils.WithName())
 					}
 				}
 
+				err = verifyRelayerBalances(rollappConfig)
+				if err != nil {
+					return
+				}
 			}
 
 			rly := relayer.NewRelayer(
