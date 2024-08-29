@@ -162,6 +162,7 @@ func IsRlyAddressWithNameInKeyring(
 		consts.Executables.Relayer,
 		"keys", "list", chainId, "--home", filepath.Join(home, info.Dir),
 	)
+	fmt.Println(cmd.String())
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
