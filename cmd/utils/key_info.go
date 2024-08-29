@@ -167,9 +167,10 @@ func IsRlyAddressWithNameInKeyring(
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(out.String())
+	lookFor := fmt.Sprintf("no keys found for chain %s", chainId)
 
-	if strings.Contains(out.String(), fmt.Sprintf("no keys found for chain %s", chainId)) {
+	fmt.Printf("looking for '%s' inside '%s'", lookFor, out.String())
+	if strings.Contains(out.String(), lookFor) {
 		return false, nil
 	} else {
 		return true, nil
