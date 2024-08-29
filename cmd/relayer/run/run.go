@@ -253,8 +253,6 @@ func Cmd() *cobra.Command {
 				for k, v := range kc {
 					pterm.Info.Printf("checking %s\n", k)
 
-					var key *utils.KeyInfo
-					var err error
 					switch v.ID {
 					case consts.KeysIds.RollappRelayer:
 						chainId := rollappConfig.RollappID
@@ -265,7 +263,7 @@ func Cmd() *cobra.Command {
 						}
 
 						if !isPresent {
-							key, err = initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -280,7 +278,7 @@ func Cmd() *cobra.Command {
 							return
 						}
 						if !isPresent {
-							key, err = initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -291,10 +289,6 @@ func Cmd() *cobra.Command {
 						pterm.Error.Println("incalid key name", err)
 						return
 					}
-					if err != nil {
-						pterm.Error.Printf("failed to create relayer key: %v", err)
-					}
-					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 			}
 
