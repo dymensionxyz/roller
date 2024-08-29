@@ -9,9 +9,10 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/pterm/pterm"
 )
 
 // KeyInfo struct stores information about a generated wallet
@@ -166,6 +167,7 @@ func IsRlyAddressWithNameInKeyring(
 	if err != nil {
 		return false, err
 	}
+	fmt.Println(out.String())
 
 	if strings.Contains(out.String(), fmt.Sprintf("no keys found for chain %s", chainId)) {
 		return false, nil
