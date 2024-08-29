@@ -266,9 +266,14 @@ func Cmd() *cobra.Command {
 
 						if !isPresent {
 							key, err = initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
 						}
 					case consts.KeysIds.HubRelayer:
-						chainId := rollappConfig.RollappID
+						chainId := rollappConfig.HubData.ID
 						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
@@ -276,6 +281,11 @@ func Cmd() *cobra.Command {
 						}
 						if !isPresent {
 							key, err = initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
 						}
 					default:
 						pterm.Error.Println("incalid key name", err)
