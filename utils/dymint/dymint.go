@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
 )
 
 // TODO: use dymint instead
@@ -117,6 +116,10 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		if err != nil {
 			return err
 		}
+		err = utils.UpdateFieldInToml(dymintPath, "batch_submit_time", want.String())
+		if err != nil {
+			return err
+		}
 
 		if want < time.Minute*1 {
 			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
@@ -192,7 +195,6 @@ func waitForHealthyRollApp(url string) {
 
 			if response.Result.IsHealthy {
 				spinner.Success("RollApp is healthy")
-				fmt.Printf("%+v\n", response)
 				return
 			}
 		}

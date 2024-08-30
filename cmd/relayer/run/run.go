@@ -323,7 +323,11 @@ func Cmd() *cobra.Command {
 				pterm.DefaultSection.WithIndentCharacter("💈").
 					Println("IBC transfer channel is already established!")
 
-				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
+				status := fmt.Sprintf(
+					"Active rollapp: %s\n<->\nhub: %s",
+					rly.SrcChannel,
+					rly.DstChannel,
+				)
 				err := rly.WriteRelayerStatus(status)
 				if err != nil {
 					fmt.Println(err)
