@@ -10,9 +10,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -23,6 +20,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -63,6 +62,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
+			fmt.Println(startRollappCmd.String())
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go bash.RunCmdAsync(

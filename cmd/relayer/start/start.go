@@ -3,12 +3,10 @@ package start
 import (
 	"context"
 	"fmt"
-	"math/big"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -18,10 +16,6 @@ import (
 )
 
 // TODO: Test relaying on 35-C and update the prices
-var (
-	oneDayRelayPriceHub     = big.NewInt(1)
-	oneDayRelayPriceRollapp = big.NewInt(1)
-)
 
 const (
 	flagOverride = "override"
@@ -101,66 +95,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 }
 
 func VerifyRelayerBalances(rolCfg config.RollappConfig) {
-	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
+	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(rolCfg)
 	errorhandling.PrettifyErrorIfExists(err)
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
-}
-
-func GetRlyHubInsufficientBalances(
-	config config.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
-	if err != nil {
-		return nil, err
-	}
-	HubRlyBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
-			RPC:    config.HubData.RPC_URL,
-			Denom:  consts.Denoms.Hub,
-			Binary: consts.Executables.Dymension,
-		}, HubRlyAddr,
-	)
-	if err != nil {
-		return nil, err
-	}
-	insufficientBalances := make([]utils.NotFundedAddressData, 0)
-	if HubRlyBalance.Amount.Cmp(oneDayRelayPriceHub) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.HubRelayer,
-				Address:         HubRlyAddr,
-				CurrentBalance:  HubRlyBalance.Amount,
-				RequiredBalance: oneDayRelayPriceHub,
-				Denom:           consts.Denoms.Hub,
-				Network:         config.HubData.ID,
-			},
-		)
-	}
-	return insufficientBalances, nil
-}
-
-func GetRelayerInsufficientBalances(
-	config config.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-	rolRlyData, err := relayer.GetRolRlyAccData(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-	if rolRlyData.Balance.Amount.Cmp(oneDayRelayPriceRollapp) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.RollappRelayer,
-				Address:         rolRlyData.Address,
-				CurrentBalance:  rolRlyData.Balance.Amount,
-				RequiredBalance: oneDayRelayPriceRollapp,
-				Denom:           config.Denom,
-				Network:         config.RollappID,
-			},
-		)
-	}
-	return insufficientBalances, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: use dymint instead
@@ -133,13 +134,19 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		)
 
 		time.Sleep(time.Second * 2)
-		waitForHealthyRollApp("http://localhost:26657")
+		waitForHealthyRollApp("http://localhost:26657/health")
 		_, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return err
 		}
 	} else {
 		pterm.Info.Println("block time settings already up to date")
+		pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
+		err = servicemanager.RestartSystemdService("rollapp")
+		if err != nil {
+			return err
+		}
+		waitForHealthyRollApp("http://localhost:26657/health")
 	}
 
 	return nil
@@ -164,17 +171,20 @@ func waitForHealthyRollApp(url string) {
 				fmt.Printf("Error making request: %v\n", err)
 				continue
 			}
-			// nolint:errcheck
-			defer resp.Body.Close()
 
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				fmt.Printf("Error reading response body: %v\n", err)
 				continue
 			}
+			// nolint:errcheck
+			resp.Body.Close()
 
 			var response RollappHealthResponse
+
 			err = json.Unmarshal(body, &response)
+			fmt.Println("response: ", string(body))
+
 			if err != nil {
 				fmt.Printf("Error unmarshaling JSON: %v\n", err)
 				continue
