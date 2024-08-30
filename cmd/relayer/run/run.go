@@ -286,7 +286,7 @@ func Cmd() *cobra.Command {
 							key.Print(utils.WithMnemonic(), utils.WithName())
 						}
 					default:
-						pterm.Error.Println("incalid key name", err)
+						pterm.Error.Println("invalid key name", err)
 						return
 					}
 				}
