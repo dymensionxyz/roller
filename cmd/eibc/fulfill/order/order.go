@@ -3,18 +3,76 @@ package order
 import (
 	"fmt"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "order",
 		Short: "Commands related to fulfillment of eibc orders",
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("orders related to fulfillment of eibc orders")
+			err := initconfig.AddFlags(cmd)
+			if err != nil {
+				pterm.Error.Println("failed to add flags")
+				return
+			}
 
-			// dymd tx eibc fulfill-order 41faa715d0e3484ed6e4a9d7bd9e4965fe1851951defdf9f6720e7686b477883 --from client --home ~/.fulfiller --keyring-backend test --node https://rpc-dymension.mzonder.com:443 --chain-id dymension_110
-			// 0-1 -b block --fees 1000000000000000adym
+			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			if err != nil {
+				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
+			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
+			if err != nil {
+				return
+			}
+
+			var orderId string
+			if len(args) != 0 {
+				orderId = args[0]
+			} else {
+				orderId, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide an order id that you want to fulfill",
+				).Show()
+			}
+
+			fmt.Println("orders related to fulfillment of eibc orders")
+			gCmd, err := eibc.GetFulfillOrderCmd(
+				orderId,
+				rollerCfg.HubData,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to fulfill order: ", err)
+				return
+			}
+
+			txOutput, err := bash.ExecCommandWithInput(gCmd, "signatures")
+			if err != nil {
+				pterm.Error.Println("failed to update sequencer metadata", err)
+				return
+			}
+
+			txHash, err := bash.ExtractTxHash(txOutput)
+			if err != nil {
+				return
+			}
+
+			err = tx.MonitorTransaction(rollerCfg.HubData.RPC_URL, txHash)
+			if err != nil {
+				pterm.Error.Println("transaction failed", err)
+				return
+			}
 		},
 	}
 

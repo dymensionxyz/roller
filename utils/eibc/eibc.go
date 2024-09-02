@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/docker/docker/client"
-	"github.com/pterm/pterm"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
@@ -46,6 +46,25 @@ func GetFundsCmd() *exec.Cmd {
 		"funds",
 	)
 	return cmd
+}
+
+func GetFulfillOrderCmd(orderId string, hd consts.HubData) (*exec.Cmd, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"tx", "eibc", "fulfill-order",
+		orderId,
+		"--from", consts.KeysIds.Eibc,
+		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
+		"--keyring-backend", "test",
+		"--node", hd.RPC_URL, "--chain-id", hd.ID,
+	)
+
+	return cmd, nil
 }
 
 // EnsureWhaleAccount function makes sure that eibc whale account is present in

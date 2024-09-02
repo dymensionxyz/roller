@@ -42,6 +42,7 @@ func Cmd(services []string, module string) *cobra.Command {
 
 				return
 			}
+
 			for _, service := range services {
 				serviceData := ServiceTemplateData{
 					Name:     service,
@@ -53,10 +54,12 @@ func Cmd(services []string, module string) *cobra.Command {
 				err = writeServiceFile(tpl, service)
 				errorhandling.PrettifyErrorIfExists(err)
 			}
+
 			_, err := bash.ExecCommandWithStdout(
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+
 			pterm.Success.Printf(
 				"💈 Services %s been loaded successfully.\n",
 				strings.Join(services, ", "),
