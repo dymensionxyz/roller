@@ -215,6 +215,46 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
+					true,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "http-addr"},
+					rollappConfig.HubData.API_URL,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
+					true,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
+					"240h",
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
 				updatedData, err := yaml.Marshal(&node)
 				if err != nil {
 					fmt.Printf("Error marshaling YAML: %v\n", err)
