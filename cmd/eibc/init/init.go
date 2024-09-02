@@ -1,14 +1,9 @@
-package eibc
+package init
 
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -17,10 +12,14 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
-func initCmd() *cobra.Command {
+func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize eibc client",
@@ -84,14 +83,14 @@ func initCmd() *cobra.Command {
 				}
 			}
 
-			c := GetInitCommand()
+			c := eibcutils.GetInitCmd()
 			err = bash.ExecCmd(c)
 			if err != nil {
 				pterm.Error.Println("failed to initialize eibc client", err)
 				return
 			}
 
-			err = ensureWhaleAccount()
+			err = eibcutils.EnsureWhaleAccount()
 			if err != nil {
 				pterm.Error.Printf("failed to create whale account: %v\n", err)
 				return
@@ -154,7 +153,8 @@ func initCmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("eibc config updated successfully")
-			pterm.Info.Printf("eibc client initialized successfully at %s\n",
+			pterm.Info.Printf(
+				"eibc client initialized successfully at %s\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf(eibcHome),
 			)
@@ -166,13 +166,5 @@ func initCmd() *cobra.Command {
 			)
 		},
 	}
-	return cmd
-}
-
-func GetInitCommand() *exec.Cmd {
-	cmd := exec.Command(
-		consts.Executables.Eibc,
-		"init",
-	)
 	return cmd
 }

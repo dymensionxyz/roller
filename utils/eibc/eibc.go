@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/docker/docker/client"
 	"github.com/pterm/pterm"
@@ -11,12 +12,46 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 )
 
-// ensureWhaleAccount function makes sure that eibc whale account is present in
+func GetStartCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"start",
+	)
+	return cmd
+}
+
+func GetInitCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"init",
+	)
+	return cmd
+}
+
+func GetScaleCmd(count string) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"scale",
+		count,
+	)
+	return cmd
+}
+
+func GetFundsCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"funds",
+	)
+	return cmd
+}
+
+// EnsureWhaleAccount function makes sure that eibc whale account is present in
 // the keyring. In eibc client, whale account is the wallet that acts as the bank
 // and distributes funds across a set of wallets that fulfill the eibc orders
-func ensureWhaleAccount() error {
+func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := utils.KeyConfig{
 		Dir:         consts.ConfigDirName.Eibc,
@@ -42,14 +77,14 @@ func ensureWhaleAccount() error {
 // createMongoDbContainer function creates a mongodb container using docker
 // sdk. Any 'DOCKER_HOST' can be used for this mongodb container.
 // Mongodb is used to store information about processed eibc orders
-func createMongoDbContainer() error {
+func CreateMongoDbContainer() error {
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		fmt.Printf("failed to create docker client: %v\n", err)
 		return err
 	}
 
-	err = utils.CheckAndCreateMongoDBContainer(
+	err = dockerutils.CheckAndCreateMongoDBContainer(
 		context.Background(),
 		cc,
 	)

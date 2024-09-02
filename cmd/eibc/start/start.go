@@ -1,66 +1,57 @@
-package eibc
+package start
 
 import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
-	global_utils "github.com/dymensionxyz/roller/utils"
+	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/spf13/cobra"
 )
 
-func startCmd() *cobra.Command {
+func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the eibc client",
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := os.UserHomeDir()
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
-			ok, err := global_utils.DirNotEmpty(eibcHome)
+			ok, err := globalutils.DirNotEmpty(eibcHome)
 			if err != nil {
 				return
 			}
 
 			if !ok {
 				fmt.Println("eibc home directory not present, running init")
-				c := GetInitCommand()
+				c := eibcutils.GetInitCmd()
 
 				_, err := bash.ExecCommandWithStdout(c)
 				if err != nil {
 					return
 				}
 
-				err = ensureWhaleAccount()
+				err = eibcutils.EnsureWhaleAccount()
 				if err != nil {
 					log.Printf("failed to create whale account: %v\n", err)
 					return
 				}
 			}
 
-			err = createMongoDbContainer()
+			err = eibcutils.CreateMongoDbContainer()
 			if err != nil {
 				return
 			}
 
-			c := GetStartCmd()
+			c := eibcutils.GetStartCmd()
 			err = bash.ExecCmdFollow(c)
 			if err != nil {
 				return
 			}
 		},
 	}
-	return cmd
-}
-
-func GetStartCmd() *exec.Cmd {
-	cmd := exec.Command(
-		consts.Executables.Eibc,
-		"start",
-	)
 	return cmd
 }
