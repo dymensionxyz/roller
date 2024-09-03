@@ -103,19 +103,8 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// Parse the YAML
-			var node yaml.Node
-			err = yaml.Unmarshal(data, &node)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal config.yaml")
-				return
-			}
-
-			// Get the actual content node (usually the first child of the document node)
-			contentNode := &node
-			if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-				contentNode = node.Content[0]
-			}
+			var contentNode map[interface{}]interface{}
+			err = yaml.Unmarshal(data, &contentNode)
 
 			// Update the nested fields
 			err = yamlconfig.UpdateNestedYAML(
@@ -139,7 +128,7 @@ func Cmd() *cobra.Command {
 			}
 
 			// Marshal the updated YAML
-			updatedData, err := yaml.Marshal(&node)
+			updatedData, err := yaml.Marshal(contentNode)
 			if err != nil {
 				fmt.Printf("Error marshaling YAML: %v\n", err)
 				return

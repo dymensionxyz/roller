@@ -11,7 +11,7 @@ import (
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -185,49 +185,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				pterm.Info.Println("updating application relayer config")
-				path := filepath.Join(relayerHome, "config")
-				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
-				if err != nil {
-					fmt.Printf("Error reading file: %v\n", err)
-				}
-
-				// Parse the YAML
-				var node yaml.Node
-				err = yaml.Unmarshal(data, &node)
-				if err != nil {
-					pterm.Error.Println("failed to unmarshal config.yaml")
-					return
-				}
-
-				contentNode := &node
-				if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-					contentNode = node.Content[0]
-				}
-
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
-					1.3,
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
-					return
-				}
-
-				updatedData, err := yaml.Marshal(&node)
-				if err != nil {
-					fmt.Printf("Error marshaling YAML: %v\n", err)
-					return
-				}
-
-				// Write the updated YAML back to the original file
-				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
-				if err != nil {
-					fmt.Printf("Error writing file: %v\n", err)
-					return
-				}
-
 				pterm.Info.Println(
 					"updating dymint config to 5s block time for relayer configuration",
 				)
@@ -242,6 +199,90 @@ func Cmd() *cobra.Command {
 
 				if err := relayer.CreatePath(rollappConfig); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+					return
+				}
+
+				pterm.Info.Println("updating application relayer config")
+				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
+				data, err := os.ReadFile(filepath.Join(relayerConfigPath))
+				if err != nil {
+					fmt.Printf("Error reading file: %v\n", err)
+				}
+
+				var contentNode map[interface{}]interface{}
+				err = yaml.Unmarshal(data, &contentNode)
+				if err != nil {
+					pterm.Error.Println("failed to unmarshal", err)
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
+					1.3,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
+					true,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
+					rollappConfig.HubData.API_URL,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
+					true,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
+					"240h",
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				updatedData, err := yaml.Marshal(contentNode)
+				if err != nil {
+					fmt.Printf("Error marshaling YAML: %v\n", err)
+					return
+				}
+				fmt.Println("writing")
+				fmt.Println(string(updatedData))
+				fmt.Println("to")
+				fmt.Println(filepath.Join(relayerConfigPath, "config.yaml"))
+
+				// Write the updated YAML back to the original file
+				err = os.WriteFile(
+					filepath.Join(relayerConfigPath, "config.yaml"),
+					updatedData,
+					0o644,
+				)
+				if err != nil {
+					fmt.Printf("Error writing file: %v\n", err)
 					return
 				}
 			}
@@ -324,14 +365,18 @@ func Cmd() *cobra.Command {
 					Println("IBC transfer channel is already established!")
 
 				status := fmt.Sprintf(
-					"Active rollapp: %s\n<->\nhub: %s",
+					"Active\nrollapp: %s\n<->\nhub: %s",
 					rly.SrcChannel,
 					rly.DstChannel,
 				)
 				err := rly.WriteRelayerStatus(status)
 				if err != nil {
 					fmt.Println(err)
+					return
 				}
+
+				pterm.Info.Println(status)
+				return
 			}
 
 			if !rly.ChannelReady() {
