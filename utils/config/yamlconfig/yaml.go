@@ -10,7 +10,8 @@ import (
 )
 
 func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
-	fmt.Printf("settings %s to %v\n", strings.Join(path, "."), value)
+	fmt.Printf("Updating path: %s to value: %v\n", strings.Join(path, "."), value)
+
 	if node.Kind == yaml.DocumentNode {
 		if len(node.Content) == 0 {
 			return fmt.Errorf("empty document node")
@@ -28,13 +29,13 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 
 	for i := 0; i < len(node.Content); i += 2 {
 		if node.Content[i].Value == path[0] {
+			fmt.Printf("Found existing key: %s\n", path[0])
 			return UpdateNestedYAML(node.Content[i+1], path[1:], value)
 		}
 	}
 
-	fmt.Println(path)
+	fmt.Printf("Path not found, creating new key: %s\n", path[0])
 	// If the path doesn't exist, create it
-	// Create a new key node
 	newKeyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: path[0],
