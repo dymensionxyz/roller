@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
-	"gopkg.in/yaml.v3"
 )
 
 func UpdateNestedYAML(data map[interface{}]interface{}, keyPath []string, value interface{}) error {
@@ -38,8 +37,7 @@ type EibcConfig struct {
 	Bots            botConfig       `mapstructure:"bots"`
 	FulfillCriteria fulfillCriteria `mapstructure:"fulfill_criteria"`
 
-
-	LogLevel    string      `mapstructure:"log_level"`
+	LogLevel string `mapstructure:"log_level"`
 }
 
 type OrderPollingConfig struct {
