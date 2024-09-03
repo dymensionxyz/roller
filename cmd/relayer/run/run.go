@@ -372,7 +372,10 @@ func Cmd() *cobra.Command {
 				err := rly.WriteRelayerStatus(status)
 				if err != nil {
 					fmt.Println(err)
+					return
 				}
+
+				return
 			}
 
 			if !rly.ChannelReady() {
