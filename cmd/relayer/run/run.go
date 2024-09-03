@@ -9,6 +9,10 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -23,9 +27,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -193,6 +194,9 @@ func Cmd() *cobra.Command {
 
 				var contentNode map[interface{}]interface{}
 				err = yaml.Unmarshal(data, &contentNode)
+				if err != nil {
+					pterm.Error.Println("failed to unmarshal", err)
+				}
 
 				err = yamlconfig.UpdateNestedYAML(
 					contentNode,
