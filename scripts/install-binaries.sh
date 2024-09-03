@@ -2,7 +2,7 @@
 BINS_DIR="/usr/local/bin"
 ROLLER_BINS_DIR="$BINS_DIR/roller_bins"
 
-ROLLAPP_EVN_VERSION="srene/304-rollapp_consensus_params"
+ROLLAPP_EVN_VERSION="danwt/test-light-client"
 DYMD_VERSION="main"
 DYMD_COMMIT="f42674ae"
 
