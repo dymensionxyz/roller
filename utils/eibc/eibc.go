@@ -49,7 +49,7 @@ func GetFundsCmd() *exec.Cmd {
 	return cmd
 }
 
-func GetFulfillOrderCmd(orderId string, hd consts.HubData) (*exec.Cmd, error) {
+func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cmd, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
@@ -58,9 +58,10 @@ func GetFulfillOrderCmd(orderId string, hd consts.HubData) (*exec.Cmd, error) {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx", "eibc", "fulfill-order",
-		orderId,
+		orderId, percentage,
 		"--from", consts.KeysIds.Eibc,
 		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--keyring-backend", "test",
 		"--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
