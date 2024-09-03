@@ -19,7 +19,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "order",
 		Short: "Commands related to fulfillment of eibc orders",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -47,9 +47,19 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
+			var percentage string
+			if len(args) != 0 {
+				percentage = args[1]
+			} else {
+				percentage, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide an order id that you want to fulfill",
+				).Show()
+			}
+
 			fmt.Println("orders related to fulfillment of eibc orders")
 			gCmd, err := eibc.GetFulfillOrderCmd(
 				orderId,
+				percentage,
 				rollerCfg.HubData,
 			)
 			if err != nil {
