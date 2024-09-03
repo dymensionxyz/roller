@@ -365,7 +365,7 @@ func Cmd() *cobra.Command {
 					Println("IBC transfer channel is already established!")
 
 				status := fmt.Sprintf(
-					"Active rollapp: %s\n<->\nhub: %s",
+					"Active\nrollapp: %s\n<->\nhub: %s",
 					rly.SrcChannel,
 					rly.DstChannel,
 				)
