@@ -10,7 +10,7 @@ import (
 )
 
 func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
-	fmt.Printf("settings %s to %w", strings.Join(path, "."), value)
+	fmt.Printf("settings %s to %v\n", strings.Join(path, "."), value)
 	if node.Kind == yaml.DocumentNode {
 		if len(node.Content) == 0 {
 			return fmt.Errorf("empty document node")
