@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/client"
+	"github.com/pterm/pterm"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
-	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
