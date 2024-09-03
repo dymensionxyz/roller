@@ -103,7 +103,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// Get the actual content node (usually the first child of the document node)
 			var contentNode map[interface{}]interface{}
 			err = yaml.Unmarshal(data, &contentNode)
 
