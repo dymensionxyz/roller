@@ -8,6 +8,8 @@ import (
 	"log"
 	"strings"
 
+	_ "github.com/lib/pq"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -140,20 +142,10 @@ func runSQLMigration() error {
 	}
 	defer db.Close()
 
-	// Split the SQL script into individual statements
-	// Note: This is a simple split and may not handle complex SQL with semicolons inside strings or comments.
-	queries := strings.Split(string(sqlFile), ";")
-
 	// Execute each SQL statement
-	for _, query := range queries {
-		query = strings.TrimSpace(query)
-		if query == "" {
-			continue
-		}
-		_, err := db.Exec(query)
-		if err != nil {
-			return fmt.Errorf("failed to execute SQL statement: %w", err)
-		}
+	_, err = db.Exec(string(sqlFile))
+	if err != nil {
+		return err
 	}
 
 	log.Println("Migrations applied successfully")
