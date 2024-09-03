@@ -375,6 +375,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				pterm.Info.Println(status)
 				return
 			}
 
