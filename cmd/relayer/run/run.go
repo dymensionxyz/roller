@@ -34,7 +34,6 @@ const (
 	flagOverride = "override"
 )
 
-// nolint gocyclo
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "run",
@@ -270,14 +269,9 @@ func Cmd() *cobra.Command {
 					fmt.Printf("Error marshaling YAML: %v\n", err)
 					return
 				}
-				fmt.Println("writing")
-				fmt.Println(string(updatedData))
-				fmt.Println("to")
-				fmt.Println(filepath.Join(relayerConfigPath, "config.yaml"))
-
 				// Write the updated YAML back to the original file
 				err = os.WriteFile(
-					filepath.Join(relayerConfigPath, "config.yaml"),
+					filepath.Join(relayerConfigPath),
 					updatedData,
 					0o644,
 				)
@@ -395,7 +389,6 @@ func Cmd() *cobra.Command {
 
 			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
-
 				err = verifyRelayerBalances(rollappConfig)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
@@ -427,12 +420,14 @@ func Cmd() *cobra.Command {
 				rly.DstChannel,
 			)
 
-			pterm.Info.Println("reverting dymint config to 1h")
-			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-			if err != nil {
-				pterm.Error.Println("failed to update dymint config")
-				return
-			}
+			defer func() {
+				pterm.Info.Println("reverting dymint config to 1h")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config")
+					return
+				}
+			}()
 
 			// select {}
 			pterm.Info.Println("next steps:")
