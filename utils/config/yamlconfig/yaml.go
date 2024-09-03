@@ -2,63 +2,29 @@ package yamlconfig
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
 	"gopkg.in/yaml.v3"
 )
 
-func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
-	fmt.Printf("Updating path: %s to value: %v\n", strings.Join(path, "."), value)
-	if node.Kind == yaml.DocumentNode {
-		if len(node.Content) == 0 {
-			return fmt.Errorf("empty document node")
+func UpdateNestedYAML(data map[interface{}]interface{}, keyPath []string, value interface{}) error {
+	if len(keyPath) == 0 {
+		return fmt.Errorf("empty key path")
+	}
+	if len(keyPath) == 1 {
+		if value == nil {
+			delete(data, keyPath[0])
+		} else {
+			data[keyPath[0]] = value
 		}
-		return UpdateNestedYAML(node.Content[0], path, value)
+		return nil
 	}
-
-	if len(path) == 0 {
-		return setNodeValue(node, value)
+	nextMap, ok := data[keyPath[0]].(map[interface{}]interface{})
+	if !ok {
+		return fmt.Errorf("failed to set nested map for key: %s", keyPath[0])
 	}
-
-	if node.Kind != yaml.MappingNode {
-		return fmt.Errorf("expected a mapping node, got %v", node.Kind)
-	}
-
-	for i := 0; i < len(node.Content); i += 2 {
-		if node.Content[i].Value == path[0] {
-			return UpdateNestedYAML(node.Content[i+1], path[1:], value)
-		}
-	}
-
-	fmt.Printf("Path not found, creating new key: %s\n", path[0])
-	// If the path doesn't exist, create it
-	// Create a new key node
-	newKeyNode := &yaml.Node{
-		Kind:  yaml.ScalarNode,
-		Value: path[0],
-		Tag:   "!!str",
-	}
-	node.Content = append(node.Content, newKeyNode)
-
-	// Determine the kind of the new value node
-	var newValueNode *yaml.Node
-	if len(path) == 1 {
-		// If this is the last element in the path, set the value
-		newValueNode = &yaml.Node{
-			Kind: yaml.ScalarNode,
-			Tag:  "!!str", // You can adjust the tag based on the type of `value`
-		}
-	} else {
-		// Otherwise, create a new mapping node for the next level
-		newValueNode = &yaml.Node{
-			Kind: yaml.MappingNode,
-		}
-	}
-
-	node.Content = append(node.Content, newValueNode)
-	return UpdateNestedYAML(newValueNode, path[1:], value)
+	return UpdateNestedYAML(nextMap, keyPath[1:], value)
 }
 
 func setNodeValue(node *yaml.Node, value interface{}) error {
