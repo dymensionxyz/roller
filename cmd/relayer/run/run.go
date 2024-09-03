@@ -7,12 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -27,6 +24,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -215,6 +215,14 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				fmt.Println(
+					"updating: ", strings.Join(
+						[]string{
+							"chains", rollappConfig.HubData.ID, "value",
+							"is-dym-hub",
+						}, ".",
+					),
+				)
 				err = yamlconfig.UpdateNestedYAML(
 					contentNode,
 					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
