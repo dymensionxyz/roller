@@ -3,9 +3,6 @@ package order
 import (
 	"fmt"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
@@ -13,6 +10,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/tx"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
