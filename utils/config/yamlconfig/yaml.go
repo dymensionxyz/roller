@@ -2,6 +2,7 @@ package yamlconfig
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
@@ -9,6 +10,7 @@ import (
 )
 
 func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
+	fmt.Printf("settings %s to %w", strings.Join(path, "."), value)
 	if node.Kind == yaml.DocumentNode {
 		if len(node.Content) == 0 {
 			return fmt.Errorf("empty document node")
@@ -46,7 +48,7 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 		// If this is the last element in the path, set the value
 		newValueNode = &yaml.Node{
 			Kind: yaml.ScalarNode,
-			Tag:  "!!str", // You can adjust the tag based on the type of `value`
+			Tag:  "!!str",
 		}
 	} else {
 		// Otherwise, create a new mapping node for the next level

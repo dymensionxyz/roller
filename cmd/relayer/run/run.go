@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -215,14 +214,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				fmt.Println(
-					"updating: ", strings.Join(
-						[]string{
-							"chains", rollappConfig.HubData.ID, "value",
-							"is-dym-hub",
-						}, ".",
-					),
-				)
 				err = yamlconfig.UpdateNestedYAML(
 					contentNode,
 					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
