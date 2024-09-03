@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/client"
+	"github.com/pterm/pterm"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
-	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
@@ -64,6 +65,8 @@ func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cm
 		"--keyring-backend", "test",
 		"--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
+
+	fmt.Println(cmd.String())
 
 	return cmd, nil
 }
