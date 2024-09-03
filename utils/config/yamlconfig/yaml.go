@@ -12,15 +12,16 @@ import (
 func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 	fmt.Printf("Updating path: %s to value: %v\n", strings.Join(path, "."), value)
 
+	if len(path) == 0 {
+		// If the path is empty, we should not attempt to update further
+		return fmt.Errorf("path is empty, cannot update node")
+	}
+
 	if node.Kind == yaml.DocumentNode {
 		if len(node.Content) == 0 {
 			return fmt.Errorf("empty document node")
 		}
 		return UpdateNestedYAML(node.Content[0], path, value)
-	}
-
-	if len(path) == 0 {
-		return setNodeValue(node, value)
 	}
 
 	if node.Kind != yaml.MappingNode {
@@ -29,7 +30,11 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 
 	for i := 0; i < len(node.Content); i += 2 {
 		if node.Content[i].Value == path[0] {
-			fmt.Printf("Found existing key: %s\n", path[0])
+			if len(path) == 1 {
+				// If this is the last element in the path, set the value
+				return setNodeValue(node.Content[i+1], value)
+			}
+			// Continue to the next level
 			return UpdateNestedYAML(node.Content[i+1], path[1:], value)
 		}
 	}
@@ -51,6 +56,7 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 			Kind: yaml.ScalarNode,
 			Tag:  "!!str",
 		}
+		setNodeValue(newValueNode, value)
 	} else {
 		// Otherwise, create a new mapping node for the next level
 		newValueNode = &yaml.Node{
