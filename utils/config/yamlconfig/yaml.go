@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
-	"gopkg.in/yaml.v3"
 )
 
 func UpdateNestedYAML(data map[interface{}]interface{}, keyPath []string, value interface{}) error {
@@ -25,34 +24,6 @@ func UpdateNestedYAML(data map[interface{}]interface{}, keyPath []string, value 
 		return fmt.Errorf("failed to set nested map for key: %s", keyPath[0])
 	}
 	return UpdateNestedYAML(nextMap, keyPath[1:], value)
-}
-
-func setNodeValue(node *yaml.Node, value interface{}) error {
-	switch v := value.(type) {
-	case string:
-		node.Kind = yaml.ScalarNode
-		node.Tag = "!!str"
-		node.Value = v
-	case int:
-		node.Kind = yaml.ScalarNode
-		node.Tag = "!!int"
-		node.Value = fmt.Sprintf("%d", v)
-	case float32:
-		node.Kind = yaml.ScalarNode
-		node.Tag = "!!float"
-		node.Value = fmt.Sprintf("%f", v)
-	case float64:
-		node.Kind = yaml.ScalarNode
-		node.Tag = "!!float"
-		node.Value = fmt.Sprintf("%f", v)
-	case bool:
-		node.Kind = yaml.ScalarNode
-		node.Tag = "!!bool"
-		node.Value = fmt.Sprintf("%t", v)
-	default:
-		return fmt.Errorf("unsupported value type: %T", value)
-	}
-	return nil
 }
 
 type EibcConfig struct {
