@@ -1,15 +1,12 @@
-package eibc
+package scale
 
 import (
-	"os/exec"
-
-	"github.com/spf13/cobra"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/spf13/cobra"
 )
 
-func scaleCmd() *cobra.Command {
+func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "scale [count]",
 		Short: "Scale the number of fulfiller addresses to [count]",
@@ -23,7 +20,7 @@ a good number to start with is 30 (default when initializing the eibc client)
 		Run: func(cmd *cobra.Command, args []string) {
 			count := args[0]
 
-			c := GetScaleCmd(count)
+			c := eibcutils.GetScaleCmd(count)
 
 			err := bash.ExecCmdFollow(c)
 			if err != nil {
@@ -31,14 +28,5 @@ a good number to start with is 30 (default when initializing the eibc client)
 			}
 		},
 	}
-	return cmd
-}
-
-func GetScaleCmd(count string) *exec.Cmd {
-	cmd := exec.Command(
-		consts.Executables.Eibc,
-		"scale",
-		count,
-	)
 	return cmd
 }

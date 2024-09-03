@@ -1,8 +1,6 @@
 package rollapp
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/rollapp/config"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/run"
@@ -13,6 +11,8 @@ import (
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
+	stopservices "github.com/dymensionxyz/roller/cmd/services/stop"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -27,11 +27,14 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(config.Cmd())
 	cmd.AddCommand(run.Cmd())
 	cmd.AddCommand(sequencer.Cmd())
+
+	sl := []string{"rollapp", "da-light-client"}
 	cmd.AddCommand(
 		services.Cmd(
-			loadservices.RollappCmd(),
+			loadservices.Cmd(sl, cmd.Use),
 			startservices.RollappCmd(),
-			restartservices.RollappCmd(),
+			restartservices.Cmd(sl),
+			stopservices.Cmd(sl),
 		),
 	)
 
