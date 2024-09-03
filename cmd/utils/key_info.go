@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -84,9 +87,9 @@ func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, err
 	return ParseAddressFromOutput(output)
 }
 
-func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
+func GetAddressBinary(keyConfig KeyConfig, home string) (string, error) {
 	showKeyCommand := exec.Command(
-		binaryPath,
+		keyConfig.ChainBinary,
 		"keys",
 		"show",
 		keyConfig.ID,
@@ -94,7 +97,7 @@ func GetAddressBinary(keyConfig KeyConfig, binaryPath string) (string, error) {
 		"--keyring-backend",
 		"test",
 		"--keyring-dir",
-		keyConfig.Dir,
+		filepath.Join(home, keyConfig.Dir),
 	)
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
@@ -113,23 +116,64 @@ func PrintAddressesWithTitle(addresses []KeyInfo) {
 	}
 }
 
-// TODO: remove this function as it's redundant to PrintAddressesWithTitle
-func PrintSecretAddressesWithTitle(addresses []SecretAddressData) {
-	fmt.Printf("🔑 Addresses:\n")
-	PrintSecretAddresses(addresses)
+// TODO: refactor customkeyringdir into options?
+func IsAddressWithNameInKeyring(
+	info KeyConfig,
+	home string,
+) (bool, error) {
+	keyringDir := filepath.Join(home, info.Dir)
+
+	cmd := exec.Command(
+		info.ChainBinary,
+		"keys", "list", "--output", "json",
+		"--keyring-backend", "test", "--keyring-dir", keyringDir,
+	)
+
+	var ki []KeyInfo
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Println(out.String())
+
+	err = json.Unmarshal(out.Bytes(), &ki)
+	if err != nil {
+		return false, err
+	}
+
+	if len(ki) == 0 {
+		return false, nil
+	}
+
+	return slices.ContainsFunc(
+		ki, func(i KeyInfo) bool {
+			return strings.EqualFold(i.Name, info.ID)
+		},
+	), nil
+}
+
+func IsRlyAddressWithNameInKeyring(
+	info KeyConfig,
+	chainId string,
+) (bool, error) {
+	cmd := exec.Command(
+		consts.Executables.Relayer,
+		"keys", "list", chainId, "--home", info.Dir,
+	)
+	fmt.Println(cmd.String())
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return false, err
+	}
+	lookFor := fmt.Sprintf("no keys found for chain %s", chainId)
+
+	return !strings.Contains(out.String(), lookFor), nil
 }
 
 // TODO: remove this struct as it's redundant to KeyInfo
 type SecretAddressData struct {
 	AddressData
 	Mnemonic string
-}
-
-// TODO: remove this function as it's redundant to *KeyInfo.Print
-func PrintSecretAddresses(addresses []SecretAddressData) {
-	for _, address := range addresses {
-		fmt.Println(address.AddressData.Name)
-		fmt.Println(address.AddressData.Addr)
-		fmt.Println(address.Mnemonic)
-	}
 }

@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			addresses := make([]utils.KeyInfo, 0)
-			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 
 			daAddr, err := damanager.DataLayer.GetDAAccountAddress()
 			errorhandling.PrettifyErrorIfExists(err)

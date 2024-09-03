@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -12,7 +11,7 @@ import (
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -21,7 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
@@ -31,11 +30,6 @@ import (
 )
 
 // TODO: Test relaying on 35-C and update the prices
-var (
-	oneDayRelayPriceHub     = big.NewInt(1)
-	oneDayRelayPriceRollapp = big.NewInt(1)
-)
-
 const (
 	flagOverride = "override"
 )
@@ -118,29 +112,25 @@ func Cmd() *cobra.Command {
 
 			if !isRelayerInitialized || shouldOverwrite {
 				// preflight checks
-				for {
-					blockInformation, err := rollapputils.GetCurrentHeight()
-					if err != nil {
-						pterm.Error.Printf("failed to get current block height: %v\n", err)
-						return
-					}
-					currentHeight, err := strconv.Atoi(
-						blockInformation.Block.Header.Height,
-					)
-					if err != nil {
-						pterm.Error.Printf("failed to get current block height: %v\n", err)
-						return
-					}
+				blockInformation, err := rollapputils.GetCurrentHeight()
+				if err != nil {
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
+				}
+				currentHeight, err := strconv.Atoi(
+					blockInformation.Block.Header.Height,
+				)
+				if err != nil {
+					pterm.Error.Printf("failed to get current block height: %v\n", err)
+					return
+				}
 
-					if currentHeight <= 2 {
-						pterm.Warning.Println("current height is too low, updating dymint config")
-						err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
-						if err != nil {
-							pterm.Error.Println("failed to update dymint config")
-							return
-						}
-					} else {
-						break
+				if currentHeight <= 2 {
+					pterm.Warning.Println("current height is too low, updating dymint config")
+					err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
+					if err != nil {
+						pterm.Error.Println("failed to update dymint config")
+						return
 					}
 				}
 
@@ -171,6 +161,27 @@ func Cmd() *cobra.Command {
 						"failed to initialize relayer config: %v\n",
 						err,
 					)
+					return
+				}
+
+				keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
+				if err != nil {
+					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
+					return
+				}
+
+				for _, key := range keys {
+					key.Print(utils.WithMnemonic(), utils.WithName())
+				}
+
+				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
+				for _, k := range keys {
+					k.Print(utils.WithName())
+				}
+				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Press enter when the keys are funded: ",
+				).WithDefaultValue(true).Show()
+				if !interactiveContinue {
 					return
 				}
 
@@ -220,7 +231,7 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println(
 					"updating dymint config to 5s block time for relayer configuration",
 				)
-				err = dymintutils.UpdateDymintConfigForIBC(home, "5s")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 				if err != nil {
 					pterm.Error.Println(
 						"failed to update dymint config for ibc creation",
@@ -235,6 +246,56 @@ func Cmd() *cobra.Command {
 				}
 			}
 
+			if isRelayerInitialized && !shouldOverwrite {
+				pterm.Info.Println("ensuring relayer keys are present")
+				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+
+				for k, v := range kc {
+					pterm.Info.Printf("checking %s\n", k)
+
+					switch v.ID {
+					case consts.KeysIds.RollappRelayer:
+						chainId := rollappConfig.RollappID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					case consts.KeysIds.HubRelayer:
+						chainId := rollappConfig.HubData.ID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					default:
+						pterm.Error.Println("invalid key name", err)
+						return
+					}
+				}
+			}
+
+			err = verifyRelayerBalances(rollappConfig)
+			if err != nil {
+				return
+			}
 			rly := relayer.NewRelayer(
 				rollappConfig.Home,
 				rollappConfig.RollappID,
@@ -262,7 +323,11 @@ func Cmd() *cobra.Command {
 				pterm.DefaultSection.WithIndentCharacter("💈").
 					Println("IBC transfer channel is already established!")
 
-				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
+				status := fmt.Sprintf(
+					"Active rollapp: %s\n<->\nhub: %s",
+					rly.SrcChannel,
+					rly.DstChannel,
+				)
 				err := rly.WriteRelayerStatus(status)
 				if err != nil {
 					fmt.Println(err)
@@ -285,30 +350,8 @@ func Cmd() *cobra.Command {
 
 			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
-				if shouldOverwrite {
-					keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
-					if err != nil {
-						pterm.Error.Printf("failed to create relayer keys: %v\n", err)
-						return
-					}
 
-					for _, key := range keys {
-						key.Print(utils.WithMnemonic(), utils.WithName())
-					}
-
-					pterm.Info.Println("please fund the keys below with X <tokens> respectively: ")
-					for _, k := range keys {
-						k.Print(utils.WithName())
-					}
-					interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-						"Press enter when the keys are funded: ",
-					).WithDefaultValue(true).Show()
-					if !interactiveContinue {
-						return
-					}
-				}
-
-				err = VerifyRelayerBalances(rollappConfig)
+				err = verifyRelayerBalances(rollappConfig)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 					return
@@ -340,7 +383,7 @@ func Cmd() *cobra.Command {
 			)
 
 			pterm.Info.Println("reverting dymint config to 1h")
-			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s")
+			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
 			if err != nil {
 				pterm.Error.Println("failed to update dymint config")
 				return
@@ -361,78 +404,12 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config2.RollappConfig) error {
-	insufficientBalances, err := GetRelayerInsufficientBalances(rolCfg)
+func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
+	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(rolCfg)
 	if err != nil {
 		return err
 	}
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 	return nil
-}
-
-func GetRlyHubInsufficientBalances(
-	config config2.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	HubRlyAddr, err := utils.GetRelayerAddress(config.Home, config.HubData.ID)
-	if err != nil {
-		pterm.Error.Printf("failed to get relayer address: %v", err)
-		return nil, err
-	}
-
-	HubRlyBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
-			RPC:    config.HubData.RPC_URL,
-			Denom:  consts.Denoms.Hub,
-			Binary: consts.Executables.Dymension,
-		}, HubRlyAddr,
-	)
-	if err != nil {
-		pterm.Error.Printf("failed to query %s balances: %v", HubRlyAddr, err)
-		return nil, err
-	}
-
-	insufficientBalances := make([]utils.NotFundedAddressData, 0)
-	if HubRlyBalance.Amount.Cmp(oneDayRelayPriceHub) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.HubRelayer,
-				Address:         HubRlyAddr,
-				CurrentBalance:  HubRlyBalance.Amount,
-				RequiredBalance: oneDayRelayPriceHub,
-				Denom:           consts.Denoms.Hub,
-				Network:         config.HubData.ID,
-			},
-		)
-	}
-	return insufficientBalances, nil
-}
-
-func GetRelayerInsufficientBalances(
-	config config2.RollappConfig,
-) ([]utils.NotFundedAddressData, error) {
-	insufficientBalances, err := GetRlyHubInsufficientBalances(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-
-	rolRlyData, err := relayer.GetRolRlyAccData(config)
-	if err != nil {
-		return insufficientBalances, err
-	}
-
-	if rolRlyData.Balance.Amount.Cmp(oneDayRelayPriceRollapp) < 0 {
-		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
-				KeyName:         consts.KeysIds.RollappRelayer,
-				Address:         rolRlyData.Address,
-				CurrentBalance:  rolRlyData.Balance.Amount,
-				RequiredBalance: oneDayRelayPriceRollapp,
-				Denom:           config.Denom,
-				Network:         config.RollappID,
-			},
-		)
-	}
-
-	return insufficientBalances, nil
 }

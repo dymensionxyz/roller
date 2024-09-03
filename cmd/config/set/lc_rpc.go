@@ -14,7 +14,7 @@ func setLCGatewayPort(cfg config.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
-	if cfg.DA != consts.Celestia {
+	if cfg.DA.Backend != consts.Celestia {
 		return errors.New("setting the LC RPC port is only supported for Celestia")
 	}
 	if err := utils.UpdateFieldInToml(
@@ -30,7 +30,7 @@ func setLCRPCPort(cfg config.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
-	if cfg.DA != consts.Celestia {
+	if cfg.DA.Backend != consts.Celestia {
 		return errors.New("setting the LC RPC port is only supported for Celestia")
 	}
 	if err := utils.UpdateFieldInToml(

@@ -10,12 +10,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 type Service struct {
@@ -29,7 +28,7 @@ type ServiceTemplateData struct {
 	UserName string
 }
 
-func RollappCmd() *cobra.Command {
+func Cmd(services []string, module string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "load",
 		Short: "Loads the different RollApp services on the local machine",
@@ -43,7 +42,7 @@ func RollappCmd() *cobra.Command {
 
 				return
 			}
-			services := []string{"rollapp", "da-light-client"}
+
 			for _, service := range services {
 				serviceData := ServiceTemplateData{
 					Name:     service,
@@ -55,10 +54,12 @@ func RollappCmd() *cobra.Command {
 				err = writeServiceFile(tpl, service)
 				errorhandling.PrettifyErrorIfExists(err)
 			}
+
 			_, err := bash.ExecCommandWithStdout(
 				exec.Command("sudo", "systemctl", "daemon-reload"),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+
 			pterm.Success.Printf(
 				"💈 Services %s been loaded successfully.\n",
 				strings.Join(services, ", "),
@@ -66,55 +67,10 @@ func RollappCmd() *cobra.Command {
 
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s to start rollapp and da-light-client on your local machine\n",
+				"run %s to start %s on your local machine\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services start"),
-			)
-		},
-	}
-	return cmd
-}
-
-func RelayerCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "load",
-		Short: "Loads the different RollApp services on the local machine",
-		Run: func(cmd *cobra.Command, args []string) {
-			if runtime.GOOS != "linux" {
-				pterm.Error.Printf(
-					"the %s commands are only available on linux machines\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("'services'"),
-				)
-
-				return
-			}
-			services := []string{"relayer"}
-			for _, service := range services {
-				serviceData := ServiceTemplateData{
-					Name:     service,
-					ExecPath: consts.Executables.Roller,
-					UserName: os.Getenv("USER"),
-				}
-				tpl, err := generateServiceTemplate(serviceData)
-				errorhandling.PrettifyErrorIfExists(err)
-				err = writeServiceFile(tpl, service)
-				errorhandling.PrettifyErrorIfExists(err)
-			}
-			_, err := bash.ExecCommandWithStdout(
-				exec.Command("sudo", "systemctl", "daemon-reload"),
-			)
-			errorhandling.PrettifyErrorIfExists(err)
-			pterm.Success.Printf(
-				"💈 Services %s been loaded successfully.\n",
+					Sprintf("roller %s services start", module),
 				strings.Join(services, ", "),
-			)
-
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to start rollapp and da-light-client on your local machine\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services start"),
 			)
 		},
 	}

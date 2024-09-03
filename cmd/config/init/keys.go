@@ -54,23 +54,17 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			// Eventhough the hub can get evm signatures, we still use the native
 			Type: consts.SDK_ROLLAPP,
 		},
-		{
-			Dir:         consts.ConfigDirName.HubKeys,
-			ID:          consts.KeysIds.HubGenesis,
-			ChainBinary: consts.Executables.Dymension,
-			// Eventhough the hub can get evm signatures, we still use the native
-			Type: consts.SDK_ROLLAPP,
-		},
-		{
-			Dir:         consts.ConfigDirName.Rollapp,
-			ID:          consts.KeysIds.RollappSequencer,
-			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
-		},
+		// {
+		// 	Dir:         consts.ConfigDirName.HubKeys,
+		// 	ID:          consts.KeysIds.HubGenesis,
+		// 	ChainBinary: consts.Executables.Dymension,
+		// 	// Eventhough the hub can get evm signatures, we still use the native
+		// 	Type: consts.SDK_ROLLAPP,
+		// },
 	}
 }
 
-func getRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.KeyConfig {
+func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.KeyConfig {
 	return map[string]utils.KeyConfig{
 		consts.KeysIds.RollappRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
@@ -107,7 +101,7 @@ func CreateAddressBinary(
 func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	pterm.Info.Println("getting relayer keys")
 	relayerAddresses := make([]utils.KeyInfo, 0)
-	keys := getRelayerKeysConfig(rollappConfig)
+	keys := GetRelayerKeysConfig(rollappConfig)
 
 	showRollappKeyCmd := getShowRlyKeyCmd(
 		keys[consts.KeysIds.RollappRelayer],
@@ -148,38 +142,48 @@ func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error)
 	return relayerAddresses, nil
 }
 
+func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
+	addKeyCmd := getAddRlyKeyCmd(
+		kc,
+		chainID,
+	)
+
+	fmt.Println(addKeyCmd.String())
+
+	out, err := bash.ExecCommandWithStdout(addKeyCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	ki, err := utils.ParseAddressFromOutput(out)
+	if err != nil {
+		return nil, err
+	}
+	ki.Name = kc.ID
+
+	return ki, nil
+}
+
 func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
 	pterm.Info.Println("creating relayer keys")
-	relayerAddresses := make([]utils.KeyInfo, 0)
-	keys := getRelayerKeysConfig(rollappConfig)
+	var relayerAddresses []utils.KeyInfo
+	keys := GetRelayerKeysConfig(rollappConfig)
 
-	createRollappKeyCmd := getAddRlyKeyCmd(
+	pterm.Info.Println("creating relayer rollapp key")
+	relayerRollappAddress, err := AddRlyKey(
 		keys[consts.KeysIds.RollappRelayer],
 		rollappConfig.RollappID,
 	)
-	createHubKeyCmd := getAddRlyKeyCmd(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	pterm.Info.Println("creating relayer rollapp key")
-	out, err := bash.ExecCommandWithStdout(createRollappKeyCmd)
-	if err != nil {
-		return nil, err
-	}
-	relayerRollappAddress, err := utils.ParseAddressFromOutput(out)
-	relayerRollappAddress.Name = consts.KeysIds.RollappRelayer
-	if err != nil {
-		return nil, err
-	}
 	relayerAddresses = append(
 		relayerAddresses, *relayerRollappAddress,
 	)
 
 	pterm.Info.Println("creating relayer hub key")
-	out, err = bash.ExecCommandWithStdout(createHubKeyCmd)
-	if err != nil {
-		return nil, err
-	}
-	relayerHubAddress, err := utils.ParseAddressFromOutput(out)
-	relayerHubAddress.Name = consts.KeysIds.HubRelayer
+	relayerHubAddress, err := AddRlyKey(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -20,7 +20,7 @@ import (
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -136,7 +136,10 @@ func Cmd() *cobra.Command {
 					rollappConfig.RollappID,
 				)
 
-				seq, err := sequencerutils.GetRegisteredSequencers(rollappConfig.RollappID, hd)
+				seq, err := sequencerutils.RegisteredRollappSequencersOnHub(
+					rollappConfig.RollappID,
+					hd,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 				}
@@ -147,7 +150,7 @@ func Cmd() *cobra.Command {
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencerutils.GetMinSequencerBond()
+					minBond, _ := sequencerutils.GetMinSequencerBond(hd)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 
@@ -248,7 +251,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					err = sequencerutils.Register(*rollappConfig)
+					err = sequencerutils.Register(*rollappConfig, desiredBond.String())
 					if err != nil {
 						pterm.Error.Println("failed to register sequencer: ", err)
 						return
@@ -433,7 +436,7 @@ func Cmd() *cobra.Command {
 
 			// DA
 			oh := initconfig.NewOutputHandler(false)
-			damanager := datalayer.NewDAManager(rollappConfig.DA, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,
@@ -497,6 +500,7 @@ func Cmd() *cobra.Command {
 					"1",
 					"--node",
 					hd.RPC_URL,
+					"--chain-id", hd.ID,
 				)
 
 				out, err := bash.ExecCommandWithStdout(cmd)
@@ -507,7 +511,7 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 
-						height, blockIdHash, err := initrollapp.GetLatestDABlock()
+						height, blockIdHash, err := initrollapp.GetLatestDABlock(rollerData)
 						if err != nil {
 							return
 						}
@@ -557,7 +561,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					height, hash, err := initrollapp.GetDABlockByHeight(h)
+					height, hash, err := initrollapp.GetDABlockByHeight(h, rollerData)
 					if err != nil {
 						pterm.Error.Println("failed to retrieve block: ", err)
 						return
@@ -648,7 +652,7 @@ func Cmd() *cobra.Command {
 			_ = globalutils.UpdateFieldInToml(
 				dymintConfigPath,
 				"da_layer",
-				string(rollappConfig.DA),
+				string(rollappConfig.DA.Backend),
 			)
 			_ = globalutils.UpdateFieldInToml(
 				dymintConfigPath,
@@ -662,11 +666,22 @@ func Cmd() *cobra.Command {
 			)
 
 			pterm.Info.Println("initialization complete")
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s load the necessary systemd services\n",
+				"%s:run %s load the necessary systemd services\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Linux"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller rollapp services load"),
+			)
+
+			pterm.Info.Printf(
+				"%s:run %s to start the rollapp processes interactively\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Other OSs"),
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp start"),
 			)
 		},
 	}

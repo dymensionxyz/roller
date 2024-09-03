@@ -69,7 +69,7 @@ func LoadRollappMetadataFromChain(
 	if hd.ID == "mock" {
 		cfg = config.RollappConfig{
 			Home:             home,
-			RollappID:        "mock_1000-1",
+			RollappID:        raID,
 			GenesisHash:      "",
 			GenesisUrl:       "",
 			RollappBinary:    consts.Executables.RollappEVM,
@@ -77,7 +77,7 @@ func LoadRollappMetadataFromChain(
 			Denom:            "mock",
 			Decimals:         18,
 			HubData:          *hd,
-			DA:               "local",
+			DA:               consts.DaNetworks["mock"],
 			RollerVersion:    "latest",
 			Environment:      "mock",
 			ExecutionVersion: version.BuildVersion,
@@ -112,7 +112,7 @@ func LoadRollappMetadataFromChain(
 			Denom:            "",
 			Decimals:         18,
 			HubData:          *hd,
-			DA:               consts.Celestia,
+			DA:               consts.DaNetworks["mocha-4"],
 			RollerVersion:    "latest",
 			Environment:      hd.ID,
 			ExecutionVersion: version.BuildVersion,
@@ -120,7 +120,6 @@ func LoadRollappMetadataFromChain(
 			BaseDenom:        "",
 			MinGasPrices:     "0",
 		}
-
 	}
 
 	return &cfg, nil

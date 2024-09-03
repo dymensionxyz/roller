@@ -4,19 +4,73 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/docker/docker/client"
-	"github.com/pterm/pterm"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/pterm/pterm"
 )
 
-// ensureWhaleAccount function makes sure that eibc whale account is present in
+func GetStartCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"start",
+	)
+	return cmd
+}
+
+func GetInitCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"init",
+	)
+	return cmd
+}
+
+func GetScaleCmd(count string) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"scale",
+		count,
+	)
+	return cmd
+}
+
+func GetFundsCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Eibc,
+		"funds",
+	)
+	return cmd
+}
+
+func GetFulfillOrderCmd(orderId string, hd consts.HubData) (*exec.Cmd, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"tx", "eibc", "fulfill-order",
+		orderId,
+		"--from", consts.KeysIds.Eibc,
+		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
+		"--keyring-backend", "test",
+		"--node", hd.RPC_URL, "--chain-id", hd.ID,
+	)
+
+	return cmd, nil
+}
+
+// EnsureWhaleAccount function makes sure that eibc whale account is present in
 // the keyring. In eibc client, whale account is the wallet that acts as the bank
 // and distributes funds across a set of wallets that fulfill the eibc orders
-func ensureWhaleAccount() error {
+func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := utils.KeyConfig{
 		Dir:         consts.ConfigDirName.Eibc,
@@ -42,20 +96,20 @@ func ensureWhaleAccount() error {
 // createMongoDbContainer function creates a mongodb container using docker
 // sdk. Any 'DOCKER_HOST' can be used for this mongodb container.
 // Mongodb is used to store information about processed eibc orders
-func createMongoDbContainer() error {
+func CreateMongoDbContainer() error {
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		fmt.Printf("failed to create docker client: %v\n", err)
 		return err
 	}
 
-	cfg := utils.ContainerConfigOptions{
+	cfg := dockerutils.ContainerConfigOptions{
 		Name:  "eibc-mongodb",
 		Image: "mongo:7.0",
 		Port:  "27017",
 	}
 
-	err = utils.CreateContainer(
+	err = dockerutils.CreateContainer(
 		context.Background(),
 		cc,
 		&cfg,

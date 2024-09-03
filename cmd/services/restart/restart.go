@@ -11,28 +11,11 @@ import (
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
-func RollappCmd() *cobra.Command {
+func Cmd(services []string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "restart",
 		Short: "Restarts the systemd services relevant to RollApp",
 		Run: func(cmd *cobra.Command, args []string) {
-			services := []string{"rollapp", "da-light-client"}
-			err := restartSystemdServices(services)
-			if err != nil {
-				pterm.Error.Println("failed to restart systemd services:", err)
-				return
-			}
-		},
-	}
-	return cmd
-}
-
-func RelayerCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "restart",
-		Short: "Restarts the systemd services relevant to the relayer",
-		Run: func(cmd *cobra.Command, args []string) {
-			services := []string{"relayer"}
 			err := restartSystemdServices(services)
 			if err != nil {
 				pterm.Error.Println("failed to restart systemd services:", err)
@@ -52,11 +35,11 @@ func restartSystemdServices(services []string) error {
 	for _, service := range services {
 		err := servicemanager.RestartSystemdService(fmt.Sprintf("%s.service", service))
 		if err != nil {
-			return fmt.Errorf("failed to start %s systemd service: %v", service, err)
+			return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
 		}
 	}
 	pterm.Success.Printf(
-		"💈 Services %s started successfully.\n",
+		"💈 Services %s restarted successfully.\n",
 		strings.Join(services, ", "),
 	)
 	return nil

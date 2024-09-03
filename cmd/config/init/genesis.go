@@ -26,7 +26,7 @@ type PathValue struct {
 
 // TODO(#130): fix to support epochs
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
+	sequencerAddr string, raCfg *config.RollappConfig,
 ) []PathValue {
 	return []PathValue{
 		// these should be injected from the genesis creator
@@ -37,12 +37,6 @@ func getDefaultGenesisParams(
 		{"app_state.distribution.params.community_tax", "0.00002"},
 		{"app_state.gov.voting_params.voting_period", "300s"},
 		{"app_state.bank.denom_metadata", getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals)},
-
-		{"app_state.sequencers.genesis_operator_address", genesisOperatorAddress},
-		{
-			"app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
-			map[string]string{"address": sequencerAddr},
-		},
 		{"app_state.denommetadata.params.allowed_addresses.0", sequencerAddr},
 	}
 }
@@ -69,20 +63,16 @@ func UpdateJSONParams(jsonFilePath string, params []PathValue) error {
 }
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
-	oa, err := getGenesisOperatorAddress(home)
-	if err != nil {
-		return err
-	}
-
 	sa, err := GetRollappSequencerAddress(home)
 	if err != nil {
 		return err
 	}
-	params := getDefaultGenesisParams(sa, oa, raCfg)
-
-	// TODO: move to generalized helper
-	amount := fmt.Sprintf("%s%s", consts.DefaultTokenSupply, raCfg.BaseDenom)
-	addGenAccountCmd := GetAddGenesisAccountCmd(consts.KeysIds.RollappSequencer, amount, raCfg)
+	params := getDefaultGenesisParams(sa, raCfg)
+	addGenAccountCmd := GetAddGenesisAccountCmd(
+		consts.KeysIds.RollappSequencer,
+		consts.DefaultTokenSupply,
+		raCfg,
+	)
 
 	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
@@ -136,14 +126,13 @@ func getGenesisOperatorAddress(home string) (string, error) {
 }
 
 func GetRollappSequencerAddress(home string) (string, error) {
-	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
 	seqKeyConfig := utils.KeyConfig{
-		Dir:         rollappConfigDirPath,
+		Dir:         consts.ConfigDirName.Rollapp,
 		ID:          consts.KeysIds.RollappSequencer,
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        consts.EVM_ROLLAPP,
 	}
-	addr, err := utils.GetAddressBinary(seqKeyConfig, consts.Executables.RollappEVM)
+	addr, err := utils.GetAddressBinary(seqKeyConfig, home)
 	if err != nil {
 		return "", err
 	}

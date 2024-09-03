@@ -69,11 +69,11 @@ func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
 }
 
 func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) error {
-	damanager := datalayer.NewDAManager(rlpCfg.DA, rlpCfg.Home)
+	damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home)
 	dymintCfg.Set("da_layer", "mock")
 	// daConfig := damanager.GetSequencerDAConfig()
 	// dymintCfg.Set("da_config", daConfig)
-	if rlpCfg.DA == consts.Celestia {
+	if rlpCfg.DA.Backend == consts.Celestia {
 		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
 		if !ok {
 			return fmt.Errorf(
@@ -84,7 +84,7 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 		dymintCfg.Set("namespace_id", celDAManager.NamespaceID)
 	}
 
-	if rlpCfg.DA == consts.Local {
+	if rlpCfg.DA.Backend == consts.Local {
 		dymintCfg.Set("da_layer", "mock")
 	}
 

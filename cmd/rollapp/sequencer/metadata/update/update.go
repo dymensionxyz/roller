@@ -50,7 +50,6 @@ func Cmd() *cobra.Command {
 				"tx",
 				"sequencer",
 				"update-sequencer",
-				rollerData.RollappID,
 				metadataFilePath,
 				"--from",
 				consts.KeysIds.HubSequencer,
@@ -62,11 +61,17 @@ func Cmd() *cobra.Command {
 				"1.3",
 				"--keyring-dir",
 				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
 			)
 
-			txHash, err := bash.ExecCommandWithInput(updateSeqCmd)
+			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update sequencer metadata", err)
+				return
+			}
+
+			txHash, err := bash.ExtractTxHash(txOutput)
+			if err != nil {
 				return
 			}
 

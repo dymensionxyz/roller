@@ -51,7 +51,7 @@ func Cmd() *cobra.Command {
 				utils.KeyConfig{
 					ID:  consts.KeysIds.HubSequencer,
 					Dir: tempDir,
-				}, consts.Executables.Dymension,
+				}, tempDir,
 			)
 			if err != nil {
 				return err

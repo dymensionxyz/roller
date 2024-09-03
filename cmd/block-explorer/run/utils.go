@@ -7,10 +7,9 @@ import (
 
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 	"github.com/pterm/pterm"
 	"golang.org/x/exp/maps"
-
-	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 func createBlockExplorerContainers() error {
@@ -21,7 +20,7 @@ func createBlockExplorerContainers() error {
 		return err
 	}
 
-	containers := map[string]utils.ContainerConfigOptions{
+	containers := map[string]dockerutils.ContainerConfigOptions{
 		"db": {
 			Name:  "be-postgresql",
 			Image: "postgres:16-alpine",
@@ -56,7 +55,7 @@ func createBlockExplorerContainers() error {
 	pterm.Info.Printf("that will be created: %s\n", strings.Join(maps.Keys(containers), ", "))
 
 	for _, options := range containers {
-		err = utils.CreateContainer(
+		err = dockerutils.CreateContainer(
 			context.Background(),
 			cc,
 			&options,

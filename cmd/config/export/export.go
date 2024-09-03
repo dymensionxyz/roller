@@ -84,7 +84,7 @@ func Cmd() *cobra.Command {
 					Rpc:     "",
 				}
 			}
-			if rlpCfg.DA == consts.Avail {
+			if rlpCfg.DA.Backend == consts.Avail {
 				networkJson.Da = Avail
 			} else {
 				networkJson.Da = Celestia

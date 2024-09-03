@@ -2,7 +2,6 @@ package sequencer
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -21,7 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
-func Register(raCfg config.RollappConfig) error {
+func Register(raCfg config.RollappConfig, desiredBond string) error {
 	seqPubKey, err := utils.GetSequencerPubKey(raCfg)
 	if err != nil {
 		return err
@@ -38,11 +37,6 @@ func Register(raCfg config.RollappConfig) error {
 		return err
 	}
 
-	seqMinBond, err := GetMinSequencerBond()
-	if err != nil {
-		return err
-	}
-
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -50,16 +44,23 @@ func Register(raCfg config.RollappConfig) error {
 		"create-sequencer",
 		seqPubKey,
 		raCfg.RollappID,
+		desiredBond,
 		seqMetadataPath,
-		fmt.Sprintf("%s%s", seqMinBond.Amount.String(), seqMinBond.Denom),
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
-		"--fees", fmt.Sprintf("%d%s", consts.DefaultFee, consts.Denoms.Hub),
+		"--fees", "1dym",
+		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
-	txHash, err := bash.ExecCommandWithInput(cmd)
+	txOutput, err := bash.ExecCommandWithInput(cmd, "signatures")
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput)
 	if err != nil {
 		return err
 	}
@@ -95,11 +96,11 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	return true, err
 }
 
-func GetMinSequencerBond() (*cosmossdktypes.Coin, error) {
+func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json",
+		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -125,7 +126,7 @@ func IsRegisteredAsSequencer(seq []Info, addr string) bool {
 }
 
 func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
-	sequencers, err := GetRegisteredSequencers(raID, hd)
+	sequencers, err := RegisteredRollappSequencersOnHub(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,7 @@ func GetLatestSnapshot(raID string, hd consts.HubData) (*SnapshotInfo, error) {
 }
 
 func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
-	sequencers, err := GetRegisteredSequencers(raID, hd)
+	sequencers, err := RegisteredRollappSequencersOnHub(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -169,11 +170,30 @@ func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
 	return peers, nil
 }
 
-func GetRegisteredSequencers(
+func RegisteredRollappSequencersOnHub(
 	raID string, hd consts.HubData,
 ) (*Sequencers, error) {
 	var seq Sequencers
 	cmd := getShowSequencerByRollappCmd(raID, hd)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &seq)
+	if err != nil {
+		return nil, err
+	}
+
+	return &seq, nil
+}
+
+func RegisteredRollappSequencers(
+	raID string,
+) (*Sequencers, error) {
+	var seq Sequencers
+	cmd := getShowSequencerCmd(raID)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -197,7 +217,7 @@ func GetMetadata(
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencer", addr,
-		"--node", hd.RPC_URL, "-o", "json",
+		"--node", hd.RPC_URL, "-o", "json", "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -217,6 +237,14 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
-		raID, "-o", "json", "--node", hd.RPC_URL,
+		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+	)
+}
+
+func getShowSequencerCmd(raID string) *exec.Cmd {
+	return exec.Command(
+		consts.Executables.RollappEVM,
+		"q", "sequencers", "sequencers",
+		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
 	)
 }

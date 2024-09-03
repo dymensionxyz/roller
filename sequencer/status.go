@@ -77,8 +77,17 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 
 func (seq *Sequencer) GetHubHeight() (string, error) {
 	cmd := exec.Command(
-		consts.Executables.Dymension, "q", "rollapp", "state", seq.RlpCfg.RollappID,
-		"--output", "json", "--node", seq.RlpCfg.HubData.RPC_URL,
+		consts.Executables.Dymension,
+		"q",
+		"rollapp",
+		"state",
+		seq.RlpCfg.RollappID,
+		"--output",
+		"json",
+		"--node",
+		seq.RlpCfg.HubData.RPC_URL,
+		"--chain-id",
+		seq.RlpCfg.HubData.ID,
 	)
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {

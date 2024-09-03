@@ -35,11 +35,13 @@ type Denom struct {
 
 func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 	pterm.Info.Println("downloading genesis file")
+
 	genesisPath := GetGenesisFilePath(home)
 	genesisUrl := rollappConfig.GenesisUrl
 	if genesisUrl == "" {
 		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
+
 	err := globalutils.DownloadFile(genesisUrl, genesisPath)
 	if err != nil {
 		return err
@@ -85,7 +87,7 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 	getRollappCmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL,
+		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(getRollappCmd)
