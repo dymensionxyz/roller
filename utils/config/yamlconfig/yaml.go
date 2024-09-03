@@ -31,6 +31,7 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 	}
 
 	// If the path doesn't exist, create it
+	fmt.Println("kind:", node.Kind)
 	// Create a new key node
 	newKeyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
