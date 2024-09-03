@@ -185,6 +185,23 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				pterm.Info.Println(
+					"updating dymint config to 5s block time for relayer configuration",
+				)
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
+				if err != nil {
+					pterm.Error.Println(
+						"failed to update dymint config for ibc creation",
+						err,
+					)
+					return
+				}
+
+				if err := relayer.CreatePath(rollappConfig); err != nil {
+					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+					return
+				}
+
 				pterm.Info.Println("updating application relayer config")
 				path := filepath.Join(relayerHome, "config")
 				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
@@ -262,23 +279,6 @@ func Cmd() *cobra.Command {
 				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
 				if err != nil {
 					fmt.Printf("Error writing file: %v\n", err)
-					return
-				}
-
-				pterm.Info.Println(
-					"updating dymint config to 5s block time for relayer configuration",
-				)
-				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
-				if err != nil {
-					pterm.Error.Println(
-						"failed to update dymint config for ibc creation",
-						err,
-					)
-					return
-				}
-
-				if err := relayer.CreatePath(rollappConfig); err != nil {
-					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
 			}
