@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/pterm/pterm"
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
@@ -25,37 +26,7 @@ func (r *Relayer) CreateIBCChannel(
 	// defer cancel()
 	var status string
 
-	// Create client if it doesn't exist or override is true
-	// clientsExist := false
-	// if !override {
-	// 	// Check if clients exist
-	// 	clientsExist, _ = r.CheckClientsExist()
-	// }
-	// if !clientsExist {
-	// 	// wait for block to be created
-	// 	pterm.Info.Println("💈 Validating rollapp height > 2 before creating clients...")
-	// 	if err := r.WriteRelayerStatus(status); err != nil {
-	// 		return ConnectionChannels{}, err
-	// 	}
-	//
-	// 	if err := waitForValidRollappHeight(seq); err != nil {
-	// 		fmt.Println(err)
-	// 		return ConnectionChannels{}, err
-	// 	}
-	//
-	// 	// We always pass override otherwise this command hangs if there are too many clients
-	// 	createClientsCmd := r.getCreateClientsCmd(true)
-	// 	pterm.Info.Println("💈 Creating clients...")
-	// 	if err := r.WriteRelayerStatus(status); err != nil {
-	// 		return ConnectionChannels{}, err
-	// 	}
-	//
-	// 	if err := bash.ExecCmd(createClientsCmd, logFileOption); err != nil {
-	// 		fmt.Println(err)
-	// 		return ConnectionChannels{}, err
-	// 	}
-	// }
-
+	// TODO: this is probably not true anymore, review and remove the sleep if necessary
 	// Sleep for a few seconds to make sure the clients are created
 	// otherwise the connection creation attempt fails
 	time.Sleep(10 * time.Second)
