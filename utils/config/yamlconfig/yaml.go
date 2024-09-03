@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
@@ -30,14 +30,32 @@ func UpdateNestedYAML(node *yaml.Node, path []string, value interface{}) error {
 	}
 
 	// If the path doesn't exist, create it
-	newNode := &yaml.Node{
+	// If the path doesn't exist, create it
+	// Create a new key node
+	newKeyNode := &yaml.Node{
 		Kind:  yaml.ScalarNode,
 		Value: path[0],
 		Tag:   "!!str",
 	}
-	valueNode := &yaml.Node{Kind: yaml.ScalarNode}
-	node.Content = append(node.Content, newNode, valueNode)
-	return UpdateNestedYAML(valueNode, path[1:], value)
+	node.Content = append(node.Content, newKeyNode)
+
+	// Determine the kind of the new value node
+	var newValueNode *yaml.Node
+	if len(path) == 1 {
+		// If this is the last element in the path, set the value
+		newValueNode = &yaml.Node{
+			Kind: yaml.ScalarNode,
+			Tag:  "!!str", // You can adjust the tag based on the type of `value`
+		}
+	} else {
+		// Otherwise, create a new mapping node for the next level
+		newValueNode = &yaml.Node{
+			Kind: yaml.MappingNode,
+		}
+	}
+
+	node.Content = append(node.Content, newValueNode)
+	return UpdateNestedYAML(newValueNode, path[1:], value)
 }
 
 func setNodeValue(node *yaml.Node, value interface{}) error {
