@@ -7,7 +7,7 @@ DYMD_VERSION="main"
 DYMD_COMMIT="f42674ae"
 
 EIBC_VERSION="main"
-RLY_VERSION="v0.3.4-v2.5.2-relayer-canon-0"
+RLY_VERSION="v0.3.4-v2.5.2-relayer-canon-1"
 CELESTIA_VERSION="v0.16.0-rc0"
 CELESTIA_APP_VERSION="v2.0.0"
 
