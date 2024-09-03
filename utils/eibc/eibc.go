@@ -66,8 +66,6 @@ func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cm
 		"--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
-	fmt.Println(cmd.String())
-
 	return cmd, nil
 }
 
