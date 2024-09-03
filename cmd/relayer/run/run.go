@@ -253,7 +253,10 @@ func Cmd() *cobra.Command {
 					fmt.Printf("Error marshaling YAML: %v\n", err)
 					return
 				}
+				fmt.Println("writing")
 				fmt.Println(string(updatedData))
+				fmt.Println("to")
+				fmt.Println(filepath.Join(path, "config.yaml"))
 
 				// Write the updated YAML back to the original file
 				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
