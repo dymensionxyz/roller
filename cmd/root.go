@@ -3,14 +3,13 @@ package cmd
 import (
 	"os"
 
-	"github.com/spf13/cobra"
-
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
