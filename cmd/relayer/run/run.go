@@ -203,8 +203,8 @@ func Cmd() *cobra.Command {
 				}
 
 				pterm.Info.Println("updating application relayer config")
-				path := filepath.Join(relayerHome, "config")
-				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
+				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
+				data, err := os.ReadFile(filepath.Join(relayerConfigPath))
 				if err != nil {
 					fmt.Printf("Error reading file: %v\n", err)
 				}
@@ -237,7 +237,7 @@ func Cmd() *cobra.Command {
 
 				err = yamlconfig.UpdateNestedYAML(
 					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "http-addr"},
+					[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
 					rollappConfig.HubData.API_URL,
 				)
 				if err != nil {
@@ -273,10 +273,14 @@ func Cmd() *cobra.Command {
 				fmt.Println("writing")
 				fmt.Println(string(updatedData))
 				fmt.Println("to")
-				fmt.Println(filepath.Join(path, "config.yaml"))
+				fmt.Println(filepath.Join(relayerConfigPath, "config.yaml"))
 
 				// Write the updated YAML back to the original file
-				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
+				err = os.WriteFile(
+					filepath.Join(relayerConfigPath, "config.yaml"),
+					updatedData,
+					0o644,
+				)
 				if err != nil {
 					fmt.Printf("Error writing file: %v\n", err)
 					return
