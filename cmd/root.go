@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -34,6 +35,7 @@ func init() {
 	// rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
+	rootCmd.AddCommand(binaries.Cmd())
 	// rootCmd.AddCommand(keys.Cmd())
 	// rootCmd.AddCommand(run.Cmd())
 	// rootCmd.AddCommand(services.Cmd())

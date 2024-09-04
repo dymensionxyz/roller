@@ -63,10 +63,8 @@ func Cmd() *cobra.Command {
 			}
 
 			// Get the actual content node (usually the first child of the document node)
-			contentNode := &node
-			if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-				contentNode = node.Content[0]
-			}
+			var contentNode map[interface{}]interface{}
+			err = yaml.Unmarshal(data, &contentNode)
 
 			err = yamlconfig.UpdateNestedYAML(
 				contentNode,
@@ -78,7 +76,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			updatedData, err := yaml.Marshal(&node)
+			updatedData, err := yaml.Marshal(contentNode)
 			if err != nil {
 				fmt.Printf("Error marshaling YAML: %v\n", err)
 				return

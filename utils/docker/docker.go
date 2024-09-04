@@ -15,6 +15,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+
 type ContainerConfigOptions struct {
 	Name   string
 	Image  string
@@ -45,6 +46,7 @@ func CreateContainer(
 			nat.Port(portString): struct{}{},
 		},
 		Env: cfg.Envs,
+
 	}
 
 	hostConfig := &container.HostConfig{
@@ -110,4 +112,5 @@ func CreateContainer(
 	}
 
 	return fmt.Errorf("failed to start container after %d attempts", maxRetries)
+
 }

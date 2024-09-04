@@ -34,7 +34,6 @@ const (
 	flagOverride = "override"
 )
 
-// nolint gocyclo
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "run",
@@ -188,43 +187,24 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("updating application relayer config")
 				path := filepath.Join(relayerHome, "config")
 				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
-				if err != nil {
-					fmt.Printf("Error reading file: %v\n", err)
-				}
 
-				// Parse the YAML
-				var node yaml.Node
-				err = yaml.Unmarshal(data, &node)
 				if err != nil {
-					pterm.Error.Println("failed to unmarshal config.yaml")
+					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
 					return
 				}
 
-				contentNode := &node
-				if node.Kind == yaml.DocumentNode && len(node.Content) > 0 {
-					contentNode = node.Content[0]
+				for _, key := range keys {
+					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
-					1.3,
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
-					return
+				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
+				for _, k := range keys {
+					k.Print(utils.WithName())
 				}
-
-				updatedData, err := yaml.Marshal(&node)
-				if err != nil {
-					fmt.Printf("Error marshaling YAML: %v\n", err)
-					return
-				}
-
-				// Write the updated YAML back to the original file
-				err = os.WriteFile(filepath.Join(path, "config.yaml"), updatedData, 0o644)
-				if err != nil {
-					fmt.Printf("Error writing file: %v\n", err)
+				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Press enter when the keys are funded: ",
+				).WithDefaultValue(true).Show()
+				if !interactiveContinue {
 					return
 				}
 
@@ -243,6 +223,132 @@ func Cmd() *cobra.Command {
 				if err := relayer.CreatePath(rollappConfig); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
+				}
+
+				pterm.Info.Println("updating application relayer config")
+				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
+				data, err := os.ReadFile(filepath.Join(relayerConfigPath))
+				if err != nil {
+					fmt.Printf("Error reading file: %v\n", err)
+				}
+
+				var contentNode map[interface{}]interface{}
+				err = yaml.Unmarshal(data, &contentNode)
+				if err != nil {
+					pterm.Error.Println("failed to unmarshal", err)
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
+					1.3,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
+					true,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
+					rollappConfig.HubData.API_URL,
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
+					true,
+				)
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				err = yamlconfig.UpdateNestedYAML(
+					contentNode,
+					[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
+					"240h",
+				)
+				if err != nil {
+					fmt.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+
+				updatedData, err := yaml.Marshal(contentNode)
+				if err != nil {
+					fmt.Printf("Error marshaling YAML: %v\n", err)
+					return
+				}
+				// Write the updated YAML back to the original file
+				err = os.WriteFile(
+					filepath.Join(relayerConfigPath),
+					updatedData,
+					0o644,
+				)
+				if err != nil {
+					fmt.Printf("Error writing file: %v\n", err)
+					return
+				}
+			}
+
+			if isRelayerInitialized && !shouldOverwrite {
+				pterm.Info.Println("ensuring relayer keys are present")
+				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+
+				for k, v := range kc {
+					pterm.Info.Printf("checking %s\n", k)
+
+					switch v.ID {
+					case consts.KeysIds.RollappRelayer:
+						chainId := rollappConfig.RollappID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					case consts.KeysIds.HubRelayer:
+						chainId := rollappConfig.HubData.ID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					default:
+						pterm.Error.Println("invalid key name", err)
+						return
+					}
 				}
 			}
 
@@ -324,14 +430,18 @@ func Cmd() *cobra.Command {
 					Println("IBC transfer channel is already established!")
 
 				status := fmt.Sprintf(
-					"Active rollapp: %s\n<->\nhub: %s",
+					"Active\nrollapp: %s\n<->\nhub: %s",
 					rly.SrcChannel,
 					rly.DstChannel,
 				)
 				err := rly.WriteRelayerStatus(status)
 				if err != nil {
 					fmt.Println(err)
+					return
 				}
+
+				pterm.Info.Println(status)
+				return
 			}
 
 			if !rly.ChannelReady() {
@@ -350,7 +460,6 @@ func Cmd() *cobra.Command {
 
 			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
-
 				err = verifyRelayerBalances(rollappConfig)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
@@ -382,12 +491,14 @@ func Cmd() *cobra.Command {
 				rly.DstChannel,
 			)
 
-			pterm.Info.Println("reverting dymint config to 1h")
-			err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-			if err != nil {
-				pterm.Error.Println("failed to update dymint config")
-				return
-			}
+			defer func() {
+				pterm.Info.Println("reverting dymint config to 1h")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config")
+					return
+				}
+			}()
 
 			// select {}
 			pterm.Info.Println("next steps:")

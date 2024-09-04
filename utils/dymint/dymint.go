@@ -186,8 +186,6 @@ func waitForHealthyRollApp(url string) {
 			var response RollappHealthResponse
 
 			err = json.Unmarshal(body, &response)
-			fmt.Println("response: ", string(body))
-
 			if err != nil {
 				fmt.Printf("Error unmarshaling JSON: %v\n", err)
 				continue

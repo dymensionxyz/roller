@@ -1,14 +1,15 @@
 package initrollapp
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -56,10 +57,36 @@ func Cmd() *cobra.Command {
 			hd := consts.Hubs[env]
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
-
-			// TODO: check whether the rollapp exists
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
+				return
+			}
+
+			getRaCmd := rollapp.GetRollappCmd(raID, hd)
+			var raResponse rollapp.ShowRollappResponse
+			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			if err != nil {
+				pterm.Error.Println("failed to get rollapp: ", err)
+				return
+			}
+
+			err = json.Unmarshal(out.Bytes(), &raResponse)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal", err)
+				return
+			}
+
+			bp, err := rollapp.ExtractBech32Prefix()
+			if err != nil {
+				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
+			}
+
+			if raResponse.Rollapp.Bech32Prefix != bp {
+				pterm.Error.Printf(
+					"rollapp bech32 prefix does not match, want: %s, have: %s",
+					raResponse.Rollapp.Bech32Prefix,
+					bp,
+				)
 				return
 			}
 

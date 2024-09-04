@@ -21,6 +21,7 @@ require (
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240823151307-f42674aede1d
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/gogo/protobuf v1.3.3
+	github.com/ignite/cli v0.27.2
 	github.com/manifoldco/promptui v0.9.0
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	github.com/olekukonko/tablewriter v0.0.5

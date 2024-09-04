@@ -33,6 +33,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -106,6 +107,34 @@ func Cmd() *cobra.Command {
 					utils.WithLogging(utils.GetSequencerLogPath(*rollappConfig)),
 				)
 				select {}
+			}
+
+			getRaCmd := rollapp.GetRollappCmd(rollerData.RollappID, rollerData.HubData)
+			var raResponse rollapp.ShowRollappResponse
+			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			if err != nil {
+				pterm.Error.Println("failed to get rollapp: ", err)
+				return
+			}
+
+			err = json.Unmarshal(out.Bytes(), &raResponse)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal", err)
+				return
+			}
+
+			bp, err := rollapp.ExtractBech32Prefix()
+			if err != nil {
+				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
+			}
+
+			if raResponse.Rollapp.Bech32Prefix != bp {
+				pterm.Error.Printf(
+					"rollapp bech32 prefix does not match, want: %s, have: %s\n",
+					raResponse.Rollapp.Bech32Prefix,
+					bp,
+				)
+				return
 			}
 
 			options := []string{"sequencer", "fullnode"}
