@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/dymensionxyz/roller/cmd/binaries"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
@@ -32,6 +33,7 @@ func init() {
 	// rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
+	rootCmd.AddCommand(binaries.Cmd())
 	// rootCmd.AddCommand(keys.Cmd())
 	// rootCmd.AddCommand(run.Cmd())
 	// rootCmd.AddCommand(services.Cmd())
