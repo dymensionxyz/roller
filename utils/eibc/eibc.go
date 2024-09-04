@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/client"
-	"github.com/pterm/pterm"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
@@ -48,7 +47,6 @@ func GetFundsCmd() *exec.Cmd {
 	)
 	return cmd
 }
-
 
 func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cmd, error) {
 	home, err := os.UserHomeDir()
@@ -106,9 +104,18 @@ func CreateMongoDbContainer() error {
 		return err
 	}
 
-	err = dockerutils.CheckAndCreateMongoDBContainer(
+	opts := dockerutils.ContainerConfigOptions{
+		Name:   "eibc-mongodb",
+		Image:  "mongo:7.0",
+		Port:   "27017",
+		Envs:   nil,
+		Mounts: nil,
+	}
+
+	err = dockerutils.CreateContainer(
 		context.Background(),
 		cc,
+		&opts,
 	)
 	if err != nil {
 		fmt.Printf("failed to run mongodb container: %v\n", err)
