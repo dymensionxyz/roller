@@ -1,22 +1,20 @@
 package install
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "install <rollapp-id>",
+		Use:   "install <bech32-prefix>",
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -25,32 +23,32 @@ func Cmd() *cobra.Command {
 				raID = args[0]
 			} else {
 				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide a rollapp ID that you want to run the node for",
+					"provide a bech32 prefix of the rollapp",
 				).Show()
 			}
 
-			envs := []string{"devnet", "playground"}
-			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the environment you want to initialize for").
-				WithOptions(envs).
-				Show()
-			hd := consts.Hubs[env]
+			// envs := []string{"devnet", "playground"}
+			// env, _ := pterm.DefaultInteractiveSelect.
+			// 	WithDefaultText("select the environment you want to initialize for").
+			// 	WithOptions(envs).
+			// 	Show()
+			// hd := consts.Hubs[env]
+			//
+			// getRaCmd := rollapp.GetRollappCmd(raID, hd)
+			// var raResponse rollapp.ShowRollappResponse
+			// out, err := bash.ExecCommandWithStdout(getRaCmd)
+			// if err != nil {
+			// 	pterm.Error.Println("failed to get rollapp: ", err)
+			// 	return
+			// }
+			//
+			// err = json.Unmarshal(out.Bytes(), &raResponse)
+			// if err != nil {
+			// 	pterm.Error.Println("failed to unmarshal", err)
+			// 	return
+			// }
 
-			getRaCmd := rollapp.GetRollappCmd(raID, hd)
-			var raResponse rollapp.ShowRollappResponse
-			out, err := bash.ExecCommandWithStdout(getRaCmd)
-			if err != nil {
-				pterm.Error.Println("failed to get rollapp: ", err)
-				return
-			}
-
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
-				return
-			}
-
-			installBinaries(raResponse.Rollapp.Bech32Prefix)
+			installBinaries(raID)
 		},
 	}
 
