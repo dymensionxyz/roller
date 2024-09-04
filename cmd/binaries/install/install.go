@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func Cmd() *cobra.Command {
@@ -142,10 +143,13 @@ func cloneAndBuild(dep Dependency, td string) error {
 	// Build the binary
 	for _, binary := range dep.Binaries {
 		c := exec.Command(binary.BuildCommand.String(), binary.BuildArgs...)
-		if err := c.Run(); err != nil {
+		out, err := bash.ExecCommandWithStdout(c)
+		if err != nil {
 			spinner.Fail("failed to build binary %s: %v", binary.BuildCommand.String())
 			return err
 		}
+
+		fmt.Println(out.String())
 
 		if err := os.Rename(binary.BuildDestination, binary.BinaryDestination); err != nil {
 			spinner.Fail(
