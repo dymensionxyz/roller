@@ -81,7 +81,11 @@ func installBinaries(bech32 string) {
 				{
 					BuildDestination:  "./build/rollapp-evm",
 					BinaryDestination: consts.Executables.RollappEVM,
-					BuildCommand:      exec.Command("make", "build", "BECH32_PREFIX", bech32),
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+						fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+					),
 				},
 			},
 		},
@@ -143,6 +147,7 @@ func cloneAndBuild(dep Dependency, td string) error {
 	// Build the binary
 	for _, binary := range dep.Binaries {
 		out, err := bash.ExecCommandWithStdout(binary.BuildCommand)
+		fmt.Println(binary.BuildCommand.String())
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("failed to build binary %s: %v", binary.BuildCommand, err))
 			return err
