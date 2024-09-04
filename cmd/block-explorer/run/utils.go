@@ -54,7 +54,7 @@ func createBlockExplorerContainers() error {
 		},
 		"frontend": {
 			Name:  "be-frontend",
-			Image: "localhost/block-explorer:latest",
+			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:latest",
 			Port:  "3000",
 			Envs: []string{
 				"DATABASE_URL=postgresql://be:psw@be-postgresql:5432/blockexplorer",
@@ -63,7 +63,7 @@ func createBlockExplorerContainers() error {
 		},
 		"indexer": {
 			Name:   "be-indexer",
-			Image:  "localhost/block-explorer-indexer:latest",
+			Image:  "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
 			Port:   "8080",
 			Envs:   []string{},
 			Mounts: []mount.Mount{},
@@ -161,20 +161,6 @@ func runSQLMigration() error {
 
 	// Wait for the database to be ready
 	time.Sleep(5 * time.Second)
-
-	// Execute PostgreSQL commands to set up the database and roles
-	// setupCommands := []string{
-	// 	fmt.Sprintf("ALTER ROLE %s WITH LOGIN;", dbUserAdmin),
-	// 	fmt.Sprintf("GRANT ALL PRIVILEGES ON DATABASE %s TO %s;", dbName, dbUserAdmin),
-	// 	fmt.Sprintf("GRANT ALL PRIVILEGES ON SCHEMA public TO %s;", dbUserAdmin),
-	// }
-
-	// for _, cmd := range setupComman
-	// 	_, err = dbAdmin.Exec(cmd)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to execute setup command: %w", err)
-	// 	}
-	// }
 
 	// Connect to the new database as the local user
 	dbLocal, err := sql.Open("postgres", dbConnStr)
