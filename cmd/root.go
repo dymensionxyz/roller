@@ -36,7 +36,6 @@ func init() {
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
 	rootCmd.AddCommand(binaries.Cmd())
-	rootCmd.AddCommand(blockexplorer.Cmd())
 	// rootCmd.AddCommand(keys.Cmd())
 	// rootCmd.AddCommand(run.Cmd())
 	// rootCmd.AddCommand(services.Cmd())
