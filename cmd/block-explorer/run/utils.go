@@ -4,19 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
-
-	_ "github.com/lib/pq"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	_ "github.com/lib/pq"
 	"github.com/pterm/pterm"
 	"golang.org/x/exp/maps"
+
+	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 )
 
 func createBlockExplorerContainers() error {
@@ -69,7 +70,10 @@ func createBlockExplorerContainers() error {
 		},
 	}
 
-	pterm.Info.Printf("Containers that will be created: %s\n", strings.Join(maps.Keys(containers), ", "))
+	pterm.Info.Printf(
+		"Containers that will be created: %s\n",
+		strings.Join(maps.Keys(containers), ", "),
+	)
 
 	for _, options := range containers {
 		err = dockerutils.CreateContainer(
@@ -83,7 +87,12 @@ func createBlockExplorerContainers() error {
 		}
 
 		// Connect the container to the network
-		err = cc.NetworkConnect(context.Background(), networkName, options.Name, &network.EndpointSettings{})
+		err = cc.NetworkConnect(
+			context.Background(),
+			networkName,
+			options.Name,
+			&network.EndpointSettings{},
+		)
 		if err != nil {
 			fmt.Printf("Failed to connect container %s to network: %v\n", options.Name, err)
 			return err
@@ -128,24 +137,72 @@ func ensureNetworkExists(cli *client.Client, networkName string) error {
 }
 
 func runSQLMigration() error {
-	// Read the SQL file
-	sqlFile, err := ioutil.ReadFile("migrations/blockexplorer.sql")
+	// Database connection details
+	dbHost := "localhost"
+	dbPort := "5432"
+	dbName := "blockexplorer"
+	dbUserAdmin := "be"
+	dbPassAdmin := "psw"
+
+	// Connect to the database as an admin user
+	dbConnStr := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUserAdmin,
+		dbPassAdmin,
+		dbHost,
+		dbPort,
+		dbName,
+	)
+	dbAdmin, err := sql.Open("postgres", dbConnStr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database as admin: %w", err)
+	}
+	defer dbAdmin.Close()
+
+	// Wait for the database to be ready
+	time.Sleep(5 * time.Second)
+
+	// Execute PostgreSQL commands to set up the database and roles
+	// setupCommands := []string{
+	// 	fmt.Sprintf("ALTER ROLE %s WITH LOGIN;", dbUserAdmin),
+	// 	fmt.Sprintf("GRANT ALL PRIVILEGES ON DATABASE %s TO %s;", dbName, dbUserAdmin),
+	// 	fmt.Sprintf("GRANT ALL PRIVILEGES ON SCHEMA public TO %s;", dbUserAdmin),
+	// }
+
+	// for _, cmd := range setupComman
+	// 	_, err = dbAdmin.Exec(cmd)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to execute setup command: %w", err)
+	// 	}
+	// }
+
+	// Connect to the new database as the local user
+	dbLocal, err := sql.Open("postgres", dbConnStr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database as local user: %w", err)
+	}
+	defer dbLocal.Close()
+
+	// Read and execute the SQL migration file
+	sqlFile, err := os.ReadFile("migrations/blockexplorer.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read SQL file: %w", err)
 	}
 
-	// Connect to the database
-	connStr := "postgresql://be:psw@localhost:5432/blockexplorer?sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+	_, err = dbLocal.Exec(string(sqlFile))
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("failed to execute SQL migration: %w", err)
 	}
-	defer db.Close()
 
-	// Execute each SQL statement
-	_, err = db.Exec(string(sqlFile))
+	// Execute additional SQL files if needed
+	superSchemaFile, err := os.ReadFile("migrations/super-schema.sql")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read super-schema SQL file: %w", err)
+	}
+
+	_, err = dbAdmin.Exec(string(superSchemaFile))
+	if err != nil {
+		return fmt.Errorf("failed to execute super-schema SQL file: %w", err)
 	}
 
 	log.Println("Migrations applied successfully")
