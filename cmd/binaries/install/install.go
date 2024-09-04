@@ -81,10 +81,7 @@ func installBinaries(bech32 string) {
 				{
 					BuildDestination:  "./build/rollapp-evm",
 					BinaryDestination: consts.Executables.RollappEVM,
-					BuildCommand:      exec.Command("make", "build"),
-					BuildArgs: []string{
-						bech32,
-					},
+					BuildCommand:      exec.Command("make", "build", "BECH32_PREFIX", bech32),
 				},
 			},
 		},
@@ -117,12 +114,15 @@ func cloneAndBuild(dep Dependency, td string) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("cloning %s into %s", dep.Repository, targetDir),
 	)
+
 	c := exec.Command("git", "clone", dep.Repository, targetDir)
-	fmt.Println(c.String())
-	if err := c.Run(); err != nil {
+
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
 		pterm.Error.Println("failed to clone")
 		return err
 	}
+	fmt.Println(out.String())
 
 	// Change directory to the cloned repo
 	if err := os.Chdir(targetDir); err != nil {
@@ -142,10 +142,9 @@ func cloneAndBuild(dep Dependency, td string) error {
 
 	// Build the binary
 	for _, binary := range dep.Binaries {
-		c := exec.Command(binary.BuildCommand.String(), binary.BuildArgs...)
-		out, err := bash.ExecCommandWithStdout(c)
+		out, err := bash.ExecCommandWithStdout(binary.BuildCommand)
 		if err != nil {
-			spinner.Fail("failed to build binary %s: %v", binary.BuildCommand.String())
+			spinner.Fail(fmt.Sprintf("failed to build binary %s: %v", binary.BuildCommand, err))
 			return err
 		}
 
