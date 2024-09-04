@@ -11,7 +11,7 @@ import (
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -184,6 +184,30 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				pterm.Info.Println("updating application relayer config")
+				path := filepath.Join(relayerHome, "config")
+				data, err := os.ReadFile(filepath.Join(path, "config.yaml"))
+
+				if err != nil {
+					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
+					return
+				}
+
+				for _, key := range keys {
+					key.Print(utils.WithMnemonic(), utils.WithName())
+				}
+
+				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
+				for _, k := range keys {
+					k.Print(utils.WithName())
+				}
+				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Press enter when the keys are funded: ",
+				).WithDefaultValue(true).Show()
+				if !interactiveContinue {
+					return
+				}
+
 				pterm.Info.Println(
 					"updating dymint config to 5s block time for relayer configuration",
 				)
@@ -249,6 +273,7 @@ func Cmd() *cobra.Command {
 					[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
 					true,
 				)
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 				if err != nil {
 					fmt.Printf("Error updating YAML: %v\n", err)
 					return
@@ -278,6 +303,52 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					fmt.Printf("Error writing file: %v\n", err)
 					return
+				}
+			}
+
+			if isRelayerInitialized && !shouldOverwrite {
+				pterm.Info.Println("ensuring relayer keys are present")
+				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+
+				for k, v := range kc {
+					pterm.Info.Printf("checking %s\n", k)
+
+					switch v.ID {
+					case consts.KeysIds.RollappRelayer:
+						chainId := rollappConfig.RollappID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					case consts.KeysIds.HubRelayer:
+						chainId := rollappConfig.HubData.ID
+						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+						if err != nil {
+							pterm.Error.Printf("failed to check address: %v\n", err)
+							return
+						}
+						if !isPresent {
+							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							if err != nil {
+								pterm.Error.Printf("failed to add key: %v\n", err)
+							}
+
+							key.Print(utils.WithMnemonic(), utils.WithName())
+						}
+					default:
+						pterm.Error.Println("invalid key name", err)
+						return
+					}
 				}
 			}
 

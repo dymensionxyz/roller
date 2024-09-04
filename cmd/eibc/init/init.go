@@ -103,6 +103,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+
 			var contentNode map[interface{}]interface{}
 			err = yaml.Unmarshal(data, &contentNode)
 

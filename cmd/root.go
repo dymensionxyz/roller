@@ -3,8 +3,10 @@ package cmd
 import (
 	"os"
 
-	"github.com/dymensionxyz/roller/cmd/binaries"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
+	"github.com/spf13/cobra"
+
+	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
@@ -42,6 +44,7 @@ func init() {
 	// rootCmd.AddCommand(test())
 	rootCmd.AddCommand(rollapp.Cmd())
 	rootCmd.AddCommand(eibc.Cmd())
+	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(version.Cmd())
 	rollerutils.AddGlobalFlags(rootCmd)
 }
