@@ -2,9 +2,9 @@ package install
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -49,7 +49,10 @@ func Cmd() *cobra.Command {
 			// 	return
 			// }
 
+			start := time.Now()
 			installBinaries(raID)
+			elapsed := time.Since(start)
+			fmt.Println("time elapsed: ", elapsed)
 		},
 	}
 
@@ -76,7 +79,7 @@ func installBinaries(bech32 string) {
 	deps := map[string]Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Commit:     "main",
+			Commit:     "danwt/test-light-client",
 			Binaries: []BinaryPathPair{
 				{
 					BuildDestination:  "./build/rollapp-evm",
@@ -85,6 +88,84 @@ func installBinaries(bech32 string) {
 						"make",
 						"build",
 						fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+					),
+				},
+			},
+		},
+		"dymd": {
+			Repository: "https://github.com/dymensionxyz/dymension.git",
+			Commit:     "playground/v1-rc03",
+			Binaries: []BinaryPathPair{
+				{
+					BuildDestination:  "./build/dymd",
+					BinaryDestination: consts.Executables.Dymension,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+					),
+				},
+			},
+		},
+		// "celestia": {
+		// 	Repository: "https://github.com/celestiaorg/celestia-node.git",
+		// 	Commit:     "v0.16.0-rc0",
+		// 	Binaries: []BinaryPathPair{
+		// 		{
+		// 			BuildDestination:  "./build/celestia",
+		// 			BinaryDestination: consts.Executables.Celestia,
+		// 			BuildCommand: exec.Command(
+		// 				"make",
+		// 				"build",
+		// 			),
+		// 		},
+		// 		{
+		// 			BuildDestination:  "./cel-key",
+		// 			BinaryDestination: consts.Executables.CelKey,
+		// 			BuildCommand: exec.Command(
+		// 				"make",
+		// 				"cel-key",
+		// 			),
+		// 		},
+		// 	},
+		// },
+		// "celestia-app": {
+		// 	Repository: "https://github.com/celestiaorg/celestia-app.git",
+		// 	Commit:     "v2.0.0",
+		// 	Binaries: []BinaryPathPair{
+		// 		{
+		// 			BuildDestination:  "./build/celestia-appd",
+		// 			BinaryDestination: consts.Executables.CelestiaApp,
+		// 			BuildCommand: exec.Command(
+		// 				"make",
+		// 				"build",
+		// 			),
+		// 		},
+		// 	},
+		// },
+		"eibc-client": {
+			Repository: "https://github.com/dymensionxyz/eibc-client.git",
+			Commit:     "main",
+			Binaries: []BinaryPathPair{
+				{
+					BuildDestination:  "./build/eibc-client",
+					BinaryDestination: consts.Executables.Eibc,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+					),
+				},
+			},
+		},
+		"rly": {
+			Repository: "https://github.com/dymensionxyz/go-relayer.git",
+			Commit:     "v0.3.4-v2.5.2-relayer-canon-1",
+			Binaries: []BinaryPathPair{
+				{
+					BuildDestination:  "./build/rly",
+					BinaryDestination: consts.Executables.Relayer,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
 					),
 				},
 			},
@@ -121,13 +202,11 @@ func cloneAndBuild(dep Dependency, td string) error {
 
 	c := exec.Command("git", "clone", dep.Repository, targetDir)
 
-	out, err := bash.ExecCommandWithStdout(c)
+	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
 		pterm.Error.Println("failed to clone")
 		return err
 	}
-	fmt.Println(out.String())
-
 	// Change directory to the cloned repo
 	if err := os.Chdir(targetDir); err != nil {
 		pterm.Error.Println("failed to create a temp directory")
@@ -138,27 +217,30 @@ func cloneAndBuild(dep Dependency, td string) error {
 		// Checkout a specific version (e.g., a tag or branch)
 		spinner.UpdateText(fmt.Sprintf("checking out %s", dep.Commit))
 		if err := exec.Command("git", "checkout", dep.Commit).Run(); err != nil {
-			log.Fatalf("Failed to checkout version for %s: %v", dep.Repository, err)
+			spinner.Fail(fmt.Sprintf("failed to checkout: %v\n", err))
 		}
-	} else {
-		spinner.UpdateText("starting build from main branch")
 	}
+
+	spinner.UpdateText(
+		fmt.Sprintf(
+			"starting build from %s (this can take several minutes)",
+			dep.Commit,
+		),
+	)
 
 	// Build the binary
 	for _, binary := range dep.Binaries {
-		out, err := bash.ExecCommandWithStdout(binary.BuildCommand)
-		fmt.Println(binary.BuildCommand.String())
+		_, err := bash.ExecCommandWithStdout(binary.BuildCommand)
+		spinner.UpdateText(fmt.Sprintf("building %s\n", binary.BuildDestination))
 		if err != nil {
-			spinner.Fail(fmt.Sprintf("failed to build binary %s: %v", binary.BuildCommand, err))
+			spinner.Fail(fmt.Sprintf("failed to build binary %s: %v\n", binary.BuildCommand, err))
 			return err
 		}
-
-		fmt.Println(out.String())
 
 		if err := os.Rename(binary.BuildDestination, binary.BinaryDestination); err != nil {
 			spinner.Fail(
 				fmt.Sprintf(
-					"Failed to move binary %s to %s",
+					"Failed to move binary %s to %s\n",
 					binary.BuildDestination,
 					binary.BinaryDestination,
 				),
