@@ -5,11 +5,6 @@ ROLLER_BINS_DIR="$BINS_DIR/roller_bins"
 CELESTIA_VERSION="v0.16.0-rc0"
 CELESTIA_APP_VERSION="v2.0.0"
 
-if [ "$BECH32_PREFIX" = "" ]; then
-  echo "please provide BECH32_PREFIX of the RollApp before running this script"
-  exit 1
-fi
-
 install_or_update() {
     local tool=$1
     local current_version=$2
