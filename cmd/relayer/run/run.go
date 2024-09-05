@@ -22,7 +22,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
-	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -200,82 +199,14 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("updating application relayer config")
 				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
-				data, err := os.ReadFile(filepath.Join(relayerConfigPath))
+				err = updateYAML(relayerConfigPath, &rollappConfig, home)
 				if err != nil {
-					fmt.Printf("Error reading file: %v\n", err)
-				}
-
-				var contentNode map[interface{}]interface{}
-				err = yaml.Unmarshal(data, &contentNode)
-				if err != nil {
-					pterm.Error.Println("failed to unmarshal", err)
-				}
-				fmt.Println(string(data))
-
-				err = globalutils.SetNestedValue(
-					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
-					1.3,
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML, gas-adjustment : %v\n", err)
 					return
 				}
 
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
-					true,
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML, is-dym-hub: %v\n", err)
-					return
-				}
-
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
-					rollappConfig.HubData.API_URL,
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML, http-addr: %v\n", err)
-					return
-				}
-
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
-					true,
-				)
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 				if err != nil {
-					fmt.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
-					return
-				}
-
-				err = yamlconfig.UpdateNestedYAML(
-					contentNode,
-					[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
-					"240h",
-				)
-				if err != nil {
-					fmt.Printf("Error updating YAML, trust-period: %v\n", err)
-					return
-				}
-
-				updatedData, err := yaml.Marshal(contentNode)
-				if err != nil {
-					fmt.Printf("Error marshaling YAML: %v\n", err)
-					return
-				}
-				// Write the updated YAML back to the original file
-				err = os.WriteFile(
-					filepath.Join(relayerConfigPath),
-					updatedData,
-					0o644,
-				)
-				if err != nil {
-					fmt.Printf("Error writing file: %v\n", err)
+					pterm.Error.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
 					return
 				}
 			}
@@ -497,4 +428,108 @@ func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
 	return nil
+}
+
+func updateYAML(filename string, rollappConfig *configutils.RollappConfig, home string) error {
+	// Read YAML file
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	// Parse YAML
+	var yamlData map[string]interface{}
+	err = yaml.Unmarshal(data, &yamlData)
+	if err != nil {
+		return err
+	}
+
+	// Update value
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", "dymension_100-1", "value", "gas-adjustment"},
+		1.5,
+	)
+	if err != nil {
+		return err
+	}
+
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
+		1.3,
+	)
+	if err != nil {
+		fmt.Printf("Error updating YAML, gas-adjustment : %v\n", err)
+		return err
+	}
+
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
+		true,
+	)
+	if err != nil {
+		fmt.Printf("Error updating YAML, is-dym-hub: %v\n", err)
+		return err
+	}
+
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
+		rollappConfig.HubData.API_URL,
+	)
+	if err != nil {
+		fmt.Printf("Error updating YAML, http-addr: %v\n", err)
+		return err
+	}
+
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
+		true,
+	)
+	if err != nil {
+		fmt.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
+		return err
+	}
+
+	err = setNestedValue(
+		yamlData,
+		[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
+		"240h",
+	)
+	if err != nil {
+		fmt.Printf("Error updating YAML, trust-period: %v\n", err)
+		return err
+	}
+
+	// Marshal back to YAML
+	updatedData, err := yaml.Marshal(yamlData)
+	if err != nil {
+		return err
+	}
+
+	// Write updated YAML back to file
+	return os.WriteFile(filename, updatedData, 0o644)
+}
+
+// nolint: gosec
+func setNestedValue(data map[string]interface{}, keyPath []string, value interface{}) error {
+	if len(keyPath) == 0 {
+		return fmt.Errorf("empty key path")
+	}
+	if len(keyPath) == 1 {
+		if value == nil {
+			delete(data, keyPath[0])
+		} else {
+			data[keyPath[0]] = value
+		}
+		return nil
+	}
+	nextMap, ok := data[keyPath[0]].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("failed to set nested map for key: %s", keyPath[0])
+	}
+	return setNestedValue(nextMap, keyPath[1:], value)
 }
