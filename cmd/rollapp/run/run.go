@@ -662,7 +662,7 @@ func Cmd() *cobra.Command {
 					"true",
 				)
 				if err != nil {
-					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					pterm.Error.Println("failed to update `p2p_advertising_enabled` field")
 					return
 				}
 			default:
@@ -692,6 +692,13 @@ func Cmd() *cobra.Command {
 				dymintConfigPath,
 				"da_config",
 				daConfig,
+			)
+
+			pterm.Info.Println("enabling block explorer endpoint")
+			_ = globalutils.UpdateFieldInToml(
+				filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "be-json-rpc.toml"),
+				"enable",
+				"true",
 			)
 
 			pterm.Info.Println("initialization complete")
