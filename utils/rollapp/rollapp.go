@@ -2,6 +2,7 @@ package rollapp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -71,7 +72,9 @@ func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
 	_, err := globalutils.ExecCommandWithStdout(cmd)
 	if err != nil {
-		// tODO: handle NotFound error
+		if strings.Contains(err.Error(), "NotFound") {
+			return false, errors.New("rollapp not found ")
+		}
 		return false, err
 	}
 
