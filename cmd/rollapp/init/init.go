@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -58,7 +59,7 @@ func Cmd() *cobra.Command {
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {
-				pterm.Error.Printf("%s was not found as a registered rollapp", raID)
+				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
 				return
 			}
 
