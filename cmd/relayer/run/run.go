@@ -193,29 +193,6 @@ func Cmd() *cobra.Command {
 					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 
-				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
-				for _, k := range keys {
-					k.Print(utils.WithName())
-				}
-				interactiveContinue, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
-					"Press enter when the keys are funded: ",
-				).WithDefaultValue(true).Show()
-				if !interactiveContinue {
-					return
-				}
-
-				pterm.Info.Println(
-					"updating dymint config to 5s block time for relayer configuration",
-				)
-				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
-				if err != nil {
-					pterm.Error.Println(
-						"failed to update dymint config for ibc creation",
-						err,
-					)
-					return
-				}
-
 				if err := relayer.CreatePath(rollappConfig); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
