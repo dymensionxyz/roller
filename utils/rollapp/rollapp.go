@@ -103,6 +103,8 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
 
+	fmt.Println(cmd.String())
+
 	return cmd
 }
 
