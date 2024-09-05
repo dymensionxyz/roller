@@ -612,8 +612,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240902130625-2243bc06282f h1:APcwYKO84lgTPaUZAqEoppql8kNouqfpc+3rkOALG2Q=
-github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240902130625-2243bc06282f/go.mod h1:jJqayXQNPpNOtbh+45AyOIdqXD9XWr++v8UEsw/IGIQ=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240905113548-004462d5f45b h1:VdX/dk7KxJcaZuVrtLcqNhJpleK9fQ463wHR7tTcrGs=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240905113548-004462d5f45b/go.mod h1:jJqayXQNPpNOtbh+45AyOIdqXD9XWr++v8UEsw/IGIQ=
 github.com/dymensionxyz/gerr-cosmos v1.0.0 h1:oi91rgOkpJWr41oX9JOyjvvBnhGY54tj513x8VlDAEc=
 github.com/dymensionxyz/gerr-cosmos v1.0.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3 h1:4VD23Jv5d8hqXEhLNNcLXlpSDJCWAGYJLF0kisJtkIk=
