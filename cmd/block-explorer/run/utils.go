@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -33,6 +33,12 @@ func createBlockExplorerContainers(home string) error {
 	if err := ensureNetworkExists(cc, networkName); err != nil {
 		fmt.Printf("Failed to ensure network: %v\n", err)
 		return err
+	}
+
+	// Determine the host address to use
+	hostAddress := "host.docker.internal"
+	if runtime.GOOS == "linux" {
+		hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 	}
 
 	beChainConfigPath := filepath.Join(
@@ -65,7 +71,8 @@ func createBlockExplorerContainers(home string) error {
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:latest",
 			Port:  "3000",
 			Envs: []string{
-				"DATABASE_URL=postgresql://be:psw@be-postgresql:5432/blockexplorer",
+				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", hostAddress),
+				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
 			},
 			Mounts: []mount.Mount{},
 		},
@@ -73,7 +80,9 @@ func createBlockExplorerContainers(home string) error {
 			Name:  "be-indexer",
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
 			Port:  "8080",
-			Envs:  []string{},
+			Envs: []string{
+				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
+			},
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
@@ -123,7 +132,7 @@ func createBlockExplorerContainers(home string) error {
 
 func ensureNetworkExists(cli *client.Client, networkName string) error {
 	// List all networks
-	networks, err := cli.NetworkList(context.Background(), types.NetworkListOptions{})
+	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to list networks: %w", err)
 	}
@@ -138,7 +147,7 @@ func ensureNetworkExists(cli *client.Client, networkName string) error {
 
 	// Create the network if it does not exist
 	_, err = cli.NetworkCreate(
-		context.Background(), networkName, types.NetworkCreate{
+		context.Background(), networkName, network.CreateOptions{
 			Driver: "bridge",
 		},
 	)
