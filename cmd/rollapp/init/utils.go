@@ -11,11 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pelletier/go-toml/v2"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -27,6 +22,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pelletier/go-toml/v2"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -66,6 +65,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				errorhandling.PrettifyErrorIfExists(err)
 				return err
 			}
+
 			// nolint:gofumpt
 			err = os.MkdirAll(home, 0o755)
 			if err != nil {

@@ -17,7 +17,7 @@ import (
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "install <bech32-prefix>",
+		Use:   "install <rollapp-id>",
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -102,7 +102,7 @@ func installBinaries(bech32 string) {
 	deps := map[string]Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Commit:     "danwt/test-light-client",
+			Commit:     "main",
 			Binaries: []BinaryPathPair{
 				{
 					BuildDestination:  "./build/rollapp-evm",
@@ -241,6 +241,7 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 		spinner.UpdateText(fmt.Sprintf("checking out %s", dep.Commit))
 		if err := exec.Command("git", "checkout", dep.Commit).Run(); err != nil {
 			spinner.Fail(fmt.Sprintf("failed to checkout: %v\n", err))
+			return err
 		}
 	}
 
