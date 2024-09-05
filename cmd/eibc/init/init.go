@@ -5,6 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -14,9 +18,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 func Cmd() *cobra.Command {
@@ -102,7 +103,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("Error reading file: %v\n", err)
 				return
 			}
-
 
 			var contentNode map[interface{}]interface{}
 			err = yaml.Unmarshal(data, &contentNode)

@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
-	"github.com/pterm/pterm"
 )
 
 // TODO: use dymint instead

@@ -33,3 +33,5 @@ jobs:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: v1.60.1
           only-new-issues: true
+          skip-cache: true
+          args: --allow-parallel-runners --timeout=5m
