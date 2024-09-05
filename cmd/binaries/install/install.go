@@ -1,6 +1,7 @@
 package install
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 func Cmd() *cobra.Command {
@@ -24,33 +26,54 @@ func Cmd() *cobra.Command {
 				raID = args[0]
 			} else {
 				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide a bech32 prefix of the rollapp",
+					"provide RollApp ID you plan to run the nodes for",
 				).Show()
 			}
 
-			// envs := []string{"devnet", "playground"}
-			// env, _ := pterm.DefaultInteractiveSelect.
-			// 	WithDefaultText("select the environment you want to initialize for").
-			// 	WithOptions(envs).
-			// 	Show()
-			// hd := consts.Hubs[env]
-			//
-			// getRaCmd := rollapp.GetRollappCmd(raID, hd)
-			// var raResponse rollapp.ShowRollappResponse
-			// out, err := bash.ExecCommandWithStdout(getRaCmd)
-			// if err != nil {
-			// 	pterm.Error.Println("failed to get rollapp: ", err)
-			// 	return
-			// }
-			//
-			// err = json.Unmarshal(out.Bytes(), &raResponse)
-			// if err != nil {
-			// 	pterm.Error.Println("failed to unmarshal", err)
-			// 	return
-			// }
+			dymdBinaryOptions := Dependency{
+				Repository: "https://github.com/dymensionxyz/dymension.git",
+				Commit:     "playground/v1-rc03",
+				Binaries: []BinaryPathPair{
+					{
+						BuildDestination:  "./build/dymd",
+						BinaryDestination: consts.Executables.Dymension,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+						),
+					},
+				},
+			}
+
+			err := installBinaryFromRepo(dymdBinaryOptions, "dymd")
+			if err != nil {
+				pterm.Error.Println("failed to install dymd", err)
+				return
+			}
+
+			envs := []string{"devnet", "playground"}
+			env, _ := pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the environment you want to initialize for").
+				WithOptions(envs).
+				Show()
+			hd := consts.Hubs[env]
+
+			getRaCmd := rollapp.GetRollappCmd(raID, hd)
+			var raResponse rollapp.ShowRollappResponse
+			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			if err != nil {
+				pterm.Error.Println("failed to get rollapp: ", err)
+				return
+			}
+
+			err = json.Unmarshal(out.Bytes(), &raResponse)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal", err)
+				return
+			}
 
 			start := time.Now()
-			installBinaries(raID)
+			installBinaries(raResponse.Rollapp.Bech32Prefix)
 			elapsed := time.Since(start)
 			fmt.Println("time elapsed: ", elapsed)
 		},
@@ -174,7 +197,7 @@ func installBinaries(bech32 string) {
 
 	for k, dep := range deps {
 		{
-			err := cloneAndBuild(dep, k)
+			err := installBinaryFromRepo(dep, k)
 			if err != nil {
 				pterm.Error.Printf("failed to build binary %s: %v", k, err)
 				return
@@ -183,7 +206,7 @@ func installBinaries(bech32 string) {
 	}
 }
 
-func cloneAndBuild(dep Dependency, td string) error {
+func installBinaryFromRepo(dep Dependency, td string) error {
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
 		return err
