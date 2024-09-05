@@ -33,26 +33,26 @@ func Cmd() *cobra.Command {
 
 			raID = strings.TrimSpace(raID)
 
-			// dymdBinaryOptions := Dependency{
-			// 	Repository: "https://github.com/dymensionxyz/dymension.git",
-			// 	Commit:     "playground/v1-rc04",
-			// 	Binaries: []BinaryPathPair{
-			// 		{
-			// 			BuildDestination:  "./build/dymd",
-			// 			BinaryDestination: consts.Executables.Dymension,
-			// 			BuildCommand: exec.Command(
-			// 				"make",
-			// 				"build",
-			// 			),
-			// 		},
-			// 	},
-			// }
-			//
-			// err := installBinaryFromRepo(dymdBinaryOptions, "dymd")
-			// if err != nil {
-			// 	pterm.Error.Println("failed to install dymd", err)
-			// 	return
-			// }
+			dymdBinaryOptions := Dependency{
+				Repository: "https://github.com/dymensionxyz/dymension.git",
+				Commit:     "playground/v1-rc04",
+				Binaries: []BinaryPathPair{
+					{
+						BuildDestination:  "./build/dymd",
+						BinaryDestination: consts.Executables.Dymension,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+						),
+					},
+				},
+			}
+
+			err := installBinaryFromRepo(dymdBinaryOptions, "dymd")
+			if err != nil {
+				pterm.Error.Println("failed to install dymd", err)
+				return
+			}
 
 			envs := []string{"devnet", "playground"}
 			env, _ := pterm.DefaultInteractiveSelect.

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils/bash"
 )
@@ -102,8 +101,6 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		"q", "rollapp", "show",
 		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
 	)
-
-	fmt.Println(cmd.String())
 
 	return cmd
 }
