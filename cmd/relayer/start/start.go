@@ -57,14 +57,14 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			if rly.ChannelReady() {
 				fmt.Println("💈 IBC transfer channel is already established!")
-				status := fmt.Sprintf("Active src, %s <-> %s, dst", rly.SrcChannel, rly.DstChannel)
+				status := fmt.Sprintf(
+					"Active\nrollapp: %s\n<->\nhub: %s",
+					rly.SrcChannel, rly.DstChannel,
+				)
 				err := rly.WriteRelayerStatus(status)
 				errorhandling.PrettifyErrorIfExists(err)
 			} else {
 				pterm.Error.Println("💈 No channels found, ensure you've setup the relayer")
-				// seq := sequencer.GetInstance(rollappConfig)
-				// _, err := rly.CreateIBCChannel(override, logFileOption, seq)
-				// errorhandling.PrettifyErrorIfExists(err)
 				return
 			}
 
@@ -80,10 +80,11 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			)
 
 			fmt.Printf(
-				"💈 The relayer is running successfully on you local machine!\nChannels: src, %s <-> %s, dst",
+				"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s",
 				rly.SrcChannel,
 				rly.DstChannel,
 			)
+			fmt.Println("💈 Log file path: ", relayerLogFilePath)
 
 			select {}
 		},

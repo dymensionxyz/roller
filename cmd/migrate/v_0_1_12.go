@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
@@ -18,7 +18,7 @@ func (v *VersionMigratorV0112) ShouldMigrate(prevVersion VersionData) bool {
 	return prevVersion.Major < 1 && prevVersion.Minor < 2 && prevVersion.Patch < 12
 }
 
-func (v *VersionMigratorV0112) PerformMigration(rlpCfg config2.RollappConfig) error {
+func (v *VersionMigratorV0112) PerformMigration(rlpCfg configutils.RollappConfig) error {
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	if rlpCfg.DA.Backend == "mock" {
 		rlpCfg.DA.Backend = consts.Local

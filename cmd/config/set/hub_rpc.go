@@ -4,11 +4,11 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
-func setHubRPC(rlpCfg config2.RollappConfig, value string) error {
+func setHubRPC(rlpCfg configutils.RollappConfig, value string) error {
 	rlpCfg.HubData.RPC_URL = value
 	if err := tomlconfig.Write(rlpCfg); err != nil {
 		return err
