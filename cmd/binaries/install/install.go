@@ -76,7 +76,11 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			installBinaries(raResponse.Rollapp.Bech32Prefix)
+			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
+				pterm.Error.Println("no bech")
+				return
+			}
+			installBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix)
 			elapsed := time.Since(start)
 			fmt.Println("time elapsed: ", elapsed)
 		},

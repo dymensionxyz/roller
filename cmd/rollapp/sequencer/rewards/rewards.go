@@ -92,7 +92,7 @@ func Cmd() *cobra.Command {
 			// when the sequencer isn't registered go through the flow
 			// of registering the sequencer and settings the reward address
 			var address string
-			bech32Prefix = raResponse.Rollapp.Bech32Prefix
+			bech32Prefix = raResponse.Rollapp.GenesisInfo.Bech32Prefix
 			kc := utils.KeyConfig{
 				Dir:         consts.ConfigDirName.RollappSequencerKeys,
 				ID:          consts.KeysIds.RollappSequencerReward,
@@ -173,7 +173,7 @@ func Cmd() *cobra.Command {
 					"--from",
 					"rollapp",
 					"--gas-prices",
-					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.Metadata.TokenSymbol),
+					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.GenesisInfo.NativeDenom.Base),
 					"--keyring-backend", "test",
 					"--keyring-dir", filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 				)

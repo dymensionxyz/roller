@@ -27,29 +27,40 @@ type Rollapp struct {
 	ChannelId             string              `json:"channel_id,omitempty"`
 	Frozen                bool                `json:"frozen,omitempty"`
 	RegisteredDenoms      []string            `json:"registeredDenoms,omitempty"`
-	Bech32Prefix          string              `json:"bech32_prefix,omitempty"`
-	GenesisChecksum       string              `json:"genesis_checksum,omitempty"`
 	Metadata              *RollappMetadata    `json:"metadata,omitempty"`
+	GenesisInfo           GenesisInfo         `json:"genesis_info"`
 	InitialSequencer      string              `json:"initial_sequencer,omitempty"`
 	VmType                string              `json:"vm_type,omitempty"`
-	Sealed                bool                `json:"sealed,omitempty"`
+	Launched              bool                `json:"launched,omitempty"`
 	LivenessEventHeight   string              `json:"liveness_event_height,omitempty"`
 	LastStateUpdateHeight string              `json:"last_state_update_height,omitempty"`
 }
 
+type GenesisInfo struct {
+	GenesisChecksum string         `json:"genesis_checksum,omitempty"`
+	Bech32Prefix    string         `json:"bech32_prefix,omitempty"`
+	NativeDenom     *DenomMetadata `json:"native_denom,omitempty"`
+	InitialSupply   string         `json:"initial_supply"`
+	Sealed          bool           `json:"sealed,omitempty"           protobuf:"varint,5,opt,name=sealed,proto3"`
+}
+
 type RollappMetadata struct {
-	Website         string `json:"website,omitempty"`
-	Description     string `json:"description,omitempty"`
-	LogoUrl         string `json:"logo_url,omitempty"`
-	Telegram        string `json:"telegram,omitempty"`
-	X               string `json:"x,omitempty"`
-	GenesisUrl      string `json:"genesis_url,omitempty"`
-	DisplayName     string `json:"display_name,omitempty"`
-	Tagline         string `json:"tagline,omitempty"`
-	TokenSymbol     string `json:"token_symbol,omitempty"`
-	ExplorerUrl     string `json:"explorer_url,omitempty"`
-	FeeBaseDenom    string `json:"fee_base_denom,omitempty"`
-	NativeBaseDenom string `json:"native_base_denom,omitempty"`
+	Website     string         `json:"website,omitempty"`
+	Description string         `json:"description,omitempty"`
+	LogoUrl     string         `json:"logo_url,omitempty"`
+	Telegram    string         `json:"telegram,omitempty"`
+	X           string         `json:"x,omitempty"`
+	GenesisUrl  string         `json:"genesis_url,omitempty"`
+	DisplayName string         `json:"display_name,omitempty"`
+	Tagline     string         `json:"tagline,omitempty"`
+	ExplorerUrl string         `json:"explorer_url,omitempty"`
+	FeeDenom    *DenomMetadata `json:"fee_denom,omitempty"`
+}
+
+type DenomMetadata struct {
+	Display  string `json:"display,omitempty"`
+	Base     string `json:"base,omitempty"`
+	Exponent uint32 `json:"exponent,omitempty"`
 }
 
 type RollappGenesisState struct {
