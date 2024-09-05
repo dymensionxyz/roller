@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 )
 
-func createBlockExplorerContainers() error {
+func createBlockExplorerContainers(home string) error {
 	pterm.Info.Println("Creating container for block explorer")
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -34,6 +35,13 @@ func createBlockExplorerContainers() error {
 		return err
 	}
 
+	beChainConfigPath := filepath.Join(
+		home,
+		"block-explorer",
+		"config",
+		"chains.yaml",
+	)
+	fmt.Println(beChainConfigPath)
 	containers := map[string]dockerutils.ContainerConfigOptions{
 		"db": {
 			Name:  "be-postgresql",
@@ -62,11 +70,17 @@ func createBlockExplorerContainers() error {
 			Mounts: []mount.Mount{},
 		},
 		"indexer": {
-			Name:   "be-indexer",
-			Image:  "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
-			Port:   "8080",
-			Envs:   []string{},
-			Mounts: []mount.Mount{},
+			Name:  "be-indexer",
+			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
+			Port:  "8080",
+			Envs:  []string{},
+			Mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: beChainConfigPath,
+					Target: "/root/.beid/chains.yaml",
+				},
+			},
 		},
 	}
 
