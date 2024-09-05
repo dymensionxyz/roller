@@ -115,13 +115,13 @@ func installBinaries(bech32 string) {
 				},
 			},
 		},
-		"dymd": {
-			Repository: "https://github.com/dymensionxyz/dymension.git",
-			Commit:     "playground/v1-rc03",
+		"roller": {
+			Repository: "https://github.com/dymensionxyz/roller.git",
+			Commit:     "artemijspavlovs/install-roller",
 			Binaries: []BinaryPathPair{
 				{
-					BuildDestination:  "./build/dymd",
-					BinaryDestination: consts.Executables.Dymension,
+					BuildDestination:  "./build/roller",
+					BinaryDestination: consts.Executables.Roller,
 					BuildCommand: exec.Command(
 						"make",
 						"build",
