@@ -210,14 +210,15 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Println("failed to unmarshal", err)
 				}
+				fmt.Println(string(data))
 
-				err = yamlconfig.UpdateNestedYAML(
+				err = globalutils.SetNestedValue(
 					contentNode,
 					[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
 					1.3,
 				)
 				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
+					fmt.Printf("Error updating YAML, gas-adjustment : %v\n", err)
 					return
 				}
 
@@ -227,7 +228,7 @@ func Cmd() *cobra.Command {
 					true,
 				)
 				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
+					fmt.Printf("Error updating YAML, is-dym-hub: %v\n", err)
 					return
 				}
 
@@ -237,7 +238,7 @@ func Cmd() *cobra.Command {
 					rollappConfig.HubData.API_URL,
 				)
 				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
+					fmt.Printf("Error updating YAML, http-addr: %v\n", err)
 					return
 				}
 
@@ -248,7 +249,7 @@ func Cmd() *cobra.Command {
 				)
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
+					fmt.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
 					return
 				}
 
@@ -258,7 +259,7 @@ func Cmd() *cobra.Command {
 					"240h",
 				)
 				if err != nil {
-					fmt.Printf("Error updating YAML: %v\n", err)
+					fmt.Printf("Error updating YAML, trust-period: %v\n", err)
 					return
 				}
 
