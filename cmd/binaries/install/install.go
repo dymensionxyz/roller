@@ -117,7 +117,7 @@ func installBinaries(bech32 string) {
 		},
 		"roller": {
 			Repository: "https://github.com/dymensionxyz/roller.git",
-			Commit:     "artemijspavlovs/install-roller",
+			Commit:     "main",
 			Binaries: []BinaryPathPair{
 				{
 					BuildDestination:  "./build/roller",
