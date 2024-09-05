@@ -32,6 +32,11 @@ func Cmd() *cobra.Command {
 			}
 
 			raID = strings.TrimSpace(raID)
+			err := os.MkdirAll(consts.InternalBinsDir, 0o755)
+			if err != nil {
+				pterm.Error.Println("failed to create binary directory:", err)
+				return
+			}
 
 			dymdBinaryOptions := Dependency{
 				Repository: "https://github.com/dymensionxyz/dymension.git",
@@ -48,7 +53,7 @@ func Cmd() *cobra.Command {
 				},
 			}
 
-			err := installBinaryFromRepo(dymdBinaryOptions, "dymd")
+			err = installBinaryFromRepo(dymdBinaryOptions, "dymd")
 			if err != nil {
 				pterm.Error.Println("failed to install dymd", err)
 				return
@@ -218,7 +223,7 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 	if err != nil {
 		return err
 	}
-	// defer os.RemoveAll(targetDir)
+	defer os.RemoveAll(targetDir)
 	// Clone the repository
 	err = os.Chdir(targetDir)
 	if err != nil {
