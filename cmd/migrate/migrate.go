@@ -3,10 +3,11 @@ package migrate
 import (
 	"fmt"
 
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/version"
@@ -50,7 +51,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func GetPrevVersionData(rlpCfg config2.RollappConfig) (*VersionData, error) {
+func GetPrevVersionData(rlpCfg configutils.RollappConfig) (*VersionData, error) {
 	rollerPrevVersion := rlpCfg.RollerVersion
 	var major, minor, patch int
 	// Special case for the first version of roller, that didn't have a version field.
@@ -80,7 +81,7 @@ func GetPrevVersionData(rlpCfg config2.RollappConfig) (*VersionData, error) {
 }
 
 type VersionMigrator interface {
-	PerformMigration(rlpCfg config2.RollappConfig) error
+	PerformMigration(rlpCfg configutils.RollappConfig) error
 	ShouldMigrate(prevVersion VersionData) bool
 }
 

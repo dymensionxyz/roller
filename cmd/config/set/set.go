@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-	config2 "github.com/dymensionxyz/roller/utils/config"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
-var keyUpdateFuncs = map[string]func(cfg config2.RollappConfig, value string) error{
+var keyUpdateFuncs = map[string]func(cfg configutils.RollappConfig, value string) error{
 	"rollapp-rpc-port":     setRollappRPC,
 	"lc-gateway-port":      setLCGatewayPort,
 	"lc-rpc-port":          setLCRPCPort,
