@@ -170,7 +170,7 @@ func runSQLMigration() error {
 	defer dbLocal.Close()
 
 	// Read and execute the SQL migration file
-	sqlFile, err := os.ReadFile("migrations/blockexplorer.sql")
+	sqlFile, err := os.ReadFile("migrations/block-explorer/schema.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read SQL file: %w", err)
 	}
@@ -181,7 +181,7 @@ func runSQLMigration() error {
 	}
 
 	// Execute additional SQL files if needed
-	superSchemaFile, err := os.ReadFile("migrations/super-schema.sql")
+	superSchemaFile, err := os.ReadFile("migrations/block-explorer/events.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read super-schema SQL file: %w", err)
 	}
