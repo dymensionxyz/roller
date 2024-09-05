@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -20,7 +21,7 @@ import (
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 )
 
-func createBlockExplorerContainers() error {
+func createBlockExplorerContainers(home string) error {
 	pterm.Info.Println("Creating container for block explorer")
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -34,6 +35,19 @@ func createBlockExplorerContainers() error {
 		return err
 	}
 
+	// Determine the host address to use
+	hostAddress := "host.docker.internal"
+	if runtime.GOOS == "linux" {
+		hostAddress = "172.17.0.1" // Default Docker bridge network gateway
+	}
+
+	beChainConfigPath := filepath.Join(
+		home,
+		"block-explorer",
+		"config",
+		"chains.yaml",
+	)
+	fmt.Println(beChainConfigPath)
 	containers := map[string]dockerutils.ContainerConfigOptions{
 		"db": {
 			Name:  "be-postgresql",
@@ -57,16 +71,25 @@ func createBlockExplorerContainers() error {
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:latest",
 			Port:  "3000",
 			Envs: []string{
-				"DATABASE_URL=postgresql://be:psw@be-postgresql:5432/blockexplorer",
+				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", hostAddress),
+				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
 			},
 			Mounts: []mount.Mount{},
 		},
 		"indexer": {
-			Name:   "be-indexer",
-			Image:  "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
-			Port:   "8080",
-			Envs:   []string{},
-			Mounts: []mount.Mount{},
+			Name:  "be-indexer",
+			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
+			Port:  "8080",
+			Envs: []string{
+				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
+			},
+			Mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: beChainConfigPath,
+					Target: "/root/.beid/chains.yaml",
+				},
+			},
 		},
 	}
 
@@ -109,7 +132,7 @@ func createBlockExplorerContainers() error {
 
 func ensureNetworkExists(cli *client.Client, networkName string) error {
 	// List all networks
-	networks, err := cli.NetworkList(context.Background(), types.NetworkListOptions{})
+	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to list networks: %w", err)
 	}
@@ -124,7 +147,7 @@ func ensureNetworkExists(cli *client.Client, networkName string) error {
 
 	// Create the network if it does not exist
 	_, err = cli.NetworkCreate(
-		context.Background(), networkName, types.NetworkCreate{
+		context.Background(), networkName, network.CreateOptions{
 			Driver: "bridge",
 		},
 	)
@@ -170,7 +193,7 @@ func runSQLMigration() error {
 	defer dbLocal.Close()
 
 	// Read and execute the SQL migration file
-	sqlFile, err := os.ReadFile("migrations/blockexplorer.sql")
+	sqlFile, err := os.ReadFile("migrations/block-explorer/schema.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read SQL file: %w", err)
 	}
@@ -181,7 +204,7 @@ func runSQLMigration() error {
 	}
 
 	// Execute additional SQL files if needed
-	superSchemaFile, err := os.ReadFile("migrations/super-schema.sql")
+	superSchemaFile, err := os.ReadFile("migrations/block-explorer/events.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read super-schema SQL file: %w", err)
 	}

@@ -18,10 +18,6 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -35,6 +31,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -662,7 +661,7 @@ func Cmd() *cobra.Command {
 					"true",
 				)
 				if err != nil {
-					pterm.Error.Println("failed to update `p2p_advertising_enabled`")
+					pterm.Error.Println("failed to update `p2p_advertising_enabled` field")
 					return
 				}
 			default:
@@ -692,6 +691,13 @@ func Cmd() *cobra.Command {
 				dymintConfigPath,
 				"da_config",
 				daConfig,
+			)
+
+			pterm.Info.Println("enabling block explorer endpoint")
+			_ = globalutils.UpdateFieldInToml(
+				filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "be-json-rpc.toml"),
+				"enable",
+				"true",
 			)
 
 			pterm.Info.Println("initialization complete")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
-
 
 type ContainerConfigOptions struct {
 	Name   string
@@ -46,12 +46,15 @@ func CreateContainer(
 			nat.Port(portString): struct{}{},
 		},
 		Env: cfg.Envs,
-
 	}
 
 	hostConfig := &container.HostConfig{
 		PortBindings: portBindings,
 		Mounts:       cfg.Mounts,
+	}
+
+	if runtime.GOOS == "linux" {
+		hostConfig.ExtraHosts = []string{"host.docker.internal:host-gateway"}
 	}
 
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
@@ -98,7 +101,11 @@ func CreateContainer(
 			continue
 		}
 
-		logs, err := cli.ContainerLogs(ctx, resp.ID, container.LogsOptions{ShowStdout: true, ShowStderr: true})
+		logs, err := cli.ContainerLogs(
+			ctx,
+			resp.ID,
+			container.LogsOptions{ShowStdout: true, ShowStderr: true},
+		)
 		if err != nil {
 			return fmt.Errorf("error retrieving logs for container %s: %w", cfg.Name, err)
 		}
@@ -112,5 +119,4 @@ func CreateContainer(
 	}
 
 	return fmt.Errorf("failed to start container after %d attempts", maxRetries)
-
 }
