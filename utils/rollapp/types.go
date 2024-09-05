@@ -13,15 +13,11 @@ type ShowRollappResponse struct {
 }
 
 type Summary struct {
-	// The unique identifier of the rollapp chain.
-	// The rollappId follows the same standard as cosmos chain_id.
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3"                 json:"rollappId,omitempty"`
-	// Defines the index of the last rollapp UpdateState.
-	LatestStateIndex *StateInfoIndex `protobuf:"bytes,2,opt,name=latestStateIndex,proto3"          json:"latestStateIndex,omitempty"`
-	// Defines the index of the last rollapp UpdateState that was finalized.
-	LatestFinalizedStateIndex *StateInfoIndex `protobuf:"bytes,3,opt,name=latestFinalizedStateIndex,proto3" json:"latestFinalizedStateIndex,omitempty"`
-	LatestHeight              uint64          `protobuf:"varint,4,opt,name=latestHeight,proto3"             json:"latestHeight,omitempty"`
-	LatestFinalizedHeight     uint64          `protobuf:"varint,5,opt,name=latestFinalizedHeight,proto3"    json:"latestFinalizedHeight,omitempty"`
+	RollappId                 string          `json:"rollappId,omitempty"`
+	LatestStateIndex          *StateInfoIndex `json:"latestStateIndex,omitempty"`
+	LatestFinalizedStateIndex *StateInfoIndex `json:"latestFinalizedStateIndex,omitempty"`
+	LatestHeight              string          `json:"latestHeight,omitempty"`
+	LatestFinalizedHeight     string          `json:"latestFinalizedHeight,omitempty"`
 }
 
 type Rollapp struct {
@@ -57,7 +53,7 @@ type RollappMetadata struct {
 }
 
 type RollappGenesisState struct {
-	TransfersEnabled bool `protobuf:"varint,2,opt,name=transfers_enabled,json=transfersEnabled,proto3" json:"transfers_enabled,omitempty"`
+	TransfersEnabled bool `json:"transfers_enabled,omitempty"`
 }
 
 type GenesisState struct {
@@ -76,13 +72,8 @@ type Metadata struct {
 }
 
 type StateInfoIndex struct {
-	// rollappId is the rollapp that the sequencer belongs to and asking to update
-	// it used to identify the what rollapp a StateInfo belongs
-	// The rollappId follows the same standard as cosmos chain_id
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// index is a sequential increasing number, updating on each
-	// state update used for indexing to a specific state info, the first index is 1
-	Index string `protobuf:"varint,2,opt,name=index,proto3"    json:"index,omitempty"`
+	RollappId string `json:"rollappId,omitempty"`
+	Index     string `json:"index,omitempty"`
 }
 
 type BlockInformation struct {
@@ -97,7 +88,6 @@ type Block struct {
 }
 
 type Header struct {
-	// basic block info
 	Version Consensus `json:"version"`
 	ChainID string    `json:"chain_id"`
 	Height  string    `json:"height"`
@@ -105,6 +95,6 @@ type Header struct {
 }
 
 type Consensus struct {
-	Block string `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
-	App   string `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
+	Block string `json:"block,omitempty"`
+	App   string `json:"app,omitempty"`
 }
