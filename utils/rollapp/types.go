@@ -37,8 +37,8 @@ type Rollapp struct {
 	InitialSequencer      string              `json:"initial_sequencer,omitempty"`
 	VmType                string              `json:"vm_type,omitempty"`
 	Sealed                bool                `json:"sealed,omitempty"`
-	LivenessEventHeight   int64               `json:"liveness_event_height,omitempty"`
-	LastStateUpdateHeight int64               `json:"last_state_update_height,omitempty"`
+	LivenessEventHeight   string              `json:"liveness_event_height,omitempty"`
+	LastStateUpdateHeight string              `json:"last_state_update_height,omitempty"`
 }
 
 type RollappMetadata struct {
