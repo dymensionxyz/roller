@@ -32,7 +32,7 @@ func Cmd() *cobra.Command {
 
 			dymdBinaryOptions := Dependency{
 				Repository: "https://github.com/dymensionxyz/dymension.git",
-				Commit:     "playground/v1-rc03",
+				Commit:     "playground/v1-rc04",
 				Binaries: []BinaryPathPair{
 					{
 						BuildDestination:  "./build/dymd",
@@ -102,7 +102,7 @@ func installBinaries(bech32 string) {
 	deps := map[string]Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Commit:     "main",
+			Commit:     "559d878e83800717c885e89f2fbe619ee081b2a1", // 20240905 light client support
 			Binaries: []BinaryPathPair{
 				{
 					BuildDestination:  "./build/rollapp-evm",
