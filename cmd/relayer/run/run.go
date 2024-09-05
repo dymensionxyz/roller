@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
@@ -199,8 +200,20 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("updating application relayer config")
 				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
-				err = updateYAML(relayerConfigPath, &rollappConfig, home)
+				updates := map[string]interface{}{
+					"chains.dymension_100-1.value.gas-adjustment":                          1.5,
+					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.RollappID): 1.3,
+					fmt.Sprintf("chains.%s.value.is-dym-hub", rollappConfig.HubData.ID):    true,
+					fmt.Sprintf(
+						"chains.%s.value.http-addr",
+						rollappConfig.HubData.ID,
+					): rollappConfig.HubData.API_URL,
+					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollappConfig.RollappID): true,
+					fmt.Sprintf("chains.%s.value.trust-period", rollappConfig.RollappID):   "240h",
+				}
+				err = updateYAML(relayerConfigPath, updates)
 				if err != nil {
+					pterm.Error.Printf("Error updating YAML: %v\n", err)
 					return
 				}
 
@@ -430,7 +443,7 @@ func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
 	return nil
 }
 
-func updateYAML(filename string, rollappConfig *configutils.RollappConfig, home string) error {
+func updateYAML(filename string, updates map[string]interface{}) error {
 	// Read YAML file
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -444,64 +457,13 @@ func updateYAML(filename string, rollappConfig *configutils.RollappConfig, home 
 		return err
 	}
 
-	// Update value
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", "dymension_100-1", "value", "gas-adjustment"},
-		1.5,
-	)
-	if err != nil {
-		return err
-	}
-
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", rollappConfig.RollappID, "value", "gas-adjustment"},
-		1.3,
-	)
-	if err != nil {
-		fmt.Printf("Error updating YAML, gas-adjustment : %v\n", err)
-		return err
-	}
-
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", rollappConfig.HubData.ID, "value", "is-dym-hub"},
-		true,
-	)
-	if err != nil {
-		fmt.Printf("Error updating YAML, is-dym-hub: %v\n", err)
-		return err
-	}
-
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", rollappConfig.HubData.ID, "value", "http-addr"},
-		rollappConfig.HubData.API_URL,
-	)
-	if err != nil {
-		fmt.Printf("Error updating YAML, http-addr: %v\n", err)
-		return err
-	}
-
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", rollappConfig.RollappID, "value", "is-dym-rollapp"},
-		true,
-	)
-	if err != nil {
-		fmt.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
-		return err
-	}
-
-	err = setNestedValue(
-		yamlData,
-		[]string{"chains", rollappConfig.RollappID, "value", "trust-period"},
-		"240h",
-	)
-	if err != nil {
-		fmt.Printf("Error updating YAML, trust-period: %v\n", err)
-		return err
+	// Update values
+	for path, value := range updates {
+		keys := strings.Split(path, ".")
+		err = setNestedValue(yamlData, keys, value)
+		if err != nil {
+			return fmt.Errorf("error updating %s: %v", path, err)
+		}
 	}
 
 	// Marshal back to YAML
@@ -514,22 +476,23 @@ func updateYAML(filename string, rollappConfig *configutils.RollappConfig, home 
 	return os.WriteFile(filename, updatedData, 0o644)
 }
 
-// nolint: gosec
-func setNestedValue(data map[string]interface{}, keyPath []string, value interface{}) error {
-	if len(keyPath) == 0 {
-		return fmt.Errorf("empty key path")
-	}
-	if len(keyPath) == 1 {
-		if value == nil {
-			delete(data, keyPath[0])
-		} else {
-			data[keyPath[0]] = value
+func setNestedValue(data map[string]interface{}, keys []string, value interface{}) error {
+	for i, key := range keys {
+		if i == len(keys)-1 {
+			data[key] = value
+			return nil
 		}
-		return nil
+
+		if _, ok := data[key]; !ok {
+			data[key] = make(map[string]interface{})
+		}
+
+		nestedMap, ok := data[key].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("failed to set nested map for key: %s", key)
+		}
+
+		data = nestedMap
 	}
-	nextMap, ok := data[keyPath[0]].(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("failed to set nested map for key: %s", keyPath[0])
-	}
-	return setNestedValue(nextMap, keyPath[1:], value)
+	return nil
 }
