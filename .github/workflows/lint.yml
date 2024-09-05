@@ -34,4 +34,4 @@ jobs:
           version: v1.60.1
           only-new-issues: true
           skip-cache: true
-          args: '--allow-parallel-runners'
+          args: --allow-parallel-runners --timeout=5m
