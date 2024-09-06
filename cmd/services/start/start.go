@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -15,8 +16,7 @@ func RollappCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			services := []string{"rollapp", "da-light-client"}
-			err := startSystemdServices(services)
+			err := startSystemdServices(consts.RollappSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to start systemd services:", err)
 				return
@@ -38,8 +38,7 @@ func RelayerCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			services := []string{"relayer"}
-			err := startSystemdServices(services)
+			err := startSystemdServices(consts.RelayerSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to start systemd services:", err)
 				return
@@ -61,8 +60,7 @@ func EibcCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			services := []string{"eibc"}
-			err := startSystemdServices(services)
+			err := startSystemdServices(consts.EibcSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to start systemd services:", err)
 				return

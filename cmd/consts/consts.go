@@ -13,6 +13,12 @@ const (
 
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
+var (
+	RollappSystemdServices = []string{"rollapp", "da-light-client"}
+	RelayerSystemdServices = []string{"relayer"}
+	EibcSystemdServices    = []string{"eibc"}
+)
+
 var Executables = struct {
 	Celestia    string
 	RollappEVM  string
