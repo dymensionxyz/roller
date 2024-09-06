@@ -273,7 +273,8 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 			return err
 		}
 
-		if err := os.Rename(binary.BuildDestination, binary.BinaryDestination); err != nil {
+		c := exec.Command("sudo", "mv", binary.BuildDestination, binary.BinaryDestination)
+		if _, err := bash.ExecCommandWithStdout(c); err != nil {
 			spinner.Fail(
 				fmt.Sprintf(
 					"Failed to move binary %s to %s\n",
@@ -281,7 +282,6 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 					binary.BinaryDestination,
 				),
 			)
-
 			return err
 		}
 		spinner.Success(fmt.Sprintf("Successfully installed %s\n", binary.BinaryDestination))
