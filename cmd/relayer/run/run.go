@@ -386,6 +386,10 @@ func Cmd() *cobra.Command {
 
 				pterm.Info.Println("establishing IBC transfer channel")
 				seq := sequencer.GetInstance(rollappConfig)
+				if seq == nil {
+					pterm.Error.Println("failed to get sequencer sequencer instance")
+					return
+				}
 
 				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, seq)
 				if err != nil {
