@@ -11,14 +11,13 @@ import (
 	"path/filepath"
 
 	"github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -99,7 +98,7 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return raResponse.Rollapp.GenesisChecksum, nil
+	return raResponse.Rollapp.GenesisInfo.GenesisChecksum, nil
 }
 
 func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) {

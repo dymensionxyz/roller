@@ -11,7 +11,7 @@ const (
 	DefaultTxFee       = 1000000000000000    // 0.001
 )
 
-var internalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
+var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var Executables = struct {
 	Celestia    string
@@ -27,12 +27,12 @@ var Executables = struct {
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
 	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
-	Celestia:    fmt.Sprintf("%s/celestia", internalBinsDir),
-	CelKey:      fmt.Sprintf("%s/cel-key", internalBinsDir),
-	Relayer:     fmt.Sprintf("%s/rly", internalBinsDir),
-	Simd:        fmt.Sprintf("%s/simd", internalBinsDir),
+	Celestia:    fmt.Sprintf("%s/celestia", InternalBinsDir),
+	CelKey:      fmt.Sprintf("%s/cel-key", InternalBinsDir),
+	Relayer:     fmt.Sprintf("%s/rly", InternalBinsDir),
+	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
-	CelestiaApp: fmt.Sprintf("%s/celestia-appd", internalBinsDir),
+	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
 }
 
 var KeysIds = struct {

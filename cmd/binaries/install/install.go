@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -30,6 +31,13 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
+			raID = strings.TrimSpace(raID)
+			err := os.MkdirAll(consts.InternalBinsDir, 0o755)
+			if err != nil {
+				pterm.Error.Println("failed to create binary directory:", err)
+				return
+			}
+
 			dymdBinaryOptions := Dependency{
 				Repository: "https://github.com/dymensionxyz/dymension.git",
 				Commit:     "playground/v1-rc04",
@@ -45,7 +53,7 @@ func Cmd() *cobra.Command {
 				},
 			}
 
-			err := installBinaryFromRepo(dymdBinaryOptions, "dymd")
+			err = installBinaryFromRepo(dymdBinaryOptions, "dymd")
 			if err != nil {
 				pterm.Error.Println("failed to install dymd", err)
 				return
@@ -73,7 +81,11 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			installBinaries(raResponse.Rollapp.Bech32Prefix)
+			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
+				pterm.Error.Println("no bech")
+				return
+			}
+			installBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix)
 			elapsed := time.Since(start)
 			fmt.Println("time elapsed: ", elapsed)
 		},
@@ -211,7 +223,8 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 	if err != nil {
 		return err
 	}
-	// defer os.RemoveAll(targetDir)
+	// nolint: errcheck
+	defer os.RemoveAll(targetDir)
 	// Clone the repository
 	err = os.Chdir(targetDir)
 	if err != nil {
@@ -224,7 +237,6 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 	)
 
 	c := exec.Command("git", "clone", dep.Repository, targetDir)
-
 	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
 		pterm.Error.Println("failed to clone")
@@ -261,7 +273,8 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 			return err
 		}
 
-		if err := os.Rename(binary.BuildDestination, binary.BinaryDestination); err != nil {
+		c := exec.Command("sudo", "mv", binary.BuildDestination, binary.BinaryDestination)
+		if _, err := bash.ExecCommandWithStdout(c); err != nil {
 			spinner.Fail(
 				fmt.Sprintf(
 					"Failed to move binary %s to %s\n",
@@ -269,7 +282,6 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 					binary.BinaryDestination,
 				),
 			)
-
 			return err
 		}
 		spinner.Success(fmt.Sprintf("Successfully installed %s\n", binary.BinaryDestination))

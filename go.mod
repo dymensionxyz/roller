@@ -18,7 +18,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240902130625-2243bc06282f
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240905113548-004462d5f45b
 	github.com/gogo/protobuf v1.3.3
 	github.com/ignite/cli v0.27.2
 	github.com/lib/pq v1.10.9

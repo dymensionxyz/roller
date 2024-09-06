@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -82,10 +81,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
 			}
 
-			if raResponse.Rollapp.Bech32Prefix != bp {
+			if raResponse.Rollapp.GenesisInfo.Bech32Prefix != bp {
 				pterm.Error.Printf(
 					"rollapp bech32 prefix does not match, want: %s, have: %s",
-					raResponse.Rollapp.Bech32Prefix,
+					raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 					bp,
 				)
 				return

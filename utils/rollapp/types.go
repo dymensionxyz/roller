@@ -7,28 +7,64 @@ import (
 )
 
 type ShowRollappResponse struct {
-	Rollapp                   Rollapp         `json:"rollapp"`
-	LatestStateIndex          *StateInfoIndex `json:"latestStateIndex"`
-	LatestFinalizedStateIndex *StateInfoIndex `json:"latestFinalizedStateIndex"`
-	LatestHeight              string          `json:"latestHeight"`
-	LatestFinalizedHeight     string          `json:"latestFinalizedHeight"`
+	Rollapp Rollapp `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
+	Summary Summary `protobuf:"bytes,6,opt,name=summary,proto3" json:"summary"`
+	// apps is the list of (lazy-loaded) apps in the rollapp
+}
+
+type Summary struct {
+	RollappId                 string          `json:"rollappId,omitempty"`
+	LatestStateIndex          *StateInfoIndex `json:"latestStateIndex,omitempty"`
+	LatestFinalizedStateIndex *StateInfoIndex `json:"latestFinalizedStateIndex,omitempty"`
+	LatestHeight              string          `json:"latestHeight,omitempty"`
+	LatestFinalizedHeight     string          `json:"latestFinalizedHeight,omitempty"`
 }
 
 type Rollapp struct {
-	RollappId             string       `json:"rollapp_id"`
-	Owner                 string       `json:"owner"`
-	GenesisState          GenesisState `json:"genesis_state"`
-	ChannelId             string       `json:"channel_id"`
-	Frozen                bool         `json:"frozen"`
-	RegisteredDenoms      []string     `json:"registeredDenoms"`
-	Bech32Prefix          string       `json:"bech32_prefix"`
-	GenesisChecksum       string       `json:"genesis_checksum"`
-	Metadata              Metadata     `json:"metadata"`
-	InitialSequencer      string       `json:"initial_sequencer"`
-	VmType                string       `json:"vm_type"`
-	Sealed                bool         `json:"sealed"`
-	LivenessEventHeight   string       `json:"liveness_event_height"`
-	LastStateUpdateHeight string       `json:"last_state_update_height"`
+	RollappId             string              `json:"rollapp_id,omitempty"`
+	Owner                 string              `json:"owner,omitempty"`
+	GenesisState          RollappGenesisState `json:"genesis_state"`
+	ChannelId             string              `json:"channel_id,omitempty"`
+	Frozen                bool                `json:"frozen,omitempty"`
+	RegisteredDenoms      []string            `json:"registeredDenoms,omitempty"`
+	Metadata              *RollappMetadata    `json:"metadata,omitempty"`
+	GenesisInfo           GenesisInfo         `json:"genesis_info"`
+	InitialSequencer      string              `json:"initial_sequencer,omitempty"`
+	VmType                string              `json:"vm_type,omitempty"`
+	Launched              bool                `json:"launched,omitempty"`
+	LivenessEventHeight   string              `json:"liveness_event_height,omitempty"`
+	LastStateUpdateHeight string              `json:"last_state_update_height,omitempty"`
+}
+
+type GenesisInfo struct {
+	GenesisChecksum string         `json:"genesis_checksum,omitempty"`
+	Bech32Prefix    string         `json:"bech32_prefix,omitempty"`
+	NativeDenom     *DenomMetadata `json:"native_denom,omitempty"`
+	InitialSupply   string         `json:"initial_supply"`
+	Sealed          bool           `json:"sealed,omitempty"           protobuf:"varint,5,opt,name=sealed,proto3"`
+}
+
+type RollappMetadata struct {
+	Website     string         `json:"website,omitempty"`
+	Description string         `json:"description,omitempty"`
+	LogoUrl     string         `json:"logo_url,omitempty"`
+	Telegram    string         `json:"telegram,omitempty"`
+	X           string         `json:"x,omitempty"`
+	GenesisUrl  string         `json:"genesis_url,omitempty"`
+	DisplayName string         `json:"display_name,omitempty"`
+	Tagline     string         `json:"tagline,omitempty"`
+	ExplorerUrl string         `json:"explorer_url,omitempty"`
+	FeeDenom    *DenomMetadata `json:"fee_denom,omitempty"`
+}
+
+type DenomMetadata struct {
+	Display  string `json:"display,omitempty"`
+	Base     string `json:"base,omitempty"`
+	Exponent uint32 `json:"exponent,omitempty"`
+}
+
+type RollappGenesisState struct {
+	TransfersEnabled bool `json:"transfers_enabled,omitempty"`
 }
 
 type GenesisState struct {
@@ -47,13 +83,8 @@ type Metadata struct {
 }
 
 type StateInfoIndex struct {
-	// rollappId is the rollapp that the sequencer belongs to and asking to update
-	// it used to identify the what rollapp a StateInfo belongs
-	// The rollappId follows the same standard as cosmos chain_id
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// index is a sequential increasing number, updating on each
-	// state update used for indexing to a specific state info, the first index is 1
-	Index string `protobuf:"varint,2,opt,name=index,proto3"    json:"index,omitempty"`
+	RollappId string `json:"rollappId,omitempty"`
+	Index     string `json:"index,omitempty"`
 }
 
 type BlockInformation struct {
@@ -68,7 +99,6 @@ type Block struct {
 }
 
 type Header struct {
-	// basic block info
 	Version Consensus `json:"version"`
 	ChainID string    `json:"chain_id"`
 	Height  string    `json:"height"`
@@ -76,6 +106,6 @@ type Header struct {
 }
 
 type Consensus struct {
-	Block string `protobuf:"varint,1,opt,name=block,proto3" json:"block,omitempty"`
-	App   string `protobuf:"varint,2,opt,name=app,proto3"   json:"app,omitempty"`
+	Block string `json:"block,omitempty"`
+	App   string `json:"app,omitempty"`
 }

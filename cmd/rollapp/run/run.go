@@ -127,10 +127,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
 			}
 
-			if raResponse.Rollapp.Bech32Prefix != bp {
+			if raResponse.Rollapp.GenesisInfo.Bech32Prefix != bp {
 				pterm.Error.Printf(
 					"rollapp bech32 prefix does not match, want: %s, have: %s\n",
-					raResponse.Rollapp.Bech32Prefix,
+					raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 					bp,
 				)
 				return

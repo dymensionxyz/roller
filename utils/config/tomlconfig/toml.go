@@ -104,7 +104,7 @@ func LoadRollappMetadataFromChain(
 
 		cfg = config.RollappConfig{
 			Home:             home,
-			GenesisHash:      raResponse.Rollapp.GenesisChecksum,
+			GenesisHash:      raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 			GenesisUrl:       raResponse.Rollapp.Metadata.GenesisUrl,
 			RollappID:        raResponse.Rollapp.RollappId,
 			RollappBinary:    consts.Executables.RollappEVM,
@@ -116,7 +116,7 @@ func LoadRollappMetadataFromChain(
 			RollerVersion:    "latest",
 			Environment:      hd.ID,
 			ExecutionVersion: version.BuildVersion,
-			Bech32Prefix:     raResponse.Rollapp.Bech32Prefix,
+			Bech32Prefix:     raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 			BaseDenom:        "",
 			MinGasPrices:     "0",
 		}
