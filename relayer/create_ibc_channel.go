@@ -70,7 +70,11 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, fmt.Errorf("could not load channels")
 	}
 
-	status = fmt.Sprintf("Active src, %s <-> %s, dst", src, dst)
+	fmt.Printf(
+		"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s",
+		src,
+		dst,
+	)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}

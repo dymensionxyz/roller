@@ -37,7 +37,11 @@ func (r *Relayer) SetLogger(logger *log.Logger) {
 // TODO: review the servicemanager.Service implementation
 func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
 	if r.ChannelReady() {
-		return fmt.Sprintf("Active src, %s <-> %s, dst", r.SrcChannel, r.DstChannel)
+		return fmt.Sprintf(
+			"Active Channels:\nrollapp: %s\n<->\nhub: %s",
+			r.SrcChannel,
+			r.DstChannel,
+		)
 	}
 	bytes, err := os.ReadFile(r.StatusFilePath())
 	if err != nil {
