@@ -69,30 +69,12 @@ func Cmd() *cobra.Command {
 			}
 
 			// Get the actual content node (usually the first child of the document node)
-			var contentNode map[interface{}]interface{}
-			err = yaml.Unmarshal(data, &contentNode)
-
-			err = yamlconfig.UpdateNestedYAML(
-				contentNode,
-				[]string{"fulfill_criteria", "min_fee_percentage", "asset", ibcDenom},
-				valueFloat,
-			)
-			if err != nil {
-				fmt.Printf("Error updating YAML: %v\n", err)
-				return
+			updates := map[string]interface{}{
+				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", ibcDenom): valueFloat,
 			}
-
-			updatedData, err := yaml.Marshal(contentNode)
+			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
-				fmt.Printf("Error marshaling YAML: %v\n", err)
-				return
-			}
-
-			// Write the updated YAML back to the original file
-			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
-			if err != nil {
-				fmt.Printf("Error writing file: %v\n", err)
-				return
+				pterm.Error.Println("failed to update config", err)
 			}
 		},
 	}

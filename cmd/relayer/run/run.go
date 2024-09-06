@@ -6,13 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -21,10 +16,13 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -209,7 +207,7 @@ func Cmd() *cobra.Command {
 					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollappConfig.RollappID): true,
 					fmt.Sprintf("chains.%s.value.trust-period", rollappConfig.RollappID):   "240h",
 				}
-				err = updateYAML(relayerConfigPath, updates)
+				err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
 				if err != nil {
 					pterm.Error.Printf("Error updating YAML: %v\n", err)
 					return
@@ -436,59 +434,5 @@ func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
 	}
 	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
 
-	return nil
-}
-
-func updateYAML(filename string, updates map[string]interface{}) error {
-	// Read YAML file
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-
-	// Parse YAML
-	var yamlData map[string]interface{}
-	err = yaml.Unmarshal(data, &yamlData)
-	if err != nil {
-		return err
-	}
-
-	// Update values
-	for path, value := range updates {
-		keys := strings.Split(path, ".")
-		err = setNestedValue(yamlData, keys, value)
-		if err != nil {
-			return fmt.Errorf("error updating %s: %v", path, err)
-		}
-	}
-
-	// Marshal back to YAML
-	updatedData, err := yaml.Marshal(yamlData)
-	if err != nil {
-		return err
-	}
-
-	// Write updated YAML back to file
-	return os.WriteFile(filename, updatedData, 0o644)
-}
-
-func setNestedValue(data map[string]interface{}, keys []string, value interface{}) error {
-	for i, key := range keys {
-		if i == len(keys)-1 {
-			data[key] = value
-			return nil
-		}
-
-		if _, ok := data[key]; !ok {
-			data[key] = make(map[string]interface{})
-		}
-
-		nestedMap, ok := data[key].(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("failed to set nested map for key: %s", key)
-		}
-
-		data = nestedMap
-	}
 	return nil
 }

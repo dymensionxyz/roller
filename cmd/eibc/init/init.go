@@ -1,13 +1,8 @@
 package init
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -18,6 +13,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -98,48 +95,13 @@ func Cmd() *cobra.Command {
 			}
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			data, err := os.ReadFile(eibcConfigPath)
-			if err != nil {
-				pterm.Error.Printf("Error reading file: %v\n", err)
-				return
+			updates := map[string]interface{}{
+				"node_address":       rollerConfig.HubData.RPC_URL,
+				"whale.account_name": consts.KeysIds.Eibc,
 			}
-
-			var contentNode map[interface{}]interface{}
-			err = yaml.Unmarshal(data, &contentNode)
-
-			// Update the nested fields
-			err = yamlconfig.UpdateNestedYAML(
-				contentNode,
-				[]string{"node_address"},
-				rollerConfig.HubData.RPC_URL,
-			)
+			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
-				fmt.Printf("Error updating YAML: %v\n", err)
-				return
-			}
-
-			err = yamlconfig.UpdateNestedYAML(
-				contentNode,
-				[]string{"whale", "account_name"},
-				consts.KeysIds.Eibc,
-			)
-			if err != nil {
-				fmt.Printf("Error updating YAML: %v\n", err)
-				return
-			}
-
-			// Marshal the updated YAML
-			updatedData, err := yaml.Marshal(contentNode)
-			if err != nil {
-				fmt.Printf("Error marshaling YAML: %v\n", err)
-				return
-			}
-
-			// Write the updated YAML back to the original file
-			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
-			if err != nil {
-				fmt.Printf("Error writing file: %v\n", err)
-				return
+				pterm.Error.Println("failed to update config", err)
 			}
 
 			pterm.Info.Println("eibc config updated successfully")

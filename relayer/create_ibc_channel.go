@@ -7,12 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/pterm/pterm"
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
@@ -49,7 +48,8 @@ func (r *Relayer) CreateIBCChannel(
 	time.Sleep(15 * time.Second)
 	// we ran create channel with override, as it not recovarable anyway
 	createChannelCmd := r.getCreateChannelCmd(true)
-	pterm.Info.Println("💈 Creating channel...")
+	// TODO: switch to spinned
+	pterm.Info.Println("💈 Creating channel (this may take a while)...")
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}

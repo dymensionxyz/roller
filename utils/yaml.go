@@ -2,6 +2,7 @@ package utils
 
 import "fmt"
 
+// TODO: use UpdateNestedYaml instead
 func SetNestedValue(data map[interface{}]interface{}, keyPath []string, value interface{}) error {
 	if len(keyPath) == 0 {
 		return fmt.Errorf("empty key path")
