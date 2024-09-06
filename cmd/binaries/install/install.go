@@ -80,9 +80,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			j, _ := json.MarshalIndent(raResponse, "", "  ")
-			fmt.Println(string(j))
-
 			start := time.Now()
 			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
 				pterm.Error.Println("no bech")
@@ -226,6 +223,7 @@ func installBinaryFromRepo(dep Dependency, td string) error {
 	if err != nil {
 		return err
 	}
+	// nolint: errcheck
 	defer os.RemoveAll(targetDir)
 	// Clone the repository
 	err = os.Chdir(targetDir)
