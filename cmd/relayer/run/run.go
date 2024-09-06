@@ -215,7 +215,7 @@ func Cmd() *cobra.Command {
 
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 				if err != nil {
-					pterm.Error.Printf("Error updating YAML, is-dym-rollapp: %v\n", err)
+					pterm.Error.Printf("Error updating YAML: %v\n", err)
 					return
 				}
 			}
