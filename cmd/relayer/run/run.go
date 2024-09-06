@@ -1,7 +1,6 @@
 package run
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -20,7 +19,6 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
@@ -398,21 +396,6 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-			go bash.RunCmdAsync(
-				ctx,
-				rly.GetStartCmd(),
-				func() {},
-				func(errMessage string) string { return errMessage },
-				logFileOption,
-			)
-			pterm.Info.Printf(
-				"The relayer is running successfully on you local machine!\nChannels:\nsrc, %s <-> %s, dst\n",
-				rly.SrcChannel,
-				rly.DstChannel,
-			)
-
 			defer func() {
 				pterm.Info.Println("reverting dymint config to 1h")
 				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
@@ -422,12 +405,21 @@ func Cmd() *cobra.Command {
 				}
 			}()
 
-			// select {}
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"run %s to start rollapp and da-light-client on your local machine\n",
+				"%s :run %s load the necessary systemd services\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Linux"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller relayer services load"),
+			)
+
+			pterm.Info.Printf(
+				"%s :run %s to start the rollapp processes interactively\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("on Other OSs"),
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller relayer start"),
 			)
 		},
 	}
