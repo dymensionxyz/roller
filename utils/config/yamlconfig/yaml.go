@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func UpdateNestedYAML(filename string, updates map[string]interface{}) error {

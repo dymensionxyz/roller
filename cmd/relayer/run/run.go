@@ -8,6 +8,9 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -21,8 +24,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -405,7 +406,7 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
-				"%s :run %s load the necessary systemd services\n",
+				"%s : run %s load the necessary systemd services\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("on Linux"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
@@ -413,7 +414,7 @@ func Cmd() *cobra.Command {
 			)
 
 			pterm.Info.Printf(
-				"%s :run %s to start the rollapp processes interactively\n",
+				"%s : run %s to start the rollapp processes interactively\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("on Other OSs"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).

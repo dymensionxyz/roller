@@ -102,6 +102,7 @@ func Cmd() *cobra.Command {
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
 				pterm.Error.Println("failed to update config", err)
+				return
 			}
 
 			pterm.Info.Println("eibc config updated successfully")
