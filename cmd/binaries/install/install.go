@@ -2,7 +2,9 @@ package install
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strings"
@@ -32,12 +34,26 @@ func Cmd() *cobra.Command {
 			}
 
 			raID = strings.TrimSpace(raID)
-			err := os.MkdirAll(consts.InternalBinsDir, 0o755)
+
+			_, err := os.Stat(consts.InternalBinsDir)
 			if err != nil {
-				pterm.Error.Println("failed to create binary directory:", err)
-				return
+				if errors.Is(err, fs.ErrNotExist) {
+					c := exec.Command("sudo", "mkdir", consts.InternalBinsDir)
+					_, err := bash.ExecCommandWithStdout(c)
+					if err != nil {
+						pterm.Error.Println("failed to create binary directory:", err)
+						return
+					}
+				} else {
+					pterm.Error.Println(
+						fmt.Sprintf("failed to check if file %s exists: ", consts.InternalBinsDir),
+						err,
+					)
+					return
+				}
 			}
 
+			// TODO: instead of relying on dymd binary, query the rpc for rollapp
 			dymdBinaryOptions := Dependency{
 				Repository: "https://github.com/dymensionxyz/dymension.git",
 				Commit:     "playground/v1-rc04",
@@ -141,42 +157,42 @@ func installBinaries(bech32 string) {
 				},
 			},
 		},
-		// "celestia": {
-		// 	Repository: "https://github.com/celestiaorg/celestia-node.git",
-		// 	Commit:     "v0.16.0-rc0",
-		// 	Binaries: []BinaryPathPair{
-		// 		{
-		// 			BuildDestination:  "./build/celestia",
-		// 			BinaryDestination: consts.Executables.Celestia,
-		// 			BuildCommand: exec.Command(
-		// 				"make",
-		// 				"build",
-		// 			),
-		// 		},
-		// 		{
-		// 			BuildDestination:  "./cel-key",
-		// 			BinaryDestination: consts.Executables.CelKey,
-		// 			BuildCommand: exec.Command(
-		// 				"make",
-		// 				"cel-key",
-		// 			),
-		// 		},
-		// 	},
-		// },
-		// "celestia-app": {
-		// 	Repository: "https://github.com/celestiaorg/celestia-app.git",
-		// 	Commit:     "v2.0.0",
-		// 	Binaries: []BinaryPathPair{
-		// 		{
-		// 			BuildDestination:  "./build/celestia-appd",
-		// 			BinaryDestination: consts.Executables.CelestiaApp,
-		// 			BuildCommand: exec.Command(
-		// 				"make",
-		// 				"build",
-		// 			),
-		// 		},
-		// 	},
-		// },
+		"celestia": {
+			Repository: "https://github.com/celestiaorg/celestia-node.git",
+			Commit:     "v0.16.0-rc0",
+			Binaries: []BinaryPathPair{
+				{
+					BuildDestination:  "./build/celestia",
+					BinaryDestination: consts.Executables.Celestia,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+					),
+				},
+				{
+					BuildDestination:  "./cel-key",
+					BinaryDestination: consts.Executables.CelKey,
+					BuildCommand: exec.Command(
+						"make",
+						"cel-key",
+					),
+				},
+			},
+		},
+		"celestia-app": {
+			Repository: "https://github.com/celestiaorg/celestia-app.git",
+			Commit:     "v2.0.0",
+			Binaries: []BinaryPathPair{
+				{
+					BuildDestination:  "./build/celestia-appd",
+					BinaryDestination: consts.Executables.CelestiaApp,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+					),
+				},
+			},
+		},
 		"eibc-client": {
 			Repository: "https://github.com/dymensionxyz/eibc-client.git",
 			Commit:     "main",

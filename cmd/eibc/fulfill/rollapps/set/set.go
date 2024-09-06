@@ -6,13 +6,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -40,14 +38,6 @@ func Cmd() *cobra.Command {
 			}
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			data, err := os.ReadFile(eibcConfigPath)
-			if err != nil {
-				pterm.Error.Printf("Error reading file: %v\n", err)
-				return
-			}
-
-			// Parse the YAML
-			var node yaml.Node
 			rollAppID := args[0]
 			value := args[1]
 
@@ -56,36 +46,13 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to convert value to float", err)
 				return
 			}
-			err = yaml.Unmarshal(data, &node)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal config.yaml")
-				return
+
+			updates := map[string]interface{}{
+				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", rollAppID): valueFloat,
 			}
-
-			// Get the actual content node (usually the first child of the document node)
-			var contentNode map[interface{}]interface{}
-			err = yaml.Unmarshal(data, &contentNode)
-
-			err = yamlconfig.UpdateNestedYAML(
-				contentNode,
-				[]string{"fulfill_criteria", "min_fee_percentage", "chain", rollAppID},
-				valueFloat,
-			)
+			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
-				fmt.Printf("Error updating YAML: %v\n", err)
-				return
-			}
-
-			updatedData, err := yaml.Marshal(contentNode)
-			if err != nil {
-				fmt.Printf("Error marshaling YAML: %v\n", err)
-				return
-			}
-
-			// Write the updated YAML back to the original file
-			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
-			if err != nil {
-				fmt.Printf("Error writing file: %v\n", err)
+				pterm.Error.Println("failed to update config", err)
 				return
 			}
 		},
