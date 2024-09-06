@@ -115,7 +115,7 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "connection"}
+	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
 	if override {
 		args = append(args, "--override")
 	}
@@ -124,7 +124,7 @@ func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "channel", "-t", "60s", "-d"}
+	args := []string{"tx", "channel", "--timeout", "60s", "--debug"}
 	if override {
 		args = append(args, "--override")
 	}

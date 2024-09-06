@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/pterm/pterm"
 )
 
 type Sequencer struct {

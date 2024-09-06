@@ -193,7 +193,7 @@ func installBinaries(bech32 string) {
 		},
 		"rly": {
 			Repository: "https://github.com/dymensionxyz/go-relayer.git",
-			Commit:     "v0.3.4-v2.5.2-relayer-canon-1",
+			Commit:     "v0.3.4-v2.5.2-relayer-canon-2",
 			Binaries: []BinaryPathPair{
 				{
 					BuildDestination:  "./build/rly",
