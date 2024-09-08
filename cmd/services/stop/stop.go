@@ -12,8 +12,8 @@ import (
 
 func Cmd(services []string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "restart",
-		Short: "Restarts the systemd services relevant to RollApp",
+		Use:   "stop",
+		Short: "Stop the systemd services relevant to RollApp",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := stopSystemdServices(services)
 			if err != nil {

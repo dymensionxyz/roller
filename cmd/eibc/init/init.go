@@ -4,6 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -13,8 +16,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -44,7 +45,7 @@ func Cmd() *cobra.Command {
 
 			rollerConfig, err := tomlconfig.LoadRollerConfig(rollerHome)
 			if err != nil {
-				pterm.Error.Println("load roller confiload roller configg", err)
+				pterm.Error.Println("failed to load roller config", err)
 				return
 			}
 

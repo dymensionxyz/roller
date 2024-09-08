@@ -10,19 +10,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "install <rollapp-id>",
-		Short: "Send the DYM rewards associated with the given private key to the destination address",
+		Short: "Install necessary binaries for operating a RollApp node",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var raID string
