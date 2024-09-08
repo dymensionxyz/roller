@@ -209,17 +209,16 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	fmt.Println("Starting command execution...")
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("error starting command: %w", err)
 	}
 
-	fmt.Println("Command started, waiting for it to finish...")
+	// fmt.Println("Command started, waiting for it to finish...")
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("command finished with error: %w", err)
 	}
 
-	fmt.Println("Command finished successfully.")
+	// fmt.Println("Command finished successfully.")
 	return nil
 }
 

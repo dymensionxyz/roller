@@ -80,7 +80,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			)
 
 			fmt.Printf(
-				"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s",
+				"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s\n",
 				rly.SrcChannel,
 				rly.DstChannel,
 			)
