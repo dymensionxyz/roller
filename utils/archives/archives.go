@@ -2,141 +2,79 @@ package archives
 
 import (
 	"archive/tar"
-	"archive/zip"
+	"compress/gzip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 )
 
 // TODO: work with actual gzip archive once genesis creator exports one
-
-// TraverseTARFile function extracts a .tar file from a .zip archive and
-// extracts the fileName into outputDir
-func ExtractFileFromNestedTar(sourceZipFilePath, fileName, outputDir string) error {
-	tmpDir, err := os.MkdirTemp("", "genesis_zip_files")
+func ExtractTarGz(path string, data io.ReadCloser, dep dependencies.Dependency) error {
+	gzipReader, err := gzip.NewReader(data)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
+	defer gzipReader.Close()
+	defer os.RemoveAll(path)
 
-	// nolint:errcheck
-	defer os.RemoveAll(tmpDir)
-
-	zipReader, err := zip.OpenReader(sourceZipFilePath)
-	if err != nil {
-		return err
-	}
-	// nolint:errcheck
-	defer zipReader.Close()
-
-	var tarFilePath string
-
-	for _, f := range zipReader.File {
-		if filepath.Ext(f.Name) == ".tar" {
-			// nolint:gosec
-			tarFilePath = filepath.Join(tmpDir, f.Name)
-			if err := extractFileFromZip(f, tarFilePath); err != nil {
-				return fmt.Errorf("failed to extract .tar file %s: %w", tarFilePath, err)
-			}
-
-			err := TraverseTARFile(tarFilePath, fileName, outputDir)
-			if err != nil {
-				return fmt.Errorf("failed to traverse the tar file: %v ", err)
-			}
-		}
-	}
-
-	if tarFilePath == "" {
-		return fmt.Errorf("no .tar file found in the zip archive")
-	}
-
-	return nil
-}
-
-// TraverseTARFile function traverses a .tar archuve and extracts the fileName into
-// outputDir
-func TraverseTARFile(tarFile, fileName, outputDir string) error {
-	file, err := os.Open(tarFile)
-	if err != nil {
-		return fmt.Errorf("failed to open tar file: %w", err)
-	}
-	// nolint:errcheck
-	defer file.Close()
-	tarReader := tar.NewReader(file)
+	tarReader := tar.NewReader(gzipReader)
 
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
-			break // End of archive
+			break
 		}
 		if err != nil {
-			return fmt.Errorf("ExtractTar: Next() failed: %w", err)
+			log.Fatal(err)
 		}
 
-		if fileName != header.Name {
-			continue
-		}
-
-		if fileName == header.Name {
-			fp := filepath.Join(outputDir, fileName)
-
-			err := createFileFromArchive(fp, tarReader)
-			if err != nil {
-				return err
+		switch header.Typeflag {
+		case tar.TypeDir:
+			// nolint gosec
+			if err := os.MkdirAll(filepath.Join(path, header.Name), 0o755); err != nil {
+				log.Fatal(err)
 			}
-
-			_, err = os.Stat(fp)
+		case tar.TypeReg:
+			// nolint gosec
+			outFile, err := os.Create(filepath.Join(path, header.Name))
 			if err != nil {
-				return err
+				log.Fatal(err)
 			}
+			// nolint gosec
+			if _, err := io.Copy(outFile, tarReader); err != nil {
+				log.Fatal(err)
+			}
+			outFile.Close()
+		default:
+			log.Printf("Unknown type: %x in %s\n", header.Typeflag, header.Name)
 		}
 	}
 
-	return nil
-}
-
-func createFileFromArchive(outputPath string, tarReader *tar.Reader) error {
-	dir := filepath.Dir(outputPath)
-
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("ExtractTar: MkdirAll() failed: %w", err)
+	for _, bin := range dep.Binaries {
+		fmt.Printf("Moving %s to %s\n", bin.Binary, bin.BinaryDestination)
+		err := bash.ExecCommandWithInteractions(
+			"sudo",
+			"mv",
+			filepath.Join(path, bin.Binary),
+			bin.BinaryDestination,
+		)
+		if err != nil {
+			return err
+		}
+		err = bash.ExecCommandWithInteractions(
+			"sudo",
+			"chmod", "+x",
+			bin.BinaryDestination,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
-	outFile, err := os.Create(outputPath)
-	if err != nil {
-		return fmt.Errorf("ExtractTar: Create() failed: %w", err)
-	}
-
-	if _, err := io.Copy(outFile, tarReader); err != nil {
-		// nolint:errcheck
-		outFile.Close()
-		return fmt.Errorf("ExtractTar: Copy() failed: %w", err)
-	}
-	// nolint:errcheck
-	outFile.Close()
-	return nil
-}
-
-// extractFileFromZip extracts a file from a zip archive to the specified path
-func extractFileFromZip(f *zip.File, outputPath string) error {
-	rc, err := f.Open()
-	if err != nil {
-		return fmt.Errorf("failed to open file in zip: %w", err)
-	}
-	// nolint:errcheck
-	defer rc.Close()
-
-	outFile, err := os.Create(outputPath)
-	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
-	}
-	// nolint:errcheck
-	defer outFile.Close()
-
-	// nolint:gosec
-	if _, err := io.Copy(outFile, rc); err != nil {
-		return fmt.Errorf("failed to copy file contents: %w", err)
-	}
-
-	return nil
+	return err
 }
