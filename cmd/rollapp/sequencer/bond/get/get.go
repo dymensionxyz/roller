@@ -1,16 +1,12 @@
 package get
 
 import (
-	"encoding/json"
 	"fmt"
-	"os/exec"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
@@ -34,31 +30,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			c := exec.Command(
-				consts.Executables.Dymension,
-				"q",
-				"sequencer",
-				"show-sequencer",
-				address,
-				"--output",
-				"json",
-				"--node", rollerData.HubData.RPC_URL,
-				"--chain-id", rollerData.HubData.ID,
-			)
-
-			var GetSequencerResponse sequencer.ShowSequencerResponse
-			out, err := bash.ExecCommandWithStdout(c)
+			bond, err := sequencer.GetSequencerBond(address, rollerData.HubData)
 			if err != nil {
-				fmt.Println("failed to retrieve sequencer", err)
+				pterm.Error.Println("failed to retrieve sequencer bond", err)
 				return
 			}
-			err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve sequencer", err)
-			}
+
 			pterm.DefaultSection.WithIndentCharacter("💈").
 				Printf("%s bonded tokens", address)
-			fmt.Println(GetSequencerResponse.Sequencer.Tokens.String())
+			fmt.Println(bond.String())
 		},
 	}
 

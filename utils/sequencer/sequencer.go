@@ -12,7 +12,6 @@ import (
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -301,4 +300,30 @@ func GetSequencerData(cfg config.RollappConfig) ([]utils.AccountData, error) {
 			Balance: sequencerBalance,
 		},
 	}, nil
+}
+
+func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins, error) {
+	c := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencer",
+		address,
+		"--output",
+		"json",
+		"--node", hd.RPC_URL,
+		"--chain-id", hd.ID,
+	)
+
+	var GetSequencerResponse ShowSequencerResponse
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetSequencerResponse.Sequencer.Tokens, nil
 }
