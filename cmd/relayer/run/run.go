@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
@@ -47,7 +49,10 @@ func Cmd() *cobra.Command {
 			// TODO: refactor
 			var need genesisutils.AppState
 			j, _ := genesis.AppState.MarshalJSON()
-			json.Unmarshal(j, &need)
+			err = json.Unmarshal(j, &need)
+			if err != nil {
+				return
+			}
 			rollappDenom := need.Bank.Supply[0].Denom
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
@@ -97,6 +102,31 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Printf("failed to recuresively remove %s: %v\n", relayerHome, err)
 					return
+				}
+
+				pterm.Info.Println("removing old systemd services")
+				for _, svc := range consts.RelayerSystemdServices {
+					svcFileName := fmt.Sprintf("%s.service", svc)
+					pterm.Info.Printf("removing %s", svcFileName)
+					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
+					c := exec.Command("sudo", "systemctl", "stop", svcFileName)
+					_, err := bash.ExecCommandWithStdout(c)
+					if err != nil {
+						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+						return
+					}
+					c = exec.Command("sudo", "systemctl", "disable", svcFileName)
+					_, err = bash.ExecCommandWithStdout(c)
+					if err != nil {
+						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+						return
+					}
+					c = exec.Command("sudo", "rm", svcFilePath)
+					_, err = bash.ExecCommandWithStdout(c)
+					if err != nil {
+						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+						return
+					}
 				}
 
 				err = os.MkdirAll(relayerHome, 0o755)
