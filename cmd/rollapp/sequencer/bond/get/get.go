@@ -19,6 +19,7 @@ func Cmd() *cobra.Command {
 		Use:   "get",
 		Short: "Retrieve the current sequencer bond amount",
 		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("getting sequencer bond")
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 
 			rollerData, err := tomlconfig.LoadRollerConfig(home)
@@ -29,6 +30,7 @@ func Cmd() *cobra.Command {
 
 			address, err := sequencer.GetHubSequencerAddress(rollerData)
 			if err != nil {
+				pterm.Error.Println("failed to retrieve sequencer address", err)
 				return
 			}
 
@@ -39,10 +41,11 @@ func Cmd() *cobra.Command {
 				"show-sequencer",
 				address,
 			)
+			fmt.Println(c.String())
 
 			out, err := bash.ExecCommandWithStdout(c)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("failed to retrieve sequencer", err)
 				return
 			}
 
