@@ -161,7 +161,7 @@ func Cmd() *cobra.Command {
 					pterm.Warning.Println("current height is too low, updating dymint config")
 					err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
 					if err != nil {
-						pterm.Error.Println("failed to update dymint config")
+						pterm.Error.Println("failed to update dymint config: ", err)
 						return
 					}
 				}
@@ -435,7 +435,7 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("reverting dymint config to 1h")
 				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
 				if err != nil {
-					pterm.Error.Println("failed to update dymint config")
+					pterm.Error.Println("failed to update dymint config: ", err)
 					return
 				}
 			}()

@@ -18,6 +18,10 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -31,9 +35,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -819,7 +820,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"Enter a valid RPC endpoint (example: rpc.rollapp.dym.xyz)",
+			"tendermint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 			rpc = "https://" + rpc
@@ -839,7 +840,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rest, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"rest endpoint that you will provide (example: api.rollapp.dym.xyz",
+			"rest endpoint that you will provide (example: api.rollapp.dym.xyz)",
 		).Show()
 		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
 			rest = "https://" + rest
@@ -859,7 +860,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"evm evmRpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz",
+			"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
 		).Show()
 		if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
 			evmRpc = "https://" + evmRpc
