@@ -1,6 +1,7 @@
 package get
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 
@@ -19,7 +20,6 @@ func Cmd() *cobra.Command {
 		Use:   "get",
 		Short: "Retrieve the current sequencer bond amount",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("getting sequencer bond")
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 
 			rollerData, err := tomlconfig.LoadRollerConfig(home)
@@ -40,16 +40,23 @@ func Cmd() *cobra.Command {
 				"sequencer",
 				"show-sequencer",
 				address,
+				"--output",
+				"json",
+				"--node", rollerData.HubData.RPC_URL,
+				"--chain-id", rollerData.HubData.ID,
 			)
-			fmt.Println(c.String())
 
+			var GetSequencerResponse sequencer.ShowSequencerResponse
 			out, err := bash.ExecCommandWithStdout(c)
 			if err != nil {
 				fmt.Println("failed to retrieve sequencer", err)
 				return
 			}
-
-			fmt.Println(out.String())
+			err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve sequencer", err)
+			}
+			fmt.Println(GetSequencerResponse.Sequencer.Tokens.String())
 		},
 	}
 

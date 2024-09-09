@@ -12,6 +12,7 @@ import (
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -98,8 +99,9 @@ func isValidSequencerMetadata(path string) (bool, error) {
 func GetSequencerAccountData(cfg config.RollappConfig) (string, error) {
 	seqAddr, err := utils.GetAddressBinary(
 		utils.KeyConfig{
-			ID:  consts.KeysIds.HubSequencer,
-			Dir: consts.ConfigDirName.HubKeys,
+			ChainBinary: consts.Executables.Dymension,
+			ID:          consts.KeysIds.HubSequencer,
+			Dir:         consts.ConfigDirName.HubKeys,
 		}, cfg.Home,
 	)
 	if err != nil {
@@ -265,8 +267,9 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 func GetHubSequencerAddress(cfg config.RollappConfig) (string, error) {
 	seqAddr, err := utils.GetAddressBinary(
 		utils.KeyConfig{
-			ID:  consts.KeysIds.HubSequencer,
-			Dir: consts.ConfigDirName.HubKeys,
+			ChainBinary: consts.Executables.Dymension,
+			ID:          consts.KeysIds.HubSequencer,
+			Dir:         consts.ConfigDirName.HubKeys,
 		}, cfg.Home,
 	)
 	if err != nil {
