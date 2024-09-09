@@ -32,7 +32,7 @@ func Cmd() *cobra.Command {
 					"please provide amount to remove from the current bond:",
 				).Show()
 
-				if !strings.HasPrefix(amount, "adym") {
+				if !strings.HasSuffix(amount, "adym") {
 					pterm.Error.Println("invalid denom, only 'adym' is supported")
 					return
 				}
