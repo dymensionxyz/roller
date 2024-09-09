@@ -253,7 +253,10 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 			reader := bufio.NewReader(os.Stdin)
 			input, _ := reader.ReadString('\n')
 			input = strings.TrimSpace(input)
-			fmt.Println("input:", input)
+
+			if input == "" {
+				return "", fmt.Errorf("input is empty")
+			}
 
 			if input == "y" || input == "Y" {
 				if _, err := stdin.Write([]byte("y\n")); err != nil {

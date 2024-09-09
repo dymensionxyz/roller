@@ -26,6 +26,14 @@ func Cmd() *cobra.Command {
 		Short: "Install necessary binaries for operating a RollApp node",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// TODO: instead of relying on dymd binary, query the rpc for rollapp
+			envs := []string{"devnet", "playground"}
+			env, _ := pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the environment you want to initialize for").
+				WithOptions(envs).
+				Show()
+			hd := consts.Hubs[env]
+
 			var raID string
 			if len(args) != 0 {
 				raID = args[0]
@@ -35,9 +43,6 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			raID = strings.TrimSpace(raID)
-
-			// TODO: instead of relying on dymd binary, query the rpc for rollapp
 			dymdBinaryOptions := dependencies.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
@@ -60,12 +65,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			envs := []string{"devnet", "playground"}
-			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the environment you want to initialize for").
-				WithOptions(envs).
-				Show()
-			hd := consts.Hubs[env]
+			raID = strings.TrimSpace(raID)
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
 			var raResponse rollapp.ShowRollappResponse
@@ -99,7 +99,13 @@ func Cmd() *cobra.Command {
 }
 
 func installBinaries(bech32 string) {
-	fmt.Println("bech:", bech32)
+	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
+	_, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		pterm.Error.Printf("failed to create %s", consts.InternalBinsDir)
+		return
+	}
+
 	buildableDeps := map[string]dependencies.Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
@@ -286,6 +292,10 @@ func installBinaryFromRepo(dep dependencies.Dependency, td string) error {
 func installBinaryFromRelease(dep dependencies.Dependency) error {
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
+	if goArch == "amd64" && dep.Name == "celestia-app" {
+		goArch = "x86_64"
+	}
+
 	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
 	if err != nil {
 		return err
