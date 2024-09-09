@@ -51,12 +51,17 @@ func Cmd() *cobra.Command {
 			j, _ := genesis.AppState.MarshalJSON()
 			err = json.Unmarshal(j, &need)
 			if err != nil {
+				pterm.Error.Println("failed to retrieve base denom from genesis file")
 				return
 			}
 			rollappDenom := need.Bank.Supply[0].Denom
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-			globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
+			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
+			if err != nil {
+				pterm.Error.Println("failed to set base denom in roller.toml")
+				return
+			}
 
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
@@ -69,6 +74,7 @@ func Cmd() *cobra.Command {
 			hd, err := tomlconfig.LoadHubData(home)
 			if err != nil {
 				pterm.Error.Println("failed to load hub data from roller.toml")
+				return
 			}
 
 			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
