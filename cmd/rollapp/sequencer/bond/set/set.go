@@ -5,13 +5,14 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -29,7 +30,7 @@ func Cmd() *cobra.Command {
 
 			c := exec.Command(
 				consts.Executables.Dymension, "tx",
-				"sequencer", "increase-bond", "10000000000000000000000adym", "--keyring-backend",
+				"sequencer", "increase-bond", "100000000000000000000adym", "--keyring-backend",
 				"test", "--from", "hub_sequencer", "--keyring-dir", filepath.Join(
 					home,
 					consts.ConfigDirName.HubKeys,
