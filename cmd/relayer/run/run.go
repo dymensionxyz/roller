@@ -111,6 +111,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+
 				if runtime.GOOS == "linux" {
 					pterm.Info.Println("removing old systemd services")
 					for _, svc := range consts.RelayerSystemdServices {
