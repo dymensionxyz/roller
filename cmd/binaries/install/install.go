@@ -286,6 +286,10 @@ func installBinaryFromRepo(dep dependencies.Dependency, td string) error {
 func installBinaryFromRelease(dep dependencies.Dependency) error {
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
+	if goArch == "amd64" && dep.Name == "celestia-app" {
+		goArch = "x86_64"
+	}
+
 	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
 	if err != nil {
 		return err
