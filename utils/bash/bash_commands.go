@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
@@ -213,12 +215,10 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 		return fmt.Errorf("error starting command: %w", err)
 	}
 
-	// fmt.Println("Command started, waiting for it to finish...")
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("command finished with error: %w", err)
 	}
 
-	// fmt.Println("Command finished successfully.")
 	return nil
 }
 
@@ -249,16 +249,14 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
-			fmt.Print("Do you want to continue? (y/n): ")
-			reader := bufio.NewReader(os.Stdin)
-			input, _ := reader.ReadString('\n')
-			input = strings.TrimSpace(input)
-
-			if input == "" {
-				return "", fmt.Errorf("input is empty")
+			shouldContinue, err := pterm.DefaultInteractiveConfirm.WithDefaultText("do you want to continue").
+				WithDefaultValue(false).
+				Show()
+			if err != nil {
+				return "", err
 			}
 
-			if input == "y" || input == "Y" {
+			if shouldContinue {
 				if _, err := stdin.Write([]byte("y\n")); err != nil {
 					return "", err
 				}
@@ -268,6 +266,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 				}
 				break
 			}
+
 		}
 	}
 

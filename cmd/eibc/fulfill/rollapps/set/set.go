@@ -6,18 +6,27 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set <rollapp-id> <value>",
+		Use:   "set <rollapp-id> <fee-percentage>",
 		Short: "Commands to manage the whitelist of RollApps to fulfill eibc orders for",
-		Args:  cobra.ExactArgs(2),
+		Long: `Commands to manage the whitelist of RollApps to fulfill eibc orders for
+
+The fee-percentage is a float number between 0 and 100 which represents
+the minimal percentage of the order fee that you want to receive for fulfilling an order.
+Assume there's an eibc order for 100<token> with a fee of 3<token>,
+if the percentage is set to 4, this order will be ignored by your eibc client
+instance.
+`,
+		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			home, err := os.UserHomeDir()
 			if err != nil {
@@ -48,7 +57,7 @@ func Cmd() *cobra.Command {
 			}
 
 			updates := map[string]interface{}{
-				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", rollAppID): valueFloat,
+				fmt.Sprintf("fulfill_criteria.min_fee_percentage.chain.%s", rollAppID): valueFloat,
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {

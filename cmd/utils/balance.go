@@ -124,30 +124,30 @@ type AccountData struct {
 	Balance Balance
 }
 
-func GetSequencerInsufficientAddrs(
-	cfg config.RollappConfig,
-	requiredBalance *big.Int,
-) ([]NotFundedAddressData, error) {
-	sequencerData, err := GetSequencerData(cfg)
-	if err != nil {
-		return nil, err
-	}
-	if err != nil {
-		return nil, err
-	}
-	for _, seq := range sequencerData {
-		if seq.Balance.Amount.Cmp(requiredBalance) < 0 {
-			return []NotFundedAddressData{
-				{
-					Address:         seq.Address,
-					Denom:           consts.Denoms.Hub,
-					CurrentBalance:  seq.Balance.Amount,
-					RequiredBalance: requiredBalance,
-					KeyName:         consts.KeysIds.HubSequencer,
-					Network:         cfg.HubData.ID,
-				},
-			}, nil
-		}
-	}
-	return []NotFundedAddressData{}, nil
-}
+// func GetSequencerInsufficientAddrs(
+// 	cfg config.RollappConfig,
+// 	requiredBalance *big.Int,
+// ) ([]NotFundedAddressData, error) {
+// 	sequencerData, err := sequencer.GetSequencerData(cfg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, seq := range sequencerData {
+// 		if seq.Balance.Amount.Cmp(requiredBalance) < 0 {
+// 			return []NotFundedAddressData{
+// 				{
+// 					Address:         seq.Address,
+// 					Denom:           consts.Denoms.Hub,
+// 					CurrentBalance:  seq.Balance.Amount,
+// 					RequiredBalance: requiredBalance,
+// 					KeyName:         consts.KeysIds.HubSequencer,
+// 					Network:         cfg.HubData.ID,
+// 				},
+// 			}, nil
+// 		}
+// 	}
+// 	return []NotFundedAddressData{}, nil
+// }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
@@ -110,28 +111,30 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				pterm.Info.Println("removing old systemd services")
-				for _, svc := range consts.RelayerSystemdServices {
-					svcFileName := fmt.Sprintf("%s.service", svc)
-					pterm.Info.Printf("removing %s", svcFileName)
-					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-					c := exec.Command("sudo", "systemctl", "stop", svcFileName)
-					_, err := bash.ExecCommandWithStdout(c)
-					if err != nil {
-						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
-						return
-					}
-					c = exec.Command("sudo", "systemctl", "disable", svcFileName)
-					_, err = bash.ExecCommandWithStdout(c)
-					if err != nil {
-						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
-						return
-					}
-					c = exec.Command("sudo", "rm", svcFilePath)
-					_, err = bash.ExecCommandWithStdout(c)
-					if err != nil {
-						pterm.Error.Printf("failed to remove systemd services: %v\n", err)
-						return
+				if runtime.GOOS == "linux" {
+					pterm.Info.Println("removing old systemd services")
+					for _, svc := range consts.RelayerSystemdServices {
+						svcFileName := fmt.Sprintf("%s.service", svc)
+						pterm.Info.Printf("removing %s", svcFileName)
+						svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
+						c := exec.Command("sudo", "systemctl", "stop", svcFileName)
+						_, err := bash.ExecCommandWithStdout(c)
+						if err != nil {
+							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+							return
+						}
+						c = exec.Command("sudo", "systemctl", "disable", svcFileName)
+						_, err = bash.ExecCommandWithStdout(c)
+						if err != nil {
+							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+							return
+						}
+						c = exec.Command("sudo", "rm", svcFilePath)
+						_, err = bash.ExecCommandWithStdout(c)
+						if err != nil {
+							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+							return
+						}
 					}
 				}
 

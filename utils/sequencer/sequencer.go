@@ -12,7 +12,6 @@ import (
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -94,6 +93,21 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	}
 
 	return true, err
+}
+
+func GetSequencerAccountData(cfg config.RollappConfig) (string, error) {
+	seqAddr, err := utils.GetAddressBinary(
+		utils.KeyConfig{
+			ChainBinary: consts.Executables.Dymension,
+			ID:          consts.KeysIds.HubSequencer,
+			Dir:         consts.ConfigDirName.HubKeys,
+		}, cfg.Home,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return seqAddr, nil
 }
 
 func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
@@ -247,4 +261,69 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 		"q", "sequencers", "sequencers",
 		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
 	)
+}
+
+func GetHubSequencerAddress(cfg config.RollappConfig) (string, error) {
+	seqAddr, err := utils.GetAddressBinary(
+		utils.KeyConfig{
+			ChainBinary: consts.Executables.Dymension,
+			ID:          consts.KeysIds.HubSequencer,
+			Dir:         consts.ConfigDirName.HubKeys,
+		}, cfg.Home,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return seqAddr, nil
+}
+
+func GetSequencerData(cfg config.RollappConfig) ([]utils.AccountData, error) {
+	seqAddr, err := GetHubSequencerAddress(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	sequencerBalance, err := utils.QueryBalance(
+		utils.ChainQueryConfig{
+			Binary: consts.Executables.Dymension,
+			Denom:  consts.Denoms.Hub,
+			RPC:    cfg.HubData.RPC_URL,
+		}, seqAddr,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return []utils.AccountData{
+		{
+			Address: seqAddr,
+			Balance: sequencerBalance,
+		},
+	}, nil
+}
+
+func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins, error) {
+	c := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencer",
+		address,
+		"--output",
+		"json",
+		"--node", hd.RPC_URL,
+		"--chain-id", hd.ID,
+	)
+
+	var GetSequencerResponse ShowSequencerResponse
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetSequencerResponse.Sequencer.Tokens, nil
 }

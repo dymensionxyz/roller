@@ -1,11 +1,10 @@
 package rollapps
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/rollapps/list"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/rollapps/remove"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/rollapps/set"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {

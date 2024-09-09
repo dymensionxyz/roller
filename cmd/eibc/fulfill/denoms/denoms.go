@@ -1,10 +1,11 @@
 package denoms
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/denoms/list"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/denoms/remove"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/denoms/set"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {

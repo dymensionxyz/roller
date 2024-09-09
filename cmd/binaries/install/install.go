@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// TODO: instead of relying on dymd binary, query the rpc for rollapp
-			envs := []string{"devnet", "playground"}
+			envs := []string{"playground"}
 			env, _ := pterm.DefaultInteractiveSelect.
 				WithDefaultText("select the environment you want to initialize for").
 				WithOptions(envs).
@@ -109,7 +109,7 @@ func installBinaries(bech32 string) {
 	buildableDeps := map[string]dependencies.Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:    "559d878e83800717c885e89f2fbe619ee081b2a1", // 20240905 light client support
+			Release:    "e68f8190f1301b317846623a9e83be7acc2ad56e", // 20240909 rolapparams module
 			Binaries: []dependencies.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-evm",
@@ -330,6 +330,8 @@ func downloadRelease(url, destination string, dep dependencies.Dependency) error
 	if err != nil {
 		return err
 	}
+
+	// nolint errcheck
 	defer resp.Body.Close()
 	err = archives.ExtractTarGz(destination, resp.Body, dep)
 	if err != nil {
