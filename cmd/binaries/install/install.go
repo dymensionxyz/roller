@@ -99,7 +99,13 @@ func Cmd() *cobra.Command {
 }
 
 func installBinaries(bech32 string) {
-	fmt.Println("bech:", bech32)
+	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
+	_, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		pterm.Error.Printf("failed to create %s", consts.InternalBinsDir)
+		return
+	}
+
 	buildableDeps := map[string]dependencies.Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
