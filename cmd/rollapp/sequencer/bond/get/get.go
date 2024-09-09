@@ -56,6 +56,8 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Println("failed to retrieve sequencer", err)
 			}
+			pterm.DefaultSection.WithIndentCharacter("💈").
+				Printf("%s bonded tokens", address)
 			fmt.Println(GetSequencerResponse.Sequencer.Tokens.String())
 		},
 	}
