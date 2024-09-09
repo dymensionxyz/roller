@@ -5,10 +5,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func RollappCmd() *cobra.Command {
@@ -48,7 +49,7 @@ func RelayerCmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s to join the eibc market\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller eibc run"),
+					Sprintf("roller eibc init"),
 			)
 		},
 	}
