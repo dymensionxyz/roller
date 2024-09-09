@@ -6,13 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -28,7 +29,7 @@ func Cmd() *cobra.Command {
 				amount = args[0]
 			} else {
 				amount, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide RollApp ID you plan to run the nodes for",
+					"please provide amount to remove from the current bond:",
 				).Show()
 
 				if !strings.HasPrefix(amount, "adym") {

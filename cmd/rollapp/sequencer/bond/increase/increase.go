@@ -28,7 +28,7 @@ func Cmd() *cobra.Command {
 				amount = args[0]
 			} else {
 				amount, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide RollApp ID you plan to run the nodes for",
+					"please provide amount to add to the current bond:",
 				).Show()
 
 				if !strings.HasPrefix(amount, "adym") {
