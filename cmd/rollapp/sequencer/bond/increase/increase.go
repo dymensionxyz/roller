@@ -46,7 +46,7 @@ func Cmd() *cobra.Command {
 			c := exec.Command(
 				consts.Executables.Dymension, "tx",
 				"sequencer", "increase-bond", amount, "--keyring-backend",
-				"test", "--from", "hub_sequencer", "--keyring-dir", filepath.Join(
+				"test", "--from", consts.KeysIds.HubSequencer, "--keyring-dir", filepath.Join(
 					home,
 					consts.ConfigDirName.HubKeys,
 				), "--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
