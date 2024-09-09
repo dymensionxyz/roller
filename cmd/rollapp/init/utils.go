@@ -8,13 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/pelletier/go-toml/v2"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -27,6 +23,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pelletier/go-toml/v2"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -67,26 +67,28 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				return err
 			}
 
-			pterm.Info.Println("removing old systemd services")
-			for _, svc := range consts.RollappSystemdServices {
-				svcFileName := fmt.Sprintf("%s.service", svc)
-				pterm.Info.Printf("removing %s", svcFileName)
+			if runtime.GOOS == "linux" {
+				pterm.Info.Println("removing old systemd services")
+				for _, svc := range consts.RollappSystemdServices {
+					svcFileName := fmt.Sprintf("%s.service", svc)
+					pterm.Info.Printf("removing %s", svcFileName)
 
-				svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-				c := exec.Command("sudo", "systemctl", "stop", svcFileName)
-				_, err := bash.ExecCommandWithStdout(c)
-				if err != nil {
-					return err
-				}
-				c = exec.Command("sudo", "systemctl", "disable", svcFileName)
-				_, err = bash.ExecCommandWithStdout(c)
-				if err != nil {
-					return err
-				}
-				c = exec.Command("sudo", "rm", svcFilePath)
-				_, err = bash.ExecCommandWithStdout(c)
-				if err != nil {
-					return err
+					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
+					c := exec.Command("sudo", "systemctl", "stop", svcFileName)
+					_, err := bash.ExecCommandWithStdout(c)
+					if err != nil {
+						return err
+					}
+					c = exec.Command("sudo", "systemctl", "disable", svcFileName)
+					_, err = bash.ExecCommandWithStdout(c)
+					if err != nil {
+						return err
+					}
+					c = exec.Command("sudo", "rm", svcFilePath)
+					_, err = bash.ExecCommandWithStdout(c)
+					if err != nil {
+						return err
+					}
 				}
 			}
 
