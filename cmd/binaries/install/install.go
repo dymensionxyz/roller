@@ -26,6 +26,14 @@ func Cmd() *cobra.Command {
 		Short: "Install necessary binaries for operating a RollApp node",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// TODO: instead of relying on dymd binary, query the rpc for rollapp
+			envs := []string{"devnet", "playground"}
+			env, _ := pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the environment you want to initialize for").
+				WithOptions(envs).
+				Show()
+			hd := consts.Hubs[env]
+
 			var raID string
 			if len(args) != 0 {
 				raID = args[0]
@@ -35,9 +43,6 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			raID = strings.TrimSpace(raID)
-
-			// TODO: instead of relying on dymd binary, query the rpc for rollapp
 			dymdBinaryOptions := dependencies.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
@@ -60,12 +65,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			envs := []string{"devnet", "playground"}
-			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the environment you want to initialize for").
-				WithOptions(envs).
-				Show()
-			hd := consts.Hubs[env]
+			raID = strings.TrimSpace(raID)
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
 			var raResponse rollapp.ShowRollappResponse
