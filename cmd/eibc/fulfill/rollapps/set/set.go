@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -56,7 +57,7 @@ instance.
 			}
 
 			updates := map[string]interface{}{
-				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", rollAppID): valueFloat,
+				fmt.Sprintf("fulfill_criteria.min_fee_percentage.chain.%s", rollAppID): valueFloat,
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
