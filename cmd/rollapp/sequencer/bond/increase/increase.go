@@ -1,26 +1,41 @@
-package set
+package increase
 
 import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
+	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/tx"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set <new-amount>",
-		Short: "Commands to manage sequencer instance",
+		Use:     "increase <amount>",
+		Example: "roller rollapp sequencer bond increase 100000000000000000000adym",
+		Short:   "Commands to manage sequencer instance",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+
+			var amount string
+			if len(args) != 0 {
+				amount = args[0]
+			} else {
+				amount, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide RollApp ID you plan to run the nodes for",
+				).Show()
+
+				if !strings.HasPrefix(amount, "adym") {
+					pterm.Error.Println("invalid denom, only 'adym' is supported")
+					return
+				}
+			}
 
 			rollerData, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
@@ -30,7 +45,7 @@ func Cmd() *cobra.Command {
 
 			c := exec.Command(
 				consts.Executables.Dymension, "tx",
-				"sequencer", "increase-bond", "100000000000000000000adym", "--keyring-backend",
+				"sequencer", "increase-bond", amount, "--keyring-backend",
 				"test", "--from", "hub_sequencer", "--keyring-dir", filepath.Join(
 					home,
 					consts.ConfigDirName.HubKeys,

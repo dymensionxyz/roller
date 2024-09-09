@@ -49,7 +49,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			envs := []string{"devnet", "playground"}
+			envs := []string{"playground"}
 			env, _ := pterm.DefaultInteractiveSelect.
 				WithDefaultText("select the environment you want to initialize for").
 				WithOptions(envs).

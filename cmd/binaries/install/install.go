@@ -27,7 +27,7 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// TODO: instead of relying on dymd binary, query the rpc for rollapp
-			envs := []string{"devnet", "playground"}
+			envs := []string{"playground"}
 			env, _ := pterm.DefaultInteractiveSelect.
 				WithDefaultText("select the environment you want to initialize for").
 				WithOptions(envs).
