@@ -223,10 +223,10 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 }
 
 func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
-	// stdin, err := cmd.StdinPipe()
-	// if err != nil {
-	// 	return "", fmt.Errorf("error creating stdin pipe: %w", err)
-	// }
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return "", fmt.Errorf("error creating stdin pipe: %w", err)
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdout pipe: %w", err)
@@ -255,8 +255,15 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 				return "", err
 			}
 
-			if !shouldContinue {
-				return "", err
+			if shouldContinue {
+				if _, err := stdin.Write([]byte("y\n")); err != nil {
+					return "", err
+				}
+			} else {
+				if _, err := stdin.Write([]byte("n\n")); err != nil {
+					return "", err
+				}
+				break
 			}
 
 		}
