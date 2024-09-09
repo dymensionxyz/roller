@@ -5,9 +5,10 @@ import (
 	"runtime"
 	"strings"
 
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func Cmd(services []string) *cobra.Command {
@@ -32,7 +33,7 @@ func stopSystemdServices(services []string) error {
 		)
 	}
 	for _, service := range services {
-		err := servicemanager.RestartSystemdService(fmt.Sprintf("%s.service", service))
+		err := servicemanager.StopSystemdService(fmt.Sprintf("%s.service", service))
 		if err != nil {
 			return fmt.Errorf("failed to stop %s systemd service: %v", service, err)
 		}
