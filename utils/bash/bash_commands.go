@@ -250,6 +250,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 
 		if strings.Contains(line, text) {
 			shouldContinue, err := pterm.DefaultInteractiveConfirm.WithDefaultText("do you want to continue").
+				WithDefaultValue(false).
 				Show()
 			if err != nil {
 				return "", err
