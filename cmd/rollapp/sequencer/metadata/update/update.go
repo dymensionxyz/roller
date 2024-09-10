@@ -5,9 +5,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -15,6 +12,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/tx"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -56,7 +55,7 @@ func Cmd() *cobra.Command {
 				"--keyring-backend",
 				"test",
 				"--fees",
-				fmt.Sprintf("%d%s", consts.DefaultFee, consts.Denoms.Hub),
+				fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 				"--gas-adjustment",
 				"1.3",
 				"--keyring-dir",
