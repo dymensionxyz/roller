@@ -185,6 +185,14 @@ func installBinaries(bech32 string) error {
 		return errors.New(errMsg)
 	}
 
+	defer func() {
+		dir, err := os.UserHomeDir()
+		if err != nil {
+			return
+		}
+		_ = os.Chdir(dir)
+	}()
+
 	buildableDeps := map[string]dependencies.Dependency{
 		"rollapp": {
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
