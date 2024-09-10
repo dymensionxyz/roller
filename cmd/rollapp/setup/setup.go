@@ -241,8 +241,8 @@ func Cmd() *cobra.Command {
 
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",
-						balance.Amount.String(),
-						necessaryBalance.String(),
+						balance.String(),
+						fmt.Sprintf("%s%s", necessaryBalance.String(), consts.Denoms.Hub),
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
@@ -308,8 +308,8 @@ func Cmd() *cobra.Command {
 
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",
-						balance.Amount.String(),
-						necessaryBalance.String(),
+						balance.String(),
+						fmt.Sprintf("%s%s", necessaryBalance.String(), consts.Denoms.Hub),
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
