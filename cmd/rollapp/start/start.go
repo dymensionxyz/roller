@@ -79,7 +79,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			// TODO: this is an ugly workaround to start a light client for those
 			// who run a rollapp locally on their non-linux boxes ( why would you )
 			// refactor and remove repetition with da-light-client start command
-			if runtime.GOOS != "linux" {
+			if runtime.GOOS != "linux" && rollappConfig.HubData.ID != consts.MockHubID {
 				damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 				startDALCCmd := damanager.GetStartDACmd()
 				if startDALCCmd == nil {
@@ -91,7 +91,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				}
 
 				DaLcEndpoint = damanager.GetLightNodeEndpoint()
-				DaLogPath = utils.GetDALogFilePath(rollappConfig.Home)
 
 				defer cancel()
 				go bash.RunCmdAsync(
@@ -99,7 +98,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 					startDALCCmd,
 					printDaOutput,
 					parseError,
-					utils.WithLogging(DaLogPath),
 				)
 			}
 

@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -83,30 +82,14 @@ func Cmd() *cobra.Command {
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			seq := sequencer.GetInstance(*rollappConfig)
-			startRollappCmd := seq.GetStartCmd()
-
-			LogPath = filepath.Join(
-				rollappConfig.Home,
-				consts.ConfigDirName.Rollapp,
-				"rollapputils.log",
-			)
-			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-
 			if rollappConfig.HubData.ID == "mock" {
-				ctx, cancel := context.WithCancel(context.Background())
-				defer cancel()
-				go bash.RunCmdAsync(
-					ctx, startRollappCmd, func() {
-						printOutput(*rollappConfig, startRollappCmd)
-						err := createPidFile(RollappDirPath, startRollappCmd)
-						if err != nil {
-							pterm.Warning.Println("failed to create pid file")
-						}
-					}, parseError,
-					utils.WithLogging(utils.GetSequencerLogPath(*rollappConfig)),
+				pterm.Error.Println("setup is not required for mock backend")
+				pterm.Info.Printf(
+					"run %s instead to run the rollapp\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller rollapp start"),
 				)
-				select {}
+				return
 			}
 
 			getRaCmd := rollapp.GetRollappCmd(rollerData.RollappID, rollerData.HubData)

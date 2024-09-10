@@ -11,14 +11,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -33,6 +34,8 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to add flags")
 				return
 			}
+			isMockFlagSet := cmd.Flags().Changed("mock")
+			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
 			var raID string
 			if len(args) != 0 {
@@ -43,19 +46,34 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			envs := []string{"mock", "playground"}
-			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the environment you want to initialize for").
-				WithOptions(envs).
-				Show()
-			hd := consts.Hubs[env]
-			if env == "mock" {
+			var hd consts.HubData
+			var env string
+
+			if shouldUseMockBackend {
+				env := "mock"
 				err := runInit(cmd, env, raID)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
 					return
 				}
 				return
+			}
+
+			if !isMockFlagSet && !shouldUseMockBackend {
+				envs := []string{"mock", "playground"}
+				env, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(envs).
+					Show()
+				hd = consts.Hubs[env]
+				if env == "mock" {
+					err := runInit(cmd, env, raID)
+					if err != nil {
+						fmt.Println("failed to run init: ", err)
+						return
+					}
+					return
+				}
 			}
 
 			// ex binaries install
@@ -153,6 +171,9 @@ func Cmd() *cobra.Command {
 			)
 		},
 	}
+
+	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
+
 	return cmd
 }
 
@@ -163,6 +184,14 @@ func installBinaries(bech32 string) error {
 		errMsg := fmt.Sprintf("failed to create %s", consts.InternalBinsDir)
 		return errors.New(errMsg)
 	}
+
+	defer func() {
+		dir, err := os.UserHomeDir()
+		if err != nil {
+			return
+		}
+		_ = os.Chdir(dir)
+	}()
 
 	buildableDeps := map[string]dependencies.Dependency{
 		"rollapp": {
