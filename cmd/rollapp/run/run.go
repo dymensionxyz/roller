@@ -18,10 +18,6 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -35,6 +31,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -278,6 +277,44 @@ func Cmd() *cobra.Command {
 					if err != nil {
 						pterm.Error.Println("failed to populate sequencer metadata: ", err)
 						return
+					}
+
+					balance, err = utils.QueryBalance(
+						utils.ChainQueryConfig{
+							Denom:  consts.Denoms.Hub,
+							RPC:    rollappConfig.HubData.RPC_URL,
+							Binary: consts.Executables.Dymension,
+						}, seqAddrInfo.Address,
+					)
+					if err != nil {
+						pterm.Error.Println("failed to get address balance: ", err)
+						return
+					}
+
+					pterm.Info.Printf(
+						"current balance: %s\nnecessary balance: %s\n",
+						balance.Amount.String(),
+						necessaryBalance.String(),
+					)
+
+					// check whether balance is bigger or equal to the necessaryBalance
+					isAddrFunded = balance.Amount.Cmp(&necessaryBalance) == 1 ||
+						balance.Amount.Cmp(
+							&necessaryBalance,
+						) == 0
+
+					if !isAddrFunded {
+						pterm.DefaultSection.WithIndentCharacter("🔔").
+							Println("Please fund the addresses below to register and run the sequencer.")
+						seqAddrInfo.Print(utils.WithName())
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+							WithDefaultText(
+								"press enter when funded",
+							).Show()
+
+						if !proceed {
+							return
+						}
 					}
 
 					err = sequencerutils.Register(*rollappConfig, desiredBond.String())
@@ -820,7 +857,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"tendermint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+			"dymint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 			rpc = "https://" + rpc

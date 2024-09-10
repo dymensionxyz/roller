@@ -5,11 +5,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func RollappCmd() *cobra.Command {
@@ -28,6 +27,11 @@ func RollappCmd() *cobra.Command {
 				"run %s to set up IBC channels and start relaying packets\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller relayer run"),
+			)
+			pterm.Info.Printf(
+				"run %s to view the current status of the rollapp\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("journalctl -fu rollapp"),
 			)
 		},
 	}
@@ -50,6 +54,11 @@ func RelayerCmd() *cobra.Command {
 				"run %s to join the eibc market\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller eibc init"),
+			)
+			pterm.Info.Printf(
+				"run %s to view the current status of the relayer\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("journalctl -fu relayer"),
 			)
 		},
 	}

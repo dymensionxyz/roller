@@ -86,6 +86,14 @@ func Cmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
+			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
+			defer func() {
+				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
+				if err != nil {
+					pterm.Error.Printf("Error updating YAML: %v\n", err)
+					return
+				}
+			}()
 			outputHandler := initconfig.NewOutputHandler(false)
 			isRelayerInitialized, err := globalutils.DirNotEmpty(relayerHome)
 			if err != nil {
