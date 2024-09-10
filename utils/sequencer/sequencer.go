@@ -2,6 +2,7 @@ package sequencer
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -47,7 +49,7 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		seqMetadataPath,
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
-		"--fees", "1dym",
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),

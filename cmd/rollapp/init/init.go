@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -25,12 +26,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			options := []string{"mock", "dymension"}
-			backend, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the settlement layer backend").
-				WithOptions(options).
-				Show()
-
 			var raID string
 			if len(args) != 0 {
 				raID = args[0]
@@ -40,21 +35,20 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			if backend == "mock" {
-				err := runInit(cmd, backend, raID)
+			envs := []string{"mock", "playground"}
+			env, _ := pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the environment you want to initialize for").
+				WithOptions(envs).
+				Show()
+			hd := consts.Hubs[env]
+			if env == "mock" {
+				err := runInit(cmd, env, raID)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
 					return
 				}
 				return
 			}
-
-			envs := []string{"playground"}
-			env, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the environment you want to initialize for").
-				WithOptions(envs).
-				Show()
-			hd := consts.Hubs[env]
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {

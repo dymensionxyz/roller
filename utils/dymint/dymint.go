@@ -138,7 +138,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		)
 
 		time.Sleep(time.Second * 2)
-		waitForHealthyRollApp("http://localhost:26657/health")
+		WaitForHealthyRollApp("http://localhost:26657/health")
 		_, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return err
@@ -150,13 +150,13 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		if err != nil {
 			return err
 		}
-		waitForHealthyRollApp("http://localhost:26657/health")
+		WaitForHealthyRollApp("http://localhost:26657/health")
 	}
 
 	return nil
 }
 
-func waitForHealthyRollApp(url string) {
+func WaitForHealthyRollApp(url string) {
 	timeout := time.After(20 * time.Second)
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
