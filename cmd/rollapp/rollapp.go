@@ -3,8 +3,8 @@ package rollapp
 import (
 	"github.com/dymensionxyz/roller/cmd/rollapp/config"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
-	"github.com/dymensionxyz/roller/cmd/rollapp/run"
 	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer"
+	"github.com/dymensionxyz/roller/cmd/rollapp/setup"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/rollapp/status"
 	"github.com/dymensionxyz/roller/cmd/services"
@@ -25,7 +25,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(status.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(config.Cmd())
-	cmd.AddCommand(run.Cmd())
+	cmd.AddCommand(setup.Cmd())
 	cmd.AddCommand(sequencer.Cmd())
 
 	sl := []string{"rollapp", "da-light-client"}

@@ -1,4 +1,4 @@
-package run
+package setup
 
 import (
 	"context"
@@ -47,7 +47,7 @@ var (
 // nolint:gocyclo
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "run",
+		Use:   "setup",
 		Short: "Run a RollApp node.",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
