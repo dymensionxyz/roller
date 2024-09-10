@@ -18,6 +18,10 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -31,9 +35,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -48,7 +49,7 @@ var (
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setup",
-		Short: "Run a RollApp node.",
+		Short: "Setup a RollApp node.",
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -178,30 +179,42 @@ func Cmd() *cobra.Command {
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencerutils.GetMinSequencerBond(hd)
+					minBond, _ := sequencerutils.GetMinSequencerBondInBaseDenom(hd)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
+					displayDenom := displayRegularDenom(*minBond, 18)
 
 					var desiredBond cosmossdktypes.Coin
 					desiredBondAmount, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 						fmt.Sprintf(
 							"what is your desired bond amount? ( min: %s ) press enter to proceed with %s",
-							minBond.String(),
-							minBond.String(),
+							displayDenom,
+							displayDenom,
 						),
-					).WithDefaultValue(minBond.Amount.String()).Show()
+					).WithDefaultValue(displayDenom).Show()
 
 					if strings.TrimSpace(desiredBondAmount) == "" {
 						desiredBond = *minBond
 					} else {
-						desiredBondAmountInt, ok := cosmossdkmath.NewIntFromString(desiredBondAmount)
-						if !ok {
-							pterm.Error.Printf("failed to convert %s to int\n", desiredBondAmount)
-							return
-						}
+						f, _ := new(big.Float).SetString(desiredBondAmount)
+
+						// Multiply by 10^18
+						multiplier := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+						f.Mul(f, multiplier)
+
+						// Convert to big.Int
+						i, _ := f.Int(nil)
 
 						desiredBond.Denom = consts.Denoms.Hub
-						desiredBond.Amount = desiredBondAmountInt
+						desiredBond.Amount = cosmossdkmath.NewIntFromBigInt(i)
+						fmt.Println(i)
+						j, _ := json.Marshal(desiredBond)
+						fmt.Println(string(j))
+
+						if err != nil {
+							pterm.Error.Println("failed to convert desired bond amount to base denom: ", err)
+							return
+						}
 					}
 
 					pterm.Info.Println("getting the existing sequencer address balance")
@@ -219,9 +232,11 @@ func Cmd() *cobra.Command {
 
 					// TODO: use NotFundedAddressData instead
 					var necessaryBalance big.Int
+					fmt.Println(desiredBond.Amount)
+					fmt.Println(consts.DefaultTxFee)
 					necessaryBalance.Add(
 						desiredBond.Amount.BigInt(),
-						cosmossdkmath.NewInt(consts.DefaultFee).BigInt(),
+						cosmossdkmath.NewInt(consts.DefaultTxFee).BigInt(),
 					)
 
 					pterm.Info.Printf(
@@ -954,4 +969,25 @@ func WriteStructToJSONFile(data *dymensionseqtypes.SequencerMetadata, filePath s
 	}
 
 	return nil
+}
+
+func displayRegularDenom(coin cosmossdktypes.Coin, decimals int) string {
+	decCoin := cosmossdktypes.NewDecCoinFromCoin(coin)
+
+	// Create a divisor (10^18)
+	divisor := cosmossdktypes.NewDec(10).Power(uint64(decimals))
+
+	// Divide the amount
+	amount := decCoin.Amount.Quo(divisor)
+
+	// Format the amount with 6 decimal places (or adjust as needed)
+	formattedAmount := amount.String()
+	if strings.Contains(formattedAmount, ".") {
+		parts := strings.Split(formattedAmount, ".")
+		if len(parts[1]) > 18 {
+			formattedAmount = fmt.Sprintf("%s.%s", parts[0], parts[1][:18])
+		}
+	}
+
+	return formattedAmount
 }

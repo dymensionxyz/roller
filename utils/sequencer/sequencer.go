@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -112,7 +112,7 @@ func GetSequencerAccountData(cfg config.RollappConfig) (string, error) {
 	return seqAddr, nil
 }
 
-func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
+func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, error) {
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -127,6 +127,28 @@ func GetMinSequencerBond(hd consts.HubData) (*cosmossdktypes.Coin, error) {
 	_ = json.Unmarshal(out.Bytes(), &qpr)
 
 	return &qpr.Params.MinBond, nil
+}
+
+func BaseDenomToDenom(
+	coin cosmossdktypes.Coin,
+	exponent int,
+) (cosmossdktypes.Coin, error) {
+	exp := cosmossdkmath.NewIntWithDecimal(1, exponent)
+
+	coin.Amount = coin.Amount.Quo(exp)
+
+	return coin, nil
+}
+
+func DenomToBaseDenom(
+	coin cosmossdktypes.Coin,
+	exponent int,
+) (cosmossdktypes.Coin, error) {
+	exp := cosmossdkmath.NewIntWithDecimal(1, exponent)
+
+	coin.Amount = coin.Amount.Mul(exp)
+
+	return coin, nil
 }
 
 // TODO: dymd q sequencer show-sequencer could be used instead

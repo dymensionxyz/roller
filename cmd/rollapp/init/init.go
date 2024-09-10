@@ -148,7 +148,7 @@ func Cmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s prepare node configuration for %s RollApp\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp run"),
+					Sprintf("roller rollapp setup"),
 				raID,
 			)
 		},

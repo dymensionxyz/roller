@@ -26,7 +26,7 @@ func RollappCmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s to set up IBC channels and start relaying packets\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer run"),
+					Sprintf("roller relayer setup"),
 			)
 			pterm.Info.Printf(
 				"run %s to view the current status of the rollapp\n",

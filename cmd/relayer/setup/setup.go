@@ -37,7 +37,7 @@ const (
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
 		Use:   "setup",
-		Short: "Initialize and run a relayer between the Dymension hub and the RollApp.",
+		Short: "Setup IBC connection between the Dymension hub and the RollApp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
