@@ -182,7 +182,12 @@ func Cmd() *cobra.Command {
 					minBond, _ := sequencerutils.GetMinSequencerBondInBaseDenom(hd)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
-					displayDenom := displayRegularDenom(*minBond, 18)
+					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
+					displayDenom := fmt.Sprintf(
+						"%s%s",
+						floatDenomRepresentation,
+						consts.Denoms.Hub[1:],
+					)
 
 					var desiredBond cosmossdktypes.Coin
 					desiredBondAmount, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
@@ -191,7 +196,7 @@ func Cmd() *cobra.Command {
 							displayDenom,
 							displayDenom,
 						),
-					).WithDefaultValue(displayDenom).Show()
+					).WithDefaultValue(floatDenomRepresentation).Show()
 
 					if strings.TrimSpace(desiredBondAmount) == "" {
 						desiredBond = *minBond
@@ -207,9 +212,6 @@ func Cmd() *cobra.Command {
 
 						desiredBond.Denom = consts.Denoms.Hub
 						desiredBond.Amount = cosmossdkmath.NewIntFromBigInt(i)
-						fmt.Println(i)
-						j, _ := json.Marshal(desiredBond)
-						fmt.Println(string(j))
 
 						if err != nil {
 							pterm.Error.Println("failed to convert desired bond amount to base denom: ", err)
@@ -232,8 +234,6 @@ func Cmd() *cobra.Command {
 
 					// TODO: use NotFundedAddressData instead
 					var necessaryBalance big.Int
-					fmt.Println(desiredBond.Amount)
-					fmt.Println(consts.DefaultTxFee)
 					necessaryBalance.Add(
 						desiredBond.Amount.BigInt(),
 						cosmossdkmath.NewInt(consts.DefaultTxFee).BigInt(),
