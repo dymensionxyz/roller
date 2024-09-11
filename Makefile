@@ -15,7 +15,7 @@ endif
 
 ldflags = -X github.com/dymensionxyz/roller/version.BuildVersion=$(VERSION) \
 		  -X github.com/dymensionxyz/roller/version.BuildCommit=$(COMMIT) \
-		  -X github.com/dymensionxyz/roller/version.BuildTime=$(TIME)"
+		  -X github.com/dymensionxyz/roller/version.BuildTime=$(TIME)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 # ---------------------------------------------------------------------------- #

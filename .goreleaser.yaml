@@ -1,36 +1,107 @@
 version: 2
-project_name: roller
 before:
   hooks:
-    - go mod tidy
+    - go mod download
+
 builds:
-  - id: roller
-    main: ./main.go
+  - id: "roller-darwin"
+    main: ./
     binary: roller
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
+      - CC=o64-clang
+      - CXX=o64-clang++
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    flags:
+      - -tags=cgo
+    ldflags:
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
+  - id: "roller-darwin-arm64"
+    main: ./
+    binary: roller
+    env:
+      - CGO_ENABLED=1
+      - CC=oa64-clang
+      - CXX=oa64-clang++
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    flags:
+      - -tags=cgo
+    ldflags:
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
+  - id: "roller-linux"
+    main: ./
+    binary: roller
+    env:
+      - CGO_ENABLED=1
+      - CC=gcc
+      - CXX=g++
     goos:
       - linux
-      - darwin
+    goarch:
+      - amd64
+    flags:
+      - -tags=cgo
+    ldflags:
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
+  - id: "roller-linux-arm64"
+    main: ./
+    binary: roller
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    goos:
+      - linux
+    goarch:
+      - arm64
+    flags:
+      - -tags=cgo
+    ldflags:
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
+  - id: "roller-windows"
+    main: ./
+    binary: roller
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+    goos:
       - windows
     goarch:
       - amd64
-      - arm64
+    flags:
+      - -tags=cgo
+      - -buildmode=exe
+    ldflags:
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{- title .Os }}_{{ .Arch }}'
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds:
+      - roller-darwin
+      - roller-darwin-arm64
+      - roller-windows
+      - roller-linux
+      - roller-linux-arm64
+
+checksum:
+  name_template: 'checksums.txt'
 changelog:
-  use: git
-  groups:
-    - title: Features
-      regexp: "^.*feat[(\\w)]*:+.*$"
-      order: 0
-    - title: 'Bug fixes'
-      regexp: "^.*fix[(\\w)]*:+.*$"
-      order: 1
-    - title: Others
-      order: 999
+  sort: asc
   filters:
     exclude:
       - '^chore:'
+      - '^docs:'
       - '^test:'
       - '^ci:'
-
-# TODO: add azure, gcp and aws container registries as docker and docker manifest targets
+snapshot:
+  name_template: "{{ .Tag }}-next"
