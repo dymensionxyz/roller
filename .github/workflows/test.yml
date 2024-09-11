@@ -22,6 +22,8 @@ jobs:
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
