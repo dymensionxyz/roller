@@ -51,6 +51,11 @@ func Cmd() *cobra.Command {
 
 			if shouldUseMockBackend {
 				env := "mock"
+				err = installBinaries("mock")
+				if err != nil {
+					pterm.Error.Println("failed to install binaries: ", err)
+					return
+				}
 				err := runInit(cmd, env, raID)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
@@ -67,6 +72,11 @@ func Cmd() *cobra.Command {
 					Show()
 				hd = consts.Hubs[env]
 				if env == "mock" {
+					err = installBinaries("mock")
+					if err != nil {
+						pterm.Error.Println("failed to install binaries: ", err)
+						return
+					}
 					err := runInit(cmd, env, raID)
 					if err != nil {
 						fmt.Println("failed to run init: ", err)
