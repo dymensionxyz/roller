@@ -18,7 +18,7 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
   - id: "roller-darwin-arm64"
     main: ./
     binary: roller
@@ -33,7 +33,7 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
   - id: "roller-linux"
     main: ./
     binary: roller
@@ -48,7 +48,7 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
   - id: "roller-linux-arm64"
     main: ./
     binary: roller
@@ -63,7 +63,7 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
   - id: "roller-windows"
     main: ./
     binary: roller
@@ -79,7 +79,7 @@ builds:
       - -tags=cgo
       - -buildmode=exe
     ldflags:
-      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/dymensionxyz/roller/version.BuildVersion={{.Version}} -X github.com/dymensionxyz/roller/version.BuildCommit={{.Commit}} -X github.com/dymensionxyz/roller/version.BuildTime={{.Date}}
 
 archives:
   - name_template: '{{ .ProjectName }}_{{- title .Os }}_{{ .Arch }}'
