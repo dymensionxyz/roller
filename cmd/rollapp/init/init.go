@@ -85,6 +85,13 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
+			pterm.Info.Println("validating RollApp ID: ", raID)
+			_, err = rollapp.ValidateChainID(raID)
+			if err != nil {
+				pterm.Error.Println("failed to validate chain id: ", err)
+				return
+			}
+
 			if env == "mock" {
 				err = installBinaries(env, true)
 				if err != nil {
