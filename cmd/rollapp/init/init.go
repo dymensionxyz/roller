@@ -49,6 +49,29 @@ func Cmd() *cobra.Command {
 			var hd consts.HubData
 			var env string
 
+			dymdBinaryOptions := dependencies.Dependency{
+				Name:       "dymension",
+				Repository: "https://github.com/artemijspavlovs/dymension",
+				Release:    "3.1.0-pg04",
+				Binaries: []dependencies.BinaryPathPair{
+					{
+						Binary:            "dymd",
+						BinaryDestination: consts.Executables.Dymension,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+						),
+					},
+				},
+			}
+
+			pterm.Info.Println("installing dependencies")
+			err = installBinaryFromRelease(dymdBinaryOptions)
+			if err != nil {
+				pterm.Error.Println("failed to install dymd: ", err)
+				return
+			}
+
 			if shouldUseMockBackend {
 				env := "mock"
 				err = installBinaries("mock")
@@ -87,28 +110,6 @@ func Cmd() *cobra.Command {
 			}
 
 			// ex binaries install
-			dymdBinaryOptions := dependencies.Dependency{
-				Name:       "dymension",
-				Repository: "https://github.com/artemijspavlovs/dymension",
-				Release:    "3.1.0-pg04",
-				Binaries: []dependencies.BinaryPathPair{
-					{
-						Binary:            "dymd",
-						BinaryDestination: consts.Executables.Dymension,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-						),
-					},
-				},
-			}
-
-			pterm.Info.Println("installing dependencies")
-			err = installBinaryFromRelease(dymdBinaryOptions)
-			if err != nil {
-				pterm.Error.Println("failed to install dymd: ", err)
-				return
-			}
 
 			raID = strings.TrimSpace(raID)
 
