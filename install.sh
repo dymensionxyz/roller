@@ -1,15 +1,19 @@
 #!/bin/bash
+
+set -x
 set -e
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+OS=$(uname -s)
 ARCH=$(uname -m)
+
 if [[ "$ARCH" == "x86_64" ]]; then
     ARCH="amd64"
 elif [[ "$ARCH" == "arm64" ]] || [[ "$ARCH" == "aarch64" ]]; then
     ARCH="arm64"
 fi
+
 API_URL="https://api.github.com/repos/artemijspavlovs/roller/releases/latest"
-if [ -z "$ROLLER_RELEASE_TAG" ]; then
-  TGZ_URL=$(curl -s $API_URL \
+if [ "$ROLLER_RELEASE_TAG" = "" ]; then
+  TGZ_URL=$(curl -s "$API_URL" \
       | grep "browser_download_url.*_${OS}_${ARCH}.tar.gz" \
       | cut -d : -f 2,3 \
       | tr -d \" \
@@ -25,7 +29,8 @@ sudo mkdir -p "/tmp/roller_tmp"
 echo "💈 Downloading roller..."
 sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp"
 echo "💈 Installing roller..."
-sudo mv "/tmp/roller_tmp/roller_bins/roller" "$ROLLER_BIN_PATH"
+sudo mv "/tmp/roller_tmp/roller" "$ROLLER_BIN_PATH"
 sudo chmod +x "$ROLLER_BIN_PATH"
 sudo rm -rf "/tmp/roller_tmp"
 echo "💈 Installation complete! You can now use roller from your terminal."
+set +x
