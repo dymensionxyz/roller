@@ -16,7 +16,7 @@ on:
       - go.sum
 jobs:
   build:
-    runs-on: ["ubuntu-latest"]
+    runs-on: ["self-hosted"]
     env:
       GOPRIVATE: "github.com/dymensionxyz/*"
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
