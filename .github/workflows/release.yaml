@@ -20,7 +20,7 @@ jobs:
           release-type: go
           package-name: roller
           prerelease: true
-          prerelease-label: beta
+          prerelease-label: alpha
           changelog-types: >-
             [
 
