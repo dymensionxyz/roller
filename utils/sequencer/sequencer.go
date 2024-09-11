@@ -56,7 +56,11 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
-	txOutput, err := bash.ExecCommandWithInput(cmd, "signatures")
+	txOutput, err := bash.ExecCommandWithInput(
+		cmd,
+		"signatures",
+		"this transaction is going to register your sequencer with X bond. do you want to continue?",
+	)
 	if err != nil {
 		return err
 	}

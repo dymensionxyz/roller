@@ -222,7 +222,14 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 	return nil
 }
 
-func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
+// TODO: add options: withcustomprompttext
+func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (string, error) {
+	var pt string
+	if promptText[0] == "" {
+		pt = "do you want to continue?"
+	} else {
+		pt = promptText[0]
+	}
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdin pipe: %w", err)
@@ -249,7 +256,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
-			shouldContinue, err := pterm.DefaultInteractiveConfirm.WithDefaultText("do you want to continue").
+			shouldContinue, err := pterm.DefaultInteractiveConfirm.WithDefaultText(pt).
 				WithDefaultValue(false).
 				Show()
 			if err != nil {
@@ -264,7 +271,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string) (string, error) {
 				if _, err := stdin.Write([]byte("n\n")); err != nil {
 					return "", err
 				}
-				break
+				return "", errors.New("cancelled by user")
 			}
 
 		}
