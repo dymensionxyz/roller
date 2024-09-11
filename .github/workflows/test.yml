@@ -31,8 +31,6 @@ jobs:
           go-version-file: go.mod
 
       - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
-      - name: Tidy modules
-        run: go mod tidy
 
       - name: Build
         run: make build
