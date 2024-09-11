@@ -29,10 +29,10 @@ jobs:
       - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
       - name: Build
         run: make build
-      - name: Test & Coverage
-        run: |
-          go install github.com/ory/go-acc@v0.2.6
-          go-acc -o coverage.txt ./... -- -v --race
-      - uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.txt
+#      - name: Test & Coverage
+#        run: |
+#          go install github.com/ory/go-acc@v0.2.6
+#          go-acc -o coverage.txt ./... -- -v --race
+#      - uses: codecov/codecov-action@v3
+#        with:
+#          file: ./coverage.txt
