@@ -71,21 +71,9 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 				pterm.Info.Println("removing old systemd services")
 				for _, svc := range consts.RollappSystemdServices {
 					svcFileName := fmt.Sprintf("%s.service", svc)
-					pterm.Info.Printf("removing %s", svcFileName)
-
 					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-					c := exec.Command("sudo", "systemctl", "stop", svcFileName)
-					_, err := bash.ExecCommandWithStdout(c)
-					if err != nil {
-						return err
-					}
-					c = exec.Command("sudo", "systemctl", "disable", svcFileName)
-					_, err = bash.ExecCommandWithStdout(c)
-					if err != nil {
-						return err
-					}
-					c = exec.Command("sudo", "rm", svcFilePath)
-					_, err = bash.ExecCommandWithStdout(c)
+
+					err := globalutils.RemoveFileIfExists(svcFilePath)
 					if err != nil {
 						return err
 					}
