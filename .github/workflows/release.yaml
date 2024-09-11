@@ -1,8 +1,6 @@
 name: release for roller
 on:
   push:
-    branches:
-      - 'main'
     tags:
       - 'v*'
 jobs:
@@ -36,20 +34,24 @@ jobs:
           # token must have repo write permissions ( https://github.com/googleapis/release-please/blob/main/docs/cli.md#create-a-manifest-pull-request-deprecated )
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
+        if: steps.release-please.outputs.release_created
         with:
           fetch-depth: '0'
 
       - name: Set up Go
         uses: actions/setup-go@v5
+        if: steps.release-please.outputs.release_created
         with:
           check-latest: true
           go-version-file: go.mod
 
       - name: Setup release environment
+        if: steps.release-please.outputs.release_created
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
 
       - name: Release publish
+        if: steps.release-please.outputs.release_created
         run: make release
