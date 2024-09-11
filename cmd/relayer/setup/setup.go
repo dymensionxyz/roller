@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -19,7 +18,6 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
@@ -123,24 +121,11 @@ func Cmd() *cobra.Command {
 					pterm.Info.Println("removing old systemd services")
 					for _, svc := range consts.RelayerSystemdServices {
 						svcFileName := fmt.Sprintf("%s.service", svc)
-						pterm.Info.Printf("removing %s", svcFileName)
 						svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-						c := exec.Command("sudo", "systemctl", "stop", svcFileName)
-						_, err := bash.ExecCommandWithStdout(c)
+
+						err := globalutils.RemoveFileIfExists(svcFilePath)
 						if err != nil {
-							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
-							return
-						}
-						c = exec.Command("sudo", "systemctl", "disable", svcFileName)
-						_, err = bash.ExecCommandWithStdout(c)
-						if err != nil {
-							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
-							return
-						}
-						c = exec.Command("sudo", "rm", svcFilePath)
-						_, err = bash.ExecCommandWithStdout(c)
-						if err != nil {
-							pterm.Error.Printf("failed to remove systemd services: %v\n", err)
+							pterm.Error.Println("failed to remove systemd service: ", err)
 							return
 						}
 					}

@@ -49,34 +49,6 @@ func Cmd() *cobra.Command {
 			var hd consts.HubData
 			var env string
 
-			if shouldUseMockBackend {
-				env := "mock"
-				err := runInit(cmd, env, raID)
-				if err != nil {
-					fmt.Println("failed to run init: ", err)
-					return
-				}
-				return
-			}
-
-			if !isMockFlagSet && !shouldUseMockBackend {
-				envs := []string{"mock", "playground"}
-				env, _ = pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(envs).
-					Show()
-				hd = consts.Hubs[env]
-				if env == "mock" {
-					err := runInit(cmd, env, raID)
-					if err != nil {
-						fmt.Println("failed to run init: ", err)
-						return
-					}
-					return
-				}
-			}
-
-			// ex binaries install
 			dymdBinaryOptions := dependencies.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
@@ -100,6 +72,45 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			if shouldUseMockBackend {
+				env := "mock"
+				err = installBinaries("mock", true)
+				if err != nil {
+					pterm.Error.Println("failed to install binaries: ", err)
+					return
+				}
+				err := runInit(cmd, env, raID)
+				if err != nil {
+					fmt.Println("failed to run init: ", err)
+					return
+				}
+				return
+			}
+
+			if !isMockFlagSet && !shouldUseMockBackend {
+				envs := []string{"mock", "playground"}
+				env, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(envs).
+					Show()
+				hd = consts.Hubs[env]
+				if env == "mock" {
+					err = installBinaries("mock", true)
+					if err != nil {
+						pterm.Error.Println("failed to install binaries: ", err)
+						return
+					}
+					err := runInit(cmd, env, raID)
+					if err != nil {
+						fmt.Println("failed to run init: ", err)
+						return
+					}
+					return
+				}
+			}
+
+			// ex binaries install
+
 			raID = strings.TrimSpace(raID)
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
@@ -121,7 +132,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("no bech")
 				return
 			}
-			err = installBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix)
+			err = installBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix, false)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -177,7 +188,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func installBinaries(bech32 string) error {
+func installBinaries(bech32 string, withMockDA bool) error {
 	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
 	_, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
@@ -223,7 +234,10 @@ func installBinaries(bech32 string) error {
 				},
 			},
 		},
-		"celestia": {
+	}
+
+	if !withMockDA {
+		buildableDeps["celestia"] = dependencies.Dependency{
 			Repository: "https://github.com/celestiaorg/celestia-node.git",
 			Release:    "v0.16.0",
 			Binaries: []dependencies.BinaryPathPair{
@@ -244,7 +258,7 @@ func installBinaries(bech32 string) error {
 					),
 				},
 			},
-		},
+		}
 	}
 
 	goreleaserDeps := map[string]dependencies.Dependency{

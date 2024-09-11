@@ -212,3 +212,19 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	spinner.Success("Archive extracted successfully")
 	return nil
 }
+
+func RemoveFileIfExists(filePath string) error {
+	_, err := os.Stat(filePath)
+	if err == nil {
+		err := os.Remove(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to remove file: %w", err)
+		}
+		fmt.Printf("File %s has been removed\n", filePath)
+	} else if os.IsNotExist(err) {
+		fmt.Printf("File %s does not exist\n", filePath)
+	} else {
+		return fmt.Errorf("error checking file: %w", err)
+	}
+	return nil
+}
