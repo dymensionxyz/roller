@@ -206,10 +206,11 @@ func Cmd() *cobra.Command {
 				for _, k := range keys {
 					k.Print(utils.WithName())
 				}
-				interactiveContinue, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-					"Press enter when the keys are funded: ",
-				).WithDefaultValue(true).Show()
-				if !interactiveContinue {
+				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+					WithDefaultText(
+						"press 'y' when the wallets are funded funded",
+					).Show()
+				if !proceed {
 					return
 				}
 
