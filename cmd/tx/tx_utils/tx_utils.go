@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 func CheckTxStdOut(stdout bytes.Buffer) error {
-	fmt.Println(stdout.String())
 	var response Response
 
 	err := json.NewDecoder(&stdout).Decode(&response)

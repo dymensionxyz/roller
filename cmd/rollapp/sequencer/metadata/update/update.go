@@ -1,7 +1,6 @@
 package update
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -11,7 +10,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -71,8 +69,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to update sequencer metadata", err)
 				return
 			}
-			bto := bytes.NewBufferString(txOutput)
-			err = tx_utils.CheckTxStdOut(*bto)
+
+			fmt.Println("tx output:")
+			fmt.Println(txOutput)
+			fmt.Println("EMD: tx output:")
 			if err != nil {
 				pterm.Error.Println("failed to check raw_log", err)
 				return
