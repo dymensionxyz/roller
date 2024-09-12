@@ -74,7 +74,7 @@ func Cmd() *cobra.Command {
 			bto := bytes.NewBufferString(txOutput)
 			err = tx_utils.CheckTxStdOut(*bto)
 			if err != nil {
-				pterm.Error.Println("failed to update sequencer metadata", err)
+				pterm.Error.Println("failed to check raw_log", err)
 				return
 			}
 
