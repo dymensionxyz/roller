@@ -916,9 +916,32 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 	sm.RestApiUrls = append(sm.RestApiUrls, rest)
 	sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
 
-	_, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
+	shouldFillOptionalFields, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 		"Would you also like to fill optional metadata for your sequencer?",
 	).Show()
+
+	if shouldFillOptionalFields {
+		displayName, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a display name for your sequencer",
+		).Show()
+		x, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a link to your X or as old people call it, twitter",
+		).Show()
+		website, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a link to your website",
+		).Show()
+		if !strings.HasPrefix(website, "http://") && !strings.HasPrefix(website, "https://") {
+			website = "https://" + website
+		}
+		telegram, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a link to your X or as old people call it, twitter",
+		).Show()
+
+		sm.ContactDetails.X = x
+		sm.ContactDetails.Website = website
+		sm.ContactDetails.Telegram = telegram
+		sm.Moniker = displayName
+	}
 
 	err := WriteStructToJSONFile(&sm, path)
 	if err != nil {

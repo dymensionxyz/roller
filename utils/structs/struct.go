@@ -6,8 +6,6 @@ import (
 	"os"
 
 	cosmossdkmath "cosmossdk.io/math"
-	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -37,7 +35,7 @@ func InitializeMetadata(m sequencerutils.Metadata) {
 		m.GenesisUrls = []string{}
 	}
 	if m.ContactDetails == nil {
-		m.ContactDetails = &dymensionseqtypes.ContactDetails{}
+		m.ContactDetails = &sequencerutils.ContactDetails{}
 	}
 	if m.ExtraData == nil {
 		m.ExtraData = []byte{}
