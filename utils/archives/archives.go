@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/dependencies"
+	dependencytypes "github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
 // TODO: work with actual gzip archive once genesis creator exports one
-func ExtractTarGz(path string, data io.ReadCloser, dep dependencies.Dependency) error {
+func ExtractTarGz(path string, data io.ReadCloser, dep dependencytypes.Dependency) error {
 	gzipReader, err := gzip.NewReader(data)
 	if err != nil {
 		log.Fatal(err)

@@ -1,4 +1,4 @@
-package dependencies
+package types
 
 import "os/exec"
 
