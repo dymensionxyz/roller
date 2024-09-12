@@ -1,19 +1,22 @@
 package update
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -64,6 +67,12 @@ func Cmd() *cobra.Command {
 			)
 
 			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
+			if err != nil {
+				pterm.Error.Println("failed to update sequencer metadata", err)
+				return
+			}
+			bto := bytes.NewBufferString(txOutput)
+			err = tx_utils.CheckTxStdOut(*bto)
 			if err != nil {
 				pterm.Error.Println("failed to update sequencer metadata", err)
 				return
