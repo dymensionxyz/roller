@@ -64,7 +64,6 @@ func Cmd() *cobra.Command {
 				"--keyring-dir",
 				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
-				"-o", "json",
 			)
 
 			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
