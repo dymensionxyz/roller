@@ -37,18 +37,6 @@ func Cmd() *cobra.Command {
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
-			var raID string
-			if len(args) != 0 {
-				raID = args[0]
-			} else {
-				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide a rollapp ID that you want to run the node for",
-				).Show()
-			}
-
-			var hd consts.HubData
-			var env string
-
 			dymdBinaryOptions := dependencies.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
@@ -72,9 +60,40 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var hd consts.HubData
+			var env string
+			var raID string
+
 			if shouldUseMockBackend {
-				env := "mock"
-				err = installBinaries("mock", true)
+				env = "mock"
+			}
+
+			if !isMockFlagSet && !shouldUseMockBackend {
+				envs := []string{"mock", "playground"}
+				env, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(envs).
+					Show()
+			}
+			hd = consts.Hubs[env]
+
+			if len(args) != 0 {
+				raID = args[0]
+			} else {
+				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide a rollapp ID that you want to run the node for",
+				).Show()
+			}
+
+			pterm.Info.Println("validating RollApp ID: ", raID)
+			_, err = rollapp.ValidateChainID(raID)
+			if err != nil {
+				pterm.Error.Println("failed to validate chain id: ", err)
+				return
+			}
+
+			if env == "mock" {
+				err = installBinaries(env, true)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
@@ -85,28 +104,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 				return
-			}
-
-			if !isMockFlagSet && !shouldUseMockBackend {
-				envs := []string{"mock", "playground"}
-				env, _ = pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(envs).
-					Show()
-				hd = consts.Hubs[env]
-				if env == "mock" {
-					err = installBinaries("mock", true)
-					if err != nil {
-						pterm.Error.Println("failed to install binaries: ", err)
-						return
-					}
-					err := runInit(cmd, env, raID)
-					if err != nil {
-						fmt.Println("failed to run init: ", err)
-						return
-					}
-					return
-				}
 			}
 
 			// ex binaries install
