@@ -5,15 +5,15 @@ on:
       - v*
     branches:
       - main
-    paths:
-      - '**/*.go'
-      - go.mod
-      - go.sum
+#    paths:
+#      - '**/*.go'
+#      - go.mod
+#      - go.sum
   pull_request:
-    paths:
-      - '**/*.go'
-      - go.mod
-      - go.sum
+#    paths:
+#      - '**/*.go'
+#      - go.mod
+#      - go.sum
 jobs:
   golangci-lint:
     name: lint
@@ -23,7 +23,9 @@ jobs:
       GH_ACCESS_TOKEN: "${{ secrets.GH_ACCESS_TOKEN }}"
     steps:
       - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -31,7 +33,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
-          version: v1.60.1
+          version: v1.61.0
           only-new-issues: true
           skip-cache: true
           args: --allow-parallel-runners --timeout=5m
