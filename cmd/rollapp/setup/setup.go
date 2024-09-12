@@ -17,10 +17,6 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -34,6 +30,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -238,9 +237,9 @@ func Cmd() *cobra.Command {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
 						seqAddrInfo.Print(utils.WithName())
-						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 							WithDefaultText(
-								"press enter when funded",
+								"press 'y' when the wallets are funded funded",
 							).Show()
 
 						if !proceed {
@@ -305,9 +304,9 @@ func Cmd() *cobra.Command {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
 						seqAddrInfo.Print(utils.WithName())
-						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 							WithDefaultText(
-								"press enter when funded",
+								"press 'y' when funded",
 							).Show()
 
 						if !proceed {
