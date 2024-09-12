@@ -217,20 +217,6 @@ func installBinaries(bech32 string, withMockDA bool) error {
 				},
 			},
 		},
-		"roller": {
-			Repository: "https://github.com/dymensionxyz/roller.git",
-			Release:    "main",
-			Binaries: []dependencies.BinaryPathPair{
-				{
-					Binary:            "./build/roller",
-					BinaryDestination: consts.Executables.Roller,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-					),
-				},
-			},
-		},
 	}
 
 	if !withMockDA {
