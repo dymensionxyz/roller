@@ -13,8 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func RunCommandEvery(
@@ -224,7 +225,7 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 // TODO: add options: withcustomprompttext
 func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (string, error) {
 	var pt string
-	if promptText[0] == "" {
+	if len(promptText) == 0 {
 		pt = "do you want to continue?"
 	} else {
 		pt = promptText[0]
