@@ -75,9 +75,6 @@ func Cmd() *cobra.Command {
 			tob := bytes.NewBufferString(txOutput)
 			err = tx_utils.CheckTxStdOut(*tob)
 			if err != nil {
-				return
-			}
-			if err != nil {
 				pterm.Error.Println("failed to check raw_log", err)
 				return
 			}
