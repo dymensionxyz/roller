@@ -73,7 +73,7 @@ func Cmd() *cobra.Command {
 			}
 
 			tob := bytes.NewBufferString(txOutput)
-			err = tx_utils.CheckTxStdOut(*tob)
+			err = tx_utils.CheckTxYamlStdOut(*tob)
 			if err != nil {
 				pterm.Error.Println("failed to check raw_log", err)
 				return
