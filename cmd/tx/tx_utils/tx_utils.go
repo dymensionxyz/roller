@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/pterm/pterm"
 )
 
 func CheckTxStdOut(stdout bytes.Buffer) error {
@@ -15,9 +17,10 @@ func CheckTxStdOut(stdout bytes.Buffer) error {
 		return err
 	}
 
-	fmt.Println("Output check results:")
+	pterm.Debug.Println("tx check result:")
 	fmt.Println(response.RawLog)
 	fmt.Println(response.SDKCode)
+	pterm.Debug.Println("END: tx check result:")
 
 	if response.SDKCode != 0 {
 		return errors.New(response.RawLog)
