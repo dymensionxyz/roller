@@ -1,6 +1,7 @@
 package update
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -62,6 +64,7 @@ func Cmd() *cobra.Command {
 				"--keyring-dir",
 				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
+				"-o", "json",
 			)
 
 			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
@@ -70,9 +73,11 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			fmt.Println("tx output:")
-			fmt.Println(txOutput)
-			fmt.Println("EMD: tx output:")
+			tob := bytes.NewBufferString(txOutput)
+			err = tx_utils.CheckTxStdOut(*tob)
+			if err != nil {
+				return
+			}
 			if err != nil {
 				pterm.Error.Println("failed to check raw_log", err)
 				return
