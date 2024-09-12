@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.1.0-alpha-rc01...v1.2.0-alpha-rc01) (2024-09-12)
+
+
+### Features
+
+* validate rollapp ID before dependency installation ([#919](https://github.com/dymensionxyz/roller/issues/919)) ([bcf59eb](https://github.com/dymensionxyz/roller/commit/bcf59eb987bad9f280a97e46217e1ceee94e70d7))
+
 ## [1.1.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.0.1-beta...v1.1.0-alpha-rc01) (2024-09-11)
 
 
