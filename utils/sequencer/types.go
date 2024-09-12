@@ -5,7 +5,6 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/gogo/protobuf/types"
 )
 
@@ -59,7 +58,7 @@ type Metadata struct {
 	GenesisUrls []string `json:"genesis_urls"`
 	// contact details
 	// nolint:govet,staticcheck
-	ContactDetails *dymensionseqtypes.ContactDetails `json:"contact_details"`
+	ContactDetails *ContactDetails `json:"contact_details"`
 	// json dump the sequencer can add (limited by size)
 	ExtraData []byte `json:"extra_data"`
 	// snapshots of the sequencer
@@ -67,6 +66,15 @@ type Metadata struct {
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
 	GasPrice *cosmossdkmath.Int `json:"gas_price"`
+}
+
+type ContactDetails struct {
+	// website URL
+	Website string `json:"website"`
+	// telegram link
+	Telegram string `json:"telegram"`
+	// twitter link
+	X string `json:"x"`
 }
 
 type SnapshotInfo struct {
