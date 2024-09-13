@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +20,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home, _ := os.UserHomeDir()
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
-			ok, err := globalutils.DirNotEmpty(eibcHome)
+			ok, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				return
 			}

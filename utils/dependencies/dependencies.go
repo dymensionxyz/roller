@@ -10,11 +10,12 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-	"github.com/pterm/pterm"
 )
 
 func InstallBinaries(bech32 string, withMockDA bool) error {
@@ -62,7 +63,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		buildableDeps["rollapp"] = types.Dependency{
 			Name:       "rollapp",
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:    "7c46ac0442388eea70e42487ac4c45abe16bd41f", // 20240913 relayer without fees
+			Release:    "91c45a5cb7cb1605613ac830bb77850a3d13e571", // 20240913 relayer without fees
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-evm",
@@ -158,7 +159,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		goreleaserDeps["rollapp"] = types.Dependency{
 			Name:       "rollapp-evm",
 			Repository: "https://github.com/artemijspavlovs/rollapp-evm",
-			Release:    "v2.3.0-pg-roller",
+			Release:    "v2.3.1-pg-roller",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rollappd",
@@ -248,7 +249,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
-	pterm.Debug.Printf("Installing %s", dep.Name)
+	pterm.Debug.Printf("Installing %s\n", dep.Name)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.Name == "celestia-app" {
@@ -282,7 +283,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		return err
 	}
 
-	pterm.Success.Printf("Successfully installed %s", dep.Name)
+	pterm.Success.Printf("Successfully installed %s\n", dep.Name)
 	return nil
 }
 

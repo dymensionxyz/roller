@@ -13,10 +13,10 @@ import (
 
 	"github.com/cometbft/cometbft/types"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/pterm/pterm"
@@ -43,7 +43,7 @@ func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
 
-	err := globalutils.DownloadFile(genesisUrl, genesisPath)
+	err := filesystem.DownloadFile(genesisUrl, genesisPath)
 	if err != nil {
 		return err
 	}

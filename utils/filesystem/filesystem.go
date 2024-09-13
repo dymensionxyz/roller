@@ -1,4 +1,4 @@
-package utils
+package filesystem
 
 import (
 	"archive/tar"
@@ -8,10 +8,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -216,7 +219,8 @@ func ExtractTarGz(sourcePath, destDir string) error {
 func RemoveFileIfExists(filePath string) error {
 	_, err := os.Stat(filePath)
 	if err == nil {
-		err := os.Remove(filePath)
+		c := exec.Command("sudo", "rm", "-rf", filePath)
+		_, err := bash.ExecCommandWithStdout(c)
 		if err != nil {
 			return fmt.Errorf("failed to remove file: %w", err)
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/utils"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 type VersionMigratorV0112 struct{}
@@ -26,7 +27,7 @@ func (v *VersionMigratorV0112) PerformMigration(rlpCfg configutils.RollappConfig
 	}
 	if rlpCfg.DA.Backend == consts.Avail {
 		availNewCfgPath := avail.GetCfgFilePath(rlpCfg.Home)
-		if err := utils.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
+		if err := filesystem.MoveFile(filepath.Join(rlpCfg.Home, avail.ConfigFileName), availNewCfgPath); err != nil {
 			return err
 		}
 	}
