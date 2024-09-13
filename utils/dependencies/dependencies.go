@@ -21,7 +21,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
 	_, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to create %s", consts.InternalBinsDir)
+		errMsg := fmt.Sprintf("failed to create %s\n", consts.InternalBinsDir)
 		return errors.New(errMsg)
 	}
 
@@ -124,14 +124,14 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		libVersion := "v1.2.3"
 
 		if runtime.GOOS == "linux" {
-			outputPath = "/usr/lib/libwasmvm.so"
+			outputPath = "/usr/lib"
 			if runtime.GOARCH == "arm64" {
 				libName = "libwasmvm.aarch64.so"
 			} else if runtime.GOARCH == "amd64" {
 				libName = "libwasmvm.x86_64.so"
 			}
 		} else if runtime.GOOS == "darwin" {
-			outputPath = "/usr/local/lib/libwasmvm.dylib"
+			outputPath = "/usr/local/lib"
 			libName = "libwasmvm.dylib"
 		} else {
 			return errors.New("unsupported OS")
@@ -143,13 +143,13 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 			libName,
 		)
 
-		fsc := exec.Command("sudo", "mkdir", "-p", filepath.Dir(outputPath))
+		fsc := exec.Command("sudo", "mkdir", "-p", outputPath)
 		_, err := bash.ExecCommandWithStdout(fsc)
 		if err != nil {
 			return err
 		}
 
-		c := exec.Command("sudo", "wget", "-O", outputPath, downloadPath)
+		c := exec.Command("sudo", "wget", "-O", filepath.Join(outputPath, libName), downloadPath)
 		_, err = bash.ExecCommandWithStdout(c)
 		if err != nil {
 			return err
@@ -190,7 +190,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
-	pterm.Debug.Printf("Installing %s", dep.Name)
+	pterm.Debug.Printf("Installing %s\n", dep.Name)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
 		return err
@@ -224,7 +224,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	}
 
 	pterm.Info.Printf(
-		"starting %s build from %s (this can take several minutes)",
+		"starting %s build from %s (this can take several minutes)\n",
 		dep.Name,
 		dep.Release,
 	)
@@ -241,7 +241,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 		pterm.Success.Printf(
-			"Successfully installed %s", filepath.Base(binary.BinaryDestination),
+			"Successfully installed %s\n", filepath.Base(binary.BinaryDestination),
 		)
 	}
 	return nil
