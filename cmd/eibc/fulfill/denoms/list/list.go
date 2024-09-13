@@ -5,12 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/utils"
-	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func Cmd() *cobra.Command {
@@ -25,7 +26,7 @@ func Cmd() *cobra.Command {
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
-			isEibcClientInitialized, err := globalutils.DirNotEmpty(eibcHome)
+			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
 				return

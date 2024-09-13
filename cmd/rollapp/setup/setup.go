@@ -17,10 +17,6 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -32,8 +28,12 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -58,7 +58,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
@@ -421,7 +421,7 @@ func Cmd() *cobra.Command {
 				// approve the data directory deletion before downloading the snapshot,
 				dataDir := filepath.Join(RollappDirPath, "data")
 				if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
-					dataDirNotEmpty, err := globalutils.DirNotEmpty(dataDir)
+					dataDirNotEmpty, err := filesystem.DirNotEmpty(dataDir)
 					if err != nil {
 						pterm.Error.Printf("failed to check if data directory is empty: %v\n", err)
 						os.Exit(1)
@@ -468,7 +468,7 @@ func Cmd() *cobra.Command {
 						defer os.RemoveAll(tmpDir)
 						archivePath := filepath.Join(tmpDir, "backup.tar.gz")
 						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
-						downloadedFileHash, err := globalutils.DownloadAndSaveArchive(
+						downloadedFileHash, err := filesystem.DownloadAndSaveArchive(
 							si.SnapshotUrl,
 							archivePath,
 						)
@@ -489,7 +489,7 @@ func Cmd() *cobra.Command {
 							return
 						}
 
-						err = globalutils.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
+						err = filesystem.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
 						if err != nil {
 							pterm.Error.Println("failed to extract snapshot: ", err)
 							return
@@ -506,7 +506,7 @@ func Cmd() *cobra.Command {
 				consts.ConfigDirName.DALightNode,
 			)
 
-			isDaInitialized, err := globalutils.DirNotEmpty(daHome)
+			isDaInitialized, err := filesystem.DirNotEmpty(daHome)
 			if err != nil {
 				return
 			}

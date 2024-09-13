@@ -15,11 +15,11 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -47,7 +47,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				pterm.Error.Println("failed to add flags")
 				return
 			}
-			home, err := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return

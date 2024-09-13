@@ -22,6 +22,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/pelletier/go-toml/v2"
@@ -31,7 +32,7 @@ import (
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
-	home, err := globalutils.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
+	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
@@ -49,7 +50,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	outputHandler := initconfig.NewOutputHandler(false)
 
 	// TODO: extract into util
-	isRootExist, err := globalutils.DirNotEmpty(home)
+	isRootExist, err := filesystem.DirNotEmpty(home)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
@@ -74,7 +75,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 					svcFileName := fmt.Sprintf("%s.service", svc)
 					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
 
-					err := globalutils.RemoveFileIfExists(svcFilePath)
+					err := filesystem.RemoveFileIfExists(svcFilePath)
 					if err != nil {
 						return err
 					}

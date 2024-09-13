@@ -10,12 +10,12 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func Cmd() *cobra.Command {
@@ -29,7 +29,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollerHome, err := globalutils.ExpandHomePath(
+			rollerHome, err := filesystem.ExpandHomePath(
 				cmd.Flag(utils.FlagNames.Home).Value.String(),
 			)
 			if err != nil {
@@ -50,7 +50,7 @@ func Cmd() *cobra.Command {
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
-			isEibcClientInitialized, err := globalutils.DirNotEmpty(eibcHome)
+			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
 				return

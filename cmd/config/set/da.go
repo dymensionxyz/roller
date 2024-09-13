@@ -9,9 +9,9 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func setDA(rlpCfg configutils.RollappConfig, value string) error {
@@ -28,7 +28,7 @@ func setDA(rlpCfg configutils.RollappConfig, value string) error {
 
 func updateDaConfig(rlpCfg configutils.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
-	dirExist, err := globalutils.DirNotEmpty(daCfgDirPath)
+	dirExist, err := filesystem.DirNotEmpty(daCfgDirPath)
 	if err != nil {
 		return err
 	}

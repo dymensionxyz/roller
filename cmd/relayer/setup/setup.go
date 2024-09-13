@@ -23,6 +23,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 )
@@ -37,7 +38,7 @@ func Cmd() *cobra.Command {
 		Use:   "setup",
 		Short: "Setup IBC connection between the Dymension hub and the RollApp.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home, _ := globalutils.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
 			genesis, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
@@ -93,7 +94,7 @@ func Cmd() *cobra.Command {
 				}
 			}()
 			outputHandler := initconfig.NewOutputHandler(false)
-			isRelayerInitialized, err := globalutils.DirNotEmpty(relayerHome)
+			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
 			if err != nil {
 				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
 				return
@@ -123,7 +124,7 @@ func Cmd() *cobra.Command {
 						svcFileName := fmt.Sprintf("%s.service", svc)
 						svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
 
-						err := globalutils.RemoveFileIfExists(svcFilePath)
+						err := filesystem.RemoveFileIfExists(svcFilePath)
 						if err != nil {
 							pterm.Error.Println("failed to remove systemd service: ", err)
 							return

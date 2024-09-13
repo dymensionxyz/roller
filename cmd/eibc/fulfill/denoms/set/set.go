@@ -12,8 +12,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func Cmd() *cobra.Command {
@@ -37,7 +37,7 @@ instance.
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
-			isEibcClientInitialized, err := globalutils.DirNotEmpty(eibcHome)
+			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
 				return

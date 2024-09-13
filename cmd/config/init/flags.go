@@ -6,12 +6,11 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/spf13/cobra"
 )
 
 func AddFlags(cmd *cobra.Command) error {
@@ -64,7 +63,7 @@ func GetInitConfig(
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
 
-	home, err := globalutils.ExpandHomePath(initCmd.Flag(cmdutils.FlagNames.Home).Value.String())
+	home, err := filesystem.ExpandHomePath(initCmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		fmt.Println("failed to expand home path: ", err)
 	}
