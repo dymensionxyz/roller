@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.0-alpha-rc01...v1.2.1-alpha-rc01) (2024-09-13)
+
+
+### Bug Fixes
+
+* handle `raw_log` error during transaction execution ([#922](https://github.com/dymensionxyz/roller/issues/922)) ([0280065](https://github.com/dymensionxyz/roller/commit/0280065366505e59439054b751e6f0d22a3fa4a1))
+
 ## [1.2.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.1.0-alpha-rc01...v1.2.0-alpha-rc01) (2024-09-12)
 
 
