@@ -186,7 +186,7 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 	// }
 
 	err := UpdateGenesisParams(
-		GetGenesisFilePath(initConfig.Home),
+		initConfig.Home,
 		&initConfig,
 	)
 	if err != nil {
