@@ -59,14 +59,14 @@ func getHubRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
 }
 
 func GetRelayerAccountsData(cfg config.RollappConfig) ([]utils.AccountData, error) {
-	data := []utils.AccountData{}
+	var data []utils.AccountData
 
-	rollappRlyAcc, err := getRolRlyAccData(cfg)
-	if err != nil {
-		return nil, err
-	}
+	// rollappRlyAcc, err := getRolRlyAccData(cfg)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// data = append(data, *rollappRlyAcc)
 
-	data = append(data, *rollappRlyAcc)
 	hubRlyAcc, err := getHubRlyAccData(cfg)
 	if err != nil {
 		return nil, err
