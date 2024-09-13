@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/binaries"
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
@@ -11,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
-	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
