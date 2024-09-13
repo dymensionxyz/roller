@@ -198,18 +198,18 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	params := getDefaultGenesisParams(raCfg)
-	// addGenAccountCmd := GetAddGenesisAccountCmd(
-	// 	consts.KeysIds.RollappSequencer,
-	// 	consts.DefaultTokenSupply,
-	// 	raCfg,
-	// )
-	//
-	// _, err := bash.ExecCommandWithStdout(addGenAccountCmd)
-	// if err != nil {
-	// 	return err
-	// }
+	addGenAccountCmd := GetAddGenesisAccountCmd(
+		consts.KeysIds.RollappSequencer,
+		consts.DefaultTokenSupply,
+		raCfg,
+	)
 
 	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
+	_, err := bash.ExecCommandWithStdout(addGenAccountCmd)
+	if err != nil {
+		return err
+	}
+
 	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
 }
 
