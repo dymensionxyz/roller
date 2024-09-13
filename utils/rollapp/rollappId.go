@@ -91,7 +91,7 @@ func ValidateChainID(id string) (ChainID, error) {
 		)
 	}
 
-	spinner.Success(fmt.Sprintf("'%s' is a valid RollApp ID\n", id))
+	spinner.Success(fmt.Sprintf("'%s' is a valid RollApp ID", id))
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,

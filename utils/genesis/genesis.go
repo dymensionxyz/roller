@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -19,7 +21,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -276,7 +277,7 @@ func getDefaultGenesisParams(
 			Path:  "app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
 			Value: map[string]string{"address": sequencerAddr},
 		},
-		{Path: "app_state.denommetadata.params.allowed_addresses.0", Value: sequencerAddr},
+		// {Path: "app_state.denommetadata.params.allowed_addresses.0", Value: sequencerAddr},
 	}
 }
 
