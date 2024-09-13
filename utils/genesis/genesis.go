@@ -198,16 +198,16 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	params := getDefaultGenesisParams(raCfg)
-	addGenAccountCmd := GetAddGenesisAccountCmd(
-		consts.KeysIds.RollappSequencer,
-		consts.DefaultTokenSupply,
-		raCfg,
-	)
-
-	_, err := bash.ExecCommandWithStdout(addGenAccountCmd)
-	if err != nil {
-		return err
-	}
+	// addGenAccountCmd := GetAddGenesisAccountCmd(
+	// 	consts.KeysIds.RollappSequencer,
+	// 	consts.DefaultTokenSupply,
+	// 	raCfg,
+	// )
+	//
+	// _, err := bash.ExecCommandWithStdout(addGenAccountCmd)
+	// if err != nil {
+	// 	return err
+	// }
 
 	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
 	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
@@ -248,7 +248,6 @@ func getDefaultGenesisParams(
 	return []config.PathValue{
 		{Path: "app_state.mint.params.mint_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.staking.params.bond_denom", Value: raCfg.BaseDenom},
-		{Path: "app_state.crisis.constant_fee.denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.evm.params.evm_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.gov.deposit_params.min_deposit.0.denom", Value: raCfg.BaseDenom},
 		{Path: "consensus_params.block.max_gas", Value: "40000000"},
