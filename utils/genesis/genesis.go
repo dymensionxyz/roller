@@ -198,16 +198,16 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	params := getDefaultGenesisParams(raCfg)
-	// addGenAccountCmd := GetAddGenesisAccountCmd(
-	// 	consts.KeysIds.RollappSequencer,
-	// 	consts.DefaultTokenSupply,
-	// 	raCfg,
-	// )
-	//
-	// _, err := bash.ExecCommandWithStdout(addGenAccountCmd)
-	// if err != nil {
-	// 	return err
-	// }
+	addGenAccountCmd := GetAddGenesisAccountCmd(
+		consts.KeysIds.RollappSequencer,
+		consts.DefaultTokenSupply,
+		raCfg,
+	)
+
+	_, err := bash.ExecCommandWithStdout(addGenAccountCmd)
+	if err != nil {
+		return err
+	}
 
 	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
 	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
@@ -262,6 +262,8 @@ func getDefaultGenesisParams(
 			Path:  "app_state.bank.denom_metadata",
 			Value: getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals),
 		},
+		{Path: "app_state.evm.params.extra_eips", Value: []string{"3855"}},
+		{Path: "app_state.claims.params.claims_denom", Value: raCfg.BaseDenom},
 	}
 }
 
