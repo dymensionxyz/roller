@@ -10,12 +10,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	"github.com/pterm/pterm"
 )
 
 func InstallBinaries(bech32 string, withMockDA bool) error {
@@ -208,7 +207,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 		spinner.Success(
-			fmt.Sprintf("Successfully installed %s\n", filepath.Base(binary.BinaryDestination)),
+			fmt.Sprintf("Successfully installed %s", filepath.Base(binary.BinaryDestination)),
 		)
 	}
 	return nil
@@ -251,7 +250,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		return err
 	}
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
+	spinner.Success(fmt.Sprintf("Successfully installed %s", dep.Name))
 	return nil
 }
 

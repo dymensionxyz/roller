@@ -3,6 +3,7 @@ package jsonconfig
 import (
 	"os"
 
+	"github.com/pterm/pterm"
 	"github.com/tidwall/sjson"
 
 	"github.com/dymensionxyz/roller/utils/config"
@@ -16,6 +17,7 @@ func UpdateJSONParams(jsonFilePath string, params []config.PathValue) error {
 	}
 	jsonFileContentString := string(jsonFileContent)
 	for _, param := range params {
+		pterm.Info.Printf("upating %s to %s", param.Path, param.Value)
 		jsonFileContentString, err = sjson.Set(jsonFileContentString, param.Path, param.Value)
 		if err != nil {
 			return err
