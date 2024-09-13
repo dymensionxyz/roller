@@ -231,15 +231,14 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("updating application relayer config")
 				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
 				updates := map[string]interface{}{
-					"chains.dymension_100-1.value.gas-adjustment":                          1.5,
-					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.RollappID): 1.3,
-					fmt.Sprintf("chains.%s.value.is-dym-hub", rollappConfig.HubData.ID):    true,
+					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.HubData.ID): 1.5,
+					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.RollappID):  1.3,
+					fmt.Sprintf("chains.%s.value.is-dym-hub", rollappConfig.HubData.ID):     true,
 					fmt.Sprintf(
 						"chains.%s.value.http-addr",
 						rollappConfig.HubData.ID,
 					): rollappConfig.HubData.API_URL,
 					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollappConfig.RollappID): true,
-					fmt.Sprintf("chains.%s.value.trust-period", rollappConfig.RollappID):   "240h",
 				}
 				err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
 				if err != nil {
