@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.1-alpha-rc01...v1.2.2-alpha-rc01) (2024-09-13)
+
+
+### Bug Fixes
+
+* mock genesis generation ([#931](https://github.com/dymensionxyz/roller/issues/931)) ([4b08ea7](https://github.com/dymensionxyz/roller/commit/4b08ea7639a3ed458957962f6933e3e6c147744d))
+* remove trust-period override in relayer config ([#928](https://github.com/dymensionxyz/roller/issues/928)) ([5612d0e](https://github.com/dymensionxyz/roller/commit/5612d0e761d8b13b9c13db60cac27f0dc39ca312))
+
 ## [1.2.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.0-alpha-rc01...v1.2.1-alpha-rc01) (2024-09-13)
 
 
