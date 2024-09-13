@@ -3,7 +3,6 @@ package archives
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -56,7 +55,6 @@ func ExtractTarGz(path string, data io.ReadCloser, dep dependencytypes.Dependenc
 	}
 
 	for _, bin := range dep.Binaries {
-		fmt.Printf("Moving %s to %s\n", bin.Binary, bin.BinaryDestination)
 		err := bash.ExecCommandWithInteractions(
 			"sudo",
 			"mv",

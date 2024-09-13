@@ -12,6 +12,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pelletier/go-toml/v2"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -22,11 +27,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pelletier/go-toml/v2"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -321,34 +323,15 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
-	// if configArchivePath != "" {
-	// 	// genesis creator archive
-	// 	err = archives.ExtractFileFromNestedTar(
-	// 		configArchivePath,
-	// 		"genesis.json",
-	// 		filepath.Join(home, consts.ConfigDirName.Rollapp, "config"),
-	// 	)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-
 	// adds the sequencer address to the whitelists
 	if env == "mock" {
-		err = initconfig.UpdateGenesisParams(home, &initConfig)
+		err = genesis.InitializeRollappGenesis(initConfig)
 		if err != nil {
-			pterm.Error.Println("failed to update genesis")
 			return err
 		}
 	}
 
 	/* ------------------------------ Create Init Files ---------------------------- */
-	// 20240607 genesis is generated using the genesis-creator
-	// err = initializeRollappGenesis(initConfig)
-	// if err != nil {
-	// 	return err
-	// }
-
 	// TODO: review, roller config is generated using genesis-creator
 	// some of the config values should be moved there
 	// err = config.Write(initConfig)

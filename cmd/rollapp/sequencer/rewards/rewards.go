@@ -17,6 +17,7 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/tx"
@@ -129,7 +130,7 @@ func Cmd() *cobra.Command {
 				if address == "" {
 					if !isKeyInKeyring {
 						pterm.Info.Println("existing reward wallet not found, creating new")
-						ki, err := initconfig.CreateAddressBinary(kc, home)
+						ki, err := keys.CreateAddressBinary(kc, home)
 						if err != nil {
 							pterm.Error.Println("failed to create wallet", err)
 							return

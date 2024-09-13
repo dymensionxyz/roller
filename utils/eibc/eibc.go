@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/client"
-	"github.com/pterm/pterm"
-
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
@@ -84,7 +83,7 @@ func EnsureWhaleAccount() error {
 	_, err := utils.GetAddressInfoBinary(kc, consts.Executables.Dymension)
 	if err != nil {
 		pterm.Info.Println("whale account not found in the keyring, creating it now")
-		addressInfo, err := initconfig.CreateAddressBinary(kc, home)
+		addressInfo, err := keys.CreateAddressBinary(kc, home)
 		if err != nil {
 			return err
 		}

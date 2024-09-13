@@ -3,8 +3,9 @@ package testutils
 import (
 	"path/filepath"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
@@ -55,7 +56,7 @@ func getPrivValKeyPath(root string) string {
 }
 
 func SanitizeGenesis(genesisPath string) error {
-	params := []initconfig.PathValue{
+	params := []config.PathValue{
 		{
 			Path:  "chain_id",
 			Value: "PLACEHOLDER_ROLLAPP_ID",
@@ -122,7 +123,7 @@ func SanitizeGenesis(genesisPath string) error {
 		},
 	}
 
-	err := initconfig.UpdateJSONParams(genesisPath, params)
+	err := jsonconfig.UpdateJSONParams(genesisPath, params)
 	if err != nil {
 		return err
 	}
