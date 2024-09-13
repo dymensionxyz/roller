@@ -46,9 +46,10 @@ func PrintInsufficientBalancesIfAny(
 		Println("Please fund the addresses below to register and run the sequencer.")
 	printAddresses()
 
-	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(true).
+	// TODO: to util
+	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 		WithDefaultText(
-			"press enter when funded",
+			"press 'y' when the wallets are funded funded",
 		).Show()
 	if !proceed {
 		pterm.Info.Println("exiting")

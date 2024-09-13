@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.1.0-alpha-rc01...v1.2.0-alpha-rc01) (2024-09-12)
+
+
+### Features
+
+* make it possible to fill out the moniker and social media links for sequencer ([#923](https://github.com/dymensionxyz/roller/issues/923)) ([a8cf922](https://github.com/dymensionxyz/roller/commit/a8cf9221e5b08c85700b58368f46f16d7dbdc967))
+* validate rollapp ID before dependency installation ([#919](https://github.com/dymensionxyz/roller/issues/919)) ([bcf59eb](https://github.com/dymensionxyz/roller/commit/bcf59eb987bad9f280a97e46217e1ceee94e70d7))
+
+
+### Bug Fixes
+
+* change default confirm value to false for all interactions ([#921](https://github.com/dymensionxyz/roller/issues/921)) ([c5d3912](https://github.com/dymensionxyz/roller/commit/c5d391207d82190d21af71ef98251e6ab71caea7))
+
 ## [1.1.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.0.1-beta...v1.1.0-alpha-rc01) (2024-09-11)
 
 
