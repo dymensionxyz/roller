@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -206,10 +207,10 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			)
 			return err
 		}
-		spinner.Success(fmt.Sprintf("Successfully installed %s\n", binary.BinaryDestination))
+		spinner.Success(
+			fmt.Sprintf("Successfully installed %s\n", filepath.Base(binary.BinaryDestination)),
+		)
 	}
-
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
 }
 

@@ -6,23 +6,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -156,66 +153,44 @@ func GetGenesisFilePath(root string) string {
 }
 
 func InitializeRollappGenesis(initConfig config.RollappConfig) error {
-	totalTokenSupply, success := new(big.Int).SetString(consts.DefaultTokenSupply, 10)
-	if !success {
-		return fmt.Errorf("invalid token supply")
-	}
-	totalTokenSupply = totalTokenSupply.Mul(
-		totalTokenSupply, new(big.Int).Exp(
-			big.NewInt(10),
-			new(big.Int).SetUint64(uint64(initConfig.Decimals)), nil,
-		),
-	)
-	relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
-	sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
-	sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
-	relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
-	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
-	genesisSequencerAccountCmd := exec.Command(
-		initConfig.RollappBinary,
-		"add-genesis-account",
-		consts.KeysIds.RollappSequencer,
-		sequencerBalanceStr,
-		"--keyring-backend",
-		"test",
-		"--home",
-		rollappConfigDirPath,
-	)
-	_, err := bash.ExecCommandWithStdout(genesisSequencerAccountCmd)
-	if err != nil {
-		return err
-	}
-	rlyRollappAddress, err := utils.GetRelayerAddress(initConfig.Home, initConfig.RollappID)
-	if err != nil {
-		return err
-	}
-	genesisRelayerAccountCmd := exec.Command(
-		initConfig.RollappBinary,
-		"add-genesis-account",
-		rlyRollappAddress,
-		relayerBalanceStr,
-		"--keyring-backend",
-		"test",
-		"--home",
-		rollappConfigDirPath,
-	)
-	_, err = bash.ExecCommandWithStdout(genesisRelayerAccountCmd)
-	if err != nil {
-		return err
-	}
+	// totalTokenSupply, success := new(big.Int).SetString(consts.DefaultTokenSupply, 10)
+	// if !success {
+	// 	return fmt.Errorf("invalid token supply")
+	// }
+	// totalTokenSupply = totalTokenSupply.Mul(
+	// 	totalTokenSupply, new(big.Int).Exp(
+	// 		big.NewInt(10),
+	// 		new(big.Int).SetUint64(uint64(initConfig.Decimals)), nil,
+	// 	),
+	// )
 
-	err = UpdateGenesisParams(
+	// relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
+	// sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
+	// sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
+	// rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+
+	// genesisSequencerAccountCmd := exec.Command(
+	// 	initConfig.RollappBinary,
+	// 	"add-genesis-account",
+	// 	consts.KeysIds.RollappSequencer,
+	// 	sequencerBalanceStr,
+	// 	"--keyring-backend",
+	// 	"test",
+	// 	"--home",
+	// 	rollappConfigDirPath,
+	// )
+	// _, err := bash.ExecCommandWithStdout(genesisSequencerAccountCmd)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err := UpdateGenesisParams(
 		GetGenesisFilePath(initConfig.Home),
 		&initConfig,
 	)
 	if err != nil {
 		return err
 	}
-
-	// err = generateGenesisTx(initConfig)
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }
