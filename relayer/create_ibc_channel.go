@@ -37,7 +37,7 @@ func (r *Relayer) CreateIBCChannel(
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
-		createConnectionCmd := r.getTxLinkCmd(override)
+		createConnectionCmd := r.getCreateConnectionCmd(override)
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
