@@ -9,6 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	dymratypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/pterm/pterm"
 )
 
 const (
@@ -43,6 +44,7 @@ type ChainID struct {
 
 // from Dymension source code `x/rollapp/types/chain_id.go` @20240911
 func ValidateChainID(id string) (ChainID, error) {
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("validating rollapp id '%s'\n", id))
 	chainID := strings.TrimSpace(id)
 
 	if chainID == "" {
@@ -50,6 +52,8 @@ func ValidateChainID(id string) (ChainID, error) {
 	}
 
 	if len(chainID) > MaxChainIDLen {
+		// nolint: errcheck
+		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,
 			"exceeds %d chars: %s: len: %d",
@@ -67,6 +71,8 @@ func ValidateChainID(id string) (ChainID, error) {
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
+		// nolint: errcheck
+		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,
 			"EIP155 part %s must be base-10 integer format",
@@ -76,6 +82,8 @@ func ValidateChainID(id string) (ChainID, error) {
 
 	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
+		// nolint: errcheck
+		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,
 			"parse revision number: error: %v",
@@ -83,6 +91,7 @@ func ValidateChainID(id string) (ChainID, error) {
 		)
 	}
 
+	spinner.Success(fmt.Sprintf("'%s' is a valid RollApp ID\n", id))
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,

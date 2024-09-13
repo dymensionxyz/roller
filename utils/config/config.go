@@ -267,3 +267,8 @@ func ShowCurrentConfigurableValues(home string) error {
 
 	return nil
 }
+
+type PathValue struct {
+	Path  string
+	Value interface{}
+}

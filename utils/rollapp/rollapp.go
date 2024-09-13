@@ -10,6 +10,7 @@ import (
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -107,4 +108,19 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 
 func RollappConfigDir(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config")
+}
+
+func GetRollappSequencerAddress(home string) (string, error) {
+	seqKeyConfig := utils.KeyConfig{
+		Dir:         consts.ConfigDirName.Rollapp,
+		ID:          consts.KeysIds.RollappSequencer,
+		ChainBinary: consts.Executables.RollappEVM,
+		Type:        consts.EVM_ROLLAPP,
+	}
+	addr, err := utils.GetAddressBinary(seqKeyConfig, home)
+	if err != nil {
+		return "", err
+	}
+
+	return addr, nil
 }

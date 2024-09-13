@@ -9,11 +9,12 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-	"github.com/pterm/pterm"
 )
 
 func InstallBinaries(bech32 string, withMockDA bool) error {
@@ -136,6 +137,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Installing %s", dep.Name))
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
 		return err
@@ -149,7 +151,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return err
 	}
 
-	spinner, _ := pterm.DefaultSpinner.Start(
+	spinner.UpdateText(
 		fmt.Sprintf("cloning %s into %s", dep.Repository, targetDir),
 	)
 
@@ -204,10 +206,12 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		spinner.Success(fmt.Sprintf("Successfully installed %s\n", binary.BinaryDestination))
 	}
 
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Installing %s", dep.Name))
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.Name == "celestia-app" {
@@ -216,6 +220,8 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 
 	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
 	if err != nil {
+		// nolint: errcheck
+		spinner.Stop()
 		return err
 	}
 	archiveName := fmt.Sprintf(
@@ -236,9 +242,12 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 
 	err = DownloadRelease(url, targetDir, dep)
 	if err != nil {
+		// nolint: errcheck
+		spinner.Stop()
 		return err
 	}
 
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
 }
 

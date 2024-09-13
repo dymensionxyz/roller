@@ -6,19 +6,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -149,4 +152,212 @@ func GetGenesisFilePath(root string) string {
 		rollapp.RollappConfigDir(root),
 		"genesis.json",
 	)
+}
+
+func InitializeRollappGenesis(initConfig config.RollappConfig) error {
+	totalTokenSupply, success := new(big.Int).SetString(consts.DefaultTokenSupply, 10)
+	if !success {
+		return fmt.Errorf("invalid token supply")
+	}
+	totalTokenSupply = totalTokenSupply.Mul(
+		totalTokenSupply, new(big.Int).Exp(
+			big.NewInt(10),
+			new(big.Int).SetUint64(uint64(initConfig.Decimals)), nil,
+		),
+	)
+	relayerGenesisBalance := new(big.Int).Div(totalTokenSupply, big.NewInt(10))
+	sequencerGenesisBalance := new(big.Int).Sub(totalTokenSupply, relayerGenesisBalance)
+	sequencerBalanceStr := sequencerGenesisBalance.String() + initConfig.Denom
+	relayerBalanceStr := relayerGenesisBalance.String() + initConfig.Denom
+	rollappConfigDirPath := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+	genesisSequencerAccountCmd := exec.Command(
+		initConfig.RollappBinary,
+		"add-genesis-account",
+		consts.KeysIds.RollappSequencer,
+		sequencerBalanceStr,
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
+	_, err := bash.ExecCommandWithStdout(genesisSequencerAccountCmd)
+	if err != nil {
+		return err
+	}
+	rlyRollappAddress, err := utils.GetRelayerAddress(initConfig.Home, initConfig.RollappID)
+	if err != nil {
+		return err
+	}
+	genesisRelayerAccountCmd := exec.Command(
+		initConfig.RollappBinary,
+		"add-genesis-account",
+		rlyRollappAddress,
+		relayerBalanceStr,
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+	)
+	_, err = bash.ExecCommandWithStdout(genesisRelayerAccountCmd)
+	if err != nil {
+		return err
+	}
+
+	err = UpdateGenesisParams(
+		GetGenesisFilePath(initConfig.Home),
+		&initConfig,
+	)
+	if err != nil {
+		return err
+	}
+
+	// err = generateGenesisTx(initConfig)
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
+	sa, err := rollapp.GetRollappSequencerAddress(home)
+	if err != nil {
+		return err
+	}
+
+	oa, err := getGenesisOperatorAddress(home)
+	if err != nil {
+		return err
+	}
+
+	params := getDefaultGenesisParams(sa, oa, raCfg)
+	addGenAccountCmd := GetAddGenesisAccountCmd(
+		consts.KeysIds.RollappSequencer,
+		consts.DefaultTokenSupply,
+		raCfg,
+	)
+
+	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
+	if err != nil {
+		return err
+	}
+
+	genesisFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "genesis.json")
+	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
+}
+
+func getGenesisOperatorAddress(home string) (string, error) {
+	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+	getOperatorAddrCommand := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"show",
+		consts.KeysIds.RollappSequencer,
+		"-a",
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+		"--bech",
+		"val",
+	)
+
+	fmt.Println(getOperatorAddrCommand.String())
+
+	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		fmt.Println("val addr failed")
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+	fmt.Println(a)
+	return a, nil
+}
+
+func getDefaultGenesisParams(
+	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
+) []config.PathValue {
+	return []config.PathValue{
+		{Path: "app_state.mint.params.mint_denom", Value: raCfg.BaseDenom},
+		{Path: "app_state.staking.params.bond_denom", Value: raCfg.BaseDenom},
+		{Path: "app_state.crisis.constant_fee.denom", Value: raCfg.BaseDenom},
+		{Path: "app_state.evm.params.evm_denom", Value: raCfg.BaseDenom},
+		{Path: "app_state.gov.deposit_params.min_deposit.0.denom", Value: raCfg.BaseDenom},
+		{Path: "consensus_params.block.max_gas", Value: "40000000"},
+		{Path: "app_state.feemarket.params.no_base_fee", Value: true},
+		{Path: "app_state.feemarket.params.min_gas_price", Value: "0.0"},
+		{Path: "app_state.distribution.params.base_proposer_reward", Value: "0.8"},
+		{Path: "app_state.distribution.params.community_tax", Value: "0.00002"},
+		{Path: "app_state.gov.voting_params.voting_period", Value: "300s"},
+		{Path: "app_state.staking.params.unbonding_time", Value: "3628800s"},
+		{
+			Path:  "app_state.bank.denim_metadata",
+			Value: getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals),
+		},
+		{Path: "app_state.sequencers.genesis_operator_address", Value: genesisOperatorAddress},
+		{
+			Path:  "app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
+			Value: map[string]string{"address": sequencerAddr},
+		},
+		{Path: "app_state.denommetadata.params.allowed_addresses.0", Value: sequencerAddr},
+	}
+}
+
+func getBankDenomMetadata(denom string, decimals uint) []BankDenomMetadata {
+	displayDenom := denom[1:]
+
+	metadata := []BankDenomMetadata{
+		{
+			Base: denom,
+			DenomUnits: []BankDenomUnitMetadata{
+				{
+					Aliases:  []string{},
+					Denom:    denom,
+					Exponent: 0,
+				},
+				{
+					Aliases:  []string{},
+					Denom:    displayDenom,
+					Exponent: decimals,
+				},
+			},
+			Description: fmt.Sprintf("Denom metadata for %s (%s)", displayDenom, denom),
+			Display:     displayDenom,
+			Name:        displayDenom,
+			Symbol:      strings.ToUpper(displayDenom),
+		},
+	}
+	return metadata
+}
+
+type BankDenomMetadata struct {
+	Base        string                  `json:"base"`
+	DenomUnits  []BankDenomUnitMetadata `json:"denom_units"`
+	Description string                  `json:"description"`
+	Display     string                  `json:"display"`
+	Name        string                  `json:"name"`
+	Symbol      string                  `json:"symbol"`
+}
+
+type BankDenomUnitMetadata struct {
+	Aliases  []string `json:"aliases"`
+	Denom    string   `json:"denom"`
+	Exponent uint     `json:"exponent"`
+}
+
+func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
+	home := raCfg.Home
+	cmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"add-genesis-account",
+		addr,
+		fmt.Sprintf("%s%s", amount, raCfg.BaseDenom),
+		"--home",
+		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
+		"--keyring-backend",
+		"test",
+	)
+
+	return cmd
 }

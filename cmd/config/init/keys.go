@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"path"
-	"path/filepath"
 
+	keys2 "github.com/dymensionxyz/roller/utils/keys"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -20,7 +20,7 @@ func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, e
 	for _, key := range keys {
 		var address *utils.KeyInfo
 		var err error
-		address, err = CreateAddressBinary(key, initConfig.Home)
+		address, err = keys2.CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -79,23 +79,6 @@ func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Type:        consts.SDK_ROLLAPP,
 		},
 	}
-}
-
-func CreateAddressBinary(
-	keyConfig utils.KeyConfig,
-	home string,
-) (*utils.KeyInfo, error) {
-	args := []string{
-		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
-		"--output", "json",
-	}
-	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := bash.ExecCommandWithStdout(createKeyCommand)
-	if err != nil {
-		return nil, err
-	}
-	return utils.ParseAddressFromOutput(out)
 }
 
 func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
