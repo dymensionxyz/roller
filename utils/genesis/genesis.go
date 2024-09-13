@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	globalutils "github.com/dymensionxyz/roller/utils"
@@ -21,7 +23,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -292,7 +293,7 @@ func getDefaultGenesisParams(
 		{Path: "app_state.gov.voting_params.voting_period", Value: "300s"},
 		{Path: "app_state.staking.params.unbonding_time", Value: "3628800s"},
 		{
-			Path:  "app_state.bank.denim_metadata",
+			Path:  "app_state.bank.denom_metadata",
 			Value: getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals),
 		},
 		{Path: "app_state.sequencers.genesis_operator_address", Value: genesisOperatorAddress},
