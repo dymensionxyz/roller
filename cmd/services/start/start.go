@@ -5,10 +5,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func RollappCmd() *cobra.Command {
@@ -41,7 +42,7 @@ func RollappCmd() *cobra.Command {
 func RelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Loads the different RollApp services on the local machine",
+		Short: "Starts the relayer locally",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := startSystemdServices(consts.RelayerSystemdServices)
 			if err != nil {
