@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.2-alpha-rc01...v1.2.3-alpha-rc01) (2024-09-13)
+
+
+### Bug Fixes
+
+* change library installation flow ([#933](https://github.com/dymensionxyz/roller/issues/933)) ([97dedb2](https://github.com/dymensionxyz/roller/commit/97dedb265e6ef22cdac85001cd1d771eece7008d))
+
 ## [1.2.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.1-alpha-rc01...v1.2.2-alpha-rc01) (2024-09-13)
 
 
