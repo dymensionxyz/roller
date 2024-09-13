@@ -33,7 +33,6 @@ func Cmd() *cobra.Command {
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
-			// v3.2.0-pg-roller-rc05-1
 			dymdBinaryOptions := types.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",

@@ -118,6 +118,43 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 	}
 
 	if withMockDA {
+		// @20240913 libwasm is necessary on the host VM to be able to run the rollapp binary
+		var outputPath string
+		var libName string
+		libVersion := "v1.2.3"
+
+		if runtime.GOOS == "linux" {
+			outputPath = "/usr/lib/libwasmvm.so"
+			if runtime.GOARCH == "arm64" {
+				libName = "libwasmvm.aarch64.so"
+			} else if runtime.GOARCH == "amd64" {
+				libName = "libwasmvm.x86_64.so"
+			}
+		} else if runtime.GOOS == "darwin" {
+			outputPath = "/usr/local/lib/libwasmvm.dylib"
+			libName = "libwasmvm.dylib"
+		} else {
+			return errors.New("unsupported OS")
+		}
+
+		downloadPath := fmt.Sprintf(
+			"https://github.com/CosmWasm/wasmvm/releases/download/%s/%s",
+			libVersion,
+			libName,
+		)
+
+		fsc := exec.Command("sudo", "mkdir", "-p", filepath.Dir(outputPath))
+		_, err := bash.ExecCommandWithStdout(fsc)
+		if err != nil {
+			return err
+		}
+
+		c := exec.Command("sudo", "wget", "-O", outputPath, downloadPath)
+		_, err = bash.ExecCommandWithStdout(c)
+		if err != nil {
+			return err
+		}
+
 		goreleaserDeps["rollapp"] = types.Dependency{
 			Name:       "rollapp-evm",
 			Repository: "https://github.com/artemijspavlovs/rollapp-evm",
@@ -153,7 +190,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Installing %s", dep.Name))
+	pterm.Debug.Printf("Installing %s", dep.Name)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
 		return err
@@ -166,10 +203,6 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		pterm.Error.Println("failed to create a temp directory")
 		return err
 	}
-
-	spinner.UpdateText(
-		fmt.Sprintf("cloning %s into %s", dep.Repository, targetDir),
-	)
 
 	c := exec.Command("git", "clone", dep.Repository, targetDir)
 	_, err = bash.ExecCommandWithStdout(c)
@@ -185,50 +218,37 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 	if dep.Release != "main" {
 		// Checkout a specific version (e.g., a tag or branch)
-		spinner.UpdateText(fmt.Sprintf("checking out %s", dep.Release))
 		if err := exec.Command("git", "checkout", dep.Release).Run(); err != nil {
-			spinner.Fail(fmt.Sprintf("failed to checkout: %v\n", err))
 			return err
 		}
 	}
 
-	spinner.UpdateText(
-		fmt.Sprintf(
-			"starting %s build from %s (this can take several minutes)",
-			dep.Name,
-			dep.Release,
-		),
+	pterm.Info.Printf(
+		"starting %s build from %s (this can take several minutes)",
+		dep.Name,
+		dep.Release,
 	)
 
 	// Build the binary
 	for _, binary := range dep.Binaries {
 		_, err := bash.ExecCommandWithStdout(binary.BuildCommand)
-		spinner.UpdateText(fmt.Sprintf("building %s\n", binary.Binary))
 		if err != nil {
-			spinner.Fail(fmt.Sprintf("failed to build binary %s: %v\n", binary.BuildCommand, err))
 			return err
 		}
 
 		c := exec.Command("sudo", "mv", binary.Binary, binary.BinaryDestination)
 		if _, err := bash.ExecCommandWithStdout(c); err != nil {
-			spinner.Fail(
-				fmt.Sprintf(
-					"Failed to move binary %s to %s\n",
-					binary.Binary,
-					binary.BinaryDestination,
-				),
-			)
 			return err
 		}
-		spinner.Success(
-			fmt.Sprintf("Successfully installed %s", filepath.Base(binary.BinaryDestination)),
+		pterm.Success.Printf(
+			"Successfully installed %s", filepath.Base(binary.BinaryDestination),
 		)
 	}
 	return nil
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Installing %s", dep.Name))
+	pterm.Debug.Printf("Installing %s", dep.Name)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.Name == "celestia-app" {
@@ -238,7 +258,6 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
 	if err != nil {
 		// nolint: errcheck,gosec
-		spinner.Stop()
 		return err
 	}
 	archiveName := fmt.Sprintf(
@@ -260,11 +279,10 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	err = DownloadRelease(url, targetDir, dep)
 	if err != nil {
 		// nolint: errcheck,gosec
-		spinner.Stop()
 		return err
 	}
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s", dep.Name))
+	pterm.Success.Printf("Successfully installed %s", dep.Name)
 	return nil
 }
 
