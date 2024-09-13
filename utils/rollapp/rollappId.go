@@ -52,7 +52,7 @@ func ValidateChainID(id string) (ChainID, error) {
 	}
 
 	if len(chainID) > MaxChainIDLen {
-		// nolint: errcheck
+		// nolint: errcheck,gosec
 		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,

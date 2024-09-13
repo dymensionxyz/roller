@@ -12,8 +12,6 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -21,6 +19,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
 )
 
 type AppState struct {
@@ -213,34 +212,34 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
 }
 
-func getGenesisOperatorAddress(home string) (string, error) {
-	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-	getOperatorAddrCommand := exec.Command(
-		consts.Executables.RollappEVM,
-		"keys",
-		"show",
-		consts.KeysIds.RollappSequencer,
-		"-a",
-		"--keyring-backend",
-		"test",
-		"--home",
-		rollappConfigDirPath,
-		"--bech",
-		"val",
-	)
-
-	fmt.Println(getOperatorAddrCommand.String())
-
-	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
-	if err != nil {
-		fmt.Println("val addr failed")
-		return "", err
-	}
-
-	a := strings.TrimSpace(addr.String())
-	fmt.Println(a)
-	return a, nil
-}
+// func getGenesisOperatorAddress(home string) (string, error) {
+// 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+// 	getOperatorAddrCommand := exec.Command(
+// 		consts.Executables.RollappEVM,
+// 		"keys",
+// 		"show",
+// 		consts.KeysIds.RollappSequencer,
+// 		"-a",
+// 		"--keyring-backend",
+// 		"test",
+// 		"--home",
+// 		rollappConfigDirPath,
+// 		"--bech",
+// 		"val",
+// 	)
+//
+// 	fmt.Println(getOperatorAddrCommand.String())
+//
+// 	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+// 	if err != nil {
+// 		fmt.Println("val addr failed")
+// 		return "", err
+// 	}
+//
+// 	a := strings.TrimSpace(addr.String())
+// 	fmt.Println(a)
+// 	return a, nil
+// }
 
 func getDefaultGenesisParams(
 	raCfg *config.RollappConfig,

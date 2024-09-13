@@ -10,11 +10,12 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-	"github.com/pterm/pterm"
 )
 
 func InstallBinaries(bech32 string, withMockDA bool) error {
@@ -223,7 +224,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 
 	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
 	if err != nil {
-		// nolint: errcheck
+		// nolint: errcheck,gosec
 		spinner.Stop()
 		return err
 	}
@@ -245,7 +246,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 
 	err = DownloadRelease(url, targetDir, dep)
 	if err != nil {
-		// nolint: errcheck
+		// nolint: errcheck,gosec
 		spinner.Stop()
 		return err
 	}
