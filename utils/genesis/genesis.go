@@ -197,24 +197,14 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 }
 
 func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
-	sa, err := rollapp.GetRollappSequencerAddress(home)
-	if err != nil {
-		return err
-	}
-
-	oa, err := getGenesisOperatorAddress(home)
-	if err != nil {
-		return err
-	}
-
-	params := getDefaultGenesisParams(sa, oa, raCfg)
+	params := getDefaultGenesisParams(raCfg)
 	addGenAccountCmd := GetAddGenesisAccountCmd(
 		consts.KeysIds.RollappSequencer,
 		consts.DefaultTokenSupply,
 		raCfg,
 	)
 
-	_, err = bash.ExecCommandWithStdout(addGenAccountCmd)
+	_, err := bash.ExecCommandWithStdout(addGenAccountCmd)
 	if err != nil {
 		return err
 	}
@@ -253,7 +243,7 @@ func getGenesisOperatorAddress(home string) (string, error) {
 }
 
 func getDefaultGenesisParams(
-	sequencerAddr, genesisOperatorAddress string, raCfg *config.RollappConfig,
+	raCfg *config.RollappConfig,
 ) []config.PathValue {
 	return []config.PathValue{
 		{Path: "app_state.mint.params.mint_denom", Value: raCfg.BaseDenom},
@@ -272,12 +262,6 @@ func getDefaultGenesisParams(
 			Path:  "app_state.bank.denom_metadata",
 			Value: getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals),
 		},
-		{Path: "app_state.sequencers.genesis_operator_address", Value: genesisOperatorAddress},
-		{
-			Path:  "app_state.hubgenesis.params.genesis_triggerer_allowlist.0",
-			Value: map[string]string{"address": sequencerAddr},
-		},
-		// {Path: "app_state.denommetadata.params.allowed_addresses.0", Value: sequencerAddr},
 	}
 }
 
