@@ -10,12 +10,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	"github.com/pterm/pterm"
 )
 
 func InstallBinaries(bech32 string, withMockDA bool) error {
@@ -34,24 +33,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		_ = os.Chdir(dir)
 	}()
 
-	buildableDeps := map[string]types.Dependency{
-		"rollapp": {
-			Name:       "rollapp",
-			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:    "e68f8190f1301b317846623a9e83be7acc2ad56e", // 20240909 rolapparams module
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "./build/rollapp-evm",
-					BinaryDestination: consts.Executables.RollappEVM,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-						fmt.Sprintf("BECH32_PREFIX=%s", bech32),
-					),
-				},
-			},
-		},
-	}
+	buildableDeps := map[string]types.Dependency{}
 
 	if !withMockDA {
 		buildableDeps["celestia"] = types.Dependency{
@@ -77,13 +59,29 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 				},
 			},
 		}
+		buildableDeps["rollapp"] = types.Dependency{
+			Name:       "rollapp",
+			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
+			Release:    "7c46ac0442388eea70e42487ac4c45abe16bd41f", // 20240913 relayer without fees
+			Binaries: []types.BinaryPathPair{
+				{
+					Binary:            "./build/rollapp-evm",
+					BinaryDestination: consts.Executables.RollappEVM,
+					BuildCommand: exec.Command(
+						"make",
+						"build",
+						fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+					),
+				},
+			},
+		}
 	}
 
 	goreleaserDeps := map[string]types.Dependency{
 		"celestia-app": {
 			Name:       "celestia-app",
 			Repository: "https://github.com/celestiaorg/celestia-app",
-			Release:    "2.1.2",
+			Release:    "v2.1.2",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "celestia-appd",
@@ -98,7 +96,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		"eibc-client": {
 			Name:       "eibc-client",
 			Repository: "https://github.com/artemijspavlovs/eibc-client",
-			Release:    "1.1.0",
+			Release:    "v1.1.0",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "eibc-client",
@@ -109,7 +107,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		"rly": {
 			Name:       "go-relayer",
 			Repository: "https://github.com/artemijspavlovs/go-relayer",
-			Release:    "0.3.4-v2.5.2-relayer-canon-3",
+			Release:    "v0.4.0-v2.5.2-relayer-pg-roller",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rly",
@@ -118,6 +116,21 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 			},
 		},
 	}
+
+	if withMockDA {
+		goreleaserDeps["rollapp"] = types.Dependency{
+			Name:       "rollapp-evm",
+			Repository: "https://github.com/artemijspavlovs/rollapp-evm",
+			Release:    "v2.3.0-pg-roller",
+			Binaries: []types.BinaryPathPair{
+				{
+					Binary:            "rollappd",
+					BinaryDestination: consts.Executables.RollappEVM,
+				},
+			},
+		}
+	}
+
 	//
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
@@ -238,7 +251,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	defer os.RemoveAll(targetDir)
 
 	url := fmt.Sprintf(
-		"%s/releases/download/v%s/%s",
+		"%s/releases/download/%s/%s",
 		dep.Repository,
 		dep.Release,
 		archiveName,
