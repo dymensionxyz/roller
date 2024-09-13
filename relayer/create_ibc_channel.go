@@ -37,7 +37,7 @@ func (r *Relayer) CreateIBCChannel(
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
-		createConnectionCmd := r.getCreateConnectionCmd(override)
+		createConnectionCmd := r.getTxLinkCmd(override)
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
@@ -121,6 +121,27 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 
 func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
 	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
+	if override {
+		args = append(args, "--override")
+	}
+	args = append(args, r.getRelayerDefaultArgs()...)
+	return exec.Command(consts.Executables.Relayer, args...)
+}
+
+func (r *Relayer) getTxLinkCmd(override bool) *exec.Cmd {
+	args := []string{
+		"tx",
+		"link",
+		consts.DefaultRelayerPath,
+		"--src-port",
+		"transfer",
+		"--dst-port",
+		"transfer",
+		"--version",
+		"ics20-1",
+		"--max-clock-drift",
+		"70m",
+	}
 	if override {
 		args = append(args, "--override")
 	}

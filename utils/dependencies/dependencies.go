@@ -248,7 +248,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
-	pterm.Debug.Printf("Installing %s", dep.Name)
+	pterm.Debug.Printf("Installing %s\n", dep.Name)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.Name == "celestia-app" {
@@ -282,7 +282,7 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		return err
 	}
 
-	pterm.Success.Printf("Successfully installed %s", dep.Name)
+	pterm.Success.Printf("Successfully installed %s\n", dep.Name)
 	return nil
 }
 

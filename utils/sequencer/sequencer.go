@@ -14,7 +14,6 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -60,7 +59,10 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 	txOutput, err := bash.ExecCommandWithInput(
 		cmd,
 		"signatures",
-		"this transaction is going to register your sequencer with X bond. do you want to continue?",
+		fmt.Sprintf(
+			"this transaction is going to register your sequencer with %s bond. do you want to continue?",
+			desiredBond,
+		),
 	)
 	if err != nil {
 		return err
