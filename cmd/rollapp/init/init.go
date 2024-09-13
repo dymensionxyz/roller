@@ -36,7 +36,7 @@ func Cmd() *cobra.Command {
 			dymdBinaryOptions := types.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
-				Release:    "3.1.0-pg05-01",
+				Release:    "v3.2.0-pg-roller-rc05-1",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "dymd",
