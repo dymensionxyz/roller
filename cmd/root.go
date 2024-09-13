@@ -3,6 +3,9 @@ package cmd
 import (
 	"os"
 
+	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/binaries"
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
@@ -10,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
-	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -33,7 +35,7 @@ func init() {
 	// rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
-	// rootCmd.AddCommand(binaries.Cmd())
+	rootCmd.AddCommand(binaries.Cmd())
 	// rootCmd.AddCommand(keys.Cmd())
 	// rootCmd.AddCommand(run.Cmd())
 	// rootCmd.AddCommand(services.Cmd())

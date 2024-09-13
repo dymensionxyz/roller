@@ -17,7 +17,7 @@ To build and test the latest version from the main branch:
 First, install all the necessary dependencies using the following command:
 
 ```bash
-curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+curl https://raw.githubusercontent.com/dymensionxyz/roller/main/install.sh | bash
 ```
 
 Next, clone this repository. Once cloned, navigate to the root directory and execute:

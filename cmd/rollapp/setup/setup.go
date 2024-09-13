@@ -17,6 +17,10 @@ import (
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
@@ -30,9 +34,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -924,7 +925,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 			"provide a display name for your sequencer",
 		).Show()
 		x, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"provide a link to your X or as old people call it, twitter",
+			"provide a link to your X",
 		).Show()
 		website, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 			"provide a link to your website",
@@ -933,7 +934,7 @@ func populateSequencerMetadata(raCfg config.RollappConfig) error {
 			website = "https://" + website
 		}
 		telegram, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"provide a link to your X or as old people call it, twitter",
+			"provide a link to your telegram",
 		).Show()
 
 		sm.ContactDetails.X = x
