@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.3-alpha-rc01...v1.2.4-alpha-rc01) (2024-09-13)
+
+
+### Bug Fixes
+
+* relayer ibc creation ([#935](https://github.com/dymensionxyz/roller/issues/935)) ([6b040f2](https://github.com/dymensionxyz/roller/commit/6b040f2b9c6b800efb2392f480b2a10e82b10ce0))
+
 ## [1.2.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.2-alpha-rc01...v1.2.3-alpha-rc01) (2024-09-13)
 
 
