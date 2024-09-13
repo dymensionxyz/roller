@@ -35,6 +35,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 
 	buildableDeps := map[string]types.Dependency{
 		"rollapp": {
+			Name:       "rollapp",
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
 			Release:    "e68f8190f1301b317846623a9e83be7acc2ad56e", // 20240909 rolapparams module
 			Binaries: []types.BinaryPathPair{
@@ -53,6 +54,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 
 	if !withMockDA {
 		buildableDeps["celestia"] = types.Dependency{
+			Name:       "celestia",
 			Repository: "https://github.com/celestiaorg/celestia-node.git",
 			Release:    "v0.16.0",
 			Binaries: []types.BinaryPathPair{
@@ -178,7 +180,8 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 	spinner.UpdateText(
 		fmt.Sprintf(
-			"starting build from %s (this can take several minutes)",
+			"starting %s build from %s (this can take several minutes)",
+			dep.Name,
 			dep.Release,
 		),
 	)
