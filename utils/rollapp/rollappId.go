@@ -71,7 +71,7 @@ func ValidateChainID(id string) (ChainID, error) {
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
-		// nolint: errcheck
+		// nolint: errcheck,gosec
 		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,
@@ -82,7 +82,7 @@ func ValidateChainID(id string) (ChainID, error) {
 
 	revision, err := strconv.ParseUint(matches[3], 0, 64)
 	if err != nil {
-		// nolint: errcheck
+		// nolint: errcheck,gosec
 		spinner.Stop()
 		return ChainID{}, errorsmod.Wrapf(
 			dymratypes.ErrInvalidRollappID,
