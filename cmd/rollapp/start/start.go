@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,13 +72,20 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go bash.RunCmdAsync(
-				ctx, startRollappCmd, func() {
-					PrintOutput(rollappConfig, startRollappCmd, showSequencerBalance)
+				ctx,
+				startRollappCmd,
+				func() {
+					PrintOutput(
+						rollappConfig,
+						strconv.Itoa(startRollappCmd.Process.Pid),
+						showSequencerBalance,
+					)
 					err := createPidFile(RollappDirPath, startRollappCmd)
 					if err != nil {
 						pterm.Warning.Println("failed to create pid file")
 					}
-				}, parseError,
+				},
+				parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
 			)
 
@@ -114,7 +122,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 	return cmd
 }
 
-func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd, withBalance bool) {
+func PrintOutput(rlpCfg config.RollappConfig, pid string, withBalance bool) {
 	seq := sequencer.GetInstance(rlpCfg)
 	seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
 	if err != nil {
@@ -140,7 +148,7 @@ func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd, withBalance bool) {
 
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Process Info:")
-	fmt.Println("PID: ", cmd.Process.Pid)
+	fmt.Println("PID: ", pid)
 
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Wallet Info:")

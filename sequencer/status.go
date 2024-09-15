@@ -11,7 +11,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type NodeInfo struct {
@@ -139,7 +138,7 @@ func (seq *Sequencer) GetSequencerHealth() error {
 	return nil
 }
 
-func (seq *Sequencer) GetSequencerStatus(config.RollappConfig) string {
+func (seq *Sequencer) GetSequencerStatus() string {
 	// TODO: Make sure the sequencer status endpoint is being changed after block production is paused.
 	rolHeight, err := seq.GetRollappHeight()
 	if err != nil {
@@ -163,9 +162,6 @@ error: %v
 
 	hubHeight, err := seq.GetHubHeight()
 
-	localAPIEndpoint := seq.GetLocalEndpoint(seq.APIPort)
-	localRPCEndpoint := seq.GetLocalEndpoint(seq.RPCPort)
-
 	if err != nil {
 		seq.logger.Println(err)
 
@@ -178,10 +174,7 @@ error: %v
 			`RollApp
 status: Healthy
 height: %s
-
-Endpoints:
-rpc: %s
-rest: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint,
+`, rolHeight,
 		)
 	}
 
@@ -190,11 +183,7 @@ rest: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint,
 status: Healthy
 height: %s
 
-Endpoints:
-rpc: %s
-rest: %s
-
 Hub:
-height: %s`, rolHeight, localRPCEndpoint, localAPIEndpoint, hubHeight,
+height: %s`, rolHeight, hubHeight,
 	)
 }
