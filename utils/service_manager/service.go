@@ -113,10 +113,18 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 	}()
 }
 
-func StartSystemdService(serviceName string) error {
-	// not ideal, shouldn't run sudo commands from within roller
-	cmd := exec.Command("sudo", "systemctl", "start", serviceName)
-	err := bash.ExecCmd(cmd)
+func StartSystemdService(serviceName string, options ...string) error {
+	// Create the base command
+	cmd := []string{"sudo", "systemctl", "start", serviceName}
+
+	// Append any additional options
+	cmd = append(cmd, options...)
+
+	// Create the exec.Command
+	execCmd := exec.Command(cmd[0], cmd[1:]...)
+
+	// Execute the command
+	err := bash.ExecCmd(execCmd)
 	if err != nil {
 		return err
 	}

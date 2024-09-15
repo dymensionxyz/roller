@@ -8,7 +8,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -20,8 +25,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -42,6 +46,8 @@ func Cmd() *cobra.Command {
 Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
+			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
+
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to add flags")
@@ -66,13 +72,20 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go bash.RunCmdAsync(
-				ctx, startRollappCmd, func() {
-					printOutput(rollappConfig, startRollappCmd)
+				ctx,
+				startRollappCmd,
+				func() {
+					PrintOutput(
+						rollappConfig,
+						strconv.Itoa(startRollappCmd.Process.Pid),
+						showSequencerBalance,
+					)
 					err := createPidFile(RollappDirPath, startRollappCmd)
 					if err != nil {
 						pterm.Warning.Println("failed to create pid file")
 					}
-				}, parseError,
+				},
+				parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
 			)
 
@@ -104,25 +117,61 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			select {}
 		},
 	}
+	cmd.Flags().Bool("show-sequencer-balance", false, "initialize the rollapp with mock backend")
+
 	return cmd
 }
 
-func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
+func PrintOutput(rlpCfg config.RollappConfig, pid string, withBalance bool) {
 	seq := sequencer.GetInstance(rlpCfg)
+	seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+	if err != nil {
+		return
+	}
+
 	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
 	fmt.Printf(
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 			Sprintf(rlpCfg.RollappID),
 	)
-	fmt.Println("💈 Endpoints:")
 
-	fmt.Printf("💈 EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
-	fmt.Printf("💈 Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
-	fmt.Printf("💈 Rest API: http://0.0.0.0:%v\n", seq.APIPort)
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Endpoints:")
+	fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
+	fmt.Printf("Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
+	fmt.Printf("Rest API: http://0.0.0.0:%v\n", seq.APIPort)
 
-	fmt.Println("💈 Log file path: ", LogPath)
-	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
-	fmt.Println("💈 PID: ", cmd.Process.Pid)
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Filesystem Paths:")
+	fmt.Println("Rollapp root dir: ", RollappDirPath)
+	fmt.Println("Log file path: ", LogPath)
+
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Process Info:")
+	fmt.Println("PID: ", pid)
+
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Wallet Info:")
+	fmt.Println("Sequencer Address:", seqAddrData[0].Address)
+
+	if withBalance {
+		fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+		go func() {
+			for {
+				// nolint: gosimple
+				select {
+				default:
+					seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+					if err == nil {
+						// Clear the previous line and print the updated balance
+						fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
+						fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+					}
+					time.Sleep(5 * time.Second)
+				}
+			}
+		}()
+	}
 }
 
 func printDaOutput() {

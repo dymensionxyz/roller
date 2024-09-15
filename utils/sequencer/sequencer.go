@@ -110,7 +110,7 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	return true, err
 }
 
-func GetSequencerAccountData(cfg config.RollappConfig) (string, error) {
+func GetSequencerAccountAddress(cfg config.RollappConfig) (string, error) {
 	seqAddr, err := utils.GetAddressBinary(
 		utils.KeyConfig{
 			ChainBinary: consts.Executables.Dymension,

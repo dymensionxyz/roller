@@ -5,11 +5,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func RollappCmd() *cobra.Command {
@@ -30,9 +29,9 @@ func RollappCmd() *cobra.Command {
 					Sprintf("roller relayer setup"),
 			)
 			pterm.Info.Printf(
-				"run %s to view the current status of the rollapp\n",
+				"run %s to view the logs  of the relayer\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("journalctl -fu rollapp"),
+					Sprintf("roller relayer services load"),
 			)
 		},
 	}
@@ -93,7 +92,11 @@ func startSystemdServices(services []string) error {
 		)
 	}
 	for _, service := range services {
-		err := servicemanager.StartSystemdService(fmt.Sprintf("%s.service", service))
+		err := servicemanager.StartSystemdService(
+			fmt.Sprintf("%s.service", service),
+			"--show-sequencer-balance",
+			"false",
+		)
 		if err != nil {
 			return fmt.Errorf("failed to start %s systemd service: %v", service, err)
 		}
