@@ -42,12 +42,14 @@ func RollappCmd() *cobra.Command {
 			go func() {
 				err := filesystem.TailFile(raLogFilePath)
 				if err != nil {
+					pterm.Error.Println("failed to tail file", err)
 					return
 				}
 			}()
 			go func() {
 				err := filesystem.TailFile(daLogFilePath)
 				if err != nil {
+					pterm.Error.Println("failed to tail file", err)
 					return
 				}
 			}()
