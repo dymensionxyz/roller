@@ -12,9 +12,10 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -239,11 +240,14 @@ func TailFile(fp, svcName string) error {
 		return fmt.Errorf("failed to tail file: %v", err)
 	}
 
+	infoPrefix := pterm.Info.Prefix
+	infoPrefix.Text = fmt.Sprintf("%s: ", svcName)
+	cp := pterm.PrefixPrinter{
+		Prefix: infoPrefix,
+	}
+
 	for line := range t.Lines {
-		prefix := pterm.Prefix{
-			Text: svcName,
-		}
-		pterm.Info.WithPrefix(prefix).Println(line.Text)
+		cp.Println(line.Text)
 	}
 
 	return nil
