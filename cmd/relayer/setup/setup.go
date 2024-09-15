@@ -85,6 +85,16 @@ func Cmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
+			defer func() {
+				pterm.Debug.Println("here")
+				pterm.Info.Println("reverting dymint config to 1h")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config: ", err)
+					return
+				}
+			}()
+
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 			defer func() {
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
@@ -427,16 +437,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 			}
-
-			defer func() {
-				pterm.Debug.Println("here")
-				pterm.Info.Println("reverting dymint config to 1h")
-				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-				if err != nil {
-					pterm.Error.Println("failed to update dymint config: ", err)
-					return
-				}
-			}()
 
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
