@@ -134,7 +134,7 @@ func PrintOutput(rlpCfg config.RollappConfig, pid string, withBalance bool) {
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 			Sprintf(rlpCfg.RollappID),
 	)
-	fmt.Println("💈 Endpoints:")
+
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Endpoints:")
 	fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
