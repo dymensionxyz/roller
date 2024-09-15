@@ -12,10 +12,9 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
-
-	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -234,14 +233,17 @@ func RemoveFileIfExists(filePath string) error {
 	return nil
 }
 
-func TailFile(fp string) error {
+func TailFile(fp, svcName string) error {
 	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: true})
 	if err != nil {
 		return fmt.Errorf("failed to tail file: %v", err)
 	}
 
 	for line := range t.Lines {
-		fmt.Println(line.Text)
+		prefix := pterm.Prefix{
+			Text: svcName,
+		}
+		pterm.Info.WithPrefix(prefix).Println(line.Text)
 	}
 
 	return nil
