@@ -50,17 +50,7 @@ func RollappCmd() *cobra.Command {
 				}
 			}()
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to set up IBC channels and start relaying packets\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer setup"),
-			)
-			pterm.Info.Printf(
-				"run %s to view the current status of the rollapp\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("journalctl -fu rollapp"),
-			)
+			select {}
 		},
 	}
 	return cmd
