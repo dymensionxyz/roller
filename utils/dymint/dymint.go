@@ -76,7 +76,7 @@ type RollappHealthResponse struct {
 }
 
 func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
-	pterm.Info.Println("checking dymint block time settings")
+	pterm.Info.Printf("checking dymint block time settings (want: %s)\n", t)
 	dymintPath := sequencer.GetDymintFilePath(home)
 	dymintCfg, err := tomlconfig.Load(dymintPath)
 	if err != nil {
@@ -108,6 +108,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 			)
 		}
 		pterm.Info.Println("updating dymint config")
+		pterm.Info.Println("block time: ", want)
 
 		err = utils.UpdateFieldInToml(dymintPath, "max_idle_time", want.String())
 		if err != nil {

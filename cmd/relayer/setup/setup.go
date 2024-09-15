@@ -85,6 +85,16 @@ func Cmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
+			defer func() {
+				pterm.Debug.Println("here")
+				pterm.Info.Println("reverting dymint config to 1h")
+				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config: ", err)
+					return
+				}
+			}()
+
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 			defer func() {
 				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
@@ -428,15 +438,6 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			defer func() {
-				pterm.Info.Println("reverting dymint config to 1h")
-				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-				if err != nil {
-					pterm.Error.Println("failed to update dymint config: ", err)
-					return
-				}
-			}()
-
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"%s : run %s load the necessary systemd services\n",
@@ -452,6 +453,10 @@ func Cmd() *cobra.Command {
 					Sprintf("on Other OSs"),
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller relayer start"),
+			)
+
+			pterm.Warning.Println(
+				"IBC channels are activated only after the first IBC transfer from RollApp to Hub",
 			)
 		},
 	}
