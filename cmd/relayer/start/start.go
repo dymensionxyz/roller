@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 // TODO: Test relaying on 35-C and update the prices

@@ -429,6 +429,7 @@ func Cmd() *cobra.Command {
 			}
 
 			defer func() {
+				pterm.Debug.Println("here")
 				pterm.Info.Println("reverting dymint config to 1h")
 				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
 				if err != nil {
