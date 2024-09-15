@@ -45,6 +45,8 @@ func Cmd() *cobra.Command {
 Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
+			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
+
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to add flags")
@@ -70,7 +72,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			defer cancel()
 			go bash.RunCmdAsync(
 				ctx, startRollappCmd, func() {
-					PrintOutput(rollappConfig, startRollappCmd)
+					PrintOutput(rollappConfig, startRollappCmd, showSequencerBalance)
 					err := createPidFile(RollappDirPath, startRollappCmd)
 					if err != nil {
 						pterm.Warning.Println("failed to create pid file")
@@ -107,10 +109,12 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			select {}
 		},
 	}
+	cmd.Flags().Bool("show-sequencer-balance", false, "initialize the rollapp with mock backend")
+
 	return cmd
 }
 
-func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
+func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd, withBalance bool) {
 	seq := sequencer.GetInstance(rlpCfg)
 	seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
 	if err != nil {
@@ -141,22 +145,25 @@ func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Wallet Info:")
 	fmt.Println("Sequencer Address:", seqAddrData[0].Address)
-	fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-	go func() {
-		for {
-			// nolint: gosimple
-			select {
-			default:
-				seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-				if err == nil {
-					// Clear the previous line and print the updated balance
-					fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
-					fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+
+	if withBalance {
+		fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+		go func() {
+			for {
+				// nolint: gosimple
+				select {
+				default:
+					seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+					if err == nil {
+						// Clear the previous line and print the updated balance
+						fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
+						fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+					}
+					time.Sleep(5 * time.Second)
 				}
-				time.Sleep(5 * time.Second)
 			}
-		}
-	}()
+		}()
+	}
 }
 
 func printDaOutput() {
