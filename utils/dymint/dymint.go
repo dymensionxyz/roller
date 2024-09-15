@@ -108,6 +108,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 			)
 		}
 		pterm.Info.Println("updating dymint config")
+		pterm.Info.Println("block time: ", want)
 
 		err = utils.UpdateFieldInToml(dymintPath, "max_idle_time", want.String())
 		if err != nil {
