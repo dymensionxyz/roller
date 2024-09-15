@@ -141,6 +141,7 @@ func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Wallet Info:")
 	fmt.Println("Sequencer Address:", seqAddrData[0].Address)
+	fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 	go func() {
 		for {
 			// nolint: gosimple
