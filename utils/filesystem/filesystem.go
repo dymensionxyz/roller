@@ -14,8 +14,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -256,6 +257,7 @@ func TailFile(fp string) error {
 		if err := scanner.Err(); err != nil {
 			return fmt.Errorf("scanner error: %w", err)
 		}
+		pterm.Debug.Printfln("Waiting for new content in %s", fp)
 		time.Sleep(time.Second)
 	}
 }
