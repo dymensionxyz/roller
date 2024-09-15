@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"crypto/sha256"
 	"fmt"
@@ -11,10 +12,10 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-
-	"github.com/pterm/pterm"
+	"time"
 
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/pterm/pterm"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -231,4 +232,29 @@ func RemoveFileIfExists(filePath string) error {
 		return fmt.Errorf("error checking file: %w", err)
 	}
 	return nil
+}
+
+func TailFile(fp string) error {
+	file, err := os.Open(fp)
+	if err != nil {
+		return err
+	}
+	// nolint errcheck
+	defer file.Close()
+
+	_, err = file.Seek(0, 2)
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(file)
+	for {
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+		if err := scanner.Err(); err != nil {
+			return err
+		}
+		time.Sleep(time.Second) // Wait for a second before checking for new content
+	}
 }

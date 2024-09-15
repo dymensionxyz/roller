@@ -9,6 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp/status"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
+	logservices "github.com/dymensionxyz/roller/cmd/services/logs"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
 	stopservices "github.com/dymensionxyz/roller/cmd/services/stop"
@@ -35,6 +36,7 @@ func Cmd() *cobra.Command {
 			startservices.RollappCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
+			logservices.RollappCmd(),
 		),
 	)
 
