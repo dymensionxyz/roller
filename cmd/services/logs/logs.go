@@ -1,6 +1,8 @@
 package logs
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
@@ -39,10 +41,12 @@ func RollappCmd() *cobra.Command {
 			pterm.Info.Println("Follow the logs for rollapp: ", raLogFilePath)
 			pterm.Info.Println("Follow the logs for da light client: ", daLogFilePath)
 
+			errChan := make(chan error, 2)
 			go func() {
 				err := filesystem.TailFile(raLogFilePath)
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
+					errChan <- fmt.Errorf("failed to tail RA file: %w", err)
 					return
 				}
 			}()
@@ -50,11 +54,17 @@ func RollappCmd() *cobra.Command {
 				err := filesystem.TailFile(daLogFilePath)
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
+					errChan <- fmt.Errorf("failed to tail DA file: %w", err)
 					return
 				}
 			}()
 
-			select {}
+			// nolint: gosimple
+			select {
+			case err := <-errChan:
+				pterm.Error.Println(err)
+				os.Exit(1) // Exit with a non-zero status code
+			}
 		},
 	}
 	return cmd
