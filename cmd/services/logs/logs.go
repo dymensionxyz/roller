@@ -36,6 +36,8 @@ func RollappCmd() *cobra.Command {
 				consts.ConfigDirName.Rollapp,
 				"light_client.log",
 			)
+			pterm.Info.Println("Follow the logs for rollapp: ", raLogFilePath)
+			pterm.Info.Println("Follow the logs for da light client: ", daLogFilePath)
 
 			go func() {
 				err := filesystem.TailFile(raLogFilePath)
