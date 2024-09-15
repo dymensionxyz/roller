@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -130,8 +131,8 @@ func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Filesystem Paths:")
-	fmt.Println("Log file path: ", LogPath)
 	fmt.Println("Rollapp root dir: ", RollappDirPath)
+	fmt.Println("Log file path: ", LogPath)
 
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Process Info:")
@@ -140,7 +141,21 @@ func PrintOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Wallet Info:")
 	fmt.Println("Sequencer Address:", seqAddrData[0].Address)
-	fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+	go func() {
+		for {
+			// nolint: gosimple
+			select {
+			default:
+				seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+				if err == nil {
+					// Clear the previous line and print the updated balance
+					fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
+					fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+				}
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}()
 }
 
 func printDaOutput() {
