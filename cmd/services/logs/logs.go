@@ -96,7 +96,7 @@ func RelayerCmd() *cobra.Command {
 
 			rlyLogFilePath := filepath.Join(
 				rollerData.Home,
-				consts.ConfigDirName.Rollapp,
+				consts.ConfigDirName.Relayer,
 				"relayer.log",
 			)
 
