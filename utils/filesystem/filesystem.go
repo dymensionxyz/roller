@@ -12,9 +12,10 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -234,7 +235,7 @@ func RemoveFileIfExists(filePath string) error {
 }
 
 func TailFile(fp, svcName string) error {
-	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: true})
+	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: false})
 	if err != nil {
 		return fmt.Errorf("failed to tail file: %v", err)
 	}
