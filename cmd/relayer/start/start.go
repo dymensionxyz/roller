@@ -57,7 +57,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			if rly.ChannelReady() {
 				fmt.Println("💈 IBC transfer channel is already established!")
 				status := fmt.Sprintf(
-					"Active\nrollapp: %s\n<->\nhub: %s",
+					"Active\nrollapp: %s\n<->\nhub: %s\n",
 					rly.SrcChannel, rly.DstChannel,
 				)
 				err := rly.WriteRelayerStatus(status)
@@ -84,6 +84,9 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				rly.DstChannel,
 			)
 			fmt.Println("💈 Log file path: ", relayerLogFilePath)
+			pterm.Warning.Println(
+				"IBC channels are activated only after the first IBC transfer from RollApp to Hub",
+			)
 
 			select {}
 		},
