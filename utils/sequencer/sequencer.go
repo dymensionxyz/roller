@@ -19,9 +19,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/tx"
+	"github.com/pterm/pterm"
 )
 
-func Register(raCfg config.RollappConfig, desiredBond string) error {
+func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error {
 	seqPubKey, err := utils.GetSequencerPubKey(raCfg)
 	if err != nil {
 		return err
@@ -45,7 +46,7 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"create-sequencer",
 		seqPubKey,
 		raCfg.RollappID,
-		desiredBond,
+		desiredBond.String(),
 		seqMetadataPath,
 		"--from", consts.KeysIds.HubSequencer,
 		"--keyring-backend", "test",
@@ -56,12 +57,17 @@ func Register(raCfg config.RollappConfig, desiredBond string) error {
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
+	displayBond, err := BaseDenomToDenom(desiredBond, 18)
+	if err != nil {
+		return err
+	}
+
 	txOutput, err := bash.ExecCommandWithInput(
 		cmd,
 		"signatures",
 		fmt.Sprintf(
 			"this transaction is going to register your sequencer with %s bond. do you want to continue?",
-			desiredBond,
+			pterm.Yellow(pterm.Bold.Sprint(displayBond.String())),
 		),
 	)
 	if err != nil {
@@ -143,6 +149,7 @@ func BaseDenomToDenom(
 	exp := cosmossdkmath.NewIntWithDecimal(1, exponent)
 
 	coin.Amount = coin.Amount.Quo(exp)
+	coin.Denom = coin.Denom[1:]
 
 	return coin, nil
 }
