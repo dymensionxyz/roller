@@ -2,7 +2,8 @@ package services
 
 import "github.com/spf13/cobra"
 
-func Cmd(loadCmd, startCmd, restartCmd, stopCmd *cobra.Command) *cobra.Command {
+// TODO: use options instead
+func Cmd(loadCmd, startCmd, restartCmd, stopCmd, logsCmd *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "services [command]",
 		Short: "Commands for managing systemd services.",
@@ -11,5 +12,6 @@ func Cmd(loadCmd, startCmd, restartCmd, stopCmd *cobra.Command) *cobra.Command {
 	cmd.AddCommand(startCmd)
 	cmd.AddCommand(restartCmd)
 	cmd.AddCommand(stopCmd)
+	cmd.AddCommand(logsCmd)
 	return cmd
 }

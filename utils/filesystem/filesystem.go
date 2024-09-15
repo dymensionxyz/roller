@@ -12,6 +12,7 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -230,5 +231,24 @@ func RemoveFileIfExists(filePath string) error {
 	} else {
 		return fmt.Errorf("error checking file: %w", err)
 	}
+	return nil
+}
+
+func TailFile(fp, svcName string) error {
+	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: false})
+	if err != nil {
+		return fmt.Errorf("failed to tail file: %v", err)
+	}
+
+	infoPrefix := pterm.Info.Prefix
+	infoPrefix.Text = svcName
+	cp := pterm.PrefixPrinter{
+		Prefix: infoPrefix,
+	}
+
+	for line := range t.Lines {
+		cp.Println(line.Text)
+	}
+
 	return nil
 }

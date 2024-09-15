@@ -1,6 +1,8 @@
 package eibc
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill"
 	"github.com/dymensionxyz/roller/cmd/eibc/funds"
 	eibcinit "github.com/dymensionxyz/roller/cmd/eibc/init"
@@ -8,10 +10,10 @@ import (
 	"github.com/dymensionxyz/roller/cmd/eibc/start"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
+	logservices "github.com/dymensionxyz/roller/cmd/services/logs"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
 	stopservices "github.com/dymensionxyz/roller/cmd/services/stop"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -33,6 +35,7 @@ func Cmd() *cobra.Command {
 			startservices.EibcCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
+			logservices.EibcCmd(),
 		),
 	)
 
