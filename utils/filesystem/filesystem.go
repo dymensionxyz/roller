@@ -235,26 +235,27 @@ func RemoveFileIfExists(filePath string) error {
 }
 
 func TailFile(fp string) error {
+	pterm.Info.Printfln("Starting to tail file: %s", fp)
+
 	file, err := os.Open(fp)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open file: %w", err)
 	}
-	// nolint errcheck
 	defer file.Close()
 
 	_, err = file.Seek(0, 2)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to seek to end of file: %w", err)
 	}
 
 	scanner := bufio.NewScanner(file)
 	for {
 		for scanner.Scan() {
-			fmt.Println(scanner.Text())
+			pterm.Info.Println(scanner.Text())
 		}
 		if err := scanner.Err(); err != nil {
-			return err
+			return fmt.Errorf("scanner error: %w", err)
 		}
-		time.Sleep(time.Second) // Wait for a second before checking for new content
+		time.Sleep(time.Second)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -42,6 +43,8 @@ func RollappCmd() *cobra.Command {
 			pterm.Info.Println("Follow the logs for da light client: ", daLogFilePath)
 
 			errChan := make(chan error, 2)
+			doneChan := make(chan bool)
+
 			go func() {
 				err := filesystem.TailFile(raLogFilePath)
 				if err != nil {
@@ -59,11 +62,18 @@ func RollappCmd() *cobra.Command {
 				}
 			}()
 
-			// nolint: gosimple
+			// Keep the program running
+			go func() {
+				time.Sleep(time.Hour) // Adjust this duration as needed
+				doneChan <- true
+			}()
+
 			select {
 			case err := <-errChan:
 				pterm.Error.Println(err)
-				os.Exit(1) // Exit with a non-zero status code
+				os.Exit(1)
+			case <-doneChan:
+				pterm.Info.Println("finished")
 			}
 		},
 	}
