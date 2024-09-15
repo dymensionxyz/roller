@@ -6,12 +6,13 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 // TODO: refactor
@@ -105,7 +106,7 @@ func RelayerCmd() *cobra.Command {
 			doneChan := make(chan bool)
 
 			go func() {
-				err := filesystem.TailFile(rlyLogFilePath, "rollapp")
+				err := filesystem.TailFile(rlyLogFilePath, "relayer")
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
 					errChan <- fmt.Errorf("failed to tail RA file: %w", err)
