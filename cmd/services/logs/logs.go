@@ -33,7 +33,7 @@ func RollappCmd() *cobra.Command {
 
 			daLogFilePath := filepath.Join(
 				rollerData.Home,
-				consts.ConfigDirName.Rollapp,
+				consts.ConfigDirName.DALightNode,
 				"light_client.log",
 			)
 			pterm.Info.Println("Follow the logs for rollapp: ", raLogFilePath)
