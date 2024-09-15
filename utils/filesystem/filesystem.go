@@ -2,7 +2,6 @@ package filesystem
 
 import (
 	"archive/tar"
-	"bufio"
 	"compress/gzip"
 	"crypto/sha256"
 	"fmt"
@@ -12,8 +11,8 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
-	"time"
 
+	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -236,33 +235,14 @@ func RemoveFileIfExists(filePath string) error {
 }
 
 func TailFile(fp string) error {
-	if _, err := os.Stat(fp); os.IsNotExist(err) {
-		pterm.Warning.Printfln("File does not exist: %s", fp)
-		return fmt.Errorf("file does not exist: %s", fp)
-	}
-
-	pterm.Info.Printfln("Starting to tail file: %s", fp)
-
-	file, err := os.Open(fp)
+	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: true})
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Seek(0, 2)
-	if err != nil {
-		return fmt.Errorf("failed to seek to end of file: %w", err)
+		return fmt.Errorf("failed to tail file: %v", err)
 	}
 
-	scanner := bufio.NewScanner(file)
-	for {
-		for scanner.Scan() {
-			pterm.Info.Println(scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("scanner error: %w", err)
-		}
-		pterm.Debug.Printfln("Waiting for new content in %s", fp)
-		time.Sleep(time.Second)
+	for line := range t.Lines {
+		fmt.Println(line.Text)
 	}
+
+	return nil
 }
