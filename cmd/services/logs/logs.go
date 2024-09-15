@@ -84,7 +84,7 @@ func RollappCmd() *cobra.Command {
 func RelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs",
-		Short: "Follow the logs for rollapp and da light client",
+		Short: "Follow the logs for relayer",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 
@@ -134,7 +134,7 @@ func RelayerCmd() *cobra.Command {
 func EibcCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs",
-		Short: "Follow the logs for rollapp and da light client",
+		Short: "Follow the logs for eibc",
 		Run: func(cmd *cobra.Command, args []string) {
 			pterm.Info.Println("not implemented")
 		},
