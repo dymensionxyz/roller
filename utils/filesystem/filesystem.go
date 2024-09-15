@@ -236,6 +236,11 @@ func RemoveFileIfExists(filePath string) error {
 }
 
 func TailFile(fp string) error {
+	if _, err := os.Stat(fp); os.IsNotExist(err) {
+		pterm.Warning.Printfln("File does not exist: %s", fp)
+		return fmt.Errorf("file does not exist: %s", fp)
+	}
+
 	pterm.Info.Printfln("Starting to tail file: %s", fp)
 
 	file, err := os.Open(fp)
