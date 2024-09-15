@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
+// TODO: refactor
 func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs",
@@ -72,9 +72,70 @@ func RollappCmd() *cobra.Command {
 			case err := <-errChan:
 				pterm.Error.Println(err)
 				os.Exit(1)
-			case <-doneChan:
-				pterm.Info.Println("finished")
+			default:
+				select {}
 			}
+		},
+	}
+	return cmd
+}
+
+func RelayerCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "logs",
+		Short: "Follow the logs for rollapp and da light client",
+		Run: func(cmd *cobra.Command, args []string) {
+			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+
+			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			if err != nil {
+				pterm.Error.Println("failed to load roller config file", err)
+				return
+			}
+
+			rlyLogFilePath := filepath.Join(
+				rollerData.Home,
+				consts.ConfigDirName.Rollapp,
+				"relayer.log",
+			)
+
+			pterm.Info.Println("Follow the logs for da light client: ", rlyLogFilePath)
+
+			errChan := make(chan error, 2)
+			doneChan := make(chan bool)
+
+			go func() {
+				err := filesystem.TailFile(rlyLogFilePath, "rollapp")
+				if err != nil {
+					pterm.Error.Println("failed to tail file", err)
+					errChan <- fmt.Errorf("failed to tail RA file: %w", err)
+					return
+				}
+			}()
+
+			go func() {
+				time.Sleep(time.Hour)
+				doneChan <- true
+			}()
+
+			select {
+			case err := <-errChan:
+				pterm.Error.Println(err)
+				os.Exit(1)
+			default:
+				select {}
+			}
+		},
+	}
+	return cmd
+}
+
+func EibcCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "logs",
+		Short: "Follow the logs for rollapp and da light client",
+		Run: func(cmd *cobra.Command, args []string) {
+			pterm.Info.Println("not implemented")
 		},
 	}
 	return cmd
