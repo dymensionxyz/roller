@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.1-alpha-rc01...v1.4.2-alpha-rc01) (2024-09-16)
+
+
+### Bug Fixes
+
+* **deps:** bump rollapp commit ([deb914b](https://github.com/dymensionxyz/roller/commit/deb914b2c95bd88d3e21e643df66cac667dc94db))
+
 ## [1.4.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.0-alpha-rc01...v1.4.1-alpha-rc01) (2024-09-16)
 
 
