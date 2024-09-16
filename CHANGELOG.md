@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.0-alpha-rc01...v1.4.1-alpha-rc01) (2024-09-16)
+
+
+### Bug Fixes
+
+* **deps:** update rollapp version ([639522c](https://github.com/dymensionxyz/roller/commit/639522c95e2eea806786dbb8b9f2d5b3dea4c3ea))
+* **deps:** update rollapp version ([79c72db](https://github.com/dymensionxyz/roller/commit/79c72db28b482bf542537357a458e1f0d64a156a))
+
 ## [1.4.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.3.0-alpha-rc01...v1.4.0-alpha-rc01) (2024-09-16)
 
 
