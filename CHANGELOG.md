@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.4-alpha-rc01...v1.3.0-alpha-rc01) (2024-09-16)
+
+
+### Features
+
+* add launchctl service support for macos ([#951](https://github.com/dymensionxyz/roller/issues/951)) ([f518849](https://github.com/dymensionxyz/roller/commit/f5188497c9b6abd489a3d72289b4e2fd2c0e463a))
+* add logs command for services ([#943](https://github.com/dymensionxyz/roller/issues/943)) ([360644f](https://github.com/dymensionxyz/roller/commit/360644f64bc65ae65c44d64c8a63cf95f52fbefa))
+* add sequencer address and balance to `rollapp` output commands ([#948](https://github.com/dymensionxyz/roller/issues/948)) ([7668320](https://github.com/dymensionxyz/roller/commit/7668320ca951942403baa9dda5204e3751a1738f))
+
+
+### Bug Fixes
+
+* relayer setup output should show the channels ([#944](https://github.com/dymensionxyz/roller/issues/944)) ([e5e4ac6](https://github.com/dymensionxyz/roller/commit/e5e4ac637b4465286af7e4d281b2b080385936d0))
+* **ux:** remove irrelevant prompts  ([#940](https://github.com/dymensionxyz/roller/issues/940)) ([74323ef](https://github.com/dymensionxyz/roller/commit/74323ef341ba7266f50a24458053d429e9145a32))
+
 ## [1.2.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.3-alpha-rc01...v1.2.4-alpha-rc01) (2024-09-13)
 
 
