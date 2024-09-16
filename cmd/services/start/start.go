@@ -16,12 +16,25 @@ func RollappCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := startSystemdServices(consts.RollappSystemdServices)
-			if err != nil {
-				pterm.Error.Println("failed to start systemd services:", err)
+			if runtime.GOOS == "darwin" {
+				err := startLaunchctlServices(consts.RollappSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start launchd services:", err)
+					return
+				}
+			} else if runtime.GOOS == "linux" {
+				err := startSystemdServices(consts.RollappSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start systemd services:", err)
+					return
+				}
+			} else {
+				pterm.Info.Printf(
+					"the %s commands currently support only darwin and linux operating systems",
+					cmd.Use,
+				)
 				return
 			}
-
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"run %s to set up IBC channels and start relaying packets\n",
@@ -94,11 +107,25 @@ func startSystemdServices(services []string) error {
 	for _, service := range services {
 		err := servicemanager.StartSystemdService(
 			fmt.Sprintf("%s.service", service),
-			"--show-sequencer-balance",
-			"false",
 		)
 		if err != nil {
 			return fmt.Errorf("failed to start %s systemd service: %v", service, err)
+		}
+	}
+	pterm.Success.Printf(
+		"💈 Services %s started successfully.\n",
+		strings.Join(services, ", "),
+	)
+	return nil
+}
+
+func startLaunchctlServices(services []string) error {
+	for _, service := range services {
+		err := servicemanager.StartLaunchctlService(
+			service,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to start %s launchctl service: %v", service, err)
 		}
 	}
 	pterm.Success.Printf(
