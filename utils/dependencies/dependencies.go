@@ -159,7 +159,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		goreleaserDeps["rollapp"] = types.Dependency{
 			Name:       "rollapp-evm",
 			Repository: "https://github.com/artemijspavlovs/rollapp-evm",
-			Release:    "v2.3.1-pg-roller",
+			Release:    "v2.3.2-pg-roller",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rollappd",
