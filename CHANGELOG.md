@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.3.0-alpha-rc01...v1.4.0-alpha-rc01) (2024-09-16)
+
+
+### Features
+
+* add cron job for relayer flush ([#954](https://github.com/dymensionxyz/roller/issues/954)) ([24d39dd](https://github.com/dymensionxyz/roller/commit/24d39ddecdff423ec6084899f83eb12905a437c2))
+
+
+### Bug Fixes
+
+* relayer setup flow for darwin ([#952](https://github.com/dymensionxyz/roller/issues/952)) ([d3c1705](https://github.com/dymensionxyz/roller/commit/d3c1705fff6cb354149a7ec99bd2e2b457ff4f33))
+
 ## [1.3.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.2.4-alpha-rc01...v1.3.0-alpha-rc01) (2024-09-16)
 
 
