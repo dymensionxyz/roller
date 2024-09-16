@@ -63,7 +63,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		buildableDeps["rollapp"] = types.Dependency{
 			Name:       "rollapp",
 			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:    "91c45a5cb7cb1605613ac830bb77850a3d13e571", // 20240913 relayer without fees
+			Release:    "e25a99275f584745a30271fb8f73209cc36d2219", // 20240917 denom-metadata fix
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-evm",
