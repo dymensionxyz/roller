@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -42,7 +43,7 @@ func Cmd() *cobra.Command {
 			dymdBinaryOptions := types.Dependency{
 				Name:       "dymension",
 				Repository: "https://github.com/artemijspavlovs/dymension",
-				Release:    "3.1.0-pg04",
+				Release:    "v3.1.0-pg06",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "dymd",

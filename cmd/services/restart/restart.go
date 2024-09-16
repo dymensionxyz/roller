@@ -1,6 +1,7 @@
 package restart
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 	"strings"
@@ -27,20 +28,32 @@ func Cmd(services []string) *cobra.Command {
 }
 
 func restartSystemdServices(services []string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf(
-			"the services commands are only available on linux machines",
-		)
-	}
-	for _, service := range services {
-		err := servicemanager.RestartSystemdService(fmt.Sprintf("%s.service", service))
-		if err != nil {
-			return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
+	if runtime.GOOS == "linux" {
+		for _, service := range services {
+			err := servicemanager.RestartSystemdService(fmt.Sprintf("%s.service", service))
+			if err != nil {
+				return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
+			}
 		}
+		pterm.Success.Printf(
+			"💈 Services %s restarted successfully.\n",
+			strings.Join(services, ", "),
+		)
+	} else if runtime.GOOS == "darwin" {
+		if runtime.GOOS == "linux" {
+			for _, service := range services {
+				err := servicemanager.RestartLaunchctlService(service)
+				if err != nil {
+					return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
+				}
+			}
+			pterm.Success.Printf(
+				"💈 Services %s restarted successfully.\n",
+				strings.Join(services, ", "),
+			)
+		}
+	} else {
+		return errors.New("os not supported")
 	}
-	pterm.Success.Printf(
-		"💈 Services %s restarted successfully.\n",
-		strings.Join(services, ", "),
-	)
 	return nil
 }

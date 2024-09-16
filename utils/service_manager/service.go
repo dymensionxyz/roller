@@ -2,6 +2,7 @@ package servicemanager
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
 	"sync"
@@ -113,18 +114,22 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 	}()
 }
 
-func StartSystemdService(serviceName string, options ...string) error {
-	// Create the base command
-	cmd := []string{"sudo", "systemctl", "start", serviceName}
+func StartSystemdService(serviceName string) error {
+	cmd := exec.Command("sudo", "systemctl", "start", serviceName)
 
-	// Append any additional options
-	cmd = append(cmd, options...)
+	err := bash.ExecCmd(cmd)
+	if err != nil {
+		return err
+	}
 
-	// Create the exec.Command
-	execCmd := exec.Command(cmd[0], cmd[1:]...)
+	return nil
+}
 
-	// Execute the command
-	err := bash.ExecCmd(execCmd)
+func StartLaunchctlService(serviceName string) error {
+	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
+	cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", svcFilaPath)
+
+	err := bash.ExecCmd(cmd)
 	if err != nil {
 		return err
 	}
@@ -133,8 +138,22 @@ func StartSystemdService(serviceName string, options ...string) error {
 }
 
 func RestartSystemdService(serviceName string) error {
-	// not ideal, shouldn't run sudo commands from within roller
 	cmd := exec.Command("sudo", "systemctl", "restart", serviceName)
+
+	// not ideal, shouldn't run sudo commands from within roller
+	err := bash.ExecCmd(cmd)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RestartLaunchctlService(serviceName string) error {
+	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
+	cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", svcFilaPath)
+
+	// not ideal, shouldn't run sudo commands from within roller
 	err := bash.ExecCmd(cmd)
 	if err != nil {
 		return err
