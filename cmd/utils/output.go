@@ -43,7 +43,7 @@ func PrintInsufficientBalancesIfAny(
 	}
 
 	pterm.DefaultSection.WithIndentCharacter("🔔").
-		Println("Please fund the addresses below to register and run the sequencer.")
+		Println("Please fund the addresses below.")
 	printAddresses()
 
 	// TODO: to util
