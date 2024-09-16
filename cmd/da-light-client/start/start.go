@@ -5,15 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 const (

@@ -127,9 +127,13 @@ func StartSystemdService(serviceName string) error {
 
 func StartLaunchctlService(serviceName string) error {
 	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
-	cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", svcFilaPath)
 
-	err := bash.ExecCmd(cmd)
+	err := exec.Command("sudo", "launchctl", "unload", "-w", svcFilaPath).Run()
+	if err != nil {
+		return err
+	}
+
+	err = exec.Command("sudo", "launchctl", "load", "-w", svcFilaPath).Run()
 	if err != nil {
 		return err
 	}
@@ -151,10 +155,14 @@ func RestartSystemdService(serviceName string) error {
 
 func RestartLaunchctlService(serviceName string) error {
 	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
-	cmd := exec.Command("sudo", "launchctl", "kickstart", "-k", svcFilaPath)
+	dCmd := exec.Command("sudo", "launchctl", "unload", "-w", svcFilaPath)
+	err := bash.ExecCmd(dCmd)
+	if err != nil {
+		return err
+	}
 
-	// not ideal, shouldn't run sudo commands from within roller
-	err := bash.ExecCmd(cmd)
+	uCmd := exec.Command("sudo", "launchctl", "load", "-w", svcFilaPath)
+	err = bash.ExecCmd(uCmd)
 	if err != nil {
 		return err
 	}
@@ -165,6 +173,23 @@ func RestartLaunchctlService(serviceName string) error {
 func StopSystemdService(serviceName string) error {
 	// not ideal, shouldn't run sudo commands from within roller
 	cmd := exec.Command("sudo", "systemctl", "stop", serviceName)
+	err := bash.ExecCmd(cmd)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func StopLaunchdService(serviceName string) error {
+	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
+	cmd := exec.Command(
+		"sudo",
+		"launchctl",
+		"unload",
+		"-w",
+		svcFilaPath,
+	)
 	err := bash.ExecCmd(cmd)
 	if err != nil {
 		return err

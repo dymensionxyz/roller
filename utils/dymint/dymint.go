@@ -2,20 +2,19 @@ package dymint
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
 )
 
 // TODO: use dymint instead
@@ -134,22 +133,41 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 				return err
 			}
 		}
-		cmd := exec.Command(
-			"sudo", "systemctl", "restart", "rollapp",
-		)
 
-		time.Sleep(time.Second * 2)
-		WaitForHealthyRollApp("http://localhost:26657/health")
-		_, err = bash.ExecCommandWithStdout(cmd)
-		if err != nil {
-			return err
+		if runtime.GOOS == "linux" {
+			err := servicemanager.RestartSystemdService("rollapp")
+			if err != nil {
+				return err
+			}
+		} else if runtime.GOOS == "darwin" {
+			err := servicemanager.RestartLaunchctlService("rollapp")
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New(
+				"unsupported platform: " + runtime.GOOS +
+					", only linux and darwin are supported",
+			)
 		}
+
 	} else {
 		pterm.Info.Println("block time settings already up to date")
 		pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
-		err = servicemanager.RestartSystemdService("rollapp")
-		if err != nil {
-			return err
+		if runtime.GOOS == "linux" {
+			err = servicemanager.RestartSystemdService("rollapp")
+			if err != nil {
+				return err
+			}
+		} else if runtime.GOOS == "darwin" {
+			err = servicemanager.RestartLaunchctlService("rollapp")
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New(
+				"unsupported platform: " + runtime.GOOS +
+					", only linux and darwin are supported")
 		}
 		WaitForHealthyRollApp("http://localhost:26657/health")
 	}
@@ -163,6 +181,22 @@ func WaitForHealthyRollApp(url string) {
 	defer ticker.Stop()
 
 	spinner, _ := pterm.DefaultSpinner.Start("waiting for rollapp to become healthy")
+
+	// if runtime.GOOS == "linux" {
+	// 	err := servicemanager.RestartSystemdService("rollapp")
+	// 	if err != nil {
+	// 		pterm.Error.Println(err)
+	// 		return
+	// 	}
+	// } else if runtime.GOOS == "darwin" {
+	// 	err := servicemanager.RestartLaunchctlService("rollapp")
+	// 	if err != nil {
+	// 		pterm.Error.Println(err)
+	// 		return
+	// 	}
+	// } else {
+	// 	return
+	// }
 
 	for {
 		select {

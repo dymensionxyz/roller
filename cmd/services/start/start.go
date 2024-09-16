@@ -5,10 +5,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func RollappCmd() *cobra.Command {
@@ -35,6 +36,7 @@ func RollappCmd() *cobra.Command {
 				)
 				return
 			}
+
 			pterm.Info.Println("next steps:")
 			pterm.Info.Printf(
 				"run %s to set up IBC channels and start relaying packets\n",
@@ -42,9 +44,9 @@ func RollappCmd() *cobra.Command {
 					Sprintf("roller relayer setup"),
 			)
 			pterm.Info.Printf(
-				"run %s to view the logs  of the relayer\n",
+				"run %s to view the logs  of the rollapp\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer services load"),
+					Sprintf("roller rollapp services logs"),
 			)
 		},
 	}
@@ -56,10 +58,23 @@ func RelayerCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Starts the relayer locally",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := startSystemdServices(consts.RelayerSystemdServices)
-			if err != nil {
-				pterm.Error.Println("failed to start systemd services:", err)
-				return
+			if runtime.GOOS == "linux" {
+				err := startSystemdServices(consts.RelayerSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start systemd services:", err)
+					return
+				}
+			} else if runtime.GOOS == "darwin" {
+				err := startLaunchctlServices(consts.RelayerSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start launchd services:", err)
+					return
+				}
+			} else {
+				pterm.Error.Printf(
+					"the %s commands currently support only darwin and linux operating systems",
+					cmd.Use,
+				)
 			}
 
 			pterm.Info.Println("next steps:")

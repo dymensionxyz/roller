@@ -102,13 +102,15 @@ func LoadRollappMetadataFromChain(
 			return nil, err
 		}
 
+		vmt, _ := consts.ToVMType(raResponse.Rollapp.VmType)
+
 		cfg = config.RollappConfig{
 			Home:             home,
 			GenesisHash:      raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 			GenesisUrl:       raResponse.Rollapp.Metadata.GenesisUrl,
 			RollappID:        raResponse.Rollapp.RollappId,
 			RollappBinary:    consts.Executables.RollappEVM,
-			VMType:           consts.EVM_ROLLAPP,
+			VMType:           vmt,
 			Denom:            "",
 			Decimals:         18,
 			HubData:          *hd,

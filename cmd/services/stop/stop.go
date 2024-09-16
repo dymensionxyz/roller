@@ -27,16 +27,22 @@ func Cmd(services []string) *cobra.Command {
 }
 
 func stopSystemdServices(services []string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf(
-			"the services commands are only available on linux machines",
-		)
-	}
-	for _, service := range services {
-		err := servicemanager.StopSystemdService(fmt.Sprintf("%s.service", service))
-		if err != nil {
-			return fmt.Errorf("failed to stop %s systemd service: %v", service, err)
+	if runtime.GOOS == "linux" {
+		for _, service := range services {
+			err := servicemanager.StopSystemdService(fmt.Sprintf("%s.service", service))
+			if err != nil {
+				return fmt.Errorf("failed to stop %s systemd service: %v", service, err)
+			}
 		}
+	} else if runtime.GOOS == "darwin" {
+		for _, service := range services {
+			err := servicemanager.StopLaunchdService(service)
+			if err != nil {
+				return fmt.Errorf("failed to stop %s systemd service: %v", service, err)
+			}
+		}
+	} else {
+		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
 	pterm.Success.Printf(
 		"💈 Services %s stopped successfully.\n",

@@ -6,10 +6,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
+	"github.com/pterm/pterm"
 )
 
 var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
