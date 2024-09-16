@@ -1,17 +1,15 @@
 package initconfig
 
 import (
-	"fmt"
 	"os/exec"
 	"path"
-
-	keys2 "github.com/dymensionxyz/roller/utils/keys"
-	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	keys2 "github.com/dymensionxyz/roller/utils/keys"
+	"github.com/pterm/pterm"
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
@@ -70,7 +68,7 @@ func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.RollappRelayer,
 			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
+			Type:        consts.EVM_ROLLAPP,
 		},
 		consts.KeysIds.HubRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
@@ -82,42 +80,17 @@ func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 }
 
 func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	pterm.Info.Println("getting relayer keys")
 	relayerAddresses := make([]utils.KeyInfo, 0)
 	keys := GetRelayerKeysConfig(rollappConfig)
 
-	showRollappKeyCmd := getShowRlyKeyCmd(
-		keys[consts.KeysIds.RollappRelayer],
-		rollappConfig.RollappID,
-	)
-	showHubKeyCmd := getShowRlyKeyCmd(
+	relayerHubAddress, err := utils.GetRelayerAddressInfo(
 		keys[consts.KeysIds.HubRelayer],
 		rollappConfig.HubData.ID,
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	out, err := bash.ExecCommandWithStdout(showRollappKeyCmd)
-	if err != nil {
-		pterm.Error.Printf("failed to retrieve rollapp key: %v\n", err)
-	}
-	relayerRollappAddress, err := utils.ParseAddressFromOutput(out)
-	if err != nil {
-		pterm.Error.Printf("failed to extract rollapp key: %v\n", err)
-	}
-	fmt.Println(relayerRollappAddress)
-
-	out, err = bash.ExecCommandWithStdout(showHubKeyCmd)
-	if err != nil {
-		pterm.Error.Printf("failed to retrieve hub key: %v\n", err)
-	}
-	relayerHubAddress, err := utils.ParseAddressFromOutput(out)
-	if err != nil {
-		pterm.Error.Printf("failed to extract hub key: %v\n", err)
-	}
-	fmt.Println(relayerHubAddress)
-
-	relayerAddresses = append(
-		relayerAddresses, *relayerRollappAddress,
-	)
 	relayerAddresses = append(
 		relayerAddresses, *relayerHubAddress,
 	)
@@ -130,8 +103,6 @@ func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
 		kc,
 		chainID,
 	)
-
-	fmt.Println(addKeyCmd.String())
 
 	out, err := bash.ExecCommandWithStdout(addKeyCmd)
 	if err != nil {
@@ -196,10 +167,6 @@ func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 }
 
 func getShowRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	coinType := "118"
-	if keyConfig.Type == consts.EVM_ROLLAPP {
-		coinType = "60"
-	}
 	return exec.Command(
 		consts.Executables.Relayer,
 		"keys",
@@ -208,7 +175,5 @@ func getShowRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 		keyConfig.ID,
 		"--home",
 		keyConfig.Dir,
-		"--coin-type",
-		coinType,
 	)
 }

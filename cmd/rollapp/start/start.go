@@ -2,23 +2,17 @@ package start
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -26,6 +20,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -88,31 +84,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				parseError,
 				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
 			)
-
-			// TODO: this is an ugly workaround to start a light client for those
-			// who run a rollapp locally on their non-linux boxes ( why would you )
-			// refactor and remove repetition with da-light-client start command
-			if runtime.GOOS != "linux" && rollappConfig.HubData.ID != consts.MockHubID {
-				damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
-				startDALCCmd := damanager.GetStartDACmd()
-				if startDALCCmd == nil {
-					errorhandling.PrettifyErrorIfExists(
-						errors.New(
-							"DA doesn't need to run separately. It runs automatically with the app",
-						),
-					)
-				}
-
-				DaLcEndpoint = damanager.GetLightNodeEndpoint()
-
-				defer cancel()
-				go bash.RunCmdAsync(
-					ctx,
-					startDALCCmd,
-					printDaOutput,
-					parseError,
-				)
-			}
 
 			select {}
 		},

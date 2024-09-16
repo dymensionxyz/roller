@@ -127,3 +127,14 @@ const (
 	SDK_ROLLAPP VMType = "sdk"
 	EVM_ROLLAPP VMType = "evm"
 )
+
+func ToVMType(s string) (VMType, error) {
+	switch s {
+	case string(SDK_ROLLAPP):
+		return SDK_ROLLAPP, nil
+	case string(EVM_ROLLAPP):
+		return EVM_ROLLAPP, nil
+	default:
+		return "", fmt.Errorf("invalid VMType: %s", s)
+	}
+}

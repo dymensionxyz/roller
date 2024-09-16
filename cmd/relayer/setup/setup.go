@@ -9,9 +9,6 @@ import (
 	"strconv"
 
 	comettypes "github.com/cometbft/cometbft/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -26,6 +23,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -213,8 +212,9 @@ func Cmd() *cobra.Command {
 					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 
-				pterm.Info.Println("please fund the keys below with 20 <tokens> respectively: ")
-				for _, k := range keys {
+				keysToFund, err := initconfig.GetRelayerKeys(rollappConfig)
+				pterm.Info.Println("please fund the hub relayer key with at least 20 dym tokens: ")
+				for _, k := range keysToFund {
 					k.Print(utils.WithName())
 				}
 				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
@@ -228,10 +228,6 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
 					return
-				}
-
-				for _, key := range keys {
-					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 
 				if err := relayer.CreatePath(rollappConfig); err != nil {
@@ -366,6 +362,7 @@ func Cmd() *cobra.Command {
 				rollappConfig.HubData.ID,
 			)
 			rly.SetLogger(relayerLogger)
+			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 			_, _, err = rly.LoadActiveChannel()
 			if err != nil {
 				pterm.Error.Printf("failed to load active channel, %v", err)

@@ -11,8 +11,12 @@ import (
 	"text/template"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -23,9 +27,10 @@ type Service struct {
 }
 
 type ServiceTemplateData struct {
-	Name     string
-	ExecPath string
-	UserName string
+	Name         string
+	ExecPath     string
+	UserName     string
+	CustomRunCmd []string
 }
 
 func Cmd(services []string, module string) *cobra.Command {
@@ -33,6 +38,17 @@ func Cmd(services []string, module string) *cobra.Command {
 		Use:   "load",
 		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
+			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			if err != nil {
+				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
+			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			if err != nil {
+				pterm.Error.Println("failed to load roller config file", err)
+				return
+			}
 
 			if runtime.GOOS == "darwin" {
 				for _, service := range services {
@@ -41,32 +57,34 @@ func Cmd(services []string, module string) *cobra.Command {
 						ExecPath: consts.Executables.Roller,
 						UserName: os.Getenv("USER"),
 					}
-					tpl, err := generateLaunchctlServiceTemplate(serviceData)
-					if err != nil {
-						pterm.Error.Println("failed to generate template", err)
-						return
+
+					var tpl *bytes.Buffer
+					var err error
+
+					if service == "da-light-client" {
+						damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+						c := damanager.GetStartDACmd()
+
+						tpl, err = generateCustomLaunchctlServiceTemplate(serviceData, c)
+						if err != nil {
+							pterm.Error.Println("failed to generate template", err)
+							return
+						}
+					} else {
+						tpl, err = generateLaunchctlServiceTemplate(serviceData)
+						if err != nil {
+							pterm.Error.Println("failed to generate template", err)
+							return
+						}
 					}
+
 					err = writeLaunchctlServiceFile(tpl, service)
 					if err != nil {
 						pterm.Error.Println("failed to write launchctl file", err)
 						return
 					}
 					errorhandling.PrettifyErrorIfExists(err)
-					filePath := filepath.Join(
-						"/Library/LaunchDaemons/",
-						fmt.Sprintf("xyz.dymension.roller.%s.plist", service),
-					)
 
-					_, err = bash.ExecCommandWithStdout(
-						exec.Command(
-							"sudo",
-							"launchctl",
-							"load",
-							filePath,
-						),
-					)
-
-					errorhandling.PrettifyErrorIfExists(err)
 				}
 
 				return
@@ -209,6 +227,86 @@ func generateLaunchctlServiceTemplate(
 </dict>
 </plist>
 `
+	serviceTemplate, err := template.New("service").Parse(tmpl)
+	if err != nil {
+		pterm.Println("failed to create template")
+		return nil, err
+	}
+	var tpl bytes.Buffer
+	err = serviceTemplate.Execute(&tpl, serviceData)
+	if err != nil {
+		pterm.Println("failed to generate template")
+		return nil, err
+	}
+	return &tpl, nil
+}
+
+func generateCustomLaunchctlServiceTemplate(
+	serviceData ServiceTemplateData,
+	pArgs any,
+) (*bytes.Buffer, error) {
+	var args []string
+	switch v := pArgs.(type) {
+	case []string:
+		args = v
+	case *exec.Cmd:
+		args = v.Args
+	default:
+		return nil, fmt.Errorf("unsupported type for programArgs: %T", pArgs)
+	}
+
+	tmpl := `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>xyz.dymension.roller.{{.Name}}</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        {{range .CustomRunCmd}}
+        <string>{{.}}</string>
+        {{end}}
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>UserName</key>
+    <string>{{.UserName}}</string>
+
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65535</integer>
+    </dict>
+
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65535</integer>
+    </dict>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin/roller_bins:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>
+`
+
+	serviceData.CustomRunCmd = args
+
 	serviceTemplate, err := template.New("service").Parse(tmpl)
 	if err != nil {
 		pterm.Println("failed to create template")

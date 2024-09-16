@@ -80,10 +80,36 @@ func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, err
 		"--output",
 		"json",
 	)
+	fmt.Println(showKeyCommand.String())
+
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {
 		return nil, err
 	}
+
+	return ParseAddressFromOutput(output)
+}
+
+func GetRelayerAddressInfo(keyConfig KeyConfig, chainId string) (*KeyInfo, error) {
+	showKeyCommand := exec.Command(
+		keyConfig.ChainBinary,
+		"keys",
+		"show",
+		keyConfig.ID,
+		"--keyring-backend",
+		"test",
+		"--keyring-dir",
+		filepath.Join(keyConfig.Dir, "keys", chainId),
+		"--output",
+		"json",
+	)
+	fmt.Println(showKeyCommand.String())
+
+	output, err := bash.ExecCommandWithStdout(showKeyCommand)
+	if err != nil {
+		return nil, err
+	}
+
 	return ParseAddressFromOutput(output)
 }
 
