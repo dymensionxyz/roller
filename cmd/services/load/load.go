@@ -10,15 +10,17 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/cronjobs"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 type Service struct {
@@ -110,13 +112,26 @@ func Cmd(services []string, module string) *cobra.Command {
 					"💈 Services %s been loaded successfully.\n",
 					strings.Join(services, ", "),
 				)
-
 			} else {
 				pterm.Info.Printf(
 					"the %s commands currently support only darwin and linux operating systems",
 					cmd.Use,
 				)
 				return
+			}
+
+			if module == "relayer" {
+				schedule := "*/15 * * * *" // Run every hour
+				command := fmt.Sprintf(
+					"%s tx flush hub-rollapp --max-msgs 100",
+					consts.Executables.Relayer,
+				)
+
+				err := cronjobs.Add(schedule, command)
+				if err != nil {
+					pterm.Error.Println("failed to add flush cronjob", err)
+					return
+				}
 			}
 
 			pterm.Info.Println("next steps:")
