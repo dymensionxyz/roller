@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.5.0-alpha-rc01...v1.6.0-alpha-rc01) (2024-09-17)
+
+
+### Features
+
+* add wasm rollapp support ([#968](https://github.com/dymensionxyz/roller/issues/968)) ([dc57755](https://github.com/dymensionxyz/roller/commit/dc57755a8574ec817cf40eba35d7647720974c79))
+
+
+### Bug Fixes
+
+* **deps:** bump eibc version ([#969](https://github.com/dymensionxyz/roller/issues/969)) ([6e7d0d5](https://github.com/dymensionxyz/roller/commit/6e7d0d57243280d0ac522ff4337ac353b662cbf1))
+
 ## [1.5.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.5-alpha-rc01...v1.5.0-alpha-rc01) (2024-09-17)
 
 
