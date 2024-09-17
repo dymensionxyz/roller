@@ -232,7 +232,7 @@ func IsRollappHealthy(url string) (bool, any) {
 	if err != nil {
 		fmt.Printf("Error reading response body: %v\n", err)
 	}
-	// nolint:errcheck
+	// nolint:errcheck,gosec
 	resp.Body.Close()
 
 	var response RollappHealthResponse
