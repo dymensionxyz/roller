@@ -9,7 +9,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/pterm/pterm"
 )
 
 type Sequencer struct {
@@ -26,7 +25,6 @@ var (
 )
 
 func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
-	pterm.Info.Println("retrieving sequencer instance")
 	once.Do(
 		func() {
 			seq := &Sequencer{

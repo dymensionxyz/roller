@@ -10,9 +10,8 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/dymint"
 )
 
 func Cmd() *cobra.Command {
@@ -21,14 +20,11 @@ func Cmd() *cobra.Command {
 		Short: "Show the status of the sequencer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			rollerConfig, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				fmt.Println("failed to load config:", err)
 				return
 			}
-			errorhandling.PrettifyErrorIfExists(err)
-			seq := sequencer.GetInstance(rollappConfig)
-			fmt.Println(seq.GetSequencerStatus())
 
 			pidFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "rollapp.pid")
 			pid, err := os.ReadFile(pidFilePath)
@@ -37,7 +33,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			start.PrintOutput(rollappConfig, string(pid), true)
+			ok, msg := dymint.IsRollappHealthy("http://localhost:26657/health")
+			if !ok {
+				start.PrintOutput(rollerConfig, string(pid), true, false, false, false)
+				fmt.Println("Unhealthy Message: ", msg)
+				return
+			}
+
+			start.PrintOutput(rollerConfig, string(pid), true, true, true, true)
 		},
 	}
 	return cmd
