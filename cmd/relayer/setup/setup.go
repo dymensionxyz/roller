@@ -140,6 +140,18 @@ func Cmd() *cobra.Command {
 							return
 						}
 					}
+				} else if runtime.GOOS == "darwin" {
+					pterm.Info.Println("removing old systemd services")
+					for _, svc := range consts.RelayerSystemdServices {
+						svcFileName := fmt.Sprintf("xyz.dymension.roller.%s.plist", svc)
+						svcFilePath := filepath.Join("/Library/LaunchDaemons/", svcFileName)
+
+						err := filesystem.RemoveFileIfExists(svcFilePath)
+						if err != nil {
+							pterm.Error.Println("failed to remove systemd service: ", err)
+							return
+						}
+					}
 				}
 
 				err = os.MkdirAll(relayerHome, 0o755)

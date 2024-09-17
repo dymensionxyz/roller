@@ -222,16 +222,17 @@ func WaitForHealthyRollApp(url string) {
 }
 
 func IsRollappHealthy(url string) (bool, any) {
-	fmt.Println(url)
 	// nolint:gosec
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Error making request: %v\n", err)
+		msg := fmt.Sprintf("Error making request: %v\n", err)
+		return false, msg
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error reading response body: %v\n", err)
+		msg := fmt.Sprintf("Error reading response body: %v\n", err)
+		return false, msg
 	}
 	// nolint:errcheck,gosec
 	resp.Body.Close()
@@ -248,8 +249,8 @@ func IsRollappHealthy(url string) (bool, any) {
 	}
 
 	if response.Result.IsHealthy {
-		return true, ""
+		return true, response.Result.Error
 	}
 
-	return false, ""
+	return true, response.Result.Error
 }

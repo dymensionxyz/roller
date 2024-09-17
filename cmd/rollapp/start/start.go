@@ -62,6 +62,8 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd()
 
+			fmt.Println(startRollappCmd.String())
+
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
