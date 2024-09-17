@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.5-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.4-alpha-rc01...v1.4.5-alpha-rc01) (2024-09-17)
+
+
+### Bug Fixes
+
+* **deps:** update rollapp commit and prebuilt version ([ca329c6](https://github.com/dymensionxyz/roller/commit/ca329c63a8bc768354d296b1a3abd361910b4a37))
+
 ## [1.4.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.3-alpha-rc01...v1.4.4-alpha-rc01) (2024-09-17)
 
 
