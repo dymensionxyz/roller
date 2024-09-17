@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.0-alpha-rc01...v1.6.1-alpha-rc01) (2024-09-17)
+
+
+### Bug Fixes
+
+* **deps:** update eibc version ([48338c3](https://github.com/dymensionxyz/roller/commit/48338c300643cc59dc80c2090751f39c210a845f))
+
 ## [1.6.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.5.0-alpha-rc01...v1.6.0-alpha-rc01) (2024-09-17)
 
 
