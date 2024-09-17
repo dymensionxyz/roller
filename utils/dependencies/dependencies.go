@@ -341,7 +341,7 @@ func DownloadRelease(
 		Closer: resp.Body,
 	}
 
-	// nolint: errcheck
+	// nolint: errcheck,gosec
 	spinner.Stop()
 	// Extract the tar.gz file with progress
 	err = archives.ExtractTarGz(destination, readCloserWrapper, dep)
