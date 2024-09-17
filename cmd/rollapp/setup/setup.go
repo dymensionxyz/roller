@@ -729,6 +729,11 @@ func Cmd() *cobra.Command {
 				"da_config",
 				daConfig,
 			)
+			_ = globalutils.UpdateFieldInToml(
+				dymintConfigPath,
+				"max_proof_time",
+				"1m",
+			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
 			_ = globalutils.UpdateFieldInToml(
