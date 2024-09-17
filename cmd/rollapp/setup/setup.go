@@ -107,7 +107,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			bp, err := rollapp.ExtractBech32Prefix()
+			bp, err := rollapp.ExtractBech32Prefix(
+				strings.ToLower(raResponse.Rollapp.VmType),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
 			}

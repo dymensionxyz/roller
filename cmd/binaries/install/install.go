@@ -84,7 +84,11 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("no bech")
 				return
 			}
-			err = dependencies.InstallBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix, false)
+			err = dependencies.InstallBinaries(
+				raResponse.Rollapp.GenesisInfo.Bech32Prefix,
+				false,
+				strings.ToLower(raResponse.Rollapp.VmType),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return

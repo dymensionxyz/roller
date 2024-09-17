@@ -2,6 +2,7 @@ package rollapp
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -10,15 +11,21 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func ExtractBech32Prefix() (string, error) {
+func ExtractBech32Prefix(vmType string) (string, error) {
 	c := exec.Command("go", "version", "-m", consts.Executables.RollappEVM)
+	fmt.Println(c.String())
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
 		return "", err
 	}
 
 	lines := strings.Split(out.String(), "\n")
-	pattern := `github\.com/dymensionxyz/rollapp-evm/app\.AccountAddressPrefix=(\w+)`
+	var pattern string
+	if vmType == "evm" {
+		pattern = `github\.com/dymensionxyz/rollapp-evm/app\.AccountAddressPrefix=(\w+)`
+	} else if vmType == "wasm" {
+		pattern = `github\.com/dymensionxyz/rollapp-wasm/app\.AccountAddressPrefix=(\w+)`
+	}
 	re := regexp.MustCompile(pattern)
 	var ldflags string
 	var bech32Prefix string

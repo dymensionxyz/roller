@@ -12,6 +12,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pelletier/go-toml/v2"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -25,10 +30,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pelletier/go-toml/v2"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 func runInit(cmd *cobra.Command, env string, raID string) error {
@@ -129,10 +130,22 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 
 	hd := consts.Hubs[env]
+	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(
+		home,
+		raID,
+		&hd,
+	)
+	if err != nil {
+		errorhandling.PrettifyErrorIfExists(err)
+		return err
+	}
+	initConfig := *initConfigPtr
+
 	mochaData := consts.DaNetworks[consts.DefaultCelestiaNetwork]
 	rollerTomlData := map[string]string{
 		"rollapp_id":     raID,
 		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
+		"execution":      string(initConfigPtr.VMType),
 		"home":           home,
 
 		"HubData.id":              hd.ID,
@@ -160,17 +173,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 			return err
 		}
 	}
-
-	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(
-		home,
-		raID,
-		&hd,
-	)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
-	}
-	initConfig := *initConfigPtr
 
 	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
 	err = initConfig.Validate()

@@ -20,7 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
-func InstallBinaries(bech32 string, withMockDA bool) error {
+func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
 	_, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
@@ -62,21 +62,40 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 				},
 			},
 		}
-		buildableDeps["rollapp"] = types.Dependency{
-			Name:       "rollapp",
-			Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:    "fe4246e7ca7f4a636881eb099ebd6e10cd386133", // 20240917 denom-metadata fix
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "./build/rollapp-evm",
-					BinaryDestination: consts.Executables.RollappEVM,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-						fmt.Sprintf("BECH32_PREFIX=%s", bech32),
-					),
+		if vmType == "evm" {
+			buildableDeps["rollapp"] = types.Dependency{
+				Name:       "rollapp",
+				Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
+				Release:    "fe4246e7ca7f4a636881eb099ebd6e10cd386133", // 20240917 denom-metadata fix
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "./build/rollapp-evm",
+						BinaryDestination: consts.Executables.RollappEVM,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+							fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+						),
+					},
 				},
-			},
+			}
+		} else if vmType == "wasm" {
+			buildableDeps["rollapp"] = types.Dependency{
+				Name:       "rollapp",
+				Repository: "https://github.com/dymensionxyz/rollapp-wasm.git",
+				Release:    "a34bc942d86d658a11038c69e860c973e96a1053", // 20240917 denom-metadata fix
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "./build/rollapp-wasm",
+						BinaryDestination: consts.Executables.RollappEVM,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+							fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+						),
+					},
+				},
+			}
 		}
 	}
 
@@ -158,17 +177,32 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 			return err
 		}
 
-		goreleaserDeps["rollapp"] = types.Dependency{
-			Name:       "rollapp-evm",
-			Repository: "https://github.com/artemijspavlovs/rollapp-evm",
-			Release:    "v2.3.4-pg-roller",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "rollappd",
-					BinaryDestination: consts.Executables.RollappEVM,
+		if vmType == "evm" {
+			goreleaserDeps["rollapp"] = types.Dependency{
+				Name:       "rollapp-evm",
+				Repository: "https://github.com/artemijspavlovs/rollapp-evm",
+				Release:    "v2.3.4-pg-roller",
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "rollappd",
+						BinaryDestination: consts.Executables.RollappEVM,
+					},
 				},
-			},
+			}
+		} else if vmType == "wasm" {
+			goreleaserDeps["rollapp"] = types.Dependency{
+				Name:       "rollapp-evm",
+				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",
+				Release:    "v1.0.0-rc04-roller-02",
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "rollappd",
+						BinaryDestination: consts.Executables.RollappEVM,
+					},
+				},
+			}
 		}
+
 	}
 
 	//
@@ -250,7 +284,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 		spinner.UpdateText(
-			fmt.Sprintf("Successfully installed %s\n", filepath.Base(binary.BinaryDestination)),
+			fmt.Sprintf("Finishing installation %s\n", filepath.Base(binary.BinaryDestination)),
 		)
 	}
 
