@@ -99,7 +99,7 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 		"eibc-client": {
 			Name:       "eibc-client",
 			Repository: "https://github.com/artemijspavlovs/eibc-client",
-			Release:    "v1.1.0",
+			Release:    "v1.1.2-roller",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "eibc-client",
