@@ -85,11 +85,11 @@ func Cmd(services []string, module string) *cobra.Command {
 						pterm.Error.Println("failed to write launchctl file", err)
 						return
 					}
-					errorhandling.PrettifyErrorIfExists(err)
-
 				}
-
-				return
+				pterm.Success.Printf(
+					"💈 Services %s been loaded successfully.\n",
+					strings.Join(services, ", "),
+				)
 			} else if runtime.GOOS == "linux" {
 				for _, service := range services {
 					serviceData := ServiceTemplateData{
