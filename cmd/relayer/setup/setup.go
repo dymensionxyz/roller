@@ -220,7 +220,7 @@ func Cmd() *cobra.Command {
 				}
 				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 					WithDefaultText(
-						"press 'y' when the wallets are funded funded",
+						"press 'y' when the wallets are funded",
 					).Show()
 				if !proceed {
 					return
