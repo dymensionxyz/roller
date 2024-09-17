@@ -97,11 +97,11 @@ func Cmd() *cobra.Command {
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			updates := map[string]interface{}{
-				"node_address":             rollerConfig.HubData.RPC_URL,
-				"whale.account_name":       consts.KeysIds.Eibc,
-				"order_poling.interval":    "25s",
-				"order_poling.indexer_url": "http://44.206.211.230:3000/",
-				"order_poling.enabled":     true,
+				"node_address":              rollerConfig.HubData.RPC_URL,
+				"whale.account_name":        consts.KeysIds.Eibc,
+				"order_polling.interval":    "25s",
+				"order_polling.indexer_url": "http://44.206.211.230:3000/",
+				"order_polling.enabled":     true,
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
