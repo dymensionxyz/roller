@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.3-alpha-rc01...v1.4.4-alpha-rc01) (2024-09-17)
+
+
+### Bug Fixes
+
+* **hub:** update playground hub chain id ([#962](https://github.com/dymensionxyz/roller/issues/962)) ([28851d5](https://github.com/dymensionxyz/roller/commit/28851d55f5546d59fa7cb63caf69e96cecceea48))
+
 ## [1.4.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.2-alpha-rc01...v1.4.3-alpha-rc01) (2024-09-17)
 
 
