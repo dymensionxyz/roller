@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.5-alpha-rc01...v1.5.0-alpha-rc01) (2024-09-17)
+
+
+### Features
+
+* add progress bar to downloads ([#965](https://github.com/dymensionxyz/roller/issues/965)) ([e6d3b4b](https://github.com/dymensionxyz/roller/commit/e6d3b4b8ce11783e55a96b9e85a0c41414cc2954))
+
+
+### Bug Fixes
+
+* set max proof time to 1m ([#967](https://github.com/dymensionxyz/roller/issues/967)) ([5f33de1](https://github.com/dymensionxyz/roller/commit/5f33de1094161fa85e5463467a2661f64116580f))
+
 ## [1.4.5-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.4-alpha-rc01...v1.4.5-alpha-rc01) (2024-09-17)
 
 
