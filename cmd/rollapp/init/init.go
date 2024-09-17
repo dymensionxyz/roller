@@ -7,14 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -90,7 +91,12 @@ func Cmd() *cobra.Command {
 			}
 
 			if env == "mock" {
-				err = dependencies.InstallBinaries(env, true)
+				vmtypes := []string{"evm", "wasm"}
+				vmtype, _ := pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(vmtypes).
+					Show()
+				err = dependencies.InstallBinaries(env, true, vmtype)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
@@ -126,7 +132,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("no bech")
 				return
 			}
-			err = dependencies.InstallBinaries(raResponse.Rollapp.GenesisInfo.Bech32Prefix, false)
+			err = dependencies.InstallBinaries(
+				raResponse.Rollapp.GenesisInfo.Bech32Prefix, false,
+				strings.ToLower(raResponse.Rollapp.VmType),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -147,7 +156,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			bp, err := rollapp.ExtractBech32Prefix()
+			bp, err := rollapp.ExtractBech32Prefix(
+				strings.ToLower(raResponse.Rollapp.VmType),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
 			}

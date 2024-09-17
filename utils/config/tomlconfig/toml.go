@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 
 	naoinatoml "github.com/naoina/toml"
 
@@ -102,7 +103,7 @@ func LoadRollappMetadataFromChain(
 			return nil, err
 		}
 
-		vmt, _ := consts.ToVMType(raResponse.Rollapp.VmType)
+		vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
 
 		cfg = config.RollappConfig{
 			Home:             home,
