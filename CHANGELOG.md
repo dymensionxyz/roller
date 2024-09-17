@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.2-alpha-rc01...v1.4.3-alpha-rc01) (2024-09-17)
+
+
+### Bug Fixes
+
+* **deps:** update dymd version to hub ([dd2dffd](https://github.com/dymensionxyz/roller/commit/dd2dffd96283bde4b1f556179296f6fc1717dc1a))
+* **ux:** update prompts and `rollapp status` command ([#960](https://github.com/dymensionxyz/roller/issues/960)) ([c193839](https://github.com/dymensionxyz/roller/commit/c1938393f1fb9e92b7e5b068caa0dd306497facd))
+
 ## [1.4.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.4.1-alpha-rc01...v1.4.2-alpha-rc01) (2024-09-16)
 
 
