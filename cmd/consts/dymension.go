@@ -71,7 +71,7 @@ const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
 	DevnetHubID     = "dymension_100-1"
-	PlaygroundHubID = "dymension_100-1"
+	PlaygroundHubID = "dymension_2018-1"
 	TestnetHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"
 )
