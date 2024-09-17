@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -14,7 +16,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/spf13/cobra"
 )
 
 var flagNames = struct {

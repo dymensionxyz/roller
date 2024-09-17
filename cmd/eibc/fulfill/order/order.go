@@ -3,6 +3,9 @@ package order
 import (
 	"fmt"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -10,8 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -51,7 +52,7 @@ func Cmd() *cobra.Command {
 				percentage = args[1]
 			} else {
 				percentage, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide an order id that you want to fulfill",
+					"provide the expected fee amount",
 				).Show()
 			}
 

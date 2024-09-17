@@ -75,6 +75,9 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 						rollappConfig,
 						strconv.Itoa(startRollappCmd.Process.Pid),
 						showSequencerBalance,
+						true,
+						true,
+						true,
 					)
 					err := createPidFile(RollappDirPath, startRollappCmd)
 					if err != nil {
@@ -93,55 +96,84 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 	return cmd
 }
 
-func PrintOutput(rlpCfg config.RollappConfig, pid string, withBalance bool) {
+func PrintOutput(
+	rlpCfg config.RollappConfig,
+	pid string,
+	withBalance,
+	withEndpoints,
+	withProcessInfo,
+	isHealthy bool,
+) {
+	logPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
+	rollappDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp)
+
 	seq := sequencer.GetInstance(rlpCfg)
-	seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-	if err != nil {
-		return
+
+	var msg string
+	if isHealthy {
+		msg = pterm.DefaultBasicText.WithStyle(
+			pterm.
+				FgGreen.ToStyle(),
+		).Sprintf("💈 The Rollapp sequencer is running on your local machine!")
+	} else {
+		msg = pterm.DefaultBasicText.WithStyle(
+			pterm.
+				FgRed.ToStyle(),
+		).Sprintf("❗ The Rollapp sequencer is in unhealthy state. Please check the logs for more information.")
 	}
 
-	fmt.Println("💈 The Rollapp sequencer is running on your local machine!")
+	fmt.Println(msg)
+	pterm.Println()
 	fmt.Printf(
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 			Sprintf(rlpCfg.RollappID),
 	)
 
-	pterm.DefaultSection.WithIndentCharacter("💈").
-		Println("Endpoints:")
-	fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
-	fmt.Printf("Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
-	fmt.Printf("Rest API: http://0.0.0.0:%v\n", seq.APIPort)
+	if withEndpoints {
+		pterm.DefaultSection.WithIndentCharacter("💈").
+			Println("Endpoints:")
+		fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
+		fmt.Printf("Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
+		fmt.Printf("Rest API: http://0.0.0.0:%v\n", seq.APIPort)
+	}
 
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Filesystem Paths:")
-	fmt.Println("Rollapp root dir: ", RollappDirPath)
-	fmt.Println("Log file path: ", LogPath)
+	fmt.Println("Rollapp root dir: ", rollappDirPath)
+	fmt.Println("Log file path: ", logPath)
 
-	pterm.DefaultSection.WithIndentCharacter("💈").
-		Println("Process Info:")
-	fmt.Println("PID: ", pid)
+	if withProcessInfo {
+		pterm.DefaultSection.WithIndentCharacter("💈").
+			Println("Process Info:")
+		fmt.Println("PID: ", pid)
+	}
 
-	pterm.DefaultSection.WithIndentCharacter("💈").
-		Println("Wallet Info:")
-	fmt.Println("Sequencer Address:", seqAddrData[0].Address)
-
-	if withBalance {
-		fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-		go func() {
-			for {
-				// nolint: gosimple
-				select {
-				default:
-					seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-					if err == nil {
-						// Clear the previous line and print the updated balance
-						fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
-						fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+	if isHealthy {
+		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+		if err != nil {
+			return
+		}
+		pterm.DefaultSection.WithIndentCharacter("💈").
+			Println("Wallet Info:")
+		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
+		if withBalance {
+			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+			go func() {
+				for {
+					// nolint: gosimple
+					select {
+					default:
+						seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+						if err == nil {
+							// Clear the previous line and print the updated balance
+							fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
+							fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+						}
+						time.Sleep(5 * time.Second)
 					}
-					time.Sleep(5 * time.Second)
 				}
-			}
-		}()
+			}()
+		}
 	}
 }
 

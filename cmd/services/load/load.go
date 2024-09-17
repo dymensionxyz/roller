@@ -85,11 +85,11 @@ func Cmd(services []string, module string) *cobra.Command {
 						pterm.Error.Println("failed to write launchctl file", err)
 						return
 					}
-					errorhandling.PrettifyErrorIfExists(err)
-
 				}
-
-				return
+				pterm.Success.Printf(
+					"💈 Services %s been loaded successfully.\n",
+					strings.Join(services, ", "),
+				)
 			} else if runtime.GOOS == "linux" {
 				for _, service := range services {
 					serviceData := ServiceTemplateData{
@@ -123,8 +123,9 @@ func Cmd(services []string, module string) *cobra.Command {
 			if module == "relayer" {
 				schedule := "*/15 * * * *" // Run every hour
 				command := fmt.Sprintf(
-					"%s tx flush hub-rollapp --max-msgs 100",
+					"%s tx flush hub-rollapp --max-msgs 100 --home %s",
 					consts.Executables.Relayer,
+					filepath.Join(rollerData.Home, consts.ConfigDirName.Relayer),
 				)
 
 				err := cronjobs.Add(schedule, command)

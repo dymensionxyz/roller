@@ -167,7 +167,8 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		} else {
 			return errors.New(
 				"unsupported platform: " + runtime.GOOS +
-					", only linux and darwin are supported")
+					", only linux and darwin are supported",
+			)
 		}
 		WaitForHealthyRollApp("http://localhost:26657/health")
 	}
@@ -181,22 +182,6 @@ func WaitForHealthyRollApp(url string) {
 	defer ticker.Stop()
 
 	spinner, _ := pterm.DefaultSpinner.Start("waiting for rollapp to become healthy")
-
-	// if runtime.GOOS == "linux" {
-	// 	err := servicemanager.RestartSystemdService("rollapp")
-	// 	if err != nil {
-	// 		pterm.Error.Println(err)
-	// 		return
-	// 	}
-	// } else if runtime.GOOS == "darwin" {
-	// 	err := servicemanager.RestartLaunchctlService("rollapp")
-	// 	if err != nil {
-	// 		pterm.Error.Println(err)
-	// 		return
-	// 	}
-	// } else {
-	// 	return
-	// }
 
 	for {
 		select {
@@ -233,4 +218,37 @@ func WaitForHealthyRollApp(url string) {
 			}
 		}
 	}
+}
+
+func IsRollappHealthy(url string) (bool, any) {
+	fmt.Println(url)
+	// nolint:gosec
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Error making request: %v\n", err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %v\n", err)
+	}
+	// nolint:errcheck,gosec
+	resp.Body.Close()
+
+	var response RollappHealthResponse
+	if json.Valid(body) {
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			msg := fmt.Sprintf("Error unmarshaling JSON: %v\n", err)
+			return false, msg
+		}
+	} else {
+		return false, "invalid json"
+	}
+
+	if response.Result.IsHealthy {
+		return true, ""
+	}
+
+	return false, ""
 }
