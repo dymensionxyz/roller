@@ -3,6 +3,7 @@ package dependencies
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/pterm/pterm"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
@@ -191,7 +193,9 @@ func InstallBinaries(bech32 string, withMockDA bool) error {
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
-	pterm.Debug.Printf("Installing %s\n", dep.Name)
+	spinner, _ := pterm.DefaultSpinner.Start(
+		fmt.Sprintf("Installing %s\n", dep.Name),
+	)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
 		return err
@@ -201,19 +205,19 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	// Clone the repository
 	err = os.Chdir(targetDir)
 	if err != nil {
-		pterm.Error.Println("failed to create a temp directory")
+		spinner.Fail("failed to create a temp directory")
 		return err
 	}
 
 	c := exec.Command("git", "clone", dep.Repository, targetDir)
 	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
-		pterm.Error.Println("failed to clone")
+		spinner.Fail("failed to clone")
 		return err
 	}
 	// Change directory to the cloned repo
 	if err := os.Chdir(targetDir); err != nil {
-		pterm.Error.Println("failed to create a temp directory")
+		spinner.Fail("failed to create a temp directory")
 		return err
 	}
 
@@ -224,32 +228,40 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		}
 	}
 
-	pterm.Info.Printf(
-		"starting %s build from %s (this can take several minutes)\n",
-		dep.Name,
-		dep.Release,
+	spinner.UpdateText(
+		fmt.Sprintf(
+			"starting %s build from %s (this can take several minutes)\n",
+			dep.Name,
+			dep.Release,
+		),
 	)
 
 	// Build the binary
 	for _, binary := range dep.Binaries {
 		_, err := bash.ExecCommandWithStdout(binary.BuildCommand)
 		if err != nil {
+			spinner.Fail("failed to build")
 			return err
 		}
 
 		c := exec.Command("sudo", "mv", binary.Binary, binary.BinaryDestination)
 		if _, err := bash.ExecCommandWithStdout(c); err != nil {
+			spinner.Fail("failed to install")
 			return err
 		}
-		pterm.Success.Printf(
-			"Successfully installed %s\n", filepath.Base(binary.BinaryDestination),
+		spinner.UpdateText(
+			fmt.Sprintf("Successfully installed %s\n", filepath.Base(binary.BinaryDestination)),
 		)
 	}
+
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
-	pterm.Debug.Printf("Installing %s\n", dep.Name)
+	spinner, _ := pterm.DefaultSpinner.Start(
+		fmt.Sprintf("Installing %s\n", dep.Name),
+	)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.Name == "celestia-app" {
@@ -277,26 +289,62 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		archiveName,
 	)
 
-	err = DownloadRelease(url, targetDir, dep)
+	spinner.UpdateText(fmt.Sprintf("Downloading %s %s\n", dep.Name, dep.Release))
+	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {
 		// nolint: errcheck,gosec
+		spinner.Fail("failed to download release")
 		return err
 	}
+	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s\n", dep.Name))
 
-	pterm.Success.Printf("Successfully installed %s\n", dep.Name)
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
 }
 
-func DownloadRelease(url, destination string, dep types.Dependency) error {
-	// nolint gosec
-	resp, err := http.Get(url)
+func DownloadRelease(
+	url, destination string,
+	dep types.Dependency,
+	spinner *pterm.SpinnerPrinter,
+) error {
+	// Create a new HTTP request
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
 	}
 
-	// nolint errcheck
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
-	err = archives.ExtractTarGz(destination, resp.Body, dep)
+
+	// Create a progress bar
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"Downloading",
+	)
+
+	// Create a reader that will update the progress bar
+	reader := progressbar.NewReader(resp.Body, bar)
+
+	// Create a pointer to the reader
+	readerPtr := &reader
+
+	// Create a wrapper that implements io.ReadCloser
+	readCloserWrapper := struct {
+		io.Reader
+		io.Closer
+	}{
+		Reader: readerPtr,
+		Closer: resp.Body,
+	}
+
+	// nolint: errcheck,gosec
+	spinner.Stop()
+	// Extract the tar.gz file with progress
+	err = archives.ExtractTarGz(destination, readCloserWrapper, dep)
 	if err != nil {
 		return err
 	}

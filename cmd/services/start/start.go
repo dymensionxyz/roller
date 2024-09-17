@@ -5,11 +5,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func RollappCmd() *cobra.Command {
@@ -86,7 +85,7 @@ func RelayerCmd() *cobra.Command {
 			pterm.Info.Printf(
 				"run %s to view the current status of the relayer\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("journalctl -fu relayer"),
+					Sprintf("roller relayer services logs"),
 			)
 		},
 	}

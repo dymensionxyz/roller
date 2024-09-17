@@ -49,7 +49,7 @@ func PrintInsufficientBalancesIfAny(
 	// TODO: to util
 	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 		WithDefaultText(
-			"press 'y' when the wallets are funded funded",
+			"press 'y' when the wallets are funded",
 		).Show()
 	if !proceed {
 		pterm.Info.Println("exiting")
