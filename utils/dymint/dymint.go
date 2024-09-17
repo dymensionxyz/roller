@@ -122,9 +122,17 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		if err != nil {
 			return err
 		}
-		err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", "10s")
-		if err != nil {
-			return err
+
+		if want < time.Minute*1 {
+			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
+			if err != nil {
+				return err
+			}
+		} else {
+			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", "1m")
+			if err != nil {
+				return err
+			}
 		}
 
 		if runtime.GOOS == "linux" {
