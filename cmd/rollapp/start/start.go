@@ -117,12 +117,15 @@ func PrintOutput(
 		msg = pterm.DefaultBasicText.WithStyle(
 			pterm.
 				FgGreen.ToStyle(),
-		).Sprintf("💈 The Rollapp sequencer is running on your local machine!")
+		).Sprintf("💈 The Rollapp %s is running on your local machine!", rlpCfg.NodeType)
 	} else {
 		msg = pterm.DefaultBasicText.WithStyle(
 			pterm.
 				FgRed.ToStyle(),
-		).Sprintf("❗ The Rollapp sequencer is in unhealthy state. Please check the logs for more information.")
+		).Sprintf(
+			"❗ The Rollapp %s is in unhealthy state. Please check the logs for more information.",
+			rlpCfg.NodeType,
+		)
 	}
 
 	fmt.Println(msg)
@@ -159,7 +162,7 @@ func PrintOutput(
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
 		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
-		if withBalance {
+		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 			go func() {
 				for {
