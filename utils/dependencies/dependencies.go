@@ -294,7 +294,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s\n", dep.Name),
+		fmt.Sprintf("Installing %s", dep.Name),
 	)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
