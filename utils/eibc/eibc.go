@@ -75,7 +75,7 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := utils.KeyConfig{
-		Dir:         consts.ConfigDirName.Eibc,
+		Dir:         filepath.Join(home, consts.ConfigDirName.Eibc),
 		ID:          consts.KeysIds.Eibc,
 		ChainBinary: consts.Executables.Dymension,
 		Type:        "",
