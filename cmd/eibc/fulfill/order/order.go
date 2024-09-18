@@ -32,6 +32,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
+			fmt.Println("home directory: ", home)
 
 			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
