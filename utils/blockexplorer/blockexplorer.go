@@ -12,7 +12,7 @@ import (
 func GenerateChainsYAML(chainID string) string {
 	template := `local:
   chain_id: %s
-  be_json_rpc_urls: [ "http://host.docker.internal:11100" ]
+  be_json_rpc_urls: [ "http://18.197.167.214:11100" ]
   # disable: true
 `
 	return fmt.Sprintf(template, chainID)
