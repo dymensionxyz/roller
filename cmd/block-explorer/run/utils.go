@@ -36,7 +36,7 @@ func createBlockExplorerContainers(home string) error {
 	}
 
 	// Determine the host address to use
-	hostAddress := "host.docker.internal"
+	hostAddress := "18.197.167.214"
 	if runtime.GOOS == "linux" {
 		hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 	}
