@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.2-alpha-rc01...v1.6.3-alpha-rc01) (2024-09-18)
+
+
+### Bug Fixes
+
+* **keys:** align key retrieval function with key creation ([#974](https://github.com/dymensionxyz/roller/issues/974)) ([d6ceb6c](https://github.com/dymensionxyz/roller/commit/d6ceb6ccc33a5d2b434b169031d772e929f3453a))
+
 ## [1.6.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.1-alpha-rc01...v1.6.2-alpha-rc01) (2024-09-18)
 
 
