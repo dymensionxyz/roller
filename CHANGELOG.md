@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.3-alpha-rc01...v1.6.4-alpha-rc01) (2024-09-18)
+
+
+### Bug Fixes
+
+* **eibc:** improve error handling ([94f27a7](https://github.com/dymensionxyz/roller/commit/94f27a708c45718ed222b4a62ecdee6265d6f568))
+* **keys:** remove home from key directory where it's unnecessary ([168c871](https://github.com/dymensionxyz/roller/commit/168c871c2185fff39ced314b63d3edf8b031e694))
+
 ## [1.6.3-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.2-alpha-rc01...v1.6.3-alpha-rc01) (2024-09-18)
 
 
