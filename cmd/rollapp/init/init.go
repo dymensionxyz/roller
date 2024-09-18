@@ -83,7 +83,6 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			pterm.Info.Println("validating RollApp ID: ", raID)
 			_, err = rollapp.ValidateChainID(raID)
 			if err != nil {
 				pterm.Error.Println("failed to validate chain id: ", err)
@@ -93,7 +92,7 @@ func Cmd() *cobra.Command {
 			if env == "mock" {
 				vmtypes := []string{"evm", "wasm"}
 				vmtype, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
+					WithDefaultText("select the rollapp VM type you want to initialize for").
 					WithOptions(vmtypes).
 					Show()
 				err = dependencies.InstallBinaries(env, true, vmtype)
@@ -101,7 +100,7 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
 				}
-				err := runInit(cmd, env, raID)
+				err := runInit(cmd, env, raID, vmtype)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
 					return
@@ -172,7 +171,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, raID)
+			err = runInit(cmd, env, raID, strings.ToLower(raResponse.Rollapp.VmType))
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return

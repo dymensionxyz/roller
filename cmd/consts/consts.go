@@ -126,8 +126,9 @@ const RollerConfigFileName = "roller.toml"
 type VMType string
 
 const (
-	SDK_ROLLAPP VMType = "sdk"
-	EVM_ROLLAPP VMType = "evm"
+	SDK_ROLLAPP  VMType = "sdk"
+	EVM_ROLLAPP  VMType = "evm"
+	WASM_ROLLAPP VMType = "wasm"
 )
 
 func ToVMType(s string) (VMType, error) {
@@ -136,6 +137,8 @@ func ToVMType(s string) (VMType, error) {
 		return SDK_ROLLAPP, nil
 	case string(EVM_ROLLAPP):
 		return EVM_ROLLAPP, nil
+	case string(WASM_ROLLAPP):
+		return WASM_ROLLAPP, nil
 	default:
 		return "", fmt.Errorf("invalid VMType: %s", s)
 	}

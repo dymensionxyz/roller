@@ -191,9 +191,9 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 			}
 		} else if vmType == "wasm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp-evm",
+				Name:       "rollapp-wasm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",
-				Release:    "v1.0.0-rc04-roller-02",
+				Release:    "v1.0.0-rc04-roller-03",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -228,7 +228,7 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s\n", dep.Name),
+		fmt.Sprintf("Installing %s", dep.Name),
 	)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
@@ -294,7 +294,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s\n", dep.Name),
+		fmt.Sprintf("Installing %s", dep.Name),
 	)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
