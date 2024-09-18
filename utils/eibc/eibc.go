@@ -75,13 +75,13 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := utils.KeyConfig{
-		Dir:         filepath.Join(home, consts.ConfigDirName.Eibc),
+		Dir:         consts.ConfigDirName.Eibc,
 		ID:          consts.KeysIds.Eibc,
 		ChainBinary: consts.Executables.Dymension,
 		Type:        "",
 	}
 
-	_, err := utils.GetAddressInfoBinary(kc, consts.Executables.Dymension)
+	_, err := utils.GetAddressInfoBinary(kc, home)
 	if err != nil {
 		pterm.Info.Println("whale account not found in the keyring, creating it now")
 		addressInfo, err := keys.CreateAddressBinary(kc, home)

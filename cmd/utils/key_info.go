@@ -67,16 +67,16 @@ func ParseAddressFromOutput(output bytes.Buffer) (*KeyInfo, error) {
 	return key, nil
 }
 
-func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, error) {
+func GetAddressInfoBinary(keyConfig KeyConfig, home string) (*KeyInfo, error) {
 	showKeyCommand := exec.Command(
-		binaryPath,
+		keyConfig.ChainBinary,
 		"keys",
 		"show",
 		keyConfig.ID,
 		"--keyring-backend",
 		"test",
 		"--keyring-dir",
-		keyConfig.Dir,
+		filepath.Join(home, keyConfig.Dir),
 		"--output",
 		"json",
 	)

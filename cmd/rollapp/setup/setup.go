@@ -138,7 +138,7 @@ func Cmd() *cobra.Command {
 					ChainBinary: consts.Executables.Dymension,
 					Type:        consts.SDK_ROLLAPP,
 				}
-				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, hubSeqKC.ChainBinary)
+				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
 				if err != nil {
 					pterm.Error.Println("failed to get address info: ", err)
 					return

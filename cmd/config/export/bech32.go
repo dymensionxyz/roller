@@ -1,7 +1,6 @@
 package export
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -12,9 +11,11 @@ import (
 func getBech32Prefix(rlpCfg config.RollappConfig) (string, error) {
 	rollappSeqAddrInfo, err := utils.GetAddressInfoBinary(
 		utils.KeyConfig{
-			Dir: filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp),
-			ID:  consts.KeysIds.RollappSequencer,
-		}, rlpCfg.RollappBinary,
+			Dir:         consts.ConfigDirName.Rollapp,
+			ID:          consts.KeysIds.RollappSequencer,
+			ChainBinary: consts.Executables.RollappEVM,
+			Type:        "",
+		}, rlpCfg.Home,
 	)
 	if err != nil {
 		return "", err

@@ -66,7 +66,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to fulfill order: ", err)
 				return
 			}
-			fmt.Println(gCmd.String())
 
 			txOutput, err := bash.ExecCommandWithInput(gCmd, "signatures")
 			if err != nil {
