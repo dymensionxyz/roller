@@ -57,7 +57,6 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			fmt.Println("orders related to fulfillment of eibc orders")
 			gCmd, err := eibc.GetFulfillOrderCmd(
 				orderId,
 				feeAmount,
