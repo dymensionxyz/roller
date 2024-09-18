@@ -510,7 +510,6 @@ func Cmd() *cobra.Command {
 			}
 
 			// DA
-			oh := initconfig.NewOutputHandler(false)
 			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
@@ -524,27 +523,7 @@ func Cmd() *cobra.Command {
 
 			var shouldOverwrite bool
 			if isDaInitialized {
-				pterm.Info.Println("DA client is already initialized")
-				oh.StopSpinner()
-				shouldOverwrite, err = oh.PromptOverwriteConfig(daHome)
-				if err != nil {
-					return
-				}
-			}
-
-			if shouldOverwrite {
-				pterm.Info.Println("overriding the existing da configuration")
-				err := os.RemoveAll(daHome)
-				if err != nil {
-					pterm.Error.Printf("failed to remove %s: %v\n", daHome, err)
-					return
-				}
-
-				err = os.MkdirAll(daHome, 0o755)
-				if err != nil {
-					pterm.Error.Printf("failed to create %s: %v\n", daHome, err)
-					return
-				}
+				pterm.Warning.Println("DA client is already initialized")
 			}
 
 			if !isDaInitialized || shouldOverwrite {
