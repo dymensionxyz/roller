@@ -129,6 +129,13 @@ func Cmd() *cobra.Command {
 				WithOptions(options).
 				Show()
 
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "node_type", nodeType)
+			if err != nil {
+				pterm.Error.Println("failed to update node type in roller config file: ", err)
+				return
+			}
+
 			switch nodeType {
 			case "sequencer":
 				pterm.Info.Println("getting the existing sequencer address ")
