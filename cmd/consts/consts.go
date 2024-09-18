@@ -77,6 +77,7 @@ var ConfigDirName = struct {
 	RollappSequencerKeys string
 	LocalHub             string
 	Eibc                 string
+	BlockExplorer        string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -85,6 +86,7 @@ var ConfigDirName = struct {
 	RollappSequencerKeys: "rollapp-sequencer-keys",
 	LocalHub:             "local-hub",
 	Eibc:                 ".eibc-client",
+	BlockExplorer:        "block-explorer",
 }
 
 var Denoms = struct {

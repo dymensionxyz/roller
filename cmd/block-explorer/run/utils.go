@@ -4,12 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -18,7 +16,11 @@ import (
 	"github.com/pterm/pterm"
 	"golang.org/x/exp/maps"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
+	postgresqlutils "github.com/dymensionxyz/roller/utils/database/postgresql"
+	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func createBlockExplorerContainers(home string) error {
@@ -36,18 +38,17 @@ func createBlockExplorerContainers(home string) error {
 	}
 
 	// Determine the host address to use
-	hostAddress := "host.docker.internal"
+	hostAddress := "18.197.167.214"
 	if runtime.GOOS == "linux" {
 		hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 	}
 
 	beChainConfigPath := filepath.Join(
 		home,
-		"block-explorer",
+		consts.ConfigDirName.BlockExplorer,
 		"config",
 		"chains.yaml",
 	)
-	fmt.Println(beChainConfigPath)
 	containers := map[string]dockerutils.ContainerConfigOptions{
 		"db": {
 			Name:  "be-postgresql",
@@ -109,20 +110,15 @@ func createBlockExplorerContainers(home string) error {
 			return err
 		}
 
-		// Connect the container to the network
-		err = cc.NetworkConnect(
-			context.Background(),
-			networkName,
-			options.Name,
-			&network.EndpointSettings{},
-		)
+		// Connect the container to the network using the new function
+		err = connectContainerToNetwork(context.Background(), cc, networkName, options.Name)
 		if err != nil {
-			fmt.Printf("Failed to connect container %s to network: %v\n", options.Name, err)
+			fmt.Printf("Error with network connection for container %s: %v\n", options.Name, err)
 			return err
 		}
 	}
 
-	if err := runSQLMigration(); err != nil {
+	if err := runSQLMigration(home); err != nil {
 		fmt.Printf("Failed to apply migrations: %v\n", err)
 		return err
 	}
@@ -159,15 +155,48 @@ func ensureNetworkExists(cli *client.Client, networkName string) error {
 	return nil
 }
 
-func runSQLMigration() error {
-	// Database connection details
+func connectContainerToNetwork(
+	ctx context.Context,
+	cc *client.Client,
+	networkName, containerName string,
+) error {
+	networkResource, err := cc.NetworkInspect(ctx, networkName, network.InspectOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to inspect network: %v", err)
+	}
+
+	for _, container := range networkResource.Containers {
+		if container.Name == containerName {
+			fmt.Printf(
+				"Container %s is already connected to network %s\n",
+				containerName,
+				networkName,
+			)
+			return nil
+		}
+	}
+
+	err = cc.NetworkConnect(
+		ctx,
+		networkName,
+		containerName,
+		&network.EndpointSettings{},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to connect container %s to network: %v", containerName, err)
+	}
+
+	fmt.Printf("Connected container %s to network %s\n", containerName, networkName)
+	return nil
+}
+
+func runSQLMigration(home string) error {
 	dbHost := "localhost"
 	dbPort := "5432"
 	dbName := "blockexplorer"
 	dbUserAdmin := "be"
 	dbPassAdmin := "psw"
 
-	// Connect to the database as an admin user
 	dbConnStr := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		dbUserAdmin,
@@ -176,44 +205,81 @@ func runSQLMigration() error {
 		dbPort,
 		dbName,
 	)
+
+	pterm.Info.Println("Retrieving SQL migration files")
+	dbMigrationsPath := filepath.Join(home, consts.ConfigDirName.BlockExplorer, "migrations")
+	dbMigrationsSchemaPath := filepath.Join(dbMigrationsPath, "schema.sql")
+	dbMigrationsEventsPath := filepath.Join(dbMigrationsPath, "events.sql")
+
+	err := os.MkdirAll(dbMigrationsPath, 0o755)
+	if err != nil {
+		return fmt.Errorf("failed to create migrations directory: %w", err)
+	}
+
+	migrationFiles := []types.PersistFile{
+		{
+			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/schema.sql",
+			Target: dbMigrationsSchemaPath,
+		},
+		{
+			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/events.sql",
+			Target: dbMigrationsEventsPath,
+		},
+	}
+
+	for _, file := range migrationFiles {
+		err := filesystem.DownloadFile(file.Source, file.Target)
+		if err != nil {
+			pterm.Error.Printf("Failed to retrieve SQL migration %s: %v\n", file.Target, err)
+			return err
+		}
+	}
+
 	dbAdmin, err := sql.Open("postgres", dbConnStr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database as admin: %w", err)
 	}
 	defer dbAdmin.Close()
 
-	// Wait for the database to be ready
-	time.Sleep(5 * time.Second)
-
-	// Connect to the new database as the local user
 	dbLocal, err := sql.Open("postgres", dbConnStr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database as local user: %w", err)
 	}
 	defer dbLocal.Close()
 
-	// Read and execute the SQL migration file
-	sqlFile, err := os.ReadFile("migrations/block-explorer/schema.sql")
+	// Create migration tracking table
+	const createMigrationTableSQL = `
+    CREATE TABLE IF NOT EXISTS applied_migrations (
+        id SERIAL PRIMARY KEY,
+        filename VARCHAR(255) NOT NULL UNIQUE,
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );`
+
+	_, err = dbAdmin.Exec(createMigrationTableSQL)
 	if err != nil {
-		return fmt.Errorf("failed to read SQL file: %w", err)
+		return fmt.Errorf("failed to create migration table: %w", err)
 	}
 
-	_, err = dbLocal.Exec(string(sqlFile))
+	// Apply schema migration
+	schemaContent, err := os.ReadFile(dbMigrationsSchemaPath)
 	if err != nil {
-		return fmt.Errorf("failed to execute SQL migration: %w", err)
+		return fmt.Errorf("failed to read schema SQL file: %w", err)
+	}
+	err = postgresqlutils.ApplyMigration(dbLocal, "schema.sql", schemaContent)
+	if err != nil {
+		return err
 	}
 
-	// Execute additional SQL files if needed
-	superSchemaFile, err := os.ReadFile("migrations/block-explorer/events.sql")
+	// Apply events migration
+	eventsContent, err := os.ReadFile(dbMigrationsEventsPath)
 	if err != nil {
-		return fmt.Errorf("failed to read super-schema SQL file: %w", err)
+		return fmt.Errorf("failed to read events SQL file: %w", err)
+	}
+	err = postgresqlutils.ApplyMigration(dbAdmin, "events.sql", eventsContent)
+	if err != nil {
+		return err
 	}
 
-	_, err = dbAdmin.Exec(string(superSchemaFile))
-	if err != nil {
-		return fmt.Errorf("failed to execute super-schema SQL file: %w", err)
-	}
-
-	log.Println("Migrations applied successfully")
+	pterm.Success.Println("Migrations checked and applied successfully")
 	return nil
 }

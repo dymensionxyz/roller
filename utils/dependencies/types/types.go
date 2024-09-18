@@ -9,9 +9,15 @@ type BinaryPathPair struct {
 	BuildArgs         []string
 }
 
+type PersistFile struct {
+	Source string
+	Target string
+}
+
 type Dependency struct {
-	Name       string
-	Repository string
-	Release    string
-	Binaries   []BinaryPathPair
+	Name         string
+	Repository   string
+	Release      string
+	Binaries     []BinaryPathPair
+	PersistFiles []PersistFile
 }

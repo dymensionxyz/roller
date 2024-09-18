@@ -264,7 +264,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 	spinner.UpdateText(
 		fmt.Sprintf(
-			"starting %s build from %s (this can take several minutes)\n",
+			"starting %s build from %s (this can take several minutes)",
 			dep.Name,
 			dep.Release,
 		),
@@ -284,7 +284,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 		spinner.UpdateText(
-			fmt.Sprintf("Finishing installation %s\n", filepath.Base(binary.BinaryDestination)),
+			fmt.Sprintf("Finishing installation %s", filepath.Base(binary.BinaryDestination)),
 		)
 	}
 
@@ -323,14 +323,14 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		archiveName,
 	)
 
-	spinner.UpdateText(fmt.Sprintf("Downloading %s %s\n", dep.Name, dep.Release))
+	spinner.UpdateText(fmt.Sprintf("Downloading %s %s", dep.Name, dep.Release))
 	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {
 		// nolint: errcheck,gosec
 		spinner.Fail("failed to download release")
 		return err
 	}
-	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s\n", dep.Name))
+	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s", dep.Name))
 
 	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
 	return nil
