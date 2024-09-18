@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -28,11 +29,12 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/dymensionxyz/roller/utils/genesis"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func runInit(cmd *cobra.Command, env string, raID string) error {
+// nolint: gocyclo
+func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
@@ -134,6 +136,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		home,
 		raID,
 		&hd,
+		vmType,
 	)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
@@ -141,7 +144,65 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 	}
 	initConfig := *initConfigPtr
 
-	mochaData := consts.DaNetworks[consts.DefaultCelestiaNetwork]
+	/* ------------------------------ Generate keys ----------------------------- */
+	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
+	if err != nil {
+		errorhandling.PrettifyErrorIfExists(err)
+		return err
+	}
+
+	/* --------------------------- Initialize Rollapp -------------------------- */
+	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
+	if err != nil {
+		return err
+	}
+
+	err = initconfig.InitializeRollappConfig(&initConfig, hd)
+	if err != nil {
+		raSpinner.Fail("failed to initialize rollapp client")
+		return err
+	}
+
+	// adds the sequencer address to the whitelists
+	if env == "mock" {
+		err = genesisutils.InitializeRollappGenesis(initConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Initialize roller config
+	genesisPath := genesisutils.GetGenesisFilePath(home)
+	file, err := comettypes.GenesisDocFromFile(genesisPath)
+	if err != nil {
+		return err
+	}
+	var need genesisutils.AppState
+	j, _ := file.AppState.MarshalJSON()
+	err = json.Unmarshal(j, &need)
+	if err != nil {
+		return err
+	}
+	daBackend := need.RollappParams.Params.Da
+	pterm.Info.Println("DA backend: ", daBackend)
+
+	var daData consts.DaData
+	var daNetwork string
+	switch env {
+	case "playground":
+		if daBackend == string(consts.Celestia) {
+			daNetwork = consts.DefaultCelestiaNetwork
+		} else {
+			return fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
+	case "mock":
+		daNetwork = "mock"
+	default:
+		return fmt.Errorf("unsupported environment: %s", env)
+	}
+
+	daData = consts.DaNetworks[daNetwork]
+
 	rollerTomlData := map[string]string{
 		"rollapp_id":     raID,
 		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
@@ -154,12 +215,12 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
 		"HubData.gas_price":       hd.GAS_PRICE,
 
-		"DA.backend":    string(mochaData.Backend),
-		"DA.id":         mochaData.ID,
-		"DA.api_url":    mochaData.ApiUrl,
-		"DA.rpc_url":    mochaData.RpcUrl,
-		"DA.state_node": mochaData.StateNode,
-		"DA.gas_price":  "0.02",
+		"DA.backend":    string(daData.Backend),
+		"DA.id":         string(daData.ID),
+		"DA.api_url":    daData.ApiUrl,
+		"DA.rpc_url":    daData.RpcUrl,
+		"DA.state_node": daData.StateNode,
+		"DA.gas_price":  daData.GasPrice,
 	}
 
 	for key, value := range rollerTomlData {
@@ -181,12 +242,15 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		return err
 	}
 
-	/* ------------------------------ Generate keys ----------------------------- */
-	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
-	}
+	/* ------------------------------ Initialize Local Hub ---------------------------- */
+	// TODO: local hub is out of scope, implement as the last step
+	// hub := cmd.Flag(FlagNames.HubID).Value.String()
+	// if hub == consts.LocalHubName {
+	// 	err := initLocalHub(initConfig)
+	// 	utils.PrettifyErrorIfExists(err)
+	// }
+
+	raSpinner.Success("rollapp initialized successfully")
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 	if env != "mock" {
@@ -313,43 +377,6 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		}
 		daSpinner.Success("successfully initialized da light client")
 	}
-	/* --------------------------- Initialize Rollapp -------------------------- */
-	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
-	if err != nil {
-		return err
-	}
-
-	err = initconfig.InitializeRollappConfig(&initConfig, hd)
-	if err != nil {
-		raSpinner.Fail("failed to initialize rollapp client")
-		return err
-	}
-
-	// adds the sequencer address to the whitelists
-	if env == "mock" {
-		err = genesis.InitializeRollappGenesis(initConfig)
-		if err != nil {
-			return err
-		}
-	}
-
-	/* ------------------------------ Create Init Files ---------------------------- */
-	// TODO: review, roller config is generated using genesis-creator
-	// some of the config values should be moved there
-	// err = config.Write(initConfig)
-	// if err != nil {
-	// 	return err
-	// }
-
-	/* ------------------------------ Initialize Local Hub ---------------------------- */
-	// TODO: local hub is out of scope, implement as the last step
-	// hub := cmd.Flag(FlagNames.HubID).Value.String()
-	// if hub == consts.LocalHubName {
-	// 	err := initLocalHub(initConfig)
-	// 	utils.PrettifyErrorIfExists(err)
-	// }
-
-	raSpinner.Success("rollapp initialized successfully")
 	/* ------------------------------ Print output ------------------------------ */
 
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
@@ -406,7 +433,7 @@ func UpdateCelestiaConfig(file, hash string, height int) error {
 func GetLatestDABlock(raCfg config.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
-		"q", "block", "--node", raCfg.DA.RpcUrl, "--chain-id", raCfg.DA.ID,
+		"q", "block", "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -453,7 +480,7 @@ func GetLatestDABlock(raCfg config.RollappConfig) (string, string, error) {
 func GetDABlockByHeight(h string, raCfg config.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
-		"q", "block", h, "--node", raCfg.DA.RpcUrl, "--chain-id", raCfg.DA.ID,
+		"q", "block", h, "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)

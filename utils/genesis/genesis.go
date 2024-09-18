@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -19,15 +21,22 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/pterm/pterm"
 )
 
 type AppState struct {
-	Bank Bank `json:"bank"`
+	Bank          Bank          `json:"bank"`
+	RollappParams RollappParams `json:"rollappparams"`
 }
 
 type Bank struct {
 	Supply []Denom `json:"supply"`
+}
+
+type RollappParams struct {
+	Params struct {
+		Da      string `json:"da"`
+		Version string `json:"version"`
+	} `json:"params"`
 }
 
 type Denom struct {
@@ -244,14 +253,13 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 func getDefaultGenesisParams(
 	raCfg *config.RollappConfig,
 ) []config.PathValue {
-	return []config.PathValue{
+	var params []config.PathValue
+
+	commonParams := []config.PathValue{
 		{Path: "app_state.mint.params.mint_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.staking.params.bond_denom", Value: raCfg.BaseDenom},
-		{Path: "app_state.evm.params.evm_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.gov.deposit_params.min_deposit.0.denom", Value: raCfg.BaseDenom},
 		{Path: "consensus_params.block.max_gas", Value: "40000000"},
-		{Path: "app_state.feemarket.params.no_base_fee", Value: true},
-		{Path: "app_state.feemarket.params.min_gas_price", Value: "0.0"},
 		{Path: "app_state.distribution.params.base_proposer_reward", Value: "0.8"},
 		{Path: "app_state.distribution.params.community_tax", Value: "0.00002"},
 		{Path: "app_state.gov.voting_params.voting_period", Value: "300s"},
@@ -260,9 +268,25 @@ func getDefaultGenesisParams(
 			Path:  "app_state.bank.denom_metadata",
 			Value: getBankDenomMetadata(raCfg.BaseDenom, raCfg.Decimals),
 		},
-		{Path: "app_state.evm.params.extra_eips", Value: []string{"3855"}},
 		{Path: "app_state.claims.params.claims_denom", Value: raCfg.BaseDenom},
 	}
+
+	if raCfg.VMType == consts.WASM_ROLLAPP {
+		wasmParams := []config.PathValue{}
+		params = append(commonParams, wasmParams...)
+	}
+
+	if raCfg.VMType == consts.EVM_ROLLAPP {
+		evmParams := []config.PathValue{
+			{Path: "app_state.evm.params.evm_denom", Value: raCfg.BaseDenom},
+			{Path: "app_state.feemarket.params.no_base_fee", Value: true},
+			{Path: "app_state.evm.params.extra_eips", Value: []string{"3855"}},
+			{Path: "app_state.feemarket.params.min_gas_price", Value: "0.0"},
+		}
+		params = append(commonParams, evmParams...)
+	}
+
+	return params
 }
 
 func getBankDenomMetadata(denom string, decimals uint) []BankDenomMetadata {

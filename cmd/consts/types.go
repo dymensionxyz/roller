@@ -9,10 +9,10 @@ type HubData = struct {
 }
 
 type DaData = struct {
-	Backend   DAType `toml:"backend"`
-	ID        string `toml:"id"`
-	ApiUrl    string `toml:"api_url"`
-	RpcUrl    string `toml:"rpc_url"`
-	StateNode string `toml:"state_node"`
-	GasPrice  string `toml:"gas_price"`
+	Backend   DAType    `toml:"backend"`
+	ID        DaNetwork `toml:"id"`
+	ApiUrl    string    `toml:"api_url"`
+	RpcUrl    string    `toml:"rpc_url"`
+	StateNode string    `toml:"state_node"`
+	GasPrice  string    `toml:"gas_price"`
 }

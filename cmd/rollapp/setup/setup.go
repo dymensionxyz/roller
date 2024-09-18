@@ -80,6 +80,7 @@ func Cmd() *cobra.Command {
 				home,
 				rollerData.RollappID,
 				&hd,
+				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -128,6 +129,13 @@ func Cmd() *cobra.Command {
 				WithDefaultText("select the node type you want to run").
 				WithOptions(options).
 				Show()
+
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "node_type", nodeType)
+			if err != nil {
+				pterm.Error.Println("failed to update node type in roller config file: ", err)
+				return
+			}
 
 			switch nodeType {
 			case "sequencer":
@@ -502,7 +510,6 @@ func Cmd() *cobra.Command {
 			}
 
 			// DA
-			oh := initconfig.NewOutputHandler(false)
 			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
@@ -516,27 +523,7 @@ func Cmd() *cobra.Command {
 
 			var shouldOverwrite bool
 			if isDaInitialized {
-				pterm.Info.Println("DA client is already initialized")
-				oh.StopSpinner()
-				shouldOverwrite, err = oh.PromptOverwriteConfig(daHome)
-				if err != nil {
-					return
-				}
-			}
-
-			if shouldOverwrite {
-				pterm.Info.Println("overriding the existing da configuration")
-				err := os.RemoveAll(daHome)
-				if err != nil {
-					pterm.Error.Printf("failed to remove %s: %v\n", daHome, err)
-					return
-				}
-
-				err = os.MkdirAll(daHome, 0o755)
-				if err != nil {
-					pterm.Error.Printf("failed to create %s: %v\n", daHome, err)
-					return
-				}
+				pterm.Warning.Println("DA client is already initialized")
 			}
 
 			if !isDaInitialized || shouldOverwrite {
@@ -756,54 +743,6 @@ func Cmd() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func printOutput(rlpCfg config.RollappConfig, cmd *exec.Cmd) {
-	seq := sequencer.GetInstance(rlpCfg)
-	pterm.DefaultSection.WithIndentCharacter("💈 ").
-		Println("The Rollapp sequencer is running on your local machine!")
-	fmt.Println("💈 Endpoints:")
-
-	fmt.Printf("EVM RPC: http://127.0.0.1:%v\n", seq.JsonRPCPort)
-	fmt.Printf("Node RPC: http://127.0.0.1:%v\n", seq.RPCPort)
-	fmt.Printf("Rest API: http://127.0.0.1:%v\n", seq.APIPort)
-
-	fmt.Println("💈 Log file path: ", LogPath)
-	fmt.Println("💈 Rollapp root dir: ", RollappDirPath)
-	fmt.Printf(
-		"💈 PID: %d (saved in %s)\n",
-		cmd.Process.Pid,
-		filepath.Join(rlpCfg.Home, "rollapputils.pid"),
-	)
-}
-
-func createPidFile(path string, cmd *exec.Cmd) error {
-	pidPath := filepath.Join(path, "rollapputils.pid")
-	file, err := os.Create(pidPath)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return err
-	}
-	// nolint errcheck
-	defer file.Close()
-
-	pid := cmd.Process.Pid
-	_, err = file.WriteString(fmt.Sprintf("%d", pid))
-	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return err
-	}
-
-	return nil
-}
-
-func parseError(errMsg string) string {
-	lines := strings.Split(errMsg, "\n")
-	if len(lines) > 0 &&
-		lines[0] == "Error: failed to initialize database: resource temporarily unavailable" {
-		return "The Rollapp sequencer is already running on your local machine. Only one sequencer can run at any given time."
-	}
-	return errMsg
 }
 
 func populateSequencerMetadata(raCfg config.RollappConfig) error {
