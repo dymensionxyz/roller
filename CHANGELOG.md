@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.1-alpha-rc01...v1.6.2-alpha-rc01) (2024-09-18)
+
+
+### Bug Fixes
+
+* eibc client commands ([#972](https://github.com/dymensionxyz/roller/issues/972)) ([3e650ae](https://github.com/dymensionxyz/roller/commit/3e650ae05fdf67d25f18afc3233ae984fc343cf5))
+
 ## [1.6.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.0-alpha-rc01...v1.6.1-alpha-rc01) (2024-09-17)
 
 
