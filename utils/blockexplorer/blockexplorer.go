@@ -9,13 +9,13 @@ import (
 // GenerateChainsYAML generates the YAML content with the given chain_id
 // this configuration is used by the block-explorer to index the locally running
 // chain
-func GenerateChainsYAML(chainID string) string {
+func GenerateChainsYAML(chainID, beRpcEndpoint string) string {
 	template := `local:
   chain_id: %s
-  be_json_rpc_urls: [ "http://18.197.167.214:11100" ]
+  be_json_rpc_urls: [ "%s" ]
   # disable: true
 `
-	return fmt.Sprintf(template, chainID)
+	return fmt.Sprintf(template, chainID, beRpcEndpoint)
 }
 
 func WriteChainsYAML(filePath, content string) error {

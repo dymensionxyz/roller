@@ -74,7 +74,7 @@ func ExpandHomePath(path string) (string, error) {
 }
 
 // TODO: download the file in chunks if possible
-func DownloadFile(url, filepath string) error {
+func DownloadFile(url, fp string) error {
 	spinner, _ := pterm.DefaultSpinner.
 		Start("Downloading file file from ", url)
 
@@ -89,7 +89,7 @@ func DownloadFile(url, filepath string) error {
 	// nolint:errcheck
 	defer resp.Body.Close()
 
-	out, err := os.Create(filepath)
+	out, err := os.Create(fp)
 	if err != nil {
 		spinner.Fail("failed to download file: ", err)
 		return err
@@ -97,7 +97,7 @@ func DownloadFile(url, filepath string) error {
 	// nolint:errcheck
 	defer out.Close()
 
-	spinner.Success("Successfully downloaded the genesis file")
+	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return err
