@@ -45,7 +45,7 @@ type ChainID struct {
 // from Dymension source code `x/rollapp/types/chain_id.go` @20240911
 func ValidateChainID(id string) (ChainID, error) {
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone().
-		Start(fmt.Sprintf("validating rollapp id '%s'\n", id))
+		Start(fmt.Sprintf("validating rollapp id '%s'", id))
 	chainID := strings.TrimSpace(id)
 
 	if chainID == "" {
@@ -92,7 +92,7 @@ func ValidateChainID(id string) (ChainID, error) {
 		)
 	}
 
-	spinner.Success(fmt.Sprintf("'%s' is a valid RollApp ID", id))
+	spinner.Success(fmt.Sprintf("'%s' is a valid RollApp ID\n", id))
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,

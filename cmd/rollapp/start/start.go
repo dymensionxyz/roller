@@ -67,7 +67,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
 
-			fmt.Println(startRollappCmd.String())
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			go bash.RunCmdAsync(
@@ -135,7 +134,9 @@ func PrintOutput(
 	if withEndpoints {
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Endpoints:")
-		fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
+		if rlpCfg.VMType == "evm" {
+			fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
+		}
 		fmt.Printf("Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)
 		fmt.Printf("Rest API: http://0.0.0.0:%v\n", seq.APIPort)
 	}
