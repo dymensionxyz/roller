@@ -35,7 +35,7 @@ func Cmd() *cobra.Command {
 
 			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
-				pterm.Error.Println("failed to load roller config")
+				pterm.Error.Println("failed to load roller config: ", err)
 				return
 			}
 
