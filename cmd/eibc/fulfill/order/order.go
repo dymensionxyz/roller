@@ -11,7 +11,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -27,14 +26,16 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home := utils.GetRollerRootDir()
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
+			fmt.Println("home directory: ", home)
 
 			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
+				pterm.Error.Println("failed to load roller config: ", err)
 				return
 			}
 
@@ -47,11 +48,11 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			var percentage string
+			var feeAmount string
 			if len(args) != 0 {
-				percentage = args[1]
+				feeAmount = args[1]
 			} else {
-				percentage, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				feeAmount, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 					"provide the expected fee amount",
 				).Show()
 			}
@@ -59,13 +60,14 @@ func Cmd() *cobra.Command {
 			fmt.Println("orders related to fulfillment of eibc orders")
 			gCmd, err := eibc.GetFulfillOrderCmd(
 				orderId,
-				percentage,
+				feeAmount,
 				rollerCfg.HubData,
 			)
 			if err != nil {
 				pterm.Error.Println("failed to fulfill order: ", err)
 				return
 			}
+			fmt.Println(gCmd.String())
 
 			txOutput, err := bash.ExecCommandWithInput(gCmd, "signatures")
 			if err != nil {
@@ -75,6 +77,7 @@ func Cmd() *cobra.Command {
 
 			txHash, err := bash.ExtractTxHash(txOutput)
 			if err != nil {
+				pterm.Error.Println("failed to extract tx hash", err)
 				return
 			}
 

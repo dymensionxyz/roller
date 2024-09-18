@@ -2,10 +2,9 @@ package set
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -60,12 +59,8 @@ instance.
 			ibcDenom := args[0]
 			value := args[1]
 
-			if !strings.HasPrefix(ibcDenom, "ibc/") {
-				pterm.Error.Println("invalid ibc denom")
-				return
-			}
-
-			valueFloat, err := strconv.ParseFloat(value, 32)
+			vf, _, err := big.ParseFloat(value, 10, 64, big.ToNearestEven)
+			valueFloat, _ := vf.Float32()
 			if err != nil {
 				pterm.Error.Println("failed to convert value to float", err)
 				return
@@ -79,6 +74,7 @@ instance.
 			// Get the actual content node (usually the first child of the document node)
 			updates := map[string]interface{}{
 				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", ibcDenom): valueFloat,
+				fmt.Sprintf("whale.allowed_balance_thresholds.%s", ibcDenom):          "1000000000000000000",
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {

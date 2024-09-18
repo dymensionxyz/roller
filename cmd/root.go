@@ -48,14 +48,3 @@ func init() {
 	rootCmd.AddCommand(version.Cmd())
 	rollerutils.AddGlobalFlags(rootCmd)
 }
-
-func test() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "test",
-		Short: "Runs the rollapp on the local machine.",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-	}
-	return cmd
-}

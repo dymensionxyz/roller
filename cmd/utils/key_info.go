@@ -80,7 +80,6 @@ func GetAddressInfoBinary(keyConfig KeyConfig, binaryPath string) (*KeyInfo, err
 		"--output",
 		"json",
 	)
-	fmt.Println(showKeyCommand.String())
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {

@@ -5,10 +5,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func RollappCmd() *cobra.Command {
@@ -97,16 +98,37 @@ func EibcCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := startSystemdServices(consts.EibcSystemdServices)
-			if err != nil {
-				pterm.Error.Println("failed to start systemd services:", err)
-				return
+			if runtime.GOOS == "linux" {
+				err := startSystemdServices(consts.EibcSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start systemd services:", err)
+					return
+				}
+			} else if runtime.GOOS == "darwin" {
+				err := startLaunchctlServices(consts.EibcSystemdServices)
+				if err != nil {
+					pterm.Error.Println("failed to start launchd services:", err)
+					return
+				}
+			} else {
+				pterm.Error.Printf(
+					"the %s commands currently support only darwin and linux operating systems",
+					cmd.Use,
+				)
 			}
 
 			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
+			pterm.Info.Println(
 				"that's all folks",
 			)
+
+			if runtime.GOOS == "linux" {
+				pterm.Info.Printf(
+					"run %s to view the current status of the eibc client\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("journalctl -fu eibc"),
+				)
+			}
 		},
 	}
 	return cmd

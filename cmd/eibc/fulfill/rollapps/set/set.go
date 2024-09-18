@@ -2,15 +2,16 @@ package set
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
-	"strconv"
+
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -49,7 +50,8 @@ instance.
 			rollAppID := args[0]
 			value := args[1]
 
-			valueFloat, err := strconv.ParseFloat(value, 32)
+			vf, _, err := big.ParseFloat(value, 10, 64, big.ToNearestEven)
+			valueFloat, _ := vf.Float32()
 			if err != nil {
 				pterm.Error.Println("failed to convert value to float", err)
 				return
