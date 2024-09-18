@@ -11,7 +11,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -27,7 +26,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home := utils.GetRollerRootDir()
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
