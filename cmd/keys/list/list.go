@@ -44,9 +44,10 @@ func Cmd() *cobra.Command {
 
 			hubSeqInfo, err := utils.GetAddressInfoBinary(
 				utils.KeyConfig{
-					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-					ID:  consts.KeysIds.HubSequencer,
-				}, consts.Executables.Dymension,
+					Dir:         consts.ConfigDirName.HubKeys,
+					ChainBinary: consts.Executables.Dymension,
+					ID:          consts.KeysIds.HubSequencer,
+				}, rollappConfig.Home,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 			addresses = append(
@@ -58,9 +59,10 @@ func Cmd() *cobra.Command {
 
 			raSeqInfo, err := utils.GetAddressInfoBinary(
 				utils.KeyConfig{
-					Dir: filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-					ID:  consts.KeysIds.RollappSequencer,
-				}, rollappConfig.RollappBinary,
+					Dir:         filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
+					ChainBinary: consts.Executables.RollappEVM,
+					ID:          consts.KeysIds.RollappSequencer,
+				}, rollappConfig.Home,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 			addresses = append(
