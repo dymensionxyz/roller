@@ -54,7 +54,7 @@ func CreateContainer(
 	}
 
 	if runtime.GOOS == "linux" {
-		hostConfig.ExtraHosts = []string{"18.197.167.214"}
+		hostConfig.ExtraHosts = []string{"host.docker.internal:host-gateway"}
 	}
 
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
