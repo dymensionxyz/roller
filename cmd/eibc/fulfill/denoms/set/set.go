@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -59,11 +58,6 @@ instance.
 			var node yaml.Node
 			ibcDenom := args[0]
 			value := args[1]
-
-			if !strings.HasPrefix(ibcDenom, "ibc/") {
-				pterm.Error.Println("invalid ibc denom")
-				return
-			}
 
 			valueFloat, err := strconv.ParseFloat(value, 32)
 			if err != nil {
