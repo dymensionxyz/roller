@@ -66,12 +66,11 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Relevant log output
+      label: Log Files
       description: >
-        Please copy and paste any relevant log(max 20 lines) output. This will
-        be automatically formatted into code, so no need for backticks. Or paste
-        gists, pastebins links here
-      render: Shell
+        Please Attach here any relevant log files.
+      placeholder: >
+        Please Attach here any relevant log files or log output. 
   - type: textarea
     id: misc
     attributes:

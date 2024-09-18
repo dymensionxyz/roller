@@ -25,9 +25,16 @@ const (
 	Avail    DAType = "avail"
 )
 
+type DaNetwork string
+
+const (
+	CelestiaTestnet DaNetwork = "mocha-4"
+	CelestiaMainnet DaNetwork = "celestia"
+)
+
 var DaNetworks = map[string]DaData{
 	"mock": {
-		Backend:   "mock",
+		Backend:   Local,
 		ApiUrl:    "",
 		ID:        "mock",
 		RpcUrl:    "",
@@ -37,14 +44,15 @@ var DaNetworks = map[string]DaData{
 	"mocha-4": {
 		Backend:   Celestia,
 		ApiUrl:    DefaultCelestiaRestApiEndpoint,
-		ID:        "mocha-4",
+		ID:        CelestiaTestnet,
 		RpcUrl:    DefaultCelestiaRPC,
 		StateNode: DefaultCelestiaStateNode,
 		GasPrice:  "0.02",
 	},
 	"celestia": {
+		Backend:   Celestia,
 		ApiUrl:    "api-celestia.mzonder.com",
-		ID:        "celestia",
+		ID:        CelestiaMainnet,
 		RpcUrl:    "rpc-celestia.mzonder.com",
 		StateNode: "",
 		GasPrice:  "0.002",

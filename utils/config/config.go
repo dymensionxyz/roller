@@ -6,12 +6,13 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/pterm/pterm"
 )
 
-var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
+var SupportedDas = []consts.DAType{consts.Celestia, consts.Local}
 
 type RollappConfig struct {
 	Home          string        `toml:"home"`
@@ -20,6 +21,7 @@ type RollappConfig struct {
 	RollappID     string        `toml:"rollapp_id"`
 	RollappBinary string        `toml:"rollapp_binary"`
 	VMType        consts.VMType `toml:"execution"`
+	NodeType      string        `toml:"node_type"`
 	Denom         string        `toml:"denom"`
 	// TokenSupply   string
 	Decimals      uint

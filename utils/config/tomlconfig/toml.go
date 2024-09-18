@@ -64,9 +64,14 @@ func Load(path string) ([]byte, error) {
 
 func LoadRollappMetadataFromChain(
 	home, raID string,
-	hd *consts.HubData,
+	hd *consts.HubData, vmType string,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
+	vmt, err := consts.ToVMType(strings.ToLower(vmType))
+	if err != nil {
+		return nil, err
+	}
+
 	if hd.ID == "mock" {
 		cfg = config.RollappConfig{
 			Home:             home,
@@ -74,7 +79,7 @@ func LoadRollappMetadataFromChain(
 			GenesisHash:      "",
 			GenesisUrl:       "",
 			RollappBinary:    consts.Executables.RollappEVM,
-			VMType:           consts.EVM_ROLLAPP,
+			VMType:           vmt,
 			Denom:            "mock",
 			Decimals:         18,
 			HubData:          *hd,

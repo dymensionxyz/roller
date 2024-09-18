@@ -12,6 +12,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -30,9 +31,11 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to add flags")
 				return
 			}
+			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
-
+			// rollerData, err := tomlconfig.LoadRollerConfig(home)
+			fmt.Println(home)
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			dymdBinaryOptions := types.Dependency{
@@ -83,7 +86,6 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 
-			pterm.Info.Println("validating RollApp ID: ", raID)
 			_, err = rollapp.ValidateChainID(raID)
 			if err != nil {
 				pterm.Error.Println("failed to validate chain id: ", err)
@@ -93,15 +95,23 @@ func Cmd() *cobra.Command {
 			if env == "mock" {
 				vmtypes := []string{"evm", "wasm"}
 				vmtype, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
+					WithDefaultText("select the rollapp VM type you want to initialize for").
 					WithOptions(vmtypes).
 					Show()
-				err = dependencies.InstallBinaries(env, true, vmtype)
+				err = dependencies.InstallBinaries(home, true, rollapp.ShowRollappResponse{})
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
 				}
-				err := runInit(cmd, env, raID)
+				err := runInit(
+					cmd,
+					env,
+					rollapp.ShowRollappResponse{
+						Rollapp: rollapp.Rollapp{
+							VmType: vmtype,
+						},
+					},
+				)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
 					return
@@ -115,44 +125,36 @@ func Cmd() *cobra.Command {
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
 			var raResponse rollapp.ShowRollappResponse
+
 			out, err := bash.ExecCommandWithStdout(getRaCmd)
 			if err != nil {
 				pterm.Error.Println("failed to get rollapp: ", err)
 				return
 			}
-
 			err = json.Unmarshal(out.Bytes(), &raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to unmarshal", err)
 				return
 			}
 
-			start := time.Now()
 			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
 				pterm.Error.Println("no bech")
 				return
 			}
-			err = dependencies.InstallBinaries(
-				raResponse.Rollapp.GenesisInfo.Bech32Prefix, false,
-				strings.ToLower(raResponse.Rollapp.VmType),
-			)
+			start := time.Now()
+			err = dependencies.InstallBinaries(home, false, raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
 			}
 			elapsed := time.Since(start)
-			fmt.Println("time elapsed: ", elapsed)
+
+			pterm.Info.Println("all dependencies installed in: ", elapsed)
 			// END: ex binaries install
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
-				return
-			}
-
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
 				return
 			}
 
@@ -172,7 +174,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, raID)
+			err = runInit(cmd, env, raResponse)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
