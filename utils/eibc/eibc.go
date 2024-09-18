@@ -8,11 +8,12 @@ import (
 	"path/filepath"
 
 	"github.com/docker/docker/client"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 	"github.com/dymensionxyz/roller/utils/keys"
-	"github.com/pterm/pterm"
 )
 
 func GetStartCmd() *exec.Cmd {
@@ -48,7 +49,7 @@ func GetFundsCmd() *exec.Cmd {
 	return cmd
 }
 
-func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cmd, error) {
+func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func GetFulfillOrderCmd(orderId, percentage string, hd consts.HubData) (*exec.Cm
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx", "eibc", "fulfill-order",
-		orderId, percentage,
+		orderId, fee,
 		"--from", consts.KeysIds.Eibc,
 		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
