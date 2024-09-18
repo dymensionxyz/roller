@@ -16,7 +16,6 @@ func Cmd() *cobra.Command {
 		Use:   "run",
 		Short: "Run a RollApp node.",
 		Long:  ``,
-		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 

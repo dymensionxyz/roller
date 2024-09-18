@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/block-explorer/run"
+	"github.com/dymensionxyz/roller/cmd/block-explorer/teardown"
 )
 
 func Cmd() *cobra.Command {
@@ -13,6 +14,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(run.Cmd())
+	cmd.AddCommand(teardown.Cmd())
 
 	return cmd
 }
