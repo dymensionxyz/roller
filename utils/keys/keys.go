@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 
@@ -18,6 +19,7 @@ func CreateAddressBinary(
 		"--output", "json",
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
+	fmt.Println(createKeyCommand.String())
 	out, err := bash.ExecCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return nil, err
