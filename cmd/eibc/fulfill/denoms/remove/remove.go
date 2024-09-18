@@ -5,19 +5,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove",
+		Use:   "remove <denom-id>",
 		Short: "Commands to manage the whitelist of RollApps to fulfill eibc orders for",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			home, err := os.UserHomeDir()
 			if err != nil {
