@@ -73,6 +73,7 @@ instance.
 			// Get the actual content node (usually the first child of the document node)
 			updates := map[string]interface{}{
 				fmt.Sprintf("fulfill_criteria.min_fee_percentage.asset.%s", ibcDenom): valueFloat,
+				fmt.Sprintf("whale.allowed_balance_thresholds.%s", ibcDenom):          "1000000000000000000",
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {

@@ -55,7 +55,8 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			config.RemoveChain(asset)
+			config.RemoveDenom(asset)
+			config.RemoveAllowedBalanceThreshold(asset)
 			updatedData, err := yaml.Marshal(&config)
 			fmt.Println(string(updatedData))
 			if err != nil {

@@ -69,6 +69,10 @@ func (e *Config) RemoveChain(chainId string) {
 	delete(e.FulfillCriteria.MinFeePercentage.Chain, chainId)
 }
 
+func (e *Config) RemoveAllowedBalanceThreshold(denom string) {
+	delete(e.Whale.AllowedBalanceThresholds, denom)
+}
+
 func (e *Config) RemoveDenom(denom string) {
 	delete(e.FulfillCriteria.MinFeePercentage.Asset, denom)
 }
