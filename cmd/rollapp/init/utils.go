@@ -32,7 +32,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func runInit(cmd *cobra.Command, env string, raID string) error {
+// nolint: gocyclo
+func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
@@ -134,6 +135,7 @@ func runInit(cmd *cobra.Command, env string, raID string) error {
 		home,
 		raID,
 		&hd,
+		vmType,
 	)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)

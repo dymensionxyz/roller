@@ -51,6 +51,7 @@ func Cmd() *cobra.Command {
 				home,
 				rollerData.RollappID,
 				&hd,
+				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
