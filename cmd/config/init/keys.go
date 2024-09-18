@@ -4,12 +4,13 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	keys2 "github.com/dymensionxyz/roller/utils/keys"
-	"github.com/pterm/pterm"
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {

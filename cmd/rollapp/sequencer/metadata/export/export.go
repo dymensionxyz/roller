@@ -55,7 +55,7 @@ func Cmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			hubSeqKC := utils.KeyConfig{
-				Dir:         filepath.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
+				Dir:         consts.ConfigDirName.HubKeys,
 				ID:          consts.KeysIds.HubSequencer,
 				ChainBinary: consts.Executables.Dymension,
 				Type:        consts.SDK_ROLLAPP,

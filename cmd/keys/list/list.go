@@ -3,7 +3,6 @@ package list
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -59,7 +58,7 @@ func Cmd() *cobra.Command {
 
 			raSeqInfo, err := utils.GetAddressInfoBinary(
 				utils.KeyConfig{
-					Dir:         filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
+					Dir:         consts.ConfigDirName.Rollapp,
 					ChainBinary: consts.Executables.RollappEVM,
 					ID:          consts.KeysIds.RollappSequencer,
 				}, rollappConfig.Home,
