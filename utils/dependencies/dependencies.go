@@ -191,7 +191,7 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 			}
 		} else if vmType == "wasm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp-evm",
+				Name:       "rollapp-wasm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",
 				Release:    "v1.0.0-rc04-roller-02",
 				Binaries: []types.BinaryPathPair{
