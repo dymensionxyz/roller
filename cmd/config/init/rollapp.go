@@ -41,6 +41,12 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 			return err
 		}
 
+		genesisFilePath := genesisutils.GetGenesisFilePath(initConfig.Home)
+		err = genesisutils.VerifyGenesisChainID(genesisFilePath, initConfig.RollappID)
+		if err != nil {
+			return err
+		}
+
 		isChecksumValid, err := genesisutils.CompareGenesisChecksum(
 			initConfig.Home,
 			initConfig.RollappID,

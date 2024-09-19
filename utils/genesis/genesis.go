@@ -57,18 +57,21 @@ func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 		return err
 	}
 
-	// move to helper function with a spinner?
+	return nil
+}
+
+func VerifyGenesisChainID(genesisPath, raID string) error {
 	genesis, err := types.GenesisDocFromFile(genesisPath)
 	if err != nil {
 		return err
 	}
 
-	if genesis.ChainID != rollappConfig.RollappID {
-		err = fmt.Errorf(
+	if genesis.ChainID != raID {
+		err := fmt.Errorf(
 			"the genesis file ChainID (%s) does not match  the rollapp ID you're trying to initialize ("+
 				"%s)",
 			genesis.ChainID,
-			rollappConfig.RollappID,
+			raID,
 		)
 		return err
 	}
