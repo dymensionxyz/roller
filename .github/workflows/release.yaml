@@ -21,6 +21,7 @@ jobs:
           pull-request-header: ":loop: New roller Release"
           release-type: go
           package-name: roller
+          last-release-sha: "4d5c530ed945"
           prerelease: true
           prerelease-label: alpha
           changelog-types: >-
