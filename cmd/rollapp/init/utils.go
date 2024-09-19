@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // nolint: gocyclo
@@ -72,17 +72,9 @@ func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 				return err
 			}
 
-			if runtime.GOOS == "linux" {
-				pterm.Info.Println("removing old systemd services")
-				for _, svc := range consts.RollappSystemdServices {
-					svcFileName := fmt.Sprintf("%s.service", svc)
-					svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-
-					err := filesystem.RemoveFileIfExists(svcFilePath)
-					if err != nil {
-						return err
-					}
-				}
+			err = servicemanager.RemoveServiceFiles(consts.RollappSystemdServices)
+			if err != nil {
+				return err
 			}
 
 			// nolint:gofumpt
@@ -202,7 +194,6 @@ func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 	}
 
 	daData = consts.DaNetworks[daNetwork]
-
 	rollerTomlData := map[string]string{
 		"rollapp_id":     raID,
 		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
