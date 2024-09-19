@@ -140,7 +140,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 			elapsed := time.Since(start)
-			fmt.Println("time elapsed: ", elapsed)
+			pterm.Info.Println("all dependencies installed in: ", elapsed)
 			// END: ex binaries install
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)

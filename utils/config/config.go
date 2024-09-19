@@ -12,7 +12,7 @@ import (
 	globalutils "github.com/dymensionxyz/roller/utils"
 )
 
-var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.Local}
+var SupportedDas = []consts.DAType{consts.Celestia, consts.Local}
 
 type RollappConfig struct {
 	Home          string        `toml:"home"`

@@ -24,11 +24,19 @@ import (
 )
 
 type AppState struct {
-	Bank Bank `json:"bank"`
+	Bank          Bank          `json:"bank"`
+	RollappParams RollappParams `json:"rollappparams"`
 }
 
 type Bank struct {
 	Supply []Denom `json:"supply"`
+}
+
+type RollappParams struct {
+	Params struct {
+		Da      string `json:"da"`
+		Version string `json:"version"`
+	} `json:"params"`
 }
 
 type Denom struct {

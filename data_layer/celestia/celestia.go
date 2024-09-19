@@ -131,7 +131,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	initLightNodeCmd := exec.Command(
 		consts.Executables.Celestia, "light", "init",
 		"--p2p.network",
-		raCfg.DA.ID,
+		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
 	// err := initLightNodeCmd.Run()
@@ -190,7 +190,7 @@ func (c *Celestia) getDAAccData(home string) (*utils.AccountData, error) {
 		"--node",
 		raCfg.DA.RpcUrl,
 		"--chain-id",
-		raCfg.DA.ID,
+		string(raCfg.DA.ID),
 		"-o", "json",
 	)
 
@@ -256,7 +256,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 				RequiredBalance: lcMinBalance,
 				KeyName:         c.GetKeyName(),
 				Denom:           consts.Denoms.Celestia,
-				Network:         raCfg.DA.ID,
+				Network:         string(raCfg.DA.ID),
 			},
 		)
 	}
@@ -276,7 +276,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		// "--gateway.deprecated-endpoints",
-		"--p2p.network", raCfg.DA.ID,
+		"--p2p.network", string(raCfg.DA.ID),
 	}
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
@@ -307,7 +307,7 @@ func (c *Celestia) getAuthToken(t string, raCfg config.RollappConfig) (string, e
 		"auth",
 		t,
 		"--p2p.network",
-		raCfg.DA.ID,
+		string(raCfg.DA.ID),
 		"--node.store",
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 	)
