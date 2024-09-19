@@ -1,14 +1,11 @@
 package setup
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 
-	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -26,6 +23,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -41,20 +39,12 @@ func Cmd() *cobra.Command {
 			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
-			genesis, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
+			as, err := genesisutils.GetGenesisAppState(home)
 			if err != nil {
+				pterm.Error.Printf("failed to get genesis app state: %v\n", err)
 				return
 			}
-
-			// TODO: refactor
-			var need genesisutils.AppState
-			j, _ := genesis.AppState.MarshalJSON()
-			err = json.Unmarshal(j, &need)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve base denom from genesis file")
-				return
-			}
-			rollappDenom := need.Bank.Supply[0].Denom
+			rollappDenom := as.Bank.Supply[0].Denom
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
@@ -129,30 +119,10 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				if runtime.GOOS == "linux" {
-					pterm.Info.Println("removing old systemd services")
-					for _, svc := range consts.RelayerSystemdServices {
-						svcFileName := fmt.Sprintf("%s.service", svc)
-						svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-
-						err := filesystem.RemoveFileIfExists(svcFilePath)
-						if err != nil {
-							pterm.Error.Println("failed to remove systemd service: ", err)
-							return
-						}
-					}
-				} else if runtime.GOOS == "darwin" {
-					pterm.Info.Println("removing old systemd services")
-					for _, svc := range consts.RelayerSystemdServices {
-						svcFileName := fmt.Sprintf("xyz.dymension.roller.%s.plist", svc)
-						svcFilePath := filepath.Join("/Library/LaunchDaemons/", svcFileName)
-
-						err := filesystem.RemoveFileIfExists(svcFilePath)
-						if err != nil {
-							pterm.Error.Println("failed to remove systemd service: ", err)
-							return
-						}
-					}
+				err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
+				if err != nil {
+					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
+					return
 				}
 
 				err = os.MkdirAll(relayerHome, 0o755)

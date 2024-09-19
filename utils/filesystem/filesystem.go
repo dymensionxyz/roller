@@ -75,8 +75,14 @@ func ExpandHomePath(path string) (string, error) {
 
 // TODO: download the file in chunks if possible
 func DownloadFile(url, fp string) error {
+	err := os.MkdirAll(filepath.Dir(fp), 0o755)
+	if err != nil {
+		return err
+	}
+
 	spinner, _ := pterm.DefaultSpinner.
-		Start(fmt.Sprintf("Downloading file from %s", url))
+		Start("Downloading ", filepath.Base(fp))
+	fmt.Println()
 
 	// nolint:gosec
 	resp, err := http.Get(url)

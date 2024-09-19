@@ -15,17 +15,48 @@ import (
 	"github.com/schollz/progressbar/v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
+func InstallBinaries(
+	home string,
+	withMockDA bool,
+	raResp rollapp.ShowRollappResponse,
+) error {
 	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
 	_, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to create %s\n", consts.InternalBinsDir)
 		return errors.New(errMsg)
+	}
+
+	var raBinCommit string
+	raVmType := raResp.Rollapp.VmType
+	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
+	if !withMockDA {
+		// TODO refactor, this genesis file fetch is redundand and will slow the process down
+		// when the genesis file is big
+		err = genesisutils.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
+		if err != nil {
+			pterm.Error.Println("failed to download genesis file: ", err)
+			return err
+		}
+		as, err := genesisutils.GetGenesisAppState(home)
+		if err != nil {
+			return err
+		}
+		fmt.Println(rollerutils.GetRollerRootDir())
+		err = os.RemoveAll(rollerutils.GetRollerRootDir())
+		if err != nil {
+			return err
+		}
+		raBinCommit = as.RollappParams.Params.Version
+		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
 	}
 
 	defer func() {
@@ -62,11 +93,11 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 				},
 			},
 		}
-		if vmType == "evm" {
+		if raVmType == "evm" {
 			buildableDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp",
 				Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-				Release:    "fe4246e7ca7f4a636881eb099ebd6e10cd386133", // 20240917 denom-metadata fix
+				Release:    raBinCommit,
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "./build/rollapp-evm",
@@ -74,16 +105,16 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 						BuildCommand: exec.Command(
 							"make",
 							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
 						),
 					},
 				},
 			}
-		} else if vmType == "wasm" {
+		} else if raVmType == "wasm" {
 			buildableDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp",
 				Repository: "https://github.com/dymensionxyz/rollapp-wasm.git",
-				Release:    "a34bc942d86d658a11038c69e860c973e96a1053", // 20240917 denom-metadata fix
+				Release:    raBinCommit,
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "./build/rollapp-wasm",
@@ -91,7 +122,7 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 						BuildCommand: exec.Command(
 							"make",
 							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", bech32),
+							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
 						),
 					},
 				},
@@ -177,7 +208,7 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 			return err
 		}
 
-		if vmType == "evm" {
+		if raVmType == "evm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp-evm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-evm",
@@ -189,7 +220,7 @@ func InstallBinaries(bech32 string, withMockDA bool, vmType string) error {
 					},
 				},
 			}
-		} else if vmType == "wasm" {
+		} else if raVmType == "wasm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp-wasm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",

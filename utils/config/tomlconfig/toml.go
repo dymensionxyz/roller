@@ -67,10 +67,11 @@ func LoadRollappMetadataFromChain(
 	hd *consts.HubData, vmType string,
 ) (*config.RollappConfig, error) {
 	var cfg config.RollappConfig
-	vmt, err := consts.ToVMType(vmType)
+	vmt, err := consts.ToVMType(strings.ToLower(vmType))
 	if err != nil {
 		return nil, err
 	}
+
 	if hd.ID == "mock" {
 		cfg = config.RollappConfig{
 			Home:             home,
