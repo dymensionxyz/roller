@@ -25,9 +25,9 @@ if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -f "$DYMD_BIN_PA
     sudo rm -f "$ROLLER_BIN_PATH"
 fi
 sudo mkdir -p "/tmp/roller_tmp"
-echo "💈 Downloading roller..."
+echo "💈 Downloading roller ${ROLLER_RELEASE_TAG}..."
 sudo curl -L "$TGZ_URL" --progress-bar | sudo tar -xz -C "/tmp/roller_tmp"
-echo "💈 Installing roller..."
+echo "💈 Installing roller ${ROLLER_RELEASE_TAG}..."
 sudo mv "/tmp/roller_tmp/roller" "$ROLLER_BIN_PATH"
 sudo chmod +x "$ROLLER_BIN_PATH"
 sudo rm -rf "/tmp/roller_tmp"
