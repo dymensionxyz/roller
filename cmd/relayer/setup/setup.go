@@ -1,13 +1,11 @@
 package setup
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -41,20 +39,12 @@ func Cmd() *cobra.Command {
 			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
-			genesis, err := comettypes.GenesisDocFromFile(genesisutils.GetGenesisFilePath(home))
+			as, err := genesisutils.GetGenesisAppState(home)
 			if err != nil {
+				pterm.Error.Printf("failed to get genesis app state: %v\n", err)
 				return
 			}
-
-			// TODO: refactor
-			var need genesisutils.AppState
-			j, _ := genesis.AppState.MarshalJSON()
-			err = json.Unmarshal(j, &need)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve base denom from genesis file")
-				return
-			}
-			rollappDenom := need.Bank.Supply[0].Denom
+			rollappDenom := as.Bank.Supply[0].Denom
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)

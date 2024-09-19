@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -29,12 +28,16 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // nolint: gocyclo
-func runInit(cmd *cobra.Command, env, raID, vmType string) error {
+func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse) error {
+	raID := raResp.Rollapp.RollappId
+	vmType := raResp.Rollapp.VmType
+
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
@@ -149,7 +152,7 @@ func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 		return err
 	}
 
-	err = initconfig.InitializeRollappConfig(&initConfig, hd)
+	err = initconfig.InitializeRollappConfig(&initConfig, raResp)
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")
 		return err
@@ -164,18 +167,11 @@ func runInit(cmd *cobra.Command, env, raID, vmType string) error {
 	}
 
 	// Initialize roller config
-	genesisPath := genesisutils.GetGenesisFilePath(home)
-	file, err := comettypes.GenesisDocFromFile(genesisPath)
+	as, err := genesisutils.GetGenesisAppState(home)
 	if err != nil {
 		return err
 	}
-	var need genesisutils.AppState
-	j, _ := file.AppState.MarshalJSON()
-	err = json.Unmarshal(j, &need)
-	if err != nil {
-		return err
-	}
-	daBackend := need.RollappParams.Params.Da
+	daBackend := as.RollappParams.Params.Da
 	pterm.Info.Println("DA backend: ", daBackend)
 
 	var daData consts.DaData

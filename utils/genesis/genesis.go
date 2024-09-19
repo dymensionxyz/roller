@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/types"
+	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -43,11 +44,8 @@ type Denom struct {
 	Denom string `json:"denom"`
 }
 
-func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
-	pterm.Info.Println("downloading genesis file")
-
+func DownloadGenesis(home, genesisUrl string) error {
 	genesisPath := GetGenesisFilePath(home)
-	genesisUrl := rollappConfig.GenesisUrl
 	if genesisUrl == "" {
 		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
@@ -58,6 +56,22 @@ func DownloadGenesis(home string, rollappConfig config.RollappConfig) error {
 	}
 
 	return nil
+}
+
+func GetGenesisAppState(home string) (*AppState, error) {
+	genesis, err := comettypes.GenesisDocFromFile(GetGenesisFilePath(home))
+	if err != nil {
+		return nil, err
+	}
+
+	var as AppState
+	j, _ := genesis.AppState.MarshalJSON()
+	err = json.Unmarshal(j, &as)
+	if err != nil {
+		return nil, err
+	}
+
+	return &as, err
 }
 
 func VerifyGenesisChainID(genesisPath, raID string) error {
@@ -122,6 +136,7 @@ func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) 
 		pterm.Error.Println("failed to calculate hash of genesis file: ", err)
 		return false, err
 	}
+
 	raGenesisHash, _ := getRollappGenesisHash(raID, hd)
 	if downloadedGenesisHash != raGenesisHash {
 		err = fmt.Errorf(

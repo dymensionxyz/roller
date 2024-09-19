@@ -1,12 +1,10 @@
 package initconfig
 
 import (
-	"encoding/json"
 	"errors"
 	"os/exec"
 	"path/filepath"
 
-	comettypes "github.com/cometbft/cometbft/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -14,10 +12,14 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData) error {
-	home := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
+func InitializeRollappConfig(
+	initConfig *config.RollappConfig,
+	raResp rollapp.ShowRollappResponse,
+) error {
+	raHomeDir := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 
 	initRollappCmd := exec.Command(
 		initConfig.RollappBinary,
@@ -26,7 +28,7 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 		"--chain-id",
 		initConfig.RollappID,
 		"--home",
-		home,
+		raHomeDir,
 	)
 
 	_, err := bash.ExecCommandWithStdout(initRollappCmd)
@@ -35,7 +37,7 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 	}
 
 	if initConfig.HubData.ID != "mock" {
-		err := genesisutils.DownloadGenesis(initConfig.Home, *initConfig)
+		err := genesisutils.DownloadGenesis(initConfig.Home, raResp.Rollapp.Metadata.GenesisUrl)
 		if err != nil {
 			pterm.Error.Println("failed to download genesis file: ", err)
 			return err
@@ -49,37 +51,24 @@ func InitializeRollappConfig(initConfig *config.RollappConfig, hd consts.HubData
 
 		isChecksumValid, err := genesisutils.CompareGenesisChecksum(
 			initConfig.Home,
-			initConfig.RollappID,
-			hd,
+			raResp.Rollapp.RollappId,
+			initConfig.HubData,
 		)
 		if !isChecksumValid {
 			return err
 		}
 
-		genesisDoc, err := comettypes.GenesisDocFromFile(
-			genesisutils.GetGenesisFilePath(initConfig.Home),
-		)
-		if err != nil {
-			return err
-		}
-
 		// TODO: refactor
-		var need genesisutils.AppState
-		j, err := genesisDoc.AppState.MarshalJSON()
+		as, err := genesisutils.GetGenesisAppState(initConfig.Home)
 		if err != nil {
 			return err
 		}
 
-		err = json.Unmarshal(j, &need)
-		if err != nil {
-			return err
-		}
-
-		if len(need.Bank.Supply) == 0 {
+		if len(as.Bank.Supply) == 0 {
 			return errors.New("token supply is not defined in the genesis file")
 		}
 
-		rollappBaseDenom := need.Bank.Supply[0].Denom
+		rollappBaseDenom := as.Bank.Supply[0].Denom
 		rollappDenom := rollappBaseDenom[1:]
 
 		initConfig.BaseDenom = rollappBaseDenom
