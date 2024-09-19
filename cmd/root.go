@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/dymensionxyz/roller/cmd/ui"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -46,5 +47,6 @@ func init() {
 	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(version.Cmd())
+	rootCmd.AddCommand(ui.Cmd())
 	rollerutils.AddGlobalFlags(rootCmd)
 }

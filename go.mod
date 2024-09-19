@@ -20,6 +20,7 @@ require (
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240905113548-004462d5f45b
+	github.com/gin-gonic/gin v1.8.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/ignite/cli v0.27.2
 	github.com/lib/pq v1.10.9
@@ -29,7 +30,10 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml v1.9.5
 	github.com/pelletier/go-toml/v2 v2.1.0
+	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.79
+	github.com/rakyll/statik v0.1.7
+	github.com/schollz/progressbar/v3 v3.15.0
 	github.com/tendermint/tendermint v0.35.9
 	github.com/tidwall/sjson v1.2.5
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
@@ -108,12 +112,17 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/getsentry/sentry-go v0.23.0 // indirect
+	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-playground/locales v0.14.0 // indirect
+	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-playground/validator/v10 v10.11.1 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang/glog v1.2.1 // indirect
@@ -141,9 +150,11 @@ require (
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.12 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
@@ -158,6 +169,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/term v0.5.0 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -165,13 +178,11 @@ require (
 	github.com/osmosis-labs/osmosis/v15 v15.2.0 // indirect
 	github.com/petermattis/goid v0.0.0-20230317030725-371a4b8eda08 // indirect
 	github.com/pierrec/xxHash v0.1.5 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
@@ -180,7 +191,6 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
-	github.com/schollz/progressbar/v3 v3.15.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
@@ -194,6 +204,7 @@ require (
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zondax/hid v0.9.2 // indirect

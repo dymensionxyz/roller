@@ -18,6 +18,17 @@ ldflags = -X github.com/dymensionxyz/roller/version.BuildVersion=$(VERSION) \
 		  -X github.com/dymensionxyz/roller/version.BuildTime=$(TIME)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
+
+# ---------------------------------------------------------------------------- #
+#                                      HTML                                    #
+# ---------------------------------------------------------------------------- #
+
+html: client/html
+	@echo "Embedding HTML..."
+	@statik -src=client/html -dest=client/ -f
+	@echo "Embedded successfully"
+.PHONY: html
+
 # ---------------------------------------------------------------------------- #
 #                                 Make targets                                 #
 # ---------------------------------------------------------------------------- #
