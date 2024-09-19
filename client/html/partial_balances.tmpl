@@ -1,0 +1,7 @@
+<p>Account: {[{ .account }]}</p>
+<p>Updated at: {[{ .time }]} UTC</p>
+<ul>
+{[{ range .whale_balances }]}
+<li>{[{ .Denom }]}: {[{ .Amount }]}</li>
+{[{ end }]}
+</ul>

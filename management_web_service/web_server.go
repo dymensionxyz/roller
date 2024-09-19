@@ -43,6 +43,7 @@ func StartManagementWebService(cfg webtypes.Config) {
 				ParseFS(
 					webtypes.WrapHttpFsToOsFs(statikFS),
 					"/index.tmpl",
+					"/partial_balances.tmpl", // new template files must be added into this list
 				),
 		),
 	)
@@ -51,6 +52,9 @@ func StartManagementWebService(cfg webtypes.Config) {
 	r.GET("/resources/*file", func(c *gin.Context) {
 		http.FileServer(statikFS).ServeHTTP(c.Writer, c.Request)
 	})
+
+	// Partial Web
+	r.GET("/partial/balances", HandlePartialBalances)
 
 	// Web
 	r.GET("/", HandleWebIndex)

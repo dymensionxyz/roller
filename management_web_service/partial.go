@@ -5,9 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
-func HandleWebIndex(c *gin.Context) {
+func HandlePartialBalances(c *gin.Context) {
 	w := wrapGin(c)
 	cfg := w.Config()
 
@@ -25,10 +26,9 @@ func HandleWebIndex(c *gin.Context) {
 		}
 	}
 
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"host":           c.Request.Host,
-		"ip":             cfg.IP,
-		"port":           cfg.Port,
+	c.HTML(http.StatusOK, "partial_balances.tmpl", gin.H{
+		"account":        cfg.WhaleAccount,
+		"time":           time.Now().UTC().Format(time.DateTime),
 		"whale_balances": whaleBalances,
 	})
 }
