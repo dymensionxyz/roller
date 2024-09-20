@@ -16,7 +16,7 @@ const reloadPartialEIbcClientStatus = () => {
             document.getElementById('partial-eibc-client-logs').innerHTML = html;
         });
 
-    postJson('/eibc-client/status', {}, (data) => {
+    postJson('update eIBC-client status', '/eibc-client/status', {}, (data) => {
         const inputDenom = $('#eibc-client-denom');
         const inputMinFee = $('#eibc-client-min-fee');
 
@@ -58,14 +58,14 @@ const toggleStartStopEIbcClient = () => {
     }, 1000);
 
     if (eIbcClientStarted) {
-        postJson('/eibc-client/stop', {}, (data) => {
+        postJson('stop eIBC client', '/eibc-client/stop', {}, (data) => {
             eIbcClientStarted = false;
             switchStateEIbcClientElements();
         }, (data) => {
             addError('failed to stop eIBC client:', data.result);
         })
     } else {
-        postJson('/eibc-client/start', {
+        postJson('start eIBC client', '/eibc-client/start', {
             denom: $('#eibc-client-denom').val(),
             min_fee_percent: $('#eibc-client-min-fee').val(),
         }, (data) => {
@@ -123,7 +123,7 @@ const addError = (message, err) => {
     errorElement.appendChild(div);
 }
 
-const postJson = function (url, data, onSuccess, onError) {
+const postJson = function (actionName, url, data, onSuccess, onError) {
     $.ajax({
         type: "POST",
         url: url,
@@ -134,7 +134,7 @@ const postJson = function (url, data, onSuccess, onError) {
             handleApiResponse(data, onSuccess, onError);
         },
         error: (xhr, status, error) => {
-            addError(`text status = '${status}', response text = '${xhr.responseText}', error = ${error}`);
+            addError(`failed to [${actionName}], text status = '${status}', response text = '${xhr.responseText}', error = ${error}`);
         }
     })
 }
