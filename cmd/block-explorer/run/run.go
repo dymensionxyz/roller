@@ -31,6 +31,7 @@ func Cmd() *cobra.Command {
 				hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 			}
 			var raID string
+			fmt.Println(hostAddress)
 
 			var beRpcEndpoint string
 			if !isFlagChanged {
@@ -98,6 +99,9 @@ if you want to run block explorer for a rollapp on a different host, press 'n' a
 				raID,
 				beRpcEndpoint,
 			)
+
+			fmt.Println(beChainConfig)
+
 			err := blockexplorer.WriteChainsYAML(beChainConfigPath, beChainConfig)
 			if err != nil {
 				pterm.Error.Println("failed to generate block explorer config", err)
@@ -132,5 +136,11 @@ func printOutput(raID, beRpcEndpoint string) {
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("RollApp Information:")
 	fmt.Println("RollApp ID: ", raID)
-	fmt.Println("Block Explorer Endpoint: ", beRpcEndpoint)
+	fmt.Println("Block Explorer API Endpoint: ", beRpcEndpoint)
+
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Container Information:")
+	fmt.Println("Block Explorer: ", "be-frontend")
+	fmt.Println("Indexer: ", "be-indexer")
+	fmt.Println("Database: ", "be-postgresql")
 }
