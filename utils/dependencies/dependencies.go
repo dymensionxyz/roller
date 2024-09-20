@@ -130,44 +130,52 @@ func InstallBinaries(
 		}
 	}
 
-	goreleaserDeps := map[string]types.Dependency{
-		"celestia-app": {
-			Name:       "celestia-app",
-			Repository: "https://github.com/celestiaorg/celestia-app",
-			Release:    "v2.1.2",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "celestia-appd",
-					BinaryDestination: consts.Executables.CelestiaApp,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-					),
+	goreleaserDeps := map[string]types.Dependency{}
+
+	if !withMockDA {
+		necessaryDeps := map[string]types.Dependency{
+			"celestia-app": {
+				Name:       "celestia-app",
+				Repository: "https://github.com/celestiaorg/celestia-app",
+				Release:    "v2.1.2",
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "celestia-appd",
+						BinaryDestination: consts.Executables.CelestiaApp,
+						BuildCommand: exec.Command(
+							"make",
+							"build",
+						),
+					},
 				},
 			},
-		},
-		"eibc-client": {
-			Name:       "eibc-client",
-			Repository: "https://github.com/artemijspavlovs/eibc-client",
-			Release:    "v1.1.4-roller",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "eibc-client",
-					BinaryDestination: consts.Executables.Eibc,
+			"eibc-client": {
+				Name:       "eibc-client",
+				Repository: "https://github.com/artemijspavlovs/eibc-client",
+				Release:    "v1.1.4-roller",
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "eibc-client",
+						BinaryDestination: consts.Executables.Eibc,
+					},
 				},
 			},
-		},
-		"rly": {
-			Name:       "go-relayer",
-			Repository: "https://github.com/artemijspavlovs/go-relayer",
-			Release:    "v0.4.0-v2.5.2-relayer-pg-roller",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "rly",
-					BinaryDestination: consts.Executables.Relayer,
+			"rly": {
+				Name:       "go-relayer",
+				Repository: "https://github.com/artemijspavlovs/go-relayer",
+				Release:    "v0.4.0-v2.5.2-relayer-pg-roller",
+				Binaries: []types.BinaryPathPair{
+					{
+						Binary:            "rly",
+						BinaryDestination: consts.Executables.Relayer,
+					},
 				},
 			},
-		},
+		}
+
+		for s, dependency := range necessaryDeps {
+			goreleaserDeps[s] = dependency
+		}
 	}
 
 	if withMockDA {
@@ -212,7 +220,7 @@ func InstallBinaries(
 			goreleaserDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp-evm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-evm",
-				Release:    "v2.3.4-pg-roller",
+				Release:    "v2.3.4-pg-roller-02",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -224,7 +232,7 @@ func InstallBinaries(
 			goreleaserDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp-wasm",
 				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",
-				Release:    "v1.0.0-rc04-roller-03",
+				Release:    "v1.0.0-rc04-roller-07",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -236,7 +244,6 @@ func InstallBinaries(
 
 	}
 
-	//
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {

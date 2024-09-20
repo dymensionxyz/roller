@@ -38,27 +38,29 @@ func Cmd() *cobra.Command {
 			fmt.Println(home)
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
-			dymdBinaryOptions := types.Dependency{
-				Name:       "dymension",
-				Repository: "https://github.com/artemijspavlovs/dymension",
-				Release:    "v3.1.0-pg07",
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "dymd",
-						BinaryDestination: consts.Executables.Dymension,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-						),
+			if !shouldUseMockBackend {
+				dymdBinaryOptions := types.Dependency{
+					Name:       "dymension",
+					Repository: "https://github.com/artemijspavlovs/dymension",
+					Release:    "v3.1.0-pg07",
+					Binaries: []types.BinaryPathPair{
+						{
+							Binary:            "dymd",
+							BinaryDestination: consts.Executables.Dymension,
+							BuildCommand: exec.Command(
+								"make",
+								"build",
+							),
+						},
 					},
-				},
-			}
+				}
+				pterm.Info.Println("installing dependencies")
+				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
+				if err != nil {
+					pterm.Error.Println("failed to install dymd: ", err)
+					return
+				}
 
-			pterm.Info.Println("installing dependencies")
-			err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
-			if err != nil {
-				pterm.Error.Println("failed to install dymd: ", err)
-				return
 			}
 
 			var hd consts.HubData
@@ -98,7 +100,13 @@ func Cmd() *cobra.Command {
 					WithDefaultText("select the rollapp VM type you want to initialize for").
 					WithOptions(vmtypes).
 					Show()
-				err = dependencies.InstallBinaries(home, true, rollapp.ShowRollappResponse{})
+				raRespMock := rollapp.ShowRollappResponse{
+					Rollapp: rollapp.Rollapp{
+						RollappId: raID,
+						VmType:    vmtype,
+					},
+				}
+				err = dependencies.InstallBinaries(home, true, raRespMock)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
@@ -106,11 +114,7 @@ func Cmd() *cobra.Command {
 				err := runInit(
 					cmd,
 					env,
-					rollapp.ShowRollappResponse{
-						Rollapp: rollapp.Rollapp{
-							VmType: vmtype,
-						},
-					},
+					raRespMock,
 				)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
