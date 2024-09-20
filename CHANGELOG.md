@@ -1,3 +1,5 @@
+# Changelog
+
 ## [1.6.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.3-alpha-rc01...v1.6.4-alpha-rc01) (2024-09-18)
 
 
