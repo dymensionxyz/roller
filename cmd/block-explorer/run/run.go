@@ -108,6 +108,8 @@ if you want to run block explorer for a rollapp on a different host, press 'n' a
 				pterm.Error.Println("failed to create the necessary containers: ", err)
 				return
 			}
+
+			printOutput(raID, beRpcEndpoint)
 		},
 	}
 
@@ -115,4 +117,20 @@ if you want to run block explorer for a rollapp on a different host, press 'n' a
 		String("block-explorer-rpc-endpoint", "http://localhost:11100", "block explorer rpc endpoint")
 
 	return cmd
+}
+
+func printOutput(raID, beRpcEndpoint string) {
+	pterm.DefaultBasicText.WithStyle(
+		pterm.
+			FgGreen.ToStyle(),
+	).Sprintf("💈 RollApp Block Explorer is running locally")
+
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("Endpoints:")
+	fmt.Println("Block Explorer: http://localhost:3000")
+
+	pterm.DefaultSection.WithIndentCharacter("💈").
+		Println("RollApp Information:")
+	fmt.Println("RollApp ID: ", raID)
+	fmt.Println("Block Explorer Endpoint: ", beRpcEndpoint)
 }
