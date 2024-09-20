@@ -97,7 +97,7 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	for {
 		select {
 		case <-timeout:
-			return fmt.Errorf("timeout waiting for rollapp height to be reach 1")
+			return fmt.Errorf("timeout waiting for rollapp height to reach 1")
 		case <-ticker.C:
 			rollappHeightStr, err := seq.GetRollappHeight()
 			if err != nil {
