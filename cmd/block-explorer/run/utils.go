@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/docker/docker/api/types/mount"
@@ -23,7 +23,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
-func createBlockExplorerContainers(home string) error {
+func createBlockExplorerContainers(home, hostAddress string) error {
 	pterm.Info.Println("Creating container for block explorer")
 	cc, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -31,16 +31,18 @@ func createBlockExplorerContainers(home string) error {
 		return err
 	}
 
+	parsedHostAddress, err := url.Parse(hostAddress)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+		return err
+	}
+
+	domain := parsedHostAddress.Hostname()
+
 	networkName := "block_explorer_network"
 	if err := ensureNetworkExists(cc, networkName); err != nil {
 		fmt.Printf("Failed to ensure network: %v\n", err)
 		return err
-	}
-
-	// Determine the host address to use
-	hostAddress := "18.197.167.214"
-	if runtime.GOOS == "linux" {
-		hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 	}
 
 	beChainConfigPath := filepath.Join(
@@ -72,8 +74,8 @@ func createBlockExplorerContainers(home string) error {
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:latest",
 			Port:  "3000",
 			Envs: []string{
-				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", hostAddress),
-				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
+				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", domain),
+				fmt.Sprintf("HOST_ADDRESS=%s", domain),
 			},
 			Mounts: []mount.Mount{},
 		},
@@ -82,7 +84,7 @@ func createBlockExplorerContainers(home string) error {
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
 			Port:  "8080",
 			Envs: []string{
-				fmt.Sprintf("HOST_ADDRESS=%s", hostAddress),
+				fmt.Sprintf("HOST_ADDRESS=%s", domain),
 			},
 			Mounts: []mount.Mount{
 				{
