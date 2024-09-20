@@ -38,7 +38,7 @@ func HandleApiEIbcClientStart(c *gin.Context) {
 	// validate request, to prevent XSS & remote execution
 
 	req.Denom = strings.TrimSpace(req.Denom)
-	req.MinFeePercent = strings.TrimSpace(req.MinFeePercent)
+	req.MinFeePercent = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(req.MinFeePercent), "%"))
 	if req.Denom == "" || req.MinFeePercent == "" {
 		w.PrepareDefaultErrorResponse().
 			WithHttpStatusCode(http.StatusOK).

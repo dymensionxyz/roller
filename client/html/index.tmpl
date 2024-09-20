@@ -32,10 +32,14 @@
                 <div id="collapse2" class="accordion-collapse collapse p-3" aria-labelledby="heading2" data-bs-parent="#accordionMain">
                     <div>
                         <form id="startEIbc">
-                            <p><label for="eibc-client-denom" class="form-label">Denom</label></p>
-                            <input type="text" class="form-control" id="eibc-client-denom" placeholder="Denom" disabled="disabled">
-                            <p><label for="eibc-client-min-fee" class="form-label">Minimum Fee (%)</label></p>
-                            <input type="text" class="form-control" id="eibc-client-min-fee" placeholder="Minimum Fee (%)" disabled="disabled">
+                            <div class="m-2">
+                                <label for="eibc-client-denom" class="form-label">Denom</label>
+                                <input type="text" class="form-control" id="eibc-client-denom" placeholder="Denom" disabled="disabled">
+                            </div>
+                            <div class="m-2">
+                                <label for="eibc-client-min-fee" class="form-label">Minimum Fee (%)</label>
+                                <input type="text" class="form-control" id="eibc-client-min-fee" placeholder="Minimum Fee (%)" disabled="disabled">
+                            </div>
                             <input id="eibc-client-start" class="btn btn-primary" readonly="readonly" onclick="toggleStartStopEIbcClient()" value="Waiting status..." disabled="disabled">
                         </form>
                     </div>
@@ -61,10 +65,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script type="text/javascript">
-        const updateInterval = 5_000;
         $(document).ready(function() {
-            setInterval(reloadPartialBalances, updateInterval);
-            setInterval(reloadPartialEIbcClientStatus, updateInterval);
+            reloadPartialBalances();
+            reloadPartialEIbcClientStatus();
+            setInterval(reloadPartialBalances, 30_000);
+            setInterval(reloadPartialEIbcClientStatus, 10_000);
         })
     </script>
 </body>

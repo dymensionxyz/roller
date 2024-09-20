@@ -135,7 +135,7 @@ func Cmd() *cobra.Command {
 				HubQueryClients: hubQueryClients,
 				RollerHome:      rollerHome,
 				RollappConfig:   rollappConfig,
-				WhaleAccount:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				WhaleAccount:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue", // pseudo address
 			})
 		},
 	}
