@@ -2,10 +2,11 @@ package management_web_service
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gin-gonic/gin"
 )
 
 func HandlePartialBalances(c *gin.Context) {
@@ -30,5 +31,19 @@ func HandlePartialBalances(c *gin.Context) {
 		"account":        cfg.WhaleAccount,
 		"time":           time.Now().UTC().Format(time.DateTime),
 		"whale_balances": whaleBalances,
+	})
+}
+
+func HandlePartialEIbcClientLog(c *gin.Context) {
+	// w := wrapGin(c)
+	// cfg := w.Config()
+
+	logs := cache.GetEIbcClientLog()
+	if len(logs) == 0 {
+		logs = []string{"No logs available"}
+	}
+
+	c.HTML(http.StatusOK, "partial_eibc_client_log.tmpl", gin.H{
+		"logs": logs,
 	})
 }

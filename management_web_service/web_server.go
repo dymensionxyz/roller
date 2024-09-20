@@ -2,16 +2,19 @@ package management_web_service
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
+
 	"github.com/dymensionxyz/roller/management_web_service/gin_wrapper"
 	webtypes "github.com/dymensionxyz/roller/management_web_service/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	statikfs "github.com/rakyll/statik/fs"
-	"html/template"
-	"net/http"
 )
 
-func StartManagementWebService(cfg webtypes.Config) {
+var cache = &webtypes.Cache{}
+
+func StartManagementWebService(cfg *webtypes.Config) {
 	binding := fmt.Sprintf("%s:%d", cfg.IP, cfg.Port)
 
 	statikFS, err := statikfs.New()
@@ -44,6 +47,7 @@ func StartManagementWebService(cfg webtypes.Config) {
 					webtypes.WrapHttpFsToOsFs(statikFS),
 					"/index.tmpl",
 					"/partial_balances.tmpl", // new template files must be added into this list
+					"/partial_eibc_client_log.tmpl",
 				),
 		),
 	)
@@ -55,6 +59,12 @@ func StartManagementWebService(cfg webtypes.Config) {
 
 	// Partial Web
 	r.GET("/partial/balances", HandlePartialBalances)
+	r.GET("/partial/eibc-client/logs", HandlePartialEIbcClientLog)
+
+	// API
+	r.POST("/eibc-client/start", HandleApiEIbcClientStart)
+	r.POST("/eibc-client/stop", HandleApiEIbcClientStop)
+	r.POST("/eibc-client/status", HandleApiEIbcClientStatus)
 
 	// Web
 	r.GET("/", HandleWebIndex)

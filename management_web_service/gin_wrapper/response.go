@@ -1,9 +1,10 @@
 package gin_wrapper
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type GinResponse struct {

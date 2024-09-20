@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/dymensionxyz/roller/cmd/ui"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -12,6 +11,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
+	"github.com/dymensionxyz/roller/cmd/ui"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 )

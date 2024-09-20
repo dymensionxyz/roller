@@ -3,11 +3,13 @@
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="/resources/site.css"/>
-    <script src="/resources/partial-reloader.js"></script>
+    <script src="/resources/site.js"></script>
 </head>
 <body>
     <i class="text-secondary">{[{ .ip }]}:{[{ .port }]}</i>
     <div id="main" class="container my-3">
+        <div id="error-panel" class="text-danger">
+        </div>
         <div id="accordionMain" class="accordion">
             <div class="accordion-item">
                 <h3 class="accordion-header" id="heading1">
@@ -24,10 +26,31 @@
             <div class="accordion-item">
                 <h3 class="accordion-header" id="heading2">
                     <span class="accordion-button collapsed cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                        eIBC client
+                    </span>
+                </h3>
+                <div id="collapse2" class="accordion-collapse collapse p-3" aria-labelledby="heading2" data-bs-parent="#accordionMain">
+                    <div>
+                        <form id="startEIbc">
+                            <p><label for="eibc-client-denom" class="form-label">Denom</label></p>
+                            <input type="text" class="form-control" id="eibc-client-denom" placeholder="Denom" disabled="disabled">
+                            <p><label for="eibc-client-min-fee" class="form-label">Minimum Fee (%)</label></p>
+                            <input type="text" class="form-control" id="eibc-client-min-fee" placeholder="Minimum Fee (%)" disabled="disabled">
+                            <input id="eibc-client-start" class="btn btn-primary" readonly="readonly" onclick="toggleStartStopEIbcClient()" value="Waiting status..." disabled="disabled">
+                        </form>
+                    </div>
+                    <i class="d-block rem07 text-secondary">Logs:</i>
+                    <div id="partial-eibc-client-logs" class="border border-secondary p-3 rem07">
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h3 class="accordion-header" id="heading3">
+                    <span class="accordion-button collapsed cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
                         Something else
                     </span>
                 </h3>
-                <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#accordionMain">
+                <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#accordionMain">
                     <div id="partial-2" class="p-3">
                         <i class="text-secondary">Loading something...</i>
                     </div>
@@ -41,6 +64,7 @@
         const updateInterval = 5_000;
         $(document).ready(function() {
             setInterval(reloadPartialBalances, updateInterval);
+            setInterval(reloadPartialEIbcClientStatus, updateInterval);
         })
     </script>
 </body>

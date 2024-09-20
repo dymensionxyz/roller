@@ -27,13 +27,6 @@ func (w GinWrapper) Gin() *gin.Context {
 	return w.c
 }
 
-func (w GinWrapper) Binder() *GinBinder {
-	return &GinBinder{
-		c:   w.c,
-		err: nil,
-	}
-}
-
-func (w GinWrapper) Config() webtypes.Config {
-	return w.c.MustGet(KeyGinConfig).(webtypes.Config)
+func (w GinWrapper) Config() *webtypes.Config {
+	return w.c.MustGet(KeyGinConfig).(*webtypes.Config)
 }

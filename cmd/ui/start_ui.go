@@ -1,8 +1,16 @@
 package ui
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
+
+	"cosmossdk.io/errors"
+
 	httpclient "github.com/cometbft/cometbft/rpc/client/http"
 	jsonrpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
@@ -16,9 +24,6 @@ import (
 	queryutils "github.com/dymensionxyz/roller/utils/query"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const (
@@ -37,11 +42,12 @@ const (
 )
 
 func Cmd() *cobra.Command {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   cmdStartUi,
 		Short: "Start Web service",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			initSimulation()
 			ipAddress, err := cmd.Flags().GetString(flagIp)
 			ipAddress = strings.ToLower(strings.TrimSpace(ipAddress))
 			if err != nil {
@@ -95,7 +101,34 @@ func Cmd() *cobra.Command {
 				hubQueryClients = queryutils.NewHubQueryClients(hubClientCtx)
 			}
 
-			management_web_service.StartManagementWebService(webtypes.Config{
+			{
+				// ensure no eIBC-client running
+				first := true
+				for {
+					if !first {
+						time.Sleep(500 * time.Second)
+					}
+					first = false
+					anyEIbcClient, err := management_web_service.AnyEIbcClient()
+					if err != nil {
+						pterm.Error.Println("failed to check eIBC-client:", err)
+						continue
+					}
+					if anyEIbcClient {
+						pterm.Error.Println("eIBC-client is running, please stop it first")
+						os.Exit(1)
+					}
+
+					break
+				}
+			}
+
+			// Ensure any background process should be killed upon exit.
+			trapSignal(func() {
+				management_web_service.Cleanup()
+			})
+
+			management_web_service.StartManagementWebService(&webtypes.Config{
 				CobraCmd:        cmd,
 				IP:              ipAddress,
 				Port:            port,
@@ -136,4 +169,39 @@ func getTendermintClient(rpc string) (httpClient26657 *http.Client, tendermintRp
 	}
 
 	return
+}
+
+// trapSignal traps SIGINT and SIGTERM and calls os.Exit once a signal is received.
+func trapSignal(cleanupFunc func()) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigs
+
+		if cleanupFunc != nil {
+			cleanupFunc()
+		}
+		exitCode := 128
+
+		switch sig {
+		case syscall.SIGINT:
+			exitCode += int(syscall.SIGINT)
+		case syscall.SIGTERM:
+			exitCode += int(syscall.SIGTERM)
+		}
+
+		os.Exit(exitCode)
+	}()
+}
+
+func initSimulation() {
+	sim := os.Getenv("SIMULATION")
+	if sim == "" {
+		return
+	}
+	spl := strings.Split(sim, " ")
+	management_web_service.EIbcClientBinaryName = spl[0] // override
+	management_web_service.SimulationStartCommand = spl[1]
+	management_web_service.UseSimulation = true
 }
