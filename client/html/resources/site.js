@@ -134,7 +134,17 @@ const postJson = function (actionName, url, data, onSuccess, onError) {
             handleApiResponse(data, onSuccess, onError);
         },
         error: (xhr, status, error) => {
-            addError(`failed to [${actionName}], text status = '${status}', response text = '${xhr.responseText}', error = ${error}`);
+            let errMsg = `failed to [${actionName}]`;
+            if (status) {
+                errMsg += `, text status = '${status}'`;
+            }
+            if (xhr && xhr.responseText) {
+                errMsg += `, response text = '${xhr.responseText}'`;
+            }
+            if (error) {
+                errMsg += `, error = '${error}'`;
+            }
+            addError(errMsg);
         }
     })
 }

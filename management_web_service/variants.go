@@ -9,8 +9,6 @@ import (
 
 var EIbcClientBinaryName = "eibc-client"
 
-// Perform variant checks. If something wrong, call os.Exit(1) to completely terminate the entire web service.
-
 // AnyEIbcClient checks if there is any running eIBC client.
 func AnyEIbcClient() (bool, error) {
 	processes, err := process.Processes()

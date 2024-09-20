@@ -5,6 +5,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const eIbcClientLogSize = 1000
@@ -17,6 +19,7 @@ type Cache struct {
 	lastStartEIbcClient     time.Time
 	eIbcClientDenom         string
 	eIbcClientMinFeePercent float64
+	denomsMetadata          map[string]banktypes.Metadata
 }
 
 func (c *Cache) CanStartEIbcClientProcessID() error {
@@ -112,4 +115,22 @@ func (c *Cache) GetEIbcClientArgs() (denom string, minFeePercent float64) {
 	denom = c.eIbcClientDenom
 	minFeePercent = c.eIbcClientMinFeePercent
 	return
+}
+
+func (c *Cache) SetDenomsMetadata(denomsMetadata map[string]banktypes.Metadata) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.denomsMetadata = denomsMetadata
+}
+
+func (c *Cache) GetDenomsMetadata() map[string]banktypes.Metadata {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if c.denomsMetadata == nil {
+		return map[string]banktypes.Metadata{}
+	}
+
+	return c.denomsMetadata
 }
