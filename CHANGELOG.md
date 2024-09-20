@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
+
+
+### Features
+
+* **block-explorer:** add a command to tear down the block explorer setup ([#979](https://github.com/dymensionxyz/roller/issues/979)) ([4890bc7](https://github.com/dymensionxyz/roller/commit/4890bc7b1fb09070bb9abce362affb86fba3e7fd))
+* run block explorer against any endpoint ([#1014](https://github.com/dymensionxyz/roller/issues/1014)) ([7c7ae38](https://github.com/dymensionxyz/roller/commit/7c7ae380d6227fd7285e89badb9601d0f5f5f25d))
+
+
+### Bug Fixes
+
+* **block-explorer:** make the block-explorer creation more reliable ([#977](https://github.com/dymensionxyz/roller/issues/977)) ([fb69d9d](https://github.com/dymensionxyz/roller/commit/fb69d9d3fde392f13ae78ae58e39894f87b43e79))
+* **mock:** install only rollapp binary for mock ([#1012](https://github.com/dymensionxyz/roller/issues/1012)) ([7f736a4](https://github.com/dymensionxyz/roller/commit/7f736a49badb336dff8ff4cf25a5b664515ebeda))
+* retrieve da backend from genesis rollappparams ([#1002](https://github.com/dymensionxyz/roller/issues/1002)) ([966f3ae](https://github.com/dymensionxyz/roller/commit/966f3ae9821a8b37a05bfefb6ad6375f632081bb))
+* retrieve rollapp binary commit from genesis ([#1008](https://github.com/dymensionxyz/roller/issues/1008)) ([8d812b9](https://github.com/dymensionxyz/roller/commit/8d812b94e15189e0a19a1269fa3b92220359cfb3))
+
+
+### Miscellaneous Chores
+
+* release v1.6.4-alpha-rc02 ([608f78a](https://github.com/dymensionxyz/roller/commit/608f78a5e154988c92837c58d7a2cb7a1dddaa7c))
+* release v1.7.0-alpha-rc01 ([a2397a5](https://github.com/dymensionxyz/roller/commit/a2397a5fdceaf70ce49af3ad1a9960fc99a8809c))
+
 ## [1.6.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.3-alpha-rc01...v1.6.4-alpha-rc01) (2024-09-18)
 
 
