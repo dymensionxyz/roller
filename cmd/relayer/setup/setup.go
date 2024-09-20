@@ -36,6 +36,7 @@ func Cmd() *cobra.Command {
 		Use:   "setup",
 		Short: "Setup IBC connection between the Dymension hub and the RollApp.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// TODO: there are too many things set here, might be worth to refactor
 			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
@@ -53,12 +54,12 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := tomlconfig.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 				return
 			}
-			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
+			relayerLogFilePath := utils.GetRelayerLogPath(rollerData)
 			relayerLogger := utils.GetLogger(relayerLogFilePath)
 
 			hd, err := tomlconfig.LoadHubData(home)
@@ -66,18 +67,18 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 				return
 			}
+			seq := sequencer.GetInstance(rollerData)
 
 			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
 				home,
-				rollappConfig.RollappID,
+				rollerData.RollappID,
 				&hd,
-				string(rollappConfig.VMType),
+				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			/* ---------------------------- Initialize relayer --------------------------- */
 			defer func() {
-				pterm.Debug.Println("here")
 				pterm.Info.Println("reverting dymint config to 1h")
 				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
 				if err != nil {
@@ -87,13 +88,11 @@ func Cmd() *cobra.Command {
 			}()
 
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
-			defer func() {
-				err = dymintutils.UpdateDymintConfigForIBC(home, "5s", false)
-				if err != nil {
-					pterm.Error.Printf("Error updating YAML: %v\n", err)
-					return
-				}
-			}()
+			err = relayer.WaitForValidRollappHeight(seq)
+			if err != nil {
+				pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
+				return
+			}
 			outputHandler := initconfig.NewOutputHandler(false)
 			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
 			if err != nil {
@@ -165,18 +164,18 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("initializing relayer config")
 				err = initconfig.InitializeRelayerConfig(
 					relayer.ChainConfig{
-						ID:            rollappConfig.RollappID,
+						ID:            rollerData.RollappID,
 						RPC:           consts.DefaultRollappRPC,
 						Denom:         rollappDenom,
 						AddressPrefix: rollappPrefix,
 						GasPrices:     "2000000000",
 					}, relayer.ChainConfig{
-						ID:            rollappConfig.HubData.ID,
-						RPC:           rollappConfig.HubData.RPC_URL,
+						ID:            rollerData.HubData.ID,
+						RPC:           rollerData.HubData.RPC_URL,
 						Denom:         consts.Denoms.Hub,
 						AddressPrefix: consts.AddressPrefixes.Hub,
-						GasPrices:     rollappConfig.HubData.GAS_PRICE,
-					}, rollappConfig,
+						GasPrices:     rollerData.HubData.GAS_PRICE,
+					}, rollerData,
 				)
 				if err != nil {
 					pterm.Error.Printf(
@@ -186,7 +185,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				keys, err := initconfig.GenerateRelayerKeys(rollappConfig)
+				keys, err := initconfig.GenerateRelayerKeys(rollerData)
 				if err != nil {
 					pterm.Error.Printf("failed to create relayer keys: %v\n", err)
 					return
@@ -196,7 +195,7 @@ func Cmd() *cobra.Command {
 					key.Print(utils.WithMnemonic(), utils.WithName())
 				}
 
-				keysToFund, err := initconfig.GetRelayerKeys(rollappConfig)
+				keysToFund, err := initconfig.GetRelayerKeys(rollerData)
 				pterm.Info.Println("please fund the hub relayer key with at least 20 dym tokens: ")
 				for _, k := range keysToFund {
 					k.Print(utils.WithName())
@@ -214,7 +213,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				if err := relayer.CreatePath(rollappConfig); err != nil {
+				if err := relayer.CreatePath(rollerData); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
@@ -222,14 +221,14 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("updating application relayer config")
 				relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
 				updates := map[string]interface{}{
-					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.HubData.ID): 1.5,
-					fmt.Sprintf("chains.%s.value.gas-adjustment", rollappConfig.RollappID):  1.3,
-					fmt.Sprintf("chains.%s.value.is-dym-hub", rollappConfig.HubData.ID):     true,
+					fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 1.5,
+					fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID):  1.3,
+					fmt.Sprintf("chains.%s.value.is-dym-hub", rollerData.HubData.ID):     true,
 					fmt.Sprintf(
 						"chains.%s.value.http-addr",
-						rollappConfig.HubData.ID,
-					): rollappConfig.HubData.API_URL,
-					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollappConfig.RollappID): true,
+						rollerData.HubData.ID,
+					): rollerData.HubData.API_URL,
+					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollerData.RollappID): true,
 				}
 				err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
 				if err != nil {
@@ -246,14 +245,14 @@ func Cmd() *cobra.Command {
 
 			if isRelayerInitialized && !shouldOverwrite {
 				pterm.Info.Println("ensuring relayer keys are present")
-				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+				kc := initconfig.GetRelayerKeysConfig(rollerData)
 
 				for k, v := range kc {
 					pterm.Info.Printf("checking %s\n", k)
 
 					switch v.ID {
 					case consts.KeysIds.RollappRelayer:
-						chainId := rollappConfig.RollappID
+						chainId := rollerData.RollappID
 						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
@@ -261,7 +260,7 @@ func Cmd() *cobra.Command {
 						}
 
 						if !isPresent {
-							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							key, err := initconfig.AddRlyKey(v, rollerData.RollappID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -269,14 +268,14 @@ func Cmd() *cobra.Command {
 							key.Print(utils.WithMnemonic(), utils.WithName())
 						}
 					case consts.KeysIds.HubRelayer:
-						chainId := rollappConfig.HubData.ID
+						chainId := rollerData.HubData.ID
 						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
 							return
 						}
 						if !isPresent {
-							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							key, err := initconfig.AddRlyKey(v, rollerData.HubData.ID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -292,14 +291,14 @@ func Cmd() *cobra.Command {
 
 			if isRelayerInitialized && !shouldOverwrite {
 				pterm.Info.Println("ensuring relayer keys are present")
-				kc := initconfig.GetRelayerKeysConfig(rollappConfig)
+				kc := initconfig.GetRelayerKeysConfig(rollerData)
 
 				for k, v := range kc {
 					pterm.Info.Printf("checking %s\n", k)
 
 					switch v.ID {
 					case consts.KeysIds.RollappRelayer:
-						chainId := rollappConfig.RollappID
+						chainId := rollerData.RollappID
 						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
@@ -307,7 +306,7 @@ func Cmd() *cobra.Command {
 						}
 
 						if !isPresent {
-							key, err := initconfig.AddRlyKey(v, rollappConfig.RollappID)
+							key, err := initconfig.AddRlyKey(v, rollerData.RollappID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -315,14 +314,14 @@ func Cmd() *cobra.Command {
 							key.Print(utils.WithMnemonic(), utils.WithName())
 						}
 					case consts.KeysIds.HubRelayer:
-						chainId := rollappConfig.HubData.ID
+						chainId := rollerData.HubData.ID
 						isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
 						if err != nil {
 							pterm.Error.Printf("failed to check address: %v\n", err)
 							return
 						}
 						if !isPresent {
-							key, err := initconfig.AddRlyKey(v, rollappConfig.HubData.ID)
+							key, err := initconfig.AddRlyKey(v, rollerData.HubData.ID)
 							if err != nil {
 								pterm.Error.Printf("failed to add key: %v\n", err)
 							}
@@ -336,14 +335,14 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			err = verifyRelayerBalances(rollappConfig)
+			err = verifyRelayerBalances(rollerData)
 			if err != nil {
 				return
 			}
 			rly := relayer.NewRelayer(
-				rollappConfig.Home,
-				rollappConfig.RollappID,
-				rollappConfig.HubData.ID,
+				rollerData.Home,
+				rollerData.RollappID,
+				rollerData.HubData.ID,
 			)
 			rly.SetLogger(relayerLogger)
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
@@ -356,7 +355,7 @@ func Cmd() *cobra.Command {
 
 			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
-			err = rollappConfig.Validate()
+			err = rollerData.Validate()
 			if err != nil {
 				pterm.Error.Printf("failed to validate rollapp config: %v\n", err)
 				return
@@ -387,7 +386,7 @@ func Cmd() *cobra.Command {
 				createIbcChannels, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
 					fmt.Sprintf(
 						"no channel found. would you like to create a new IBC channel for %s?",
-						rollappConfig.RollappID,
+						rollerData.RollappID,
 					),
 				).Show()
 
@@ -399,14 +398,14 @@ func Cmd() *cobra.Command {
 
 			// TODO: look up relayer keys
 			if createIbcChannels || shouldOverwrite {
-				err = verifyRelayerBalances(rollappConfig)
+				err = verifyRelayerBalances(rollerData)
 				if err != nil {
 					pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 					return
 				}
 
 				pterm.Info.Println("establishing IBC transfer channel")
-				seq := sequencer.GetInstance(rollappConfig)
+				seq := sequencer.GetInstance(rollerData)
 				if seq == nil {
 					pterm.Error.Println("failed to get sequencer sequencer instance")
 					return

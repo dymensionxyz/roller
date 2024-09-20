@@ -87,24 +87,34 @@ func (r *Relayer) CreateIBCChannel(
 
 // waitForValidRollappHeight waits for the rollapp height to be greater than 2 otherwise
 // it will fail to create clients.
-func waitForValidRollappHeight(seq *sequencer.Sequencer) error {
+func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
+	timeout := time.After(20 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
 	logger := utils.GetRollerLogger(seq.RlpCfg.Home)
 	for {
-		rollappHeightStr, err := seq.GetRollappHeight()
-		if err != nil {
-			logger.Printf("💈 Error getting rollapp height, %s", err.Error())
+		select {
+		case <-timeout:
+			return fmt.Errorf("timeout waiting for rollapp height to be react 1")
+		case <-ticker.C:
+			rollappHeightStr, err := seq.GetRollappHeight()
+			if err != nil {
+				logger.Printf("💈 Error getting rollapp height, %s", err.Error())
+				continue
+			}
+			rollappHeight, err := strconv.Atoi(rollappHeightStr)
+			if err != nil {
+				logger.Printf("💈 Error converting rollapp height to int, %s", err.Error())
+				continue
+			}
+
+			if rollappHeight >= 1 {
+				logger.Printf("💈 Waiting for rollapp to generate first block")
+				return nil
+			}
 			continue
 		}
-		rollappHeight, err := strconv.Atoi(rollappHeightStr)
-		if err != nil {
-			logger.Printf("💈 Error converting rollapp height to int, %s", err.Error())
-			continue
-		}
-		if rollappHeight <= 2 {
-			logger.Printf("💈 Waiting for rollapp height to be greater than 2")
-			continue
-		}
-		return nil
 	}
 }
 
