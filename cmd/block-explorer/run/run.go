@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"

@@ -1,28 +1,3 @@
-# Changelog
-
-## [1.7.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.7.0-alpha-rc01...v1.7.1-alpha-rc01) (2024-09-18)
-
-
-### Bug Fixes
-
-* **da:** don't ask to override the existing da config ([#999](https://github.com/dymensionxyz/roller/issues/999)) ([eb7e31c](https://github.com/dymensionxyz/roller/commit/eb7e31cb8f1a019766f674e592c97f2aee71566d))
-* display the relevant information based on node type ([8f82ffc](https://github.com/dymensionxyz/roller/commit/8f82ffc0db53bab38c186e29a9855e7828a40ed2))
-* fix outputs that require node type ([4b218b8](https://github.com/dymensionxyz/roller/commit/4b218b858026c69558314c5d0395f5d762ea2ac0))
-* **ui:** installation spinner shouldn't draw new lines ([62e25db](https://github.com/dymensionxyz/roller/commit/62e25dbe8b46981dec5ed50eaed7666663a4ad5c))
-* **wasm:** add wasm vm type ([#1000](https://github.com/dymensionxyz/roller/issues/1000)) ([ce08f6d](https://github.com/dymensionxyz/roller/commit/ce08f6dc3f36e250fe01b8466c7261851d47bc8c))
-
-## [1.7.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.7.0-alpha-rc01) (2024-09-18)
-
-
-### Features
-
-* **block-explorer:** add a command to tear down the block explorer setup ([#979](https://github.com/dymensionxyz/roller/issues/979)) ([4890bc7](https://github.com/dymensionxyz/roller/commit/4890bc7b1fb09070bb9abce362affb86fba3e7fd))
-
-
-### Bug Fixes
-
-* **block-explorer:** make the block-explorer creation more reliable ([#977](https://github.com/dymensionxyz/roller/issues/977)) ([fb69d9d](https://github.com/dymensionxyz/roller/commit/fb69d9d3fde392f13ae78ae58e39894f87b43e79))
-
 ## [1.6.4-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.6.3-alpha-rc01...v1.6.4-alpha-rc01) (2024-09-18)
 
 
