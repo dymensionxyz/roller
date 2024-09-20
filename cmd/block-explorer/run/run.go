@@ -107,7 +107,7 @@ if you want to run block explorer for a rollapp on a different host, press 'n' a
 				pterm.Error.Println("failed to generate block explorer config", err)
 			}
 
-			err = createBlockExplorerContainers(home)
+			err = createBlockExplorerContainers(home, beRpcEndpoint)
 			if err != nil {
 				pterm.Error.Println("failed to create the necessary containers: ", err)
 				return
