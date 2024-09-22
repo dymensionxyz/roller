@@ -44,6 +44,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
+			logLevel, _ := cmd.Flags().GetString("log-level")
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -60,7 +61,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			errorhandling.PrettifyErrorIfExists(err)
 
 			seq := sequencer.GetInstance(rollappConfig)
-			startRollappCmd := seq.GetStartCmd()
+			startRollappCmd := seq.GetStartCmd(logLevel)
 
 			fmt.Println(startRollappCmd.String())
 
@@ -94,6 +95,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 		},
 	}
 	cmd.Flags().Bool("show-sequencer-balance", false, "initialize the rollapp with mock backend")
+	cmd.Flags().String("log-level", "debug", "pass the log level to the rollapp")
 
 	return cmd
 }
