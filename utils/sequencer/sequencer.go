@@ -14,12 +14,14 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
 )
 
 func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error {
@@ -145,6 +147,24 @@ func GetSequencerAccountAddress(cfg config.RollappConfig) (string, error) {
 	}
 
 	return seqAddr, nil
+}
+
+func GetRpcEndpointFromChain(rollappConfig config.RollappConfig) (string, error) {
+	seqAddr, err := rollapp.GetCurrentProposer(rollappConfig.RollappID, rollappConfig.HubData)
+	if err != nil {
+		return "", err
+	}
+
+	if seqAddr == "" {
+		return "", fmt.Errorf("no proposer found for rollapp %s", rollappConfig.RollappID)
+	}
+
+	metadata, err := GetMetadata(seqAddr, rollappConfig.HubData)
+	if err != nil {
+		return "", err
+	}
+
+	return metadata.Rpcs[0], err
 }
 
 func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, error) {

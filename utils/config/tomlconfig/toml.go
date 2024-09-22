@@ -26,17 +26,17 @@ func Write(rlpCfg config.RollappConfig) error {
 
 // TODO: should be called from root command
 func LoadRollerConfig(root string) (config.RollappConfig, error) {
-	var config config.RollappConfig
+	var rc config.RollappConfig
 	tomlBytes, err := os.ReadFile(filepath.Join(root, consts.RollerConfigFileName))
 	if err != nil {
-		return config, err
+		return rc, err
 	}
-	err = naoinatoml.Unmarshal(tomlBytes, &config)
+	err = naoinatoml.Unmarshal(tomlBytes, &rc)
 	if err != nil {
-		return config, err
+		return rc, err
 	}
 
-	return config, nil
+	return rc, nil
 }
 
 func LoadHubData(root string) (consts.HubData, error) {
