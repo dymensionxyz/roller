@@ -184,13 +184,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s prepare node configuration for %s RollApp\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp setup"),
-				raID,
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s prepare node configuration for %s RollApp\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller rollapp setup"),
+					raID,
+				)
+			}()
 		},
 	}
 
