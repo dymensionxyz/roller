@@ -178,10 +178,6 @@ func PrintOutput(
 		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-
-			if rlpCfg.HubData.ID != "mock" {
-			}
 		}
 
 		if errCel != nil {
