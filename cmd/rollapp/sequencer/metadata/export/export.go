@@ -1,6 +1,7 @@
 package export
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -99,9 +100,16 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			initDir := filepath.Join(home, consts.ConfigDirName.Rollapp, "init")
+
+			err = os.MkdirAll(initDir, 0o755)
+			if err != nil {
+				pterm.Error.Println("failed to create init directory", err)
+				return
+			}
+
 			metadataFilePath := filepath.Join(
-				home, consts.ConfigDirName.Rollapp, "init",
-				"sequencer-metadata.json",
+				initDir, "sequencer-metadata.json",
 			)
 			err = structs.ExportStructToFile(
 				*metadata,
