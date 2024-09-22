@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +46,10 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 		Run: func(cmd *cobra.Command, args []string) {
 			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
 			logLevel, _ := cmd.Flags().GetString("log-level")
+			logLevels := []string{"debug", "info", "warn", "error", "fatal"}
+			if !slices.Contains(logLevels, logLevel) {
+				logLevel = "debug"
+			}
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
