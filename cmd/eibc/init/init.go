@@ -109,6 +109,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			err = eibcutils.CreateMongoDbContainer()
+			if err != nil {
+				pterm.Error.Println("failed to create mongodb container:", err)
+				return
+			}
+			pterm.Info.Println("created eibc mongodb container")
+
 			pterm.Info.Println("eibc config updated successfully")
 			pterm.Info.Printf(
 				"eibc client initialized successfully at %s\n",
