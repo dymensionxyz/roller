@@ -240,8 +240,17 @@ func RemoveFileIfExists(filePath string) error {
 	return nil
 }
 
-func TailFile(fp, svcName string) error {
-	t, err := tail.TailFile(fp, tail.Config{Follow: true, ReOpen: false})
+func TailFile(fp, svcName string, lineNumber int) error {
+	tailCfg := tail.Config{
+		Follow: true,
+		ReOpen: false,
+		Location: &tail.SeekInfo{
+			Offset: 0,
+			Whence: io.SeekEnd,
+		},
+	}
+
+	t, err := tail.TailFile(fp, tailCfg)
 	if err != nil {
 		return fmt.Errorf("failed to tail file: %v", err)
 	}
@@ -250,6 +259,10 @@ func TailFile(fp, svcName string) error {
 	infoPrefix.Text = svcName
 	cp := pterm.PrefixPrinter{
 		Prefix: infoPrefix,
+	}
+
+	for i := 0; i < lineNumber; i++ {
+		<-t.Lines
 	}
 
 	for line := range t.Lines {
