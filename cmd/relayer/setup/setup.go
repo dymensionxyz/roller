@@ -425,9 +425,6 @@ func Cmd() *cobra.Command {
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller relayer services load"),
 			)
-			pterm.Warning.Println(
-				"IBC channels are activated only after the first IBC transfer from RollApp to Hub",
-			)
 		},
 	}
 
