@@ -139,6 +139,23 @@ func Cmd() *cobra.Command {
 
 			switch nodeType {
 			case "sequencer":
+				canRegister, err := sequencerutils.CanSequencerBeRegisteredForRollapp(
+					raResponse.Rollapp.RollappId,
+					rollerData.HubData,
+				)
+				if err != nil {
+					pterm.Error.Println(
+						"failed to check whether a sequencer can be registered for rollapp: ",
+						err,
+					)
+					return
+				}
+
+				if !canRegister {
+					pterm.Error.Println("rollapp is not ready to register a sequencer")
+					return
+				}
+
 				pterm.Info.Println("getting the existing sequencer address ")
 				hubSeqKC := utils.KeyConfig{
 					Dir:         consts.ConfigDirName.HubKeys,
