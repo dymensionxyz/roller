@@ -36,7 +36,7 @@ func InstallBinaries(
 	}
 
 	var raBinCommit string
-	raVmType := raResp.Rollapp.VmType
+	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
@@ -93,6 +93,7 @@ func InstallBinaries(
 				},
 			},
 		}
+
 		if raVmType == "evm" {
 			buildableDeps["rollapp"] = types.Dependency{
 				Name:       "rollapp",
@@ -127,6 +128,8 @@ func InstallBinaries(
 					},
 				},
 			}
+		} else {
+			return fmt.Errorf("RollApp VM '%s' type is not supported", raVmType)
 		}
 	}
 
