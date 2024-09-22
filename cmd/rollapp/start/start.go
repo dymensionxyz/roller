@@ -17,6 +17,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -164,6 +165,12 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
+		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		if err != nil {
+			return
+		}
+
 		if err != nil {
 			return
 		}
@@ -187,6 +194,15 @@ func PrintOutput(
 					}
 				}
 			}()
+
+			if rlpCfg.HubData.ID != "mock" {
+				if errCel != nil {
+					pterm.Error.Println("failed to retrieve DA address")
+					return
+				}
+				fmt.Println("Da Address:", celAddrData[0].Address)
+				fmt.Println("Da Balance:", celAddrData[0].Balance.String())
+			}
 		}
 	}
 }
