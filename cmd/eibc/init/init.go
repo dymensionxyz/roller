@@ -43,10 +43,22 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var hd consts.HubData
 			rollerConfig, err := tomlconfig.LoadRollerConfig(rollerHome)
 			if err != nil {
-				pterm.Error.Println("failed to load roller config", err)
-				return
+				pterm.Warning.Println("no roller config found")
+				pterm.Info.Println("initializing for environment")
+
+				envs := []string{"playground"}
+				env, _ := pterm.DefaultInteractiveSelect.
+					WithDefaultText(
+						"select the environment you want to initialize eibc client for",
+					).
+					WithOptions(envs).
+					Show()
+				hd = consts.Hubs[env]
+			} else {
+				hd = rollerConfig.HubData
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
@@ -97,7 +109,7 @@ func Cmd() *cobra.Command {
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			updates := map[string]interface{}{
-				"node_address":              rollerConfig.HubData.RPC_URL,
+				"node_address":              hd.RPC_URL,
 				"whale.account_name":        consts.KeysIds.Eibc,
 				"order_polling.interval":    "25s",
 				"order_polling.indexer_url": "http://44.206.211.230:3000/",
