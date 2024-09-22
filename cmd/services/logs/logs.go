@@ -47,7 +47,7 @@ func RollappCmd() *cobra.Command {
 			doneChan := make(chan bool)
 
 			go func() {
-				err := filesystem.TailFile(raLogFilePath, "rollapp")
+				err := filesystem.TailFile(raLogFilePath, "rollapp", 100)
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
 					errChan <- fmt.Errorf("failed to tail RA file: %w", err)
@@ -55,7 +55,7 @@ func RollappCmd() *cobra.Command {
 				}
 			}()
 			go func() {
-				err := filesystem.TailFile(daLogFilePath, "da light client")
+				err := filesystem.TailFile(daLogFilePath, "da light client", 100)
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
 					errChan <- fmt.Errorf("failed to tail DA file: %w", err)
@@ -106,7 +106,7 @@ func RelayerCmd() *cobra.Command {
 			doneChan := make(chan bool)
 
 			go func() {
-				err := filesystem.TailFile(rlyLogFilePath, "relayer")
+				err := filesystem.TailFile(rlyLogFilePath, "relayer", 100)
 				if err != nil {
 					pterm.Error.Println("failed to tail file", err)
 					errChan <- fmt.Errorf("failed to tail RA file: %w", err)
