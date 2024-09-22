@@ -134,12 +134,15 @@ func Cmd() *cobra.Command {
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf(eibcHome),
 			)
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to start the eibc client in interactive mode\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller eibc start"),
-			)
+
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s to start the eibc client in interactive mode\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller eibc start"),
+				)
+			}()
 		},
 	}
 	return cmd

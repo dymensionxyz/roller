@@ -135,13 +135,15 @@ func Cmd(services []string, module string) *cobra.Command {
 				}
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to start %s on your local machine\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller %s services start", module),
-				strings.Join(services, ", "),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s to start %s on your local machine\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller %s services start", module),
+					strings.Join(services, ", "),
+				)
+			}()
 		},
 	}
 	return cmd
