@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -17,6 +16,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
@@ -164,6 +164,12 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
+		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
+		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		if err != nil {
+			return
+		}
+
 		if err != nil {
 			return
 		}
@@ -172,21 +178,16 @@ func PrintOutput(
 		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-			go func() {
-				for {
-					// nolint: gosimple
-					select {
-					default:
-						seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-						if err == nil {
-							// Clear the previous line and print the updated balance
-							fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
-							fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-						}
-						time.Sleep(5 * time.Second)
-					}
-				}
-			}()
+		}
+
+		if errCel != nil {
+			pterm.Error.Println("failed to retrieve DA address")
+			return
+		}
+
+		fmt.Println("Da Address:", celAddrData[0].Address)
+		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
+			fmt.Println("Da Balance:", celAddrData[0].Balance.String())
 		}
 	}
 }
