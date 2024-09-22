@@ -9,14 +9,15 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
-	globalutils "github.com/dymensionxyz/roller/utils/bash"
+	bashutils "github.com/dymensionxyz/roller/utils/bash"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
-	out, err := globalutils.ExecCommandWithStdout(cmd)
+	out, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func getCurrentBlockCmd() *exec.Cmd {
 
 func GetInitialSequencerAddress(raID string, hd consts.HubData) (string, error) {
 	cmd := GetShowRollappCmd(raID, hd)
-	out, err := globalutils.ExecCommandWithStdout(cmd)
+	out, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -70,7 +71,7 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 // TODO: most of rollapp utility functions should be tied to an entity
 func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
-	_, err := globalutils.ExecCommandWithStdout(cmd)
+	_, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
 			return false, errors.New("rollapp not found ")
@@ -104,6 +105,37 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	)
 
 	return cmd
+}
+
+type GetProposerResponse struct {
+	ProposerAddr string `json:"proposerAddr"`
+}
+
+func GetCurrentProposerCmd(raID string, hd consts.HubData) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "proposer",
+		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+	)
+
+	return cmd
+}
+
+func GetCurrentProposer(raID string, hd consts.HubData) (string, error) {
+	cmd := GetCurrentProposerCmd(raID, hd)
+
+	out, err := bashutils.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", err
+	}
+	var resp GetProposerResponse
+
+	err = json.Unmarshal(out.Bytes(), &resp)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.ProposerAddr, nil
 }
 
 func RollappConfigDir(root string) string {
