@@ -127,7 +127,7 @@ func GetSequencerAccountAddress(cfg config.RollappConfig) (string, error) {
 	return seqAddr, nil
 }
 
-func GetRpcEndpointFromChain(seqAddr string, rollappConfig config.RollappConfig) (string, error) {
+func GetRpcEndpointFromChain(rollappConfig config.RollappConfig) (string, error) {
 	seqAddr, err := rollapp.GetCurrentProposer(rollappConfig.RollappID, rollappConfig.HubData)
 	if err != nil {
 		return "", err
