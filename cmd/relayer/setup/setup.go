@@ -418,12 +418,14 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s load the necessary systemd services\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer services load"),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s load the necessary systemd services\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller relayer services load"),
+				)
+			}()
 		},
 	}
 

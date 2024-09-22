@@ -750,12 +750,14 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("initialization complete")
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s load the necessary systemd services\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services load"),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s load the necessary systemd services\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller rollapp services load"),
+				)
+			}()
 		},
 	}
 

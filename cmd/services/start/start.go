@@ -37,17 +37,19 @@ func RollappCmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to set up IBC channels and start relaying packets\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer setup"),
-			)
-			pterm.Info.Printf(
-				"run %s to view the logs  of the rollapp\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services logs"),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s to set up IBC channels and start relaying packets\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller relayer setup"),
+				)
+				pterm.Info.Printf(
+					"run %s to view the logs  of the rollapp\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller rollapp services logs"),
+				)
+			}()
 		},
 	}
 	return cmd
@@ -77,17 +79,19 @@ func RelayerCmd() *cobra.Command {
 				)
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Printf(
-				"run %s to join the eibc market\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller eibc init"),
-			)
-			pterm.Info.Printf(
-				"run %s to view the current status of the relayer\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller relayer services logs"),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s to join the eibc market\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller eibc init"),
+				)
+				pterm.Info.Printf(
+					"run %s to view the current status of the relayer\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller relayer services logs"),
+				)
+			}()
 		},
 	}
 	return cmd
@@ -117,18 +121,21 @@ func EibcCmd() *cobra.Command {
 				)
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Println(
-				"that's all folks",
-			)
-
-			if runtime.GOOS == "linux" {
-				pterm.Info.Printf(
-					"run %s to view the current status of the eibc client\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("journalctl -fu eibc"),
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Println(
+					"that's all folks",
 				)
-			}
+
+				if runtime.GOOS == "linux" {
+					pterm.Info.Printf(
+						"run %s to view the current status of the eibc client\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("journalctl -fu eibc"),
+					)
+				}
+			}()
+
 		},
 	}
 	return cmd

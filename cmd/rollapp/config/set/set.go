@@ -102,13 +102,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Println("next steps:")
-			pterm.Info.Println("if this was the only configuration value you wanted to update")
-			pterm.Info.Printf(
-				"run %s to restart the systemd services and apply the new values\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services restart"),
-			)
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Println("if this was the only configuration value you wanted to update")
+				pterm.Info.Printf(
+					"run %s to restart the systemd services and apply the new values\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller rollapp services restart"),
+				)
+			}()
 		},
 	}
 
