@@ -411,7 +411,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, seq)
+				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption)
 				if err != nil {
 					pterm.Error.Printf("failed to create IBC channel: %v\n", err)
 					return

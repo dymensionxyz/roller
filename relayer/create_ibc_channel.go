@@ -20,7 +20,6 @@ import (
 func (r *Relayer) CreateIBCChannel(
 	override bool,
 	logFileOption bash.CommandOption,
-	seq *sequencer.Sequencer,
 ) (ConnectionChannels, error) {
 	// ctx, cancel := context.WithCancel(context.Background())
 	// defer cancel()
@@ -32,6 +31,7 @@ func (r *Relayer) CreateIBCChannel(
 	time.Sleep(10 * time.Second)
 
 	connectionID, _ := r.GetActiveConnection()
+	fmt.Println(connectionID)
 	if connectionID == "" || override {
 		pterm.Info.Println("💈 Creating connection...")
 		if err := r.WriteRelayerStatus(status); err != nil {
