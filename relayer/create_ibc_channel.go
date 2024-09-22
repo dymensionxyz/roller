@@ -30,7 +30,11 @@ func (r *Relayer) CreateIBCChannel(
 	// otherwise the connection creation attempt fails
 	time.Sleep(10 * time.Second)
 
-	connectionID, _ := r.GetActiveConnection()
+	connectionID, err := r.GetActiveConnection()
+	if err != nil {
+		return ConnectionChannels{}, err
+	}
+
 	fmt.Println(connectionID)
 	if connectionID == "" || override {
 		pterm.Info.Println("💈 Creating connection...")
@@ -63,7 +67,7 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
-	_, _, err := r.LoadActiveChannel()
+	_, _, err = r.LoadActiveChannel()
 	if err != nil {
 		return ConnectionChannels{}, err
 	}
