@@ -87,6 +87,28 @@ func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	return nil
 }
 
+func CanSequencerBeRegisteredForRollapp(raID string, hd consts.HubData) (bool, error) {
+	var raResponse rollapp.ShowRollappResponse
+	cmd := rollapp.GetRollappCmd(raID, hd)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		pterm.Error.Println("failed to get rollapp: ", err)
+		return false, err
+	}
+	err = json.Unmarshal(out.Bytes(), &raResponse)
+	if err != nil {
+		pterm.Error.Println("failed to unmarshal", err)
+		return false, err
+	}
+
+	if raResponse.Rollapp.InitialSequencer == "" {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func isValidSequencerMetadata(path string) (bool, error) {
 	f, err := os.Open(path)
 	if err != nil {
