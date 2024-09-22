@@ -1,8 +1,6 @@
 package start
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -30,27 +28,14 @@ func Cmd() *cobra.Command {
 			}
 
 			if !ok {
-				fmt.Println("eibc home directory not present, running init")
-				c := eibcutils.GetInitCmd()
-
-				_, err := bash.ExecCommandWithStdout(c)
-				if err != nil {
-					return
-				}
-
-				err = eibcutils.EnsureWhaleAccount()
-				if err != nil {
-					log.Printf("failed to create whale account: %v\n", err)
-					return
-				}
-			}
-
-			err = eibcutils.CreateMongoDbContainer()
-			if err != nil {
-				pterm.Error.Println("failed to create mongodb container:", err)
+				pterm.Error.Println("eibc client not initialized")
+				pterm.Info.Printf(
+					"run %s to initialize the eibc client\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller eibc init"),
+				)
 				return
 			}
-			pterm.Info.Println("created eibc mongodb container")
 
 			c := eibcutils.GetStartCmd()
 			err = bash.ExecCmdFollow(c)
