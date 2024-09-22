@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -179,30 +178,20 @@ func PrintOutput(
 		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-			go func() {
-				for {
-					// nolint: gosimple
-					select {
-					default:
-						seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-						if err == nil {
-							// Clear the previous line and print the updated balance
-							fmt.Print("\033[1A\033[K") // Move cursor up one line and clear it
-							fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-						}
-						time.Sleep(5 * time.Second)
-					}
-				}
-			}()
+			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 
 			if rlpCfg.HubData.ID != "mock" {
-				if errCel != nil {
-					pterm.Error.Println("failed to retrieve DA address")
-					return
-				}
-				fmt.Println("Da Address:", celAddrData[0].Address)
-				fmt.Println("Da Balance:", celAddrData[0].Balance.String())
 			}
+		}
+
+		if errCel != nil {
+			pterm.Error.Println("failed to retrieve DA address")
+			return
+		}
+
+		fmt.Println("Da Address:", celAddrData[0].Address)
+		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
+			fmt.Println("Da Balance:", celAddrData[0].Balance.String())
 		}
 	}
 }
