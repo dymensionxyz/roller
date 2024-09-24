@@ -33,10 +33,7 @@ func Cmd() *cobra.Command {
 			}
 			baseDenom := rlpCfg.Denom
 
-			coinType := 118
-			if rlpCfg.VMType == consts.EVM_ROLLAPP {
-				coinType = 60
-			}
+			coinType := 60
 			rly := relayer.NewRelayer(rlpCfg.Home, rlpCfg.RollappID, rlpCfg.HubData.ID)
 			_, _, err = rly.LoadActiveChannel()
 			if err != nil || rly.SrcChannel == "" || rly.DstChannel == "" {
