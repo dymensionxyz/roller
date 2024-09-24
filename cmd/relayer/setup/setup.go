@@ -229,6 +229,9 @@ func Cmd() *cobra.Command {
 						rollerData.HubData.ID,
 					): rollerData.HubData.API_URL,
 					fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollerData.RollappID): true,
+					"extra-codecs": []string{
+						"ethermint",
+					},
 				}
 				err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
 				if err != nil {
