@@ -69,7 +69,7 @@ func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.RollappRelayer,
 			ChainBinary: rollappConfig.RollappBinary,
-			Type:        consts.EVM_ROLLAPP,
+			Type:        rollappConfig.VMType,
 		},
 		consts.KeysIds.HubRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
@@ -151,6 +151,9 @@ func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, e
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
 	coinType := "60"
+	if keyConfig.Type == consts.WASM_ROLLAPP {
+		coinType = "118"
+	}
 	return exec.Command(
 		consts.Executables.Relayer,
 		"keys",
