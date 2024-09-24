@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	keys2 "github.com/dymensionxyz/roller/utils/keys"
+	keyutils "github.com/dymensionxyz/roller/utils/keys"
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
@@ -19,7 +19,7 @@ func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, e
 	for _, key := range keys {
 		var address *utils.KeyInfo
 		var err error
-		address, err = keys2.CreateAddressBinary(key, initConfig.Home)
+		address, err = keyutils.CreateAddressBinary(key, initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -150,10 +150,7 @@ func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, e
 }
 
 func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	coinType := "118"
-	if keyConfig.Type == consts.EVM_ROLLAPP {
-		coinType = "60"
-	}
+	coinType := "60"
 	return exec.Command(
 		consts.Executables.Relayer,
 		"keys",
