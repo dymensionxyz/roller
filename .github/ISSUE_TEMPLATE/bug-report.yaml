@@ -14,6 +14,14 @@ body:
         use 'roller version'
     validations:
       required: true
+  - type: input
+    id: rollapp-version
+    attributes:
+      label: Rollpp type (EVM/WASM) and version
+      description: >
+        use 'rollappd version'
+    validations:
+      required: true
   - type: markdown
     attributes:
       value: |
