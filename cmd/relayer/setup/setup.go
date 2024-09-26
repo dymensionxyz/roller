@@ -134,14 +134,13 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
-			defer func() {
-				pterm.Info.Println("reverting dymint config to 1h")
-				err := dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-				if err != nil {
-					pterm.Error.Println("failed to update dymint config: ", err)
-					return
-				}
-			}()
+			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
+				home,
+				raData.ID,
+				&hd,
+				string(rollerData.VMType),
+			)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			srcIbcChannel, dstIbcChannel, err := rly.LoadActiveChannel(raData, hd)
 			if err != nil {
@@ -150,6 +149,15 @@ func Cmd() *cobra.Command {
 			}
 
 			if srcIbcChannel == "" || dstIbcChannel == "" {
+				defer func() {
+					pterm.Info.Println("reverting dymint config to 1h")
+					err := dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+					if err != nil {
+						pterm.Error.Println("failed to update dymint config: ", err)
+						return
+					}
+				}()
+
 				if !runForExisting {
 					pterm.Error.Println(
 						"existing channels not found, initial IBC setup must be run on a sequencer node",
@@ -188,14 +196,6 @@ func Cmd() *cobra.Command {
 				}
 
 				seq := sequencer.GetInstance(rollerData)
-
-				rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
-					home,
-					rollerData.RollappID,
-					&rollerData.HubData,
-					string(rollerData.VMType),
-				)
-				errorhandling.PrettifyErrorIfExists(err)
 
 				dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 				err = relayer.WaitForValidRollappHeight(seq)
@@ -540,6 +540,124 @@ func Cmd() *cobra.Command {
 							Sprintf("roller relayer services load"),
 					)
 				}()
+				return
+			}
+
+			// TODO: remove code duplication
+			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
+			if err != nil {
+				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
+				return
+			}
+
+			outputHandler := initconfig.NewOutputHandler(false)
+
+			var shouldOverwrite bool
+			if isRelayerInitialized {
+				outputHandler.StopSpinner()
+				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
+				if err != nil {
+					pterm.Error.Printf("failed to get your input: %v\n", err)
+					return
+				}
+			}
+
+			if shouldOverwrite {
+				pterm.Info.Println("overriding the existing relayer configuration")
+				err = os.RemoveAll(relayerHome)
+				if err != nil {
+					pterm.Error.Printf(
+						"failed to recuresively remove %s: %v\n",
+						relayerHome,
+						err,
+					)
+					return
+				}
+
+				err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
+				if err != nil {
+					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
+					return
+				}
+
+				err = os.MkdirAll(relayerHome, 0o755)
+				if err != nil {
+					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
+					return
+				}
+			}
+			pterm.Info.Println("initializing relayer config")
+			err = initconfig.InitializeRelayerConfig(
+				relayer.ChainConfig{
+					ID:            raData.ID,
+					RPC:           raData.RpcUrl,
+					Denom:         rollappChainData.Denom,
+					AddressPrefix: rollappChainData.Bech32Prefix,
+					GasPrices:     "2000000000",
+				}, relayer.ChainConfig{
+					ID:            rollappChainData.HubData.ID,
+					RPC:           rollappChainData.HubData.RPC_URL,
+					Denom:         consts.Denoms.Hub,
+					AddressPrefix: consts.AddressPrefixes.Hub,
+					GasPrices:     rollappChainData.HubData.GAS_PRICE,
+				}, rollerData,
+			)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to initialize relayer config: %v\n",
+					err,
+				)
+				return
+			}
+
+			keys, err := initconfig.GenerateRelayerKeys(*rollappChainData)
+			if err != nil {
+				pterm.Error.Printf("failed to create relayer keys: %v\n", err)
+				return
+			}
+			for _, key := range keys {
+				key.Print(utils.WithMnemonic(), utils.WithName())
+			}
+
+			keysToFund, err := initconfig.GetRelayerKeys(*rollappChainData)
+			pterm.Info.Println(
+				"please fund the hub relayer key with at least 20 dym tokens: ",
+			)
+			for _, k := range keysToFund {
+				k.Print(utils.WithName())
+			}
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
+			if !proceed {
+				return
+			}
+
+			if err := relayer.CreatePath(*rollappChainData); err != nil {
+				pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+				return
+			}
+
+			pterm.Info.Println("updating application relayer config")
+			relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
+			updates := map[string]interface{}{
+				fmt.Sprintf("chains.%s.value.gas-adjustment", rollappChainData.HubData.ID): 1.5,
+				fmt.Sprintf("chains.%s.value.gas-adjustment", rollappChainData.RollappID):  1.3,
+				fmt.Sprintf("chains.%s.value.is-dym-hub", rollappChainData.HubData.ID):     true,
+				fmt.Sprintf(
+					"chains.%s.value.http-addr",
+					rollappChainData.HubData.ID,
+				): rollappChainData.HubData.API_URL,
+				fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollappChainData.RollappID): true,
+				"extra-codecs": []string{
+					"ethermint",
+				},
+			}
+			err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
+			if err != nil {
+				pterm.Error.Printf("Error updating YAML: %v\n", err)
+				return
 			}
 
 			fmt.Println("hub channel: ", srcIbcChannel)
