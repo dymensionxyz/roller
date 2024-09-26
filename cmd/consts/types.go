@@ -8,6 +8,13 @@ type HubData = struct {
 	GAS_PRICE       string `toml:"gas_price"`
 }
 
+type RollappData = struct {
+	ID       string `toml:"id"`
+	ApiUrl   string `toml:"api_url"`
+	RpcUrl   string `toml:"rpc_url"`
+	GasPrice string `toml:"gas_price"`
+}
+
 type DaData = struct {
 	Backend   DAType    `toml:"backend"`
 	ID        DaNetwork `toml:"id"`

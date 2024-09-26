@@ -149,22 +149,58 @@ func GetSequencerAccountAddress(cfg config.RollappConfig) (string, error) {
 	return seqAddr, nil
 }
 
-func GetRpcEndpointFromChain(rollappConfig config.RollappConfig) (string, error) {
-	seqAddr, err := rollapp.GetCurrentProposer(rollappConfig.RollappID, rollappConfig.HubData)
+func GetRpcEndpointFromChain(raID string, hd consts.HubData) (string, error) {
+	seqAddr, err := rollapp.GetCurrentProposer(raID, hd)
 	if err != nil {
 		return "", err
 	}
 
 	if seqAddr == "" {
-		return "", fmt.Errorf("no proposer found for rollapp %s", rollappConfig.RollappID)
+		return "", fmt.Errorf("no proposer found for rollapp %s", raID)
 	}
 
-	metadata, err := GetMetadata(seqAddr, rollappConfig.HubData)
+	metadata, err := GetMetadata(seqAddr, hd)
 	if err != nil {
 		return "", err
 	}
 
 	return metadata.Rpcs[0], err
+}
+
+func GetRestEndpointFromChain(raID string, hd consts.HubData) (string, error) {
+	seqAddr, err := rollapp.GetCurrentProposer(raID, hd)
+	if err != nil {
+		return "", err
+	}
+
+	if seqAddr == "" {
+		return "", fmt.Errorf("no proposer found for rollapp %s", raID)
+	}
+
+	metadata, err := GetMetadata(seqAddr, hd)
+	if err != nil {
+		return "", err
+	}
+
+	return metadata.RestApiUrls[0], err
+}
+
+func GetJsonRpcEndpointFromChain(raID string, hd consts.HubData) (string, error) {
+	seqAddr, err := rollapp.GetCurrentProposer(raID, hd)
+	if err != nil {
+		return "", err
+	}
+
+	if seqAddr == "" {
+		return "", fmt.Errorf("no proposer found for rollapp %s", raID)
+	}
+
+	metadata, err := GetMetadata(seqAddr, hd)
+	if err != nil {
+		return "", err
+	}
+
+	return metadata.RestApiUrls[0], err
 }
 
 func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, error) {

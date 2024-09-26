@@ -1,7 +1,9 @@
 package setup
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -23,6 +25,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -40,6 +43,142 @@ func Cmd() *cobra.Command {
 			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
+			// check for roller config, if it's present - fetch the rollapp ID from there
+			var raID string
+			var env string
+			var hd consts.HubData
+			var runForExisting bool
+			var rollerData configutils.RollappConfig
+
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+
+			// fetch rollapp metadata from chain
+			// retrieve rpc endpoint
+			_, err := os.Stat(rollerConfigFilePath)
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					pterm.Info.Println("existing roller configuration not found")
+					runForExisting = false
+				} else {
+					pterm.Error.Println("failed to check existing roller config")
+					return
+				}
+			} else {
+				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
+				rollerData, err = tomlconfig.LoadRollerConfig(home)
+				if err != nil {
+					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
+					return
+				}
+				rollerRaID := rollerData.RollappID
+				rollerHubData := rollerData.HubData
+				msg := fmt.Sprintf(
+					"the retrieved rollapp ID is: %s, would you like to initialize the relayer for this rollapp?",
+					rollerRaID,
+				)
+				rlyFromRoller, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+				if rlyFromRoller {
+					raID = rollerRaID
+					hd = rollerHubData
+					runForExisting = true
+				}
+
+				if !rlyFromRoller {
+					runForExisting = false
+				}
+			}
+
+			if !runForExisting {
+				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID").
+					Show()
+			}
+
+			_, err = rollapputils.ValidateChainID(raID)
+			if err != nil {
+				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
+				return
+			}
+
+			if !runForExisting {
+				envs := []string{"playground"}
+				env, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText(
+						"select the environment you want to initialize relayer for",
+					).
+					WithOptions(envs).
+					Show()
+
+				hd = consts.Hubs[env]
+			}
+
+			// retrieve rollapp rpc endpoints
+			raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, hd)
+			if err != nil {
+				return
+			}
+
+			// check if there are active channels created for the rollapp
+			relayerLogFilePath := utils.GetRelayerLogPath(home)
+			relayerLogger := utils.GetLogger(relayerLogFilePath)
+
+			raData := consts.RollappData{
+				ID:     raID,
+				RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
+			}
+
+			rly := relayer.NewRelayer(
+				home,
+				raData.ID,
+				hd.ID,
+			)
+			rly.SetLogger(relayerLogger)
+			logFileOption := utils.WithLoggerLogging(relayerLogger)
+
+			srcIbcChannel, dstIbcChannel, err := rly.LoadActiveChannel(raData, hd)
+			if err != nil {
+				pterm.Error.Printf("failed to load active channel, %v", err)
+				return
+			}
+
+			if srcIbcChannel == "" || dstIbcChannel == "" {
+				if !runForExisting {
+					pterm.Error.Println(
+						"existing channels not found, initial IBC setup must be run on a sequencer node",
+					)
+					return
+				}
+
+				if runForExisting && rollerData.NodeType != consts.NodeType.Sequencer {
+					pterm.Error.Println(
+						"existing channels not found, initial IBC setup must be run on a sequencer node",
+					)
+					return
+				}
+
+				pterm.Info.Println("let's create that IBC connection, shall we?")
+			}
+
+			fmt.Println("hub channel: ", srcIbcChannel)
+			fmt.Println("ra channel: ", dstIbcChannel)
+			// if yes -
+			// add it to the relayer configuration
+			// if not rpc endpoints are available - exit
+			// if no -
+			// prompt to create new ibc connection between hub and rollapp
+			// create it, display the channel info
+			return
+
+			// you can't create the channels if the relayer is not running on the same host
+			defer func() {
+				pterm.Info.Println("reverting dymint config to 1h")
+				err := dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config: ", err)
+					return
+				}
+			}()
+
+			// otherwise prompt
 			as, err := genesisutils.GetGenesisAppState(home)
 			if err != nil {
 				pterm.Error.Printf("failed to get genesis app state: %v\n", err)
@@ -47,45 +186,33 @@ func Cmd() *cobra.Command {
 			}
 			rollappDenom := as.Bank.Supply[0].Denom
 
-			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "base_denom", rollappDenom)
 			if err != nil {
 				pterm.Error.Println("failed to set base denom in roller.toml")
 				return
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
-			if err != nil {
-				pterm.Error.Printf("failed to load rollapp config: %v\n", err)
-				return
-			}
-			relayerLogFilePath := utils.GetRelayerLogPath(rollerData)
-			relayerLogger := utils.GetLogger(relayerLogFilePath)
-
-			hd, err := tomlconfig.LoadHubData(home)
-			if err != nil {
-				pterm.Error.Println("failed to load hub data from roller.toml")
-				return
-			}
 			seq := sequencer.GetInstance(rollerData)
 
 			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
 				home,
 				rollerData.RollappID,
-				&hd,
+				&rollerData.HubData,
 				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
+			// check if there are active channels created for the rollapp
+			// if yes -
+			// fetch rollapp metadata from chain
+			// retrieve rpc endpoint
+			// add it to the relayer configuration
+			// if not rpc endpoints are available - exit
+			// if no -
+			// prompt to create new ibc connection between hub and rollapp
+			// create it, display the channel info
+
 			/* ---------------------------- Initialize relayer --------------------------- */
-			defer func() {
-				pterm.Info.Println("reverting dymint config to 1h")
-				err = dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-				if err != nil {
-					pterm.Error.Println("failed to update dymint config: ", err)
-					return
-				}
-			}()
 
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 			err = relayer.WaitForValidRollappHeight(seq)
@@ -339,19 +466,6 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				return
 			}
-			rly := relayer.NewRelayer(
-				rollerData.Home,
-				rollerData.RollappID,
-				rollerData.HubData.ID,
-			)
-			rly.SetLogger(relayerLogger)
-			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
-			_, _, err = rly.LoadActiveChannel()
-			if err != nil {
-				pterm.Error.Printf("failed to load active channel, %v", err)
-				return
-			}
-			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
 			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
@@ -411,7 +525,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, seq)
+				_, err = rly.CreateIBCChannel(shouldOverwrite, logFileOption, raData, hd)
 				if err != nil {
 					pterm.Error.Printf("failed to create IBC channel: %v\n", err)
 					return

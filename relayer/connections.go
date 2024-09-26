@@ -4,13 +4,19 @@ import (
 	"encoding/json"
 	"os/exec"
 	"path/filepath"
+	"slices"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	roller_utils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 type ConnectionsQueryResult struct {
+	Connections []ConnectionInfo `json:"connections"`
+	Height      ProofHeightInfo  `json:"height"`
+	Pagination  PaginationInfo   `json:"pagination"`
+}
+
+type RlyConnectionsQueryResult struct {
 	ID           string           `json:"id"`
 	ClientID     string           `json:"client_id"`
 	Versions     []VersionInfo    `json:"versions"`
@@ -19,7 +25,7 @@ type ConnectionsQueryResult struct {
 	DelayPeriod  string           `json:"delay_period"`
 }
 
-type ConnectionQueryResult struct {
+type RlyConnectionQueryResult struct {
 	Connection  ConnectionInfo  `json:"connection"`
 	Proof       string          `json:"proof"`
 	ProofHeight ProofHeightInfo `json:"proof_height"`
@@ -29,6 +35,7 @@ type ConnectionInfo struct {
 	ClientID     string           `json:"client_id"`
 	Versions     []VersionInfo    `json:"versions"`
 	State        string           `json:"state"`
+	ID           string           `json:"id"`
 	Counterparty CounterpartyInfo `json:"counterparty"`
 	DelayPeriod  string           `json:"delay_period"`
 }
@@ -36,6 +43,11 @@ type ConnectionInfo struct {
 type ProofHeightInfo struct {
 	RevisionNumber string `json:"revision_number"`
 	RevisionHeight string `json:"revision_height"`
+}
+
+type PaginationInfo struct {
+	NextKey string `json:"next_key"`
+	Total   string `json:"total"`
 }
 
 type VersionInfo struct {
@@ -53,45 +65,48 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) GetActiveConnection() (string, error) {
+func (r *Relayer) GetActiveConnection(
+	raData consts.RollappData,
+	hd consts.HubData,
+) (string, string, error) {
 	// try to read connection information from the configuration file
-	rlyCfg, err := ReadRlyConfig(r.Home)
-	if err != nil {
-		return "", err
-	}
-	connectionIDRollappRaw, err := roller_utils.GetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
-	)
-	if err != nil {
-		r.logger.Println("no active rollapp connection id found in the configuration file")
-		// return "", err
-	}
-
-	connectionIDHubRaw, err := roller_utils.GetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
-	)
-	if err != nil {
-		r.logger.Println("no active hub connection id found in the configuration file")
-		// return "", err
-	}
-
-	var connectionIDRollapp string
-	if connectionIDRollappRaw != nil {
-		//nolint:errcheck
-		connectionIDRollapp = connectionIDRollappRaw.(string)
-	}
-
-	var connectionIDHub string
-	if connectionIDHubRaw != nil {
-		//nolint:errcheck
-		connectionIDHub = connectionIDHubRaw.(string)
-	}
-
-	if connectionIDRollapp == "" || connectionIDHub == "" {
-		r.logger.Printf("can't find active connection in the configuration file")
-	}
+	// rlyCfg, err := ReadRlyConfig(r.Home)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// connectionIDRollappRaw, err := roller_utils.GetNestedValue(
+	// 	rlyCfg,
+	// 	[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
+	// )
+	// if err != nil {
+	// 	r.logger.Println("no active rollapp connection id found in the configuration file")
+	// 	// return "", err
+	// }
+	//
+	// connectionIDHubRaw, err := roller_utils.GetNestedValue(
+	// 	rlyCfg,
+	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
+	// )
+	// if err != nil {
+	// 	r.logger.Println("no active hub connection id found in the configuration file")
+	// 	// return "", err
+	// }
+	//
+	// var connectionIDRollapp string
+	// if connectionIDRollappRaw != nil {
+	// 	//nolint:errcheck
+	// 	connectionIDRollapp = connectionIDRollappRaw.(string)
+	// }
+	//
+	// var connectionIDHub string
+	// if connectionIDHubRaw != nil {
+	// 	//nolint:errcheck
+	// 	connectionIDHub = connectionIDHubRaw.(string)
+	// }
+	//
+	// if connectionIDRollapp == "" || connectionIDHub == "" {
+	// 	r.logger.Printf("can't find active connection in the configuration file")
+	// }
 	// END: try to read connection information from the configuration file
 
 	// var hubConnectionInfo ConnectionsQueryResult
@@ -104,7 +119,7 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 	// fetch connection from the chain
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
 		r.queryConnectionRollappCmd(
-			"connection-0",
+			raData,
 		),
 	)
 	if err != nil {
@@ -113,96 +128,110 @@ func (r *Relayer) GetActiveConnection() (string, error) {
 			r.RollappID,
 			err,
 		)
-		return "", err
+		return "", "", err
 	}
 
 	// While there are JSON objects in the stream...
-	var outputStruct ConnectionQueryResult
-	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &outputStruct)
+	var rollappIbcConnection ConnectionsQueryResult
+	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &rollappIbcConnection)
 	if err != nil {
 		r.logger.Printf("error while decoding JSON: %v", err)
 	}
 
-	// TODO: review, why return nil error?
-	if outputStruct.Connection.State != "STATE_OPEN" {
-		return "", nil
+	if len(rollappIbcConnection.Connections) == 0 {
+		r.logger.Printf("no connections found on the rollapp side for %s", r.RollappID)
+		return "", "", nil
 	}
-	hubConnectionID := outputStruct.Connection.Counterparty.ConnectionID
+
+	// TODO: review, why return nil error?
+	if rollappIbcConnection.Connections[0].State != "STATE_OPEN" {
+		return "", "", nil
+	}
+	hubConnectionID := rollappIbcConnection.Connections[0].Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
-	var res ConnectionQueryResult
+	var hubIbcConnection ConnectionsQueryResult
 	outputHub, err := bash.ExecCommandWithStdout(
-		r.queryConnectionHubCmd(hubConnectionID),
+		r.queryConnectionHubCmd(hd),
 	)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	err = json.Unmarshal(outputHub.Bytes(), &res)
+	err = json.Unmarshal(outputHub.Bytes(), &hubIbcConnection)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	if res.Connection.State != "STATE_OPEN" {
-		r.logger.Printf(
-			"connection %s is STATE_OPEN on the rollapp, but connection %s is %s on the hub",
-			connectionIDRollapp,
-			connectionIDHub,
-			res.Connection.State,
-		)
-		return "", nil
-	}
-
-	// todo: refactor
-	err = roller_utils.SetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
-		hubConnectionID,
+	hubConnIndex := slices.IndexFunc(
+		hubIbcConnection.Connections, func(conn ConnectionInfo) bool {
+			return conn.ID == hubConnectionID
+		},
 	)
-	if err != nil {
-		return "", err
-	}
 
-	err = roller_utils.SetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
-		"connection-0",
-	)
-	if err != nil {
-		return "", err
-	}
+	hubConnection := hubIbcConnection.Connections[hubConnIndex]
 
-	err = roller_utils.SetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
-		outputStruct.Connection.Counterparty.ClientID,
-	)
-	if err != nil {
-		return "", err
-	}
+	// not ideal, ik
+	// vtu := map[any]any{
+	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"}: hubConnectionID,
+	// 	[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"}: "connection-0",
+	// 	[]string{
+	// 		"paths",
+	// 		consts.DefaultRelayerPath,
+	// 		"src",
+	// 		"client-id",
+	// 	}: rollappIbcConnection.Connections[0].Counterparty.ClientID,
+	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"}: "07-tendermint-0",
+	// }
 
-	err = roller_utils.SetNestedValue(
-		rlyCfg,
-		[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"},
-		"07-tendermint-0",
-	)
-	if err != nil {
-		return "", err
-	}
+	// for k, v := range vtu {
+	// 	err = roller_utils.SetNestedValue(
+	// 		rlyCfg,
+	// 		k.([]string),
+	// 		v,
+	// 	)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// }
 
-	return "connection-0", nil
+	return rollappIbcConnection.Connections[0].ID, hubConnection.ID, nil
 }
 
-func (r *Relayer) queryConnectionRollappCmd(connectionID string) *exec.Cmd {
-	args := []string{"q", "connection", r.RollappID, connectionID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
+func (r *Relayer) queryConnectionRollappCmd(
+	raData consts.RollappData,
+) *exec.Cmd {
+	args := []string{
+		"q",
+		"ibc",
+		"connection",
+		"connections",
+		"--node",
+		raData.RpcUrl,
+		"--chain-id",
+		raData.ID,
+		"-o", "json",
+	}
+	cmd := exec.Command(consts.Executables.RollappEVM, args...)
+
+	return cmd
 }
 
-func (r *Relayer) queryConnectionHubCmd(connectionID string) *exec.Cmd {
-	args := []string{"q", "connection", r.HubID, connectionID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
+func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
+	args := []string{
+		"q",
+		"ibc",
+		"connection",
+		"connections",
+		"--chain-id",
+		hd.ID,
+		"--node",
+		hd.RPC_URL,
+		"-o",
+		"json",
+	}
+
+	return exec.Command(consts.Executables.Dymension, args...)
 }
 
 func (r *Relayer) queryConnectionsHubCmd() *exec.Cmd {
