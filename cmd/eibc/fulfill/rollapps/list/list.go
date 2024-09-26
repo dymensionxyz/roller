@@ -5,12 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func Cmd() *cobra.Command {
