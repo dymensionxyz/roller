@@ -3,10 +3,11 @@ package funds
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/roller/utils/bash"
-	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/utils/bash"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 )
 
 func Cmd() *cobra.Command {

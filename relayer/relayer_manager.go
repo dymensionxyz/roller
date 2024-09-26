@@ -61,18 +61,6 @@ func (r *Relayer) StatusFilePath() string {
 	return filepath.Join(r.Home, consts.ConfigDirName.Relayer, "relayer_status.txt")
 }
 
-type Channel struct {
-	State        string `json:"state"`
-	ChannelID    string `json:"channel_id"`
-	Counterparty struct {
-		ChannelID string `json:"channel_id"`
-	} `json:"counterparty"`
-}
-
-type ChannelList struct {
-	Channels []Channel `json:"channels"`
-}
-
 type ConnectionChannels struct {
 	Src string
 	Dst string

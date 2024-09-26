@@ -7,12 +7,14 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -31,22 +33,36 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
+			raRpc, err := sequencerutils.GetRpcEndpointFromChain(
+				rollerData.RollappID,
+				rollerData.HubData,
+			)
+			if err != nil {
+				return
+			}
 
-			VerifyRelayerBalances(rollappConfig)
-			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
+			raData := consts.RollappData{
+				ID:     rollerData.RollappID,
+				RpcUrl: raRpc,
+			}
+
+			VerifyRelayerBalances(rollerData)
+			relayerLogFilePath := utils.GetRelayerLogPath(home)
 			logger := utils.GetLogger(relayerLogFilePath)
 			logFileOption := utils.WithLoggerLogging(logger)
 			rly := relayer.NewRelayer(
-				rollappConfig.Home,
-				rollappConfig.RollappID,
-				rollappConfig.HubData.ID,
+				rollerData.Home,
+				rollerData.RollappID,
+				rollerData.HubData.ID,
 			)
 			rly.SetLogger(logger)
 
-			_, _, err = rly.LoadActiveChannel()
+			// TODO: relayer is initialized with both chains at this point and it should be possible
+			// to construct the hub data from relayer config
+			_, _, err = rly.LoadActiveChannel(raData, rollerData.HubData)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// override := cmd.Flag(flagOverride).Changed

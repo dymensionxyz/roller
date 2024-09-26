@@ -20,7 +20,8 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
-			relayerLogFilePath := utils.GetRelayerLogPath(rollappConfig)
+
+			relayerLogFilePath := utils.GetRelayerLogPath(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			rly := relayer.NewRelayer(
 				rollappConfig.Home,

@@ -20,7 +20,8 @@ import (
 func (r *Relayer) CreateIBCChannel(
 	override bool,
 	logFileOption bash.CommandOption,
-	seq *sequencer.Sequencer,
+	raData consts.RollappData,
+	hd consts.HubData,
 ) (ConnectionChannels, error) {
 	// ctx, cancel := context.WithCancel(context.Background())
 	// defer cancel()
@@ -31,12 +32,17 @@ func (r *Relayer) CreateIBCChannel(
 	// otherwise the connection creation attempt fails
 	time.Sleep(10 * time.Second)
 
-	connectionID, _ := r.GetActiveConnection()
+	connectionID, _, err := r.GetActiveConnection(raData, hd)
+	if err != nil {
+		return ConnectionChannels{}, err
+	}
+
 	if connectionID == "" || override {
 		pterm.Info.Println("💈 Creating connection...")
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
+
 		createConnectionCmd := r.getCreateConnectionCmd(override)
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
@@ -63,7 +69,7 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
-	_, _, err := r.LoadActiveChannel()
+	_, _, err = r.LoadActiveChannel(raData, hd)
 	if err != nil {
 		return ConnectionChannels{}, err
 	}

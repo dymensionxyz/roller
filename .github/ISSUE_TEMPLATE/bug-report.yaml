@@ -78,7 +78,7 @@ body:
       description: >
         Please Attach here any relevant log files.
       placeholder: >
-        Please Attach here any relevant log files or log output. 
+        Please Attach here any relevant log files or log output.
   - type: textarea
     id: misc
     attributes:

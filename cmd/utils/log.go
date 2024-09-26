@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	lumberjack "gopkg.in/natefinch/lumberjack.v2"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -56,8 +56,8 @@ func GetSequencerLogPath(rollappConfig config.RollappConfig) string {
 	return filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 }
 
-func GetRelayerLogPath(cfg config.RollappConfig) string {
-	return filepath.Join(cfg.Home, consts.ConfigDirName.Relayer, "relayer.log")
+func GetRelayerLogPath(home string) string {
+	return filepath.Join(home, consts.ConfigDirName.Relayer, "relayer.log")
 }
 
 func GetDALogFilePath(home string) string {

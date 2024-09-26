@@ -2,9 +2,10 @@ package relayer
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
-	"path/filepath"
+	"slices"
+
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils"
@@ -12,12 +13,16 @@ import (
 )
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
-func (r *Relayer) LoadActiveChannel() (string, string, error) {
-	var outputStruct RollappQueryResult
-	var foundOpenChannel RollappQueryResult
+func (r *Relayer) LoadActiveChannel(
+	raData consts.RollappData,
+	hd consts.HubData,
+) (string, string, error) {
+	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
+	defer spinner.Stop()
 
-	var activeConnectionID string
-	activeConnectionID, err := r.GetActiveConnection()
+	var activeRaConnectionID string
+	var activeHubConnectionID string
+	activeRaConnectionID, activeHubConnectionID, err := r.GetActiveConnection(raData, hd)
 	if err != nil {
 		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
@@ -27,91 +32,118 @@ func (r *Relayer) LoadActiveChannel() (string, string, error) {
 			return "", "", err
 		}
 	}
-	if activeConnectionID == "" {
+	if activeRaConnectionID == "" {
 		r.logger.Println("no active connection found")
 		return "", "", nil
 	}
 
-	output, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(activeConnectionID))
+	var raChannelResponse QueryChannelsResponse
+	rollappChannels, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(raData))
 	if err != nil {
 		return "", "", err
 	}
 
-	if output.Len() == 0 {
+	err = json.Unmarshal(rollappChannels.Bytes(), &raChannelResponse)
+	if err != nil {
+		return "", "", err
+	}
+
+	if len(raChannelResponse.Channels) == 0 {
 		return "", "", nil
 	}
 
-	dec := json.NewDecoder(&output)
-	for dec.More() {
-		err = dec.Decode(&outputStruct)
-		if err != nil {
-			return "", "", fmt.Errorf("error while decoding JSON: %v", err)
-		}
-
-		if outputStruct.ConnectionHops[0] != activeConnectionID {
-			r.logger.Printf(
-				"skipping channel %s as it's not on the active connection %s",
-				outputStruct.ChannelID, activeConnectionID,
-			)
-			continue
-		}
-
-		if outputStruct.State != "STATE_OPEN" {
-			continue
-		}
-
-		// found STATE_OPEN channel
-		// Check if the channel is open on the hub
-		var res HubQueryResult
-		outputHub, err := bash.ExecCommandWithStdout(
-			r.queryChannelsHubCmd(outputStruct.ChannelID),
-		)
-		if err != nil {
-			return "", "", err
-		}
-
-		err = json.Unmarshal(outputHub.Bytes(), &res)
-		if err != nil {
-			return "", "", err
-		}
-
-		if res.Channel.State != "STATE_OPEN" {
-			r.logger.Printf(
-				"channel %s is STATE_OPEN on the rollapp, but channel %s is %s on the hub",
-				outputStruct.ChannelID,
-				outputStruct.Counterparty.ChannelID,
-				res.Channel.State,
-			)
-			continue
-		}
-
-		// Found open channel on both ends
-		foundOpenChannel = outputStruct
-		break
+	var hubChannelResponse QueryChannelsResponse
+	hubChannels, err := bash.ExecCommandWithStdout(r.queryChannelsHubCmd(hd))
+	if err != nil {
+		return "", "", err
 	}
 
-	r.SrcChannel = foundOpenChannel.ChannelID
-	r.DstChannel = foundOpenChannel.Counterparty.ChannelID
-	return "", "", nil
+	err = json.Unmarshal(hubChannels.Bytes(), &hubChannelResponse)
+	if err != nil {
+		return "", "", err
+	}
+
+	if len(hubChannelResponse.Channels) == 0 {
+		return "", "", nil
+	}
+
+	raChanIndex := slices.IndexFunc(
+		raChannelResponse.Channels, func(ibcChan Channel) bool {
+			return ibcChan.ConnectionHops[0] == activeRaConnectionID &&
+				ibcChan.State == "STATE_OPEN"
+		},
+	)
+	raChan := raChannelResponse.Channels[raChanIndex]
+
+	hubChanIndex := slices.IndexFunc(
+		hubChannelResponse.Channels, func(ibcChan Channel) bool {
+			return ibcChan.ConnectionHops[0] == activeHubConnectionID &&
+				ibcChan.State == "STATE_OPEN"
+		},
+	)
+	hubChan := hubChannelResponse.Channels[hubChanIndex]
+
+	spinner.Success("IBC channels loaded successfully")
+
+	r.SrcChannel = hubChan.ChannelID
+	r.DstChannel = raChan.ChannelID
+	return r.SrcChannel, r.DstChannel, nil
 }
 
-func (r *Relayer) queryChannelsRollappCmd(connectionID string) *exec.Cmd {
-	args := []string{"q", "connection-channels", r.RollappID, connectionID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
+func (r *Relayer) queryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
+	args := []string{"q", "ibc", "channel", "channels"}
+	args = append(args, "--node", raData.RpcUrl, "--chain-id", raData.ID, "-o", "json")
+
+	cmd := exec.Command(consts.Executables.RollappEVM, args...)
+
+	return cmd
 }
 
-func (r *Relayer) queryChannelsHubCmd(channelID string) *exec.Cmd {
-	args := []string{"q", "channel", r.HubID, channelID, "transfer"}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
-	return exec.Command(consts.Executables.Relayer, args...)
+func (r *Relayer) queryChannelsHubCmd(hd consts.HubData) *exec.Cmd {
+	args := []string{"q", "ibc", "channel", "channels"}
+	args = append(args, "--node", hd.RPC_URL, "--chain-id", hd.ID, "-o", "json")
+
+	cmd := exec.Command(consts.Executables.Dymension, args...)
+
+	return cmd
 }
 
 func (r *Relayer) ChannelReady() bool {
 	return r.SrcChannel != "" && r.DstChannel != ""
 }
 
+type QueryChannelsResponse struct {
+	Channels   []Channel  `json:"channels"`
+	Pagination Pagination `json:"pagination"`
+	Height     Height     `json:"height"`
+}
+
+type Channel struct {
+	State          string       `json:"state"`
+	Ordering       string       `json:"ordering"`
+	Counterparty   Counterparty `json:"counterparty"`
+	ConnectionHops []string     `json:"connection_hops"`
+	Version        string       `json:"version"`
+	PortID         string       `json:"port_id"`
+	ChannelID      string       `json:"channel_id"`
+}
+
 type Counterparty struct {
+	PortID    string `json:"port_id"`
+	ChannelID string `json:"channel_id"`
+}
+
+type Pagination struct {
+	NextKey interface{} `json:"next_key"`
+	Total   string      `json:"total"`
+}
+
+type Height struct {
+	RevisionNumber string `json:"revision_number"`
+	RevisionHeight string `json:"revision_height"`
+}
+
+type RlyCounterparty struct {
 	PortID       string `json:"port_id"`
 	ChannelID    string `json:"channel_id"`
 	ChainID      string `json:"chain_id"`
@@ -119,30 +151,30 @@ type Counterparty struct {
 	ConnectionID string `json:"connection_id"`
 }
 
-type Output struct {
-	State          string       `json:"state"`
-	Ordering       string       `json:"ordering"`
-	Counterparty   Counterparty `json:"counterparty"`
-	ConnectionHops []string     `json:"connection_hops"`
-	Version        string       `json:"version"`
-	ChainID        string       `json:"chain_id"`
-	ChannelID      string       `json:"channel_id"`
-	ClientID       string       `json:"client_id"`
+type RlyOutput struct {
+	State          string          `json:"state"`
+	Ordering       string          `json:"ordering"`
+	Counterparty   RlyCounterparty `json:"counterparty"`
+	ConnectionHops []string        `json:"connection_hops"`
+	Version        string          `json:"version"`
+	ChainID        string          `json:"chain_id"`
+	ChannelID      string          `json:"channel_id"`
+	ClientID       string          `json:"client_id"`
 }
 
-type ProofHeight struct {
+type RlyProofHeight struct {
 	RevNumber string `json:"revision_number"`
 	RevHeight string `json:"revision_height"`
 }
 
-type HubQueryResult struct {
-	Channel     Output      `json:"channel"`
-	Proof       string      `json:"proof"`
-	ProofHeight ProofHeight `json:"proof_height"`
+type RlyHubQueryResult struct {
+	Channel     RlyOutput      `json:"channel"`
+	Proof       string         `json:"proof"`
+	ProofHeight RlyProofHeight `json:"proof_height"`
 }
 
-type RollappQueryResult struct {
-	Output
+type RlyRollappQueryResult struct {
+	RlyOutput
 	PortID    string `json:"port_id"`
 	ChannelID string `json:"channel_id"`
 }
