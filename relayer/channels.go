@@ -18,6 +18,7 @@ func (r *Relayer) LoadActiveChannel(
 	hd consts.HubData,
 ) (string, string, error) {
 	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
+	defer spinner.Stop()
 
 	var activeRaConnectionID string
 	var activeHubConnectionID string
