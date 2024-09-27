@@ -176,7 +176,6 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		if err != nil {
 			return err
 		}
-		addresses = append(addresses, *ki)
 
 		ki.Print(cmdutils.WithName())
 	}
@@ -416,6 +415,8 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		daSpinner.Success("successfully initialized da light client")
 	}
 	/* ------------------------------ Print output ------------------------------ */
+	j, _ := json.MarshalIndent(addresses, "", "  ")
+	fmt.Println(string(j))
 
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
