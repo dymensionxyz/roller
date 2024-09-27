@@ -231,7 +231,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	switch env {
 	case "playground":
 		if daBackend == string(consts.Celestia) {
-			daNetwork = consts.DefaultCelestiaNetwork
+			daNetwork = string(consts.CelestiaTestnet)
 		} else {
 			return fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
