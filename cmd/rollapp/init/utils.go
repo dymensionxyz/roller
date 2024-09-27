@@ -37,6 +37,9 @@ import (
 func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse) error {
 	raID := raResp.Rollapp.RollappId
 
+	j, _ := json.MarshalIndent(raResp, "", "  ")
+	fmt.Println(string(j))
+
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
@@ -291,6 +294,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	/* ------------------------ Initialize DA light node ------------------------ */
 	if env != "mock" {
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+		fmt.Println("initconfig da backend", initConfig.DA.Backend)
 
 		damanager := datalayer.NewDAManager(initConfig.DA.Backend, initConfig.Home)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
