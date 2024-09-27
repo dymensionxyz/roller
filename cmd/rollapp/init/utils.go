@@ -154,10 +154,45 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	initConfig := *initConfigPtr
 
 	/* ------------------------------ Generate keys ----------------------------- */
-	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
+	var addresses []cmdutils.KeyInfo
+
+	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"would you like to import an existing sequencer key?",
+	).Show()
+
+	if useExistingSequencerWallet {
+		kc, err := utils.NewKeyConfig(
+			consts.ConfigDirName.HubKeys,
+			consts.KeysIds.HubSequencer,
+			consts.Executables.Dymension,
+			consts.SDK_ROLLAPP,
+			utils.WithRecover(),
+		)
+		if err != nil {
+			return err
+		}
+
+		ki, err := kc.Create(home)
+		if err != nil {
+			return err
+		}
+
+		addresses = append(addresses, *ki)
+	}
+
+	if initConfig.HubData.ID == "mock" {
+		addresses, err = initconfig.GenerateMockSequencerKeys(initConfig)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
+	} else {
+		if !useExistingSequencerWallet {
+			addresses, err = initconfig.GenerateSequencersKeys(initConfig)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
@@ -193,7 +228,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	switch env {
 	case "playground":
 		if daBackend == string(consts.Celestia) {
-			daNetwork = consts.DefaultCelestiaNetwork
+			daNetwork = string(consts.CelestiaTestnet)
 		} else {
 			return fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -256,6 +291,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	/* ------------------------ Initialize DA light node ------------------------ */
 	if env != "mock" {
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+		fmt.Println("initconfig da backend", initConfig.DA.Backend)
 
 		damanager := datalayer.NewDAManager(initConfig.DA.Backend, initConfig.Home)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
@@ -379,6 +415,8 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		daSpinner.Success("successfully initialized da light client")
 	}
 	/* ------------------------------ Print output ------------------------------ */
+	j, _ := json.MarshalIndent(addresses, "", "  ")
+	fmt.Println(string(j))
 
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 

@@ -35,7 +35,6 @@ func Cmd() *cobra.Command {
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			// rollerData, err := tomlconfig.LoadRollerConfig(home)
-			fmt.Println(home)
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend {
@@ -123,8 +122,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// ex binaries install
-
 			raID = strings.TrimSpace(raID)
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
@@ -154,7 +151,6 @@ func Cmd() *cobra.Command {
 			elapsed := time.Since(start)
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
-			// END: ex binaries install
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {
