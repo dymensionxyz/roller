@@ -13,6 +13,7 @@ type RollappData = struct {
 	ApiUrl   string `toml:"api_url"`
 	RpcUrl   string `toml:"rpc_url"`
 	GasPrice string `toml:"gas_price"`
+	Denom    string `toml:"denom"`
 }
 
 type DaData = struct {

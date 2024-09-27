@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"os/exec"
@@ -76,11 +75,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
 
-			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(
+			rollappConfig, err := tomlconfig.GetRollappMetadataFromChain(
 				home,
 				rollerData.RollappID,
 				&hd,
-				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -686,7 +684,11 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+				err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+				if err != nil {
+					pterm.Error.Println("failed to check insufficien balances: ", err)
+					return
+				}
 
 				// TODO: daconfig should be a struct
 				daConfig = damanager.DataLayer.GetSequencerDAConfig(
@@ -926,7 +928,7 @@ func WriteStructToJSONFile(data *dymensionseqtypes.SequencerMetadata, filePath s
 	}
 
 	// Write the JSON data to the file
-	if err := ioutil.WriteFile(filePath, jsonData, 0o644); err != nil {
+	if err := os.WriteFile(filePath, jsonData, 0o644); err != nil {
 		return fmt.Errorf("error writing to file: %w", err)
 	}
 

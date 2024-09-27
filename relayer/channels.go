@@ -22,7 +22,7 @@ func (r *Relayer) LoadActiveChannel(
 
 	var activeRaConnectionID string
 	var activeHubConnectionID string
-	activeRaConnectionID, activeHubConnectionID, err := r.GetActiveConnection(raData, hd)
+	activeRaConnectionID, activeHubConnectionID, err := r.GetActiveConnectionIDs(raData, hd)
 	if err != nil {
 		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)

@@ -36,7 +36,6 @@ import (
 // nolint: gocyclo
 func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse) error {
 	raID := raResp.Rollapp.RollappId
-	vmType := raResp.Rollapp.VmType
 
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
@@ -127,15 +126,30 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	}
 
 	hd := consts.Hubs[env]
-	initConfigPtr, err := tomlconfig.LoadRollappMetadataFromChain(
-		home,
-		raID,
-		&hd,
-		vmType,
-	)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
+	// TODO: refactor
+	var initConfigPtr *config.RollappConfig
+
+	if env == consts.MockHubName {
+		initConfigPtr, err = tomlconfig.GetMockRollappMetadata(
+			home,
+			raID,
+			&hd,
+			raResp.Rollapp.VmType,
+		)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
+	} else {
+		initConfigPtr, err = tomlconfig.GetRollappMetadataFromChain(
+			home,
+			raID,
+			&hd,
+		)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
 	}
 	initConfig := *initConfigPtr
 

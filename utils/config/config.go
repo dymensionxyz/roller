@@ -273,3 +273,16 @@ type PathValue struct {
 	Path  string
 	Value interface{}
 }
+
+// FindHubDataByID is intended to retrieve consts.HubData from consts.Hubs @20240927
+func FindHubDataByID(
+	hubs map[string]consts.HubData,
+	chainID string,
+) (string, consts.HubData, bool) {
+	for key, hubData := range hubs {
+		if hubData.ID == chainID {
+			return key, hubData, true
+		}
+	}
+	return "", consts.HubData{}, false
+}

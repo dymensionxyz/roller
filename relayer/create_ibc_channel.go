@@ -32,7 +32,7 @@ func (r *Relayer) CreateIBCChannel(
 	// otherwise the connection creation attempt fails
 	time.Sleep(10 * time.Second)
 
-	connectionID, _, err := r.GetActiveConnection(raData, hd)
+	connectionID, _, err := r.GetActiveConnectionIDs(raData, hd)
 	if err != nil {
 		return ConnectionChannels{}, err
 	}

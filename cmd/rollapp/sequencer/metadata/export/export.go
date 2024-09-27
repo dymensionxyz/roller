@@ -47,11 +47,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
 
-			rollappConfig, err := tomlconfig.LoadRollappMetadataFromChain(
+			rollappConfig, err := tomlconfig.GetRollappMetadataFromChain(
 				home,
 				rollerData.RollappID,
 				&hd,
-				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 

@@ -2,6 +2,7 @@ package tomlconfig
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -62,72 +63,88 @@ func Load(path string) ([]byte, error) {
 	return tomlBytes, nil
 }
 
-func LoadRollappMetadataFromChain(
+func GetMockRollappMetadata(
 	home, raID string,
 	hd *consts.HubData, vmType string,
 ) (*config.RollappConfig, error) {
-	var cfg config.RollappConfig
 	vmt, err := consts.ToVMType(strings.ToLower(vmType))
 	if err != nil {
 		return nil, err
 	}
 
-	if hd.ID == "mock" {
-		cfg = config.RollappConfig{
-			Home:             home,
-			RollappID:        raID,
-			GenesisHash:      "",
-			GenesisUrl:       "",
-			RollappBinary:    consts.Executables.RollappEVM,
-			VMType:           vmt,
-			Denom:            "mock",
-			Decimals:         18,
-			HubData:          *hd,
-			DA:               consts.DaNetworks["mock"],
-			RollerVersion:    "latest",
-			Environment:      "mock",
-			ExecutionVersion: version.BuildVersion,
-			Bech32Prefix:     "mock",
-			BaseDenom:        "amock",
-			MinGasPrices:     "0",
-		}
-		return &cfg, nil
+	cfg := config.RollappConfig{
+		Home:             home,
+		RollappID:        raID,
+		GenesisHash:      "",
+		GenesisUrl:       "",
+		RollappBinary:    consts.Executables.RollappEVM,
+		VMType:           vmt,
+		Denom:            "mock",
+		Decimals:         18,
+		HubData:          *hd,
+		DA:               consts.DaNetworks["mock"],
+		RollerVersion:    "latest",
+		Environment:      "mock",
+		ExecutionVersion: version.BuildVersion,
+		Bech32Prefix:     "mock",
+		BaseDenom:        "amock",
+		MinGasPrices:     "0",
+	}
+	return &cfg, nil
+}
+
+func GetRollappMetadataFromChain(
+	home, raID string,
+	hd *consts.HubData,
+) (*config.RollappConfig, error) {
+	var cfg config.RollappConfig
+	var raResponse rollapp.ShowRollappResponse
+
+	getRollappCmd := rollapp.GetRollappCmd(raID, *hd)
+
+	out, err := bash.ExecCommandWithStdout(getRollappCmd)
+	if err != nil {
+		return nil, err
 	}
 
-	if hd.ID != "mock" {
-		var raResponse rollapp.ShowRollappResponse
-		getRollappCmd := rollapp.GetRollappCmd(raID, *hd)
+	err = json.Unmarshal(out.Bytes(), &raResponse)
+	if err != nil {
+		return nil, err
+	}
 
-		out, err := bash.ExecCommandWithStdout(getRollappCmd)
-		if err != nil {
-			return nil, err
-		}
+	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
 
-		err = json.Unmarshal(out.Bytes(), &raResponse)
-		if err != nil {
-			return nil, err
-		}
+	var DA consts.DaData
 
-		vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
+	switch hd.ID {
+	case consts.DevnetHubID:
+		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
 
-		cfg = config.RollappConfig{
-			Home:             home,
-			GenesisHash:      raResponse.Rollapp.GenesisInfo.GenesisChecksum,
-			GenesisUrl:       raResponse.Rollapp.Metadata.GenesisUrl,
-			RollappID:        raResponse.Rollapp.RollappId,
-			RollappBinary:    consts.Executables.RollappEVM,
-			VMType:           vmt,
-			Denom:            "",
-			Decimals:         18,
-			HubData:          *hd,
-			DA:               consts.DaNetworks["mocha-4"],
-			RollerVersion:    "latest",
-			Environment:      hd.ID,
-			ExecutionVersion: version.BuildVersion,
-			Bech32Prefix:     raResponse.Rollapp.GenesisInfo.Bech32Prefix,
-			BaseDenom:        "",
-			MinGasPrices:     "0",
-		}
+	case consts.MainnetHubID:
+		DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+
+	default:
+		fmt.Println("unsupported Hub: ", hd.ID)
+
+	}
+
+	cfg = config.RollappConfig{
+		Home:             home,
+		GenesisHash:      raResponse.Rollapp.GenesisInfo.GenesisChecksum,
+		GenesisUrl:       raResponse.Rollapp.Metadata.GenesisUrl,
+		RollappID:        raResponse.Rollapp.RollappId,
+		RollappBinary:    consts.Executables.RollappEVM,
+		VMType:           vmt,
+		Denom:            raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
+		Decimals:         18,
+		HubData:          *hd,
+		DA:               DA,
+		RollerVersion:    "latest",
+		Environment:      hd.ID,
+		ExecutionVersion: version.BuildVersion,
+		Bech32Prefix:     raResponse.Rollapp.GenesisInfo.Bech32Prefix,
+		BaseDenom:        "",
+		MinGasPrices:     "0",
 	}
 
 	return &cfg, nil

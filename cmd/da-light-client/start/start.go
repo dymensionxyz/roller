@@ -5,14 +5,15 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -48,7 +49,11 @@ func Cmd() *cobra.Command {
 			pterm.Info.Println("checking for da address balance")
 			insufficientBalances, err := damanager.CheckDABalance()
 			errorhandling.PrettifyErrorIfExists(err)
-			utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+			err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve insufficient balances: ", err)
+				return
+			}
 
 			damanager.SetRPCEndpoint(rollappConfig.DA.StateNode)
 			if metricsEndpoint != "" {
