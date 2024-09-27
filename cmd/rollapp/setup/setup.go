@@ -593,6 +593,7 @@ func Cmd() *cobra.Command {
 
 			var daConfig string
 			dymintConfigPath := sequencer.GetDymintFilePath(home)
+			appConfigPath := sequencer.GetAppConfigFilePath(home)
 
 			switch nodeType {
 			case "sequencer":
@@ -628,15 +629,53 @@ func Cmd() *cobra.Command {
 					consts.NodeType.FullNode,
 				)
 
-				err = globalutils.UpdateFieldInToml(
-					dymintConfigPath,
-					"p2p_advertising_enabled",
-					"true",
-				)
-				if err != nil {
-					pterm.Error.Println("failed to update `p2p_advertising_enabled` field")
-					return
+				vtu := map[string]string{
+					"p2p_advertising_enabled": "true",
 				}
+
+				fullNodeTypes := []string{"rpc", "archive"}
+				fullNodeType, _ := pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(fullNodeTypes).
+					Show()
+				var fnVtu map[string]any
+
+				switch fullNodeType {
+				case "rpc":
+					fnVtu = map[string]any{
+						"pruning":             "custom",
+						"pruning-keep-recent": "362880",
+						"pruning-interval":    "100",
+						"min-retain-blocks":   362880,
+					}
+				case "archive":
+					fnVtu = map[string]any{
+						"pruning": "nothing",
+					}
+				}
+
+				for k, v := range vtu {
+					err = globalutils.UpdateFieldInToml(
+						dymintConfigPath,
+						k, v,
+					)
+					if err != nil {
+						pterm.Error.Printf("failed to update `%s` field", k)
+						return
+					}
+				}
+
+				for fnK, fnV := range fnVtu {
+					err = globalutils.UpdateFieldInToml(
+						appConfigPath,
+						fnK, fnV,
+					)
+					if err != nil {
+						pterm.Error.Printf("failed to update `%s` field", fnK)
+						return
+					}
+				}
+
 			default:
 				pterm.Error.Println("unsupported node type")
 				return
