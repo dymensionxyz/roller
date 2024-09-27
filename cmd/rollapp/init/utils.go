@@ -176,6 +176,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		if err != nil {
 			return err
 		}
+		addresses = append(addresses, *ki)
 
 		ki.Print(cmdutils.WithName())
 	}
