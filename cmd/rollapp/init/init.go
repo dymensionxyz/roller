@@ -35,7 +35,6 @@ func Cmd() *cobra.Command {
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			// rollerData, err := tomlconfig.LoadRollerConfig(home)
-			fmt.Println(home)
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend {

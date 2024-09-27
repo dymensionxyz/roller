@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -82,7 +81,12 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 			return nil, err
 		}
 
-		return nil, errors.New("forced stop")
+		ki, err := GetAddressInfoBinary(kc, home)
+		if err != nil {
+			return nil, err
+		}
+
+		return ki, nil
 	}
 	out, err := bash.ExecCommandWithStdout(createKeyCommand)
 	if err != nil {
