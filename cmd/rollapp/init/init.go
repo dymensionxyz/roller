@@ -123,8 +123,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// ex binaries install
-
 			raID = strings.TrimSpace(raID)
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
@@ -154,7 +152,6 @@ func Cmd() *cobra.Command {
 			elapsed := time.Since(start)
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
-			// END: ex binaries install
 
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {

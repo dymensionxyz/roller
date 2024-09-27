@@ -13,15 +13,54 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 )
 
+type keyConfigOptions struct {
+	recover bool
+}
+
+type KeyConfigOption func(opt *keyConfigOptions) error
+
 // TODO: add the keyring to use for the key
 // KeyConfig struct store information about a wallet
 // Dir refers to the keyringDir where the key is created
 type KeyConfig struct {
 	Dir string
 	// TODO: this is not descriptive, Name would be more expressive
-	ID          string
-	ChainBinary string
-	Type        consts.VMType
+	ID            string
+	ChainBinary   string
+	Type          consts.VMType
+	ShouldRecover bool
+}
+
+func WithRecover() KeyConfigOption {
+	return func(options *keyConfigOptions) error {
+		options.recover = true
+		return nil
+	}
+}
+
+func NewKeyConfig(
+	dir, id, cb string,
+	vmt consts.VMType,
+	opts ...KeyConfigOption,
+) (*KeyConfig, error) {
+	var options keyConfigOptions
+
+	for _, opt := range opts {
+		err := opt(&options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	shouldRecover := options.recover
+
+	return &KeyConfig{
+		Dir:           dir,
+		ID:            id,
+		ChainBinary:   cb,
+		Type:          vmt,
+		ShouldRecover: shouldRecover,
+	}, nil
 }
 
 // TODO: KeyInfo and AddressData seem redundant, should be moved into

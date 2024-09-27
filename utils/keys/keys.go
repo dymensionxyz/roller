@@ -17,6 +17,10 @@ func CreateAddressBinary(
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
 	}
+
+	if keyConfig.ShouldRecover {
+		args = append(args, "--recover")
+	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
 	out, err := bash.ExecCommandWithStdout(createKeyCommand)
 	if err != nil {

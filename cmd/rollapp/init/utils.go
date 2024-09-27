@@ -28,6 +28,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
@@ -154,10 +155,45 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	initConfig := *initConfigPtr
 
 	/* ------------------------------ Generate keys ----------------------------- */
-	addresses, err := initconfig.GenerateSequencersKeys(initConfig)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
+	var addresses []cmdutils.KeyInfo
+
+	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"would you like to import an existing sequencer key?",
+	).Show()
+
+	if useExistingSequencerWallet {
+		kc, err := utils.NewKeyConfig(
+			consts.ConfigDirName.HubKeys,
+			consts.KeysIds.HubSequencer,
+			consts.Executables.Dymension,
+			consts.SDK_ROLLAPP,
+			utils.WithRecover(),
+		)
+		if err != nil {
+			return err
+		}
+
+		ki, err := keys.CreateAddressBinary(*kc, home)
+		if err != nil {
+			return err
+		}
+
+		ki.Print(cmdutils.WithName())
+	}
+
+	if initConfig.HubData.ID == "mock" {
+		addresses, err = initconfig.GenerateMockSequencerKeys(initConfig)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
+	} else {
+		if !useExistingSequencerWallet {
+			addresses, err = initconfig.GenerateSequencersKeys(initConfig)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	/* --------------------------- Initialize Rollapp -------------------------- */

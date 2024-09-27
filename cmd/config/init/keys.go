@@ -14,7 +14,7 @@ import (
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	keys := getSequencerKeysConfig(initConfig)
+	keys := getSequencerKeysConfig()
 	addresses := make([]utils.KeyInfo, 0)
 	for _, key := range keys {
 		var address *utils.KeyInfo
@@ -34,17 +34,28 @@ func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, e
 	return addresses, nil
 }
 
-func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
-	if rollappConfig.HubData.ID == consts.MockHubID {
-		return []utils.KeyConfig{
-			{
-				Dir:         consts.ConfigDirName.Rollapp,
-				ID:          consts.KeysIds.RollappSequencer,
-				ChainBinary: rollappConfig.RollappBinary,
-				Type:        rollappConfig.VMType,
-			},
+func GenerateMockSequencerKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
+	keys := getMockSequencerKeyConfig(initConfig)
+	addresses := make([]utils.KeyInfo, 0)
+	for _, key := range keys {
+		var address *utils.KeyInfo
+		var err error
+		address, err = keyutils.CreateAddressBinary(key, initConfig.Home)
+		if err != nil {
+			return nil, err
 		}
+		addresses = append(
+			addresses, utils.KeyInfo{
+				Address:  address.Address,
+				Name:     key.ID,
+				Mnemonic: address.Mnemonic,
+			},
+		)
 	}
+	return addresses, nil
+}
+
+func getSequencerKeysConfig() []utils.KeyConfig {
 	return []utils.KeyConfig{
 		{
 			Dir:         consts.ConfigDirName.HubKeys,
@@ -53,13 +64,17 @@ func getSequencerKeysConfig(rollappConfig config.RollappConfig) []utils.KeyConfi
 			// Eventhough the hub can get evm signatures, we still use the native
 			Type: consts.SDK_ROLLAPP,
 		},
-		// {
-		// 	Dir:         consts.ConfigDirName.HubKeys,
-		// 	ID:          consts.KeysIds.HubGenesis,
-		// 	ChainBinary: consts.Executables.Dymension,
-		// 	// Eventhough the hub can get evm signatures, we still use the native
-		// 	Type: consts.SDK_ROLLAPP,
-		// },
+	}
+}
+
+func getMockSequencerKeyConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
+	return []utils.KeyConfig{
+		{
+			Dir:         consts.ConfigDirName.Rollapp,
+			ID:          consts.KeysIds.RollappSequencer,
+			ChainBinary: rollappConfig.RollappBinary,
+			Type:        rollappConfig.VMType,
+		},
 	}
 }
 
