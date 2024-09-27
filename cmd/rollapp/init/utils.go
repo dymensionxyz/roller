@@ -37,9 +37,6 @@ import (
 func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse) error {
 	raID := raResp.Rollapp.RollappId
 
-	j, _ := json.MarshalIndent(raResp, "", "  ")
-	fmt.Println(string(j))
-
 	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
