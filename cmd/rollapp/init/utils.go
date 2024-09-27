@@ -177,7 +177,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 			return err
 		}
 
-		ki.Print(cmdutils.WithName())
+		addresses = append(addresses, *ki)
 	}
 
 	if initConfig.HubData.ID == "mock" {
