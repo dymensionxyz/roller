@@ -291,7 +291,6 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	/* ------------------------ Initialize DA light node ------------------------ */
 	if env != "mock" {
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
-		fmt.Println("initconfig da backend", initConfig.DA.Backend)
 
 		damanager := datalayer.NewDAManager(initConfig.DA.Backend, initConfig.Home)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
@@ -415,8 +414,6 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		daSpinner.Success("successfully initialized da light client")
 	}
 	/* ------------------------------ Print output ------------------------------ */
-	j, _ := json.MarshalIndent(addresses, "", "  ")
-	fmt.Println(string(j))
 
 	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
