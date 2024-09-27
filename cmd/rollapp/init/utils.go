@@ -28,7 +28,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
-	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
@@ -173,7 +172,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 			return err
 		}
 
-		ki, err := keys.CreateAddressBinary(*kc, home)
+		ki, err := kc.Create(home)
 		if err != nil {
 			return err
 		}

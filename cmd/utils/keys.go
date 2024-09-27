@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -61,6 +62,33 @@ func NewKeyConfig(
 		Type:          vmt,
 		ShouldRecover: shouldRecover,
 	}, nil
+}
+
+func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
+	args := []string{
+		"keys", "add", kc.ID, "--keyring-backend", "test",
+		"--keyring-dir", filepath.Join(home, kc.Dir),
+		"--output", "json",
+	}
+
+	if kc.ShouldRecover {
+		args = append(args, "--recover")
+	}
+	createKeyCommand := exec.Command(kc.ChainBinary, args...)
+
+	if kc.ShouldRecover {
+		err := bash.ExecCommandWithInteractions(kc.ChainBinary, args...)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, errors.New("forced stop")
+	}
+	out, err := bash.ExecCommandWithStdout(createKeyCommand)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddressFromOutput(out)
 }
 
 // TODO: KeyInfo and AddressData seem redundant, should be moved into
