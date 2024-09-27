@@ -2,18 +2,22 @@ package start
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -22,6 +26,19 @@ import (
 const (
 	flagOverride = "override"
 )
+
+type Config struct {
+	Paths struct {
+		HubRollapp struct {
+			Dst struct {
+				ChainID string `yaml:"chain-id"`
+			} `yaml:"dst"`
+			Src struct {
+				ChainID string `yaml:"chain-id"`
+			} `yaml:"src"`
+		} `yaml:"hub-rollapp"`
+	} `yaml:"paths"`
+}
 
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
@@ -33,36 +50,82 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
-			errorhandling.PrettifyErrorIfExists(err)
+			rlyConfigPath := filepath.Join(
+				home,
+				consts.ConfigDirName.Relayer,
+				"config",
+				"config.yaml",
+			)
+
+			data, err := os.ReadFile(rlyConfigPath)
+			if err != nil {
+				fmt.Printf("Error reading YAML file: %v\n", err)
+				return
+			}
+
+			var rlyConfig Config
+			err = yaml.Unmarshal(data, &rlyConfig)
+			if err != nil {
+				fmt.Printf("Error unmarshaling YAML: %v\n", err)
+				return
+			}
+
+			// src is Hub, dst is RollApp
+			raChainID := rlyConfig.Paths.HubRollapp.Dst.ChainID
+			hubChainID := rlyConfig.Paths.HubRollapp.Src.ChainID
+
+			_, hd, found := config.FindHubDataByID(consts.Hubs, hubChainID)
+			if !found {
+				pterm.Error.Println("Hub Data not found for ", hubChainID)
+				return
+			}
+
+			getRaCmd := rollapp.GetRollappCmd(raChainID, hd)
+			var raResponse rollapp.ShowRollappResponse
+
+			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			if err != nil {
+				pterm.Error.Println("failed to get rollapp: ", err)
+				return
+			}
+			err = json.Unmarshal(out.Bytes(), &raResponse)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal", err)
+				return
+			}
+
 			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 			raRpc, err := sequencerutils.GetRpcEndpointFromChain(
-				rollerData.RollappID,
-				rollerData.HubData,
+				raChainID,
+				hd,
 			)
 			if err != nil {
 				return
 			}
-
 			raData := consts.RollappData{
-				ID:     rollerData.RollappID,
-				RpcUrl: raRpc,
+				ID:     raChainID,
+				RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
+				Denom:  raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
 			}
 
-			VerifyRelayerBalances(rollerData)
+			err = VerifyRelayerBalances(raData, hd)
+			if err != nil {
+				pterm.Error.Println("failed to check balances", err)
+				return
+			}
 			relayerLogFilePath := utils.GetRelayerLogPath(home)
 			logger := utils.GetLogger(relayerLogFilePath)
 			logFileOption := utils.WithLoggerLogging(logger)
 			rly := relayer.NewRelayer(
-				rollerData.Home,
-				rollerData.RollappID,
-				rollerData.HubData.ID,
+				home,
+				raChainID,
+				hubChainID,
 			)
 			rly.SetLogger(logger)
 
 			// TODO: relayer is initialized with both chains at this point and it should be possible
 			// to construct the hub data from relayer config
-			_, _, err = rly.LoadActiveChannel(raData, rollerData.HubData)
+			_, _, err = rly.LoadActiveChannel(raData, hd)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// override := cmd.Flag(flagOverride).Changed
@@ -75,7 +138,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				fmt.Println("💈 IBC transfer channel is already established!")
 				status := fmt.Sprintf(
 					"Active\nrollapp: %s\n<->\nhub: %s\n",
-					rly.SrcChannel, rly.DstChannel,
+					rly.DstChannel, rly.SrcChannel,
 				)
 				err := rly.WriteRelayerStatus(status)
 				errorhandling.PrettifyErrorIfExists(err)
@@ -111,8 +174,16 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 	return relayerStartCmd
 }
 
-func VerifyRelayerBalances(rolCfg config.RollappConfig) {
-	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(rolCfg)
-	errorhandling.PrettifyErrorIfExists(err)
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+func VerifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
+	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(raData, hd)
+	if err != nil {
+		return err
+	}
+
+	err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

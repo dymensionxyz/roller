@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -14,9 +15,9 @@ import (
 
 func PrintInsufficientBalancesIfAny(
 	addressesData []NotFundedAddressData,
-) {
+) error {
 	if len(addressesData) == 0 {
-		return
+		return errors.New("no addresses to print")
 	}
 
 	printAddresses := func() {
@@ -53,8 +54,10 @@ func PrintInsufficientBalancesIfAny(
 		).Show()
 	if !proceed {
 		pterm.Info.Println("exiting")
-		return
+		return errors.New("cancelled by user")
 	}
+
+	return nil
 }
 
 type NotFundedAddressData struct {

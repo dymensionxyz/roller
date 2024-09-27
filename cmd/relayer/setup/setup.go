@@ -134,13 +134,54 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			logFileOption := utils.WithLoggerLogging(relayerLogger)
 
-			rollappChainData, err := tomlconfig.LoadRollappMetadataFromChain(
+			rollappChainData, err := tomlconfig.GetRollappMetadataFromChain(
 				home,
 				raData.ID,
 				&hd,
-				string(rollerData.VMType),
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			outputHandler := initconfig.NewOutputHandler(false)
+			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
+			if err != nil {
+				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
+				return
+			}
+
+			var shouldOverwrite bool
+			if isRelayerInitialized {
+				outputHandler.StopSpinner()
+				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
+				if err != nil {
+					pterm.Error.Printf("failed to get your input: %v\n", err)
+					return
+				}
+			}
+
+			if shouldOverwrite {
+				pterm.Info.Println("overriding the existing relayer configuration")
+				err = os.RemoveAll(relayerHome)
+				if err != nil {
+					pterm.Error.Printf(
+						"failed to recuresively remove %s: %v\n",
+						relayerHome,
+						err,
+					)
+					return
+				}
+
+				err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
+				if err != nil {
+					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
+					return
+				}
+
+				err = os.MkdirAll(relayerHome, 0o755)
+				if err != nil {
+					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
+					return
+				}
+			}
 
 			srcIbcChannel, dstIbcChannel, err := rly.LoadActiveChannel(raData, hd)
 			if err != nil {
@@ -202,47 +243,6 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
 					return
-				}
-				outputHandler := initconfig.NewOutputHandler(false)
-				isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
-				if err != nil {
-					pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
-					return
-				}
-
-				var shouldOverwrite bool
-				if isRelayerInitialized {
-					outputHandler.StopSpinner()
-					shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
-					if err != nil {
-						pterm.Error.Printf("failed to get your input: %v\n", err)
-						return
-					}
-				}
-
-				if shouldOverwrite {
-					pterm.Info.Println("overriding the existing relayer configuration")
-					err = os.RemoveAll(relayerHome)
-					if err != nil {
-						pterm.Error.Printf(
-							"failed to recuresively remove %s: %v\n",
-							relayerHome,
-							err,
-						)
-						return
-					}
-
-					err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
-					if err != nil {
-						pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
-						return
-					}
-
-					err = os.MkdirAll(relayerHome, 0o755)
-					if err != nil {
-						pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
-						return
-					}
 				}
 
 				if !isRelayerInitialized || shouldOverwrite {
@@ -454,7 +454,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				err = verifyRelayerBalances(rollerData)
+				err = verifyRelayerBalances(raData, hd)
 				if err != nil {
 					return
 				}
@@ -504,7 +504,7 @@ func Cmd() *cobra.Command {
 
 				// TODO: look up relayer keys
 				if createIbcChannels || shouldOverwrite {
-					err = verifyRelayerBalances(rollerData)
+					err = verifyRelayerBalances(raData, hd)
 					if err != nil {
 						pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 						return
@@ -544,48 +544,16 @@ func Cmd() *cobra.Command {
 			}
 
 			// TODO: remove code duplication
-			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
+			_, err = os.Stat(relayerHome)
 			if err != nil {
-				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
-				return
-			}
-
-			outputHandler := initconfig.NewOutputHandler(false)
-
-			var shouldOverwrite bool
-			if isRelayerInitialized {
-				outputHandler.StopSpinner()
-				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
-				if err != nil {
-					pterm.Error.Printf("failed to get your input: %v\n", err)
-					return
-				}
-			}
-
-			if shouldOverwrite {
-				pterm.Info.Println("overriding the existing relayer configuration")
-				err = os.RemoveAll(relayerHome)
-				if err != nil {
-					pterm.Error.Printf(
-						"failed to recuresively remove %s: %v\n",
-						relayerHome,
-						err,
-					)
-					return
-				}
-
-				err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
-				if err != nil {
-					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
-					return
-				}
-
-				err = os.MkdirAll(relayerHome, 0o755)
 				if err != nil {
 					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
 					return
 				}
 			}
+
+			fmt.Println("rollapp chain data denom: ", rollappChainData.Denom)
+
 			pterm.Info.Println("initializing relayer config")
 			err = initconfig.InitializeRelayerConfig(
 				relayer.ChainConfig{
@@ -600,7 +568,7 @@ func Cmd() *cobra.Command {
 					Denom:         consts.Denoms.Hub,
 					AddressPrefix: consts.AddressPrefixes.Hub,
 					GasPrices:     rollappChainData.HubData.GAS_PRICE,
-				}, rollerData,
+				}, *rollappChainData,
 			)
 			if err != nil {
 				pterm.Error.Printf(
@@ -639,6 +607,12 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			rollappIbcConnection, hubIbcConnection, err := rly.GetActiveConnections(raData, hd)
+			if err != nil {
+				pterm.Error.Printf("failed to retrieve active connections: %v\n", err)
+				return
+			}
+
 			pterm.Info.Println("updating application relayer config")
 			relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
 			updates := map[string]interface{}{
@@ -653,6 +627,10 @@ func Cmd() *cobra.Command {
 				"extra-codecs": []string{
 					"ethermint",
 				},
+				fmt.Sprintf("paths.%s.dst.client-id", consts.DefaultRelayerPath):     rollappIbcConnection.ClientID,
+				fmt.Sprintf("paths.%s.dst.connection-id", consts.DefaultRelayerPath): rollappIbcConnection.ID,
+				fmt.Sprintf("paths.%s.src.client-id", consts.DefaultRelayerPath):     hubIbcConnection.ClientID,
+				fmt.Sprintf("paths.%s.src.connection-id", consts.DefaultRelayerPath): hubIbcConnection.ID,
 			}
 			err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
 			if err != nil {
@@ -670,12 +648,15 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func verifyRelayerBalances(rolCfg configutils.RollappConfig) error {
-	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(rolCfg)
+func verifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
+	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(raData, hd)
 	if err != nil {
 		return err
 	}
-	utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

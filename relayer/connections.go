@@ -65,58 +65,10 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) GetActiveConnection(
+func (r *Relayer) GetActiveConnectionIDs(
 	raData consts.RollappData,
 	hd consts.HubData,
 ) (string, string, error) {
-	// try to read connection information from the configuration file
-	// rlyCfg, err := ReadRlyConfig(r.Home)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// connectionIDRollappRaw, err := roller_utils.GetNestedValue(
-	// 	rlyCfg,
-	// 	[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"},
-	// )
-	// if err != nil {
-	// 	r.logger.Println("no active rollapp connection id found in the configuration file")
-	// 	// return "", err
-	// }
-	//
-	// connectionIDHubRaw, err := roller_utils.GetNestedValue(
-	// 	rlyCfg,
-	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"},
-	// )
-	// if err != nil {
-	// 	r.logger.Println("no active hub connection id found in the configuration file")
-	// 	// return "", err
-	// }
-	//
-	// var connectionIDRollapp string
-	// if connectionIDRollappRaw != nil {
-	// 	//nolint:errcheck
-	// 	connectionIDRollapp = connectionIDRollappRaw.(string)
-	// }
-	//
-	// var connectionIDHub string
-	// if connectionIDHubRaw != nil {
-	// 	//nolint:errcheck
-	// 	connectionIDHub = connectionIDHubRaw.(string)
-	// }
-	//
-	// if connectionIDRollapp == "" || connectionIDHub == "" {
-	// 	r.logger.Printf("can't find active connection in the configuration file")
-	// }
-	// END: try to read connection information from the configuration file
-
-	// var hubConnectionInfo ConnectionsQueryResult
-	// hubConnectionOutput, err := bash.ExecCommandWithStdout(r.queryConnectionsHubCmd())
-	// if err != nil {
-	// 	r.logger.Printf("couldn't find any open connections for %s", r.HubID)
-	// 	return "", err
-	// }
-
-	// fetch connection from the chain
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
 		r.queryConnectionRollappCmd(
 			raData,
@@ -171,31 +123,69 @@ func (r *Relayer) GetActiveConnection(
 
 	hubConnection := hubIbcConnection.Connections[hubConnIndex]
 
-	// not ideal, ik
-	// vtu := map[any]any{
-	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "connection-id"}: hubConnectionID,
-	// 	[]string{"paths", consts.DefaultRelayerPath, "dst", "connection-id"}: "connection-0",
-	// 	[]string{
-	// 		"paths",
-	// 		consts.DefaultRelayerPath,
-	// 		"src",
-	// 		"client-id",
-	// 	}: rollappIbcConnection.Connections[0].Counterparty.ClientID,
-	// 	[]string{"paths", consts.DefaultRelayerPath, "src", "client-id"}: "07-tendermint-0",
-	// }
-
-	// for k, v := range vtu {
-	// 	err = roller_utils.SetNestedValue(
-	// 		rlyCfg,
-	// 		k.([]string),
-	// 		v,
-	// 	)
-	// 	if err != nil {
-	// 		return "", err
-	// 	}
-	// }
-
 	return rollappIbcConnection.Connections[0].ID, hubConnection.ID, nil
+}
+
+func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubData) (
+	*ConnectionInfo,
+	*ConnectionInfo,
+	error,
+) {
+	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
+		r.queryConnectionRollappCmd(
+			raData,
+		),
+	)
+	if err != nil {
+		r.logger.Printf(
+			"failed to find connection on the rollapp side for %s: %v",
+			r.RollappID,
+			err,
+		)
+		return nil, nil, err
+	}
+
+	// While there are JSON objects in the stream...
+	var rollappIbcConnection ConnectionsQueryResult
+	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &rollappIbcConnection)
+	if err != nil {
+		r.logger.Printf("error while decoding JSON: %v", err)
+	}
+
+	if len(rollappIbcConnection.Connections) == 0 {
+		r.logger.Printf("no connections found on the rollapp side for %s", r.RollappID)
+		return nil, nil, nil
+	}
+
+	// TODO: review, why return nil error?
+	if rollappIbcConnection.Connections[0].State != "STATE_OPEN" {
+		return nil, nil, nil
+	}
+	hubConnectionID := rollappIbcConnection.Connections[0].Counterparty.ConnectionID
+
+	// Check if the connection is open on the hub
+	var hubIbcConnection ConnectionsQueryResult
+	outputHub, err := bash.ExecCommandWithStdout(
+		r.queryConnectionHubCmd(hd),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = json.Unmarshal(outputHub.Bytes(), &hubIbcConnection)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	hubConnIndex := slices.IndexFunc(
+		hubIbcConnection.Connections, func(conn ConnectionInfo) bool {
+			return conn.ID == hubConnectionID
+		},
+	)
+
+	hubConnection := hubIbcConnection.Connections[hubConnIndex]
+
+	return &rollappIbcConnection.Connections[0], &hubConnection, nil
 }
 
 func (r *Relayer) queryConnectionRollappCmd(

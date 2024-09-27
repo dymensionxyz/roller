@@ -1,7 +1,7 @@
 package relayer
 
 import (
-	"math/big"
+	cosmossdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
@@ -9,11 +9,15 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 )
 
-var oneDayRelayPrice = big.NewInt(1)
+var oneDayRelayPrice, _ = cosmossdkmath.NewIntFromString(
+	"2000000000000000000",
+) // 2000000000000000000 = 2dym
 
-func getRolRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
-	RollappRlyAddr, err := utils.GetRelayerAddress(cfg.Home, cfg.RollappID)
-	seq := sequencer.GetInstance(cfg)
+// TODO: refactor to use consts.RollappData
+// nolint: unused
+func getRolRlyAccData(home string, raData config.RollappConfig) (*utils.AccountData, error) {
+	RollappRlyAddr, err := utils.GetRelayerAddress(home, raData.RollappID)
+	seq := sequencer.GetInstance(raData)
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +25,8 @@ func getRolRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
 	RollappRlyBalance, err := utils.QueryBalance(
 		utils.ChainQueryConfig{
 			RPC:    seq.GetRPCEndpoint(),
-			Denom:  cfg.BaseDenom,
-			Binary: cfg.RollappBinary,
+			Denom:  raData.Denom,
+			Binary: consts.Executables.RollappEVM,
 		}, RollappRlyAddr,
 	)
 	if err != nil {
@@ -35,15 +39,15 @@ func getRolRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
 	}, nil
 }
 
-func getHubRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
-	HubRlyAddr, err := utils.GetRelayerAddress(cfg.Home, cfg.HubData.ID)
+func getHubRlyAccData(home string, hd consts.HubData) (*utils.AccountData, error) {
+	HubRlyAddr, err := utils.GetRelayerAddress(home, hd.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	HubRlyBalance, err := utils.QueryBalance(
 		utils.ChainQueryConfig{
-			RPC:    cfg.HubData.RPC_URL,
+			RPC:    hd.RPC_URL,
 			Denom:  consts.Denoms.Hub,
 			Binary: consts.Executables.Dymension,
 		}, HubRlyAddr,
@@ -58,7 +62,11 @@ func getHubRlyAccData(cfg config.RollappConfig) (*utils.AccountData, error) {
 	}, nil
 }
 
-func GetRelayerAccountsData(cfg config.RollappConfig) ([]utils.AccountData, error) {
+func GetRelayerAccountsData(
+	home string,
+	raData consts.RollappData,
+	hd consts.HubData,
+) ([]utils.AccountData, error) {
 	var data []utils.AccountData
 
 	// rollappRlyAcc, err := getRolRlyAccData(cfg)
@@ -67,7 +75,7 @@ func GetRelayerAccountsData(cfg config.RollappConfig) ([]utils.AccountData, erro
 	// }
 	// data = append(data, *rollappRlyAcc)
 
-	hubRlyAcc, err := getHubRlyAccData(cfg)
+	hubRlyAcc, err := getHubRlyAccData(home, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -77,25 +85,29 @@ func GetRelayerAccountsData(cfg config.RollappConfig) ([]utils.AccountData, erro
 }
 
 func GetRelayerInsufficientBalances(
-	config config.RollappConfig,
+	raData consts.RollappData,
+	hd consts.HubData,
 ) ([]utils.NotFundedAddressData, error) {
 	var insufficientBalances []utils.NotFundedAddressData
+	home := utils.GetRollerRootDir()
 
-	accData, err := GetRelayerAccountsData(config)
+	accData, err := GetRelayerAccountsData(home, raData, hd)
 	if err != nil {
 		return nil, err
 	}
 
+	// consts.Denoms.Hub is used here because as of @202409 we no longer require rollapp
+	// relayer account funding to establish IBC connection.
 	for _, acc := range accData {
-		if acc.Balance.Amount.Cmp(oneDayRelayPrice) < 0 {
+		if acc.Balance.Amount.Cmp(oneDayRelayPrice.BigInt()) < 0 {
 			insufficientBalances = append(
 				insufficientBalances, utils.NotFundedAddressData{
-					KeyName:         consts.KeysIds.RollappRelayer,
+					KeyName:         consts.KeysIds.HubRelayer,
 					Address:         acc.Address,
 					CurrentBalance:  acc.Balance.Amount,
-					RequiredBalance: oneDayRelayPrice,
-					Denom:           config.Denom,
-					Network:         config.RollappID,
+					RequiredBalance: oneDayRelayPrice.BigInt(),
+					Denom:           consts.Denoms.Hub,
+					Network:         hd.ID,
 				},
 			)
 		}
