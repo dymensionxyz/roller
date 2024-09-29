@@ -14,7 +14,7 @@ import (
 )
 
 func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	keys := getSequencerKeysConfig()
+	keys := GetSequencerKeysConfig()
 	addresses := make([]utils.KeyInfo, 0)
 	for _, key := range keys {
 		var address *utils.KeyInfo
@@ -35,7 +35,7 @@ func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, e
 }
 
 func GenerateMockSequencerKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	keys := getMockSequencerKeyConfig(initConfig)
+	keys := GetMockSequencerKeyConfig(initConfig)
 	addresses := make([]utils.KeyInfo, 0)
 	for _, key := range keys {
 		var address *utils.KeyInfo
@@ -55,7 +55,7 @@ func GenerateMockSequencerKeys(initConfig config.RollappConfig) ([]utils.KeyInfo
 	return addresses, nil
 }
 
-func getSequencerKeysConfig() []utils.KeyConfig {
+func GetSequencerKeysConfig() []utils.KeyConfig {
 	return []utils.KeyConfig{
 		{
 			Dir:         consts.ConfigDirName.HubKeys,
@@ -67,7 +67,7 @@ func getSequencerKeysConfig() []utils.KeyConfig {
 	}
 }
 
-func getMockSequencerKeyConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
+func GetMockSequencerKeyConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
 	return []utils.KeyConfig{
 		{
 			Dir:         consts.ConfigDirName.Rollapp,

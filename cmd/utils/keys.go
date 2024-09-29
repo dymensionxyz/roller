@@ -151,6 +151,7 @@ func GetAddressPrefix(binaryPath string) (string, error) {
 	return "", fmt.Errorf("could not find address prefix in binary debug command output")
 }
 
+// TODO: refactor, user should approve rather then pipe to 'yes'
 func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
 	flags := getExportKeyFlags(keyringDir)
 	var commandStr string
@@ -161,6 +162,14 @@ func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
 	}
 	cmdStr := fmt.Sprintf("yes | %s", commandStr)
 	return exec.Command("bash", "-c", cmdStr)
+}
+
+func GetExportPrivKeyCmd(kc KeyConfig) *exec.Cmd {
+	c := exec.Command(
+		kc.ChainBinary, "keys", "export", kc.ID, "--keyring-backend", "test",
+	)
+
+	return c
 }
 
 func getExportKeyFlags(keyringDir string) string {
