@@ -646,7 +646,7 @@ func Cmd() *cobra.Command {
 						"pruning":             "custom",
 						"pruning-keep-recent": "362880",
 						"pruning-interval":    "100",
-						"min-retain-blocks":   362880,
+						"min-retain-blocks":   "362880",
 					}
 				case "archive":
 					fnVtu = map[string]any{
