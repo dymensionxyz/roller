@@ -3,6 +3,7 @@ package eibc
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 	"github.com/dymensionxyz/roller/utils/keys"
 )
@@ -123,4 +125,23 @@ func CreateMongoDbContainer() error {
 		return err
 	}
 	return err
+}
+
+func AddRollappToEibc(value, rollAppID, eibcHome string) error {
+	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
+
+	vf, _, err := big.ParseFloat(value, 10, 64, big.ToNearestEven)
+	valueFloat, _ := vf.Float32()
+	if err != nil {
+		return fmt.Errorf("failed to convert value to float: %v", err)
+	}
+
+	updates := map[string]interface{}{
+		fmt.Sprintf("fulfill_criteria.min_fee_percentage.chain.%s", rollAppID): valueFloat,
+	}
+	err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+	if err != nil {
+		return fmt.Errorf("failed to update config: %v", err)
+	}
+	return nil
 }

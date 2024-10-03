@@ -1,6 +1,9 @@
 package init
 
 import (
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -11,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
@@ -107,6 +111,53 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var runForExisting bool
+			var raID string
+			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			var rollerData configutils.RollappConfig
+
+			_, err = os.Stat(rollerConfigFilePath)
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					pterm.Info.Println("existing roller configuration not found")
+					runForExisting = false
+				} else {
+					pterm.Error.Println("failed to check existing roller config")
+					return
+				}
+			} else {
+				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
+				rollerData, err = tomlconfig.LoadRollerConfig(home)
+				if err != nil {
+					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
+					return
+				}
+				rollerRaID := rollerData.RollappID
+				rollerHubData := rollerData.HubData
+				msg := fmt.Sprintf(
+					"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
+					rollerRaID,
+				)
+				rlyFromRoller, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+				if rlyFromRoller {
+					raID = rollerRaID
+					hd = rollerHubData
+					runForExisting = true
+				}
+
+				if !rlyFromRoller {
+					runForExisting = false
+				}
+			}
+
+			if !runForExisting {
+				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID").
+					Show()
+			}
+
+			raFeePercentage, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Please provide the fee percentage for the RollApp").
+				Show()
+
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			updates := map[string]interface{}{
 				"node_address":              hd.RPC_URL,
@@ -115,6 +166,13 @@ func Cmd() *cobra.Command {
 				"order_polling.indexer_url": "http://44.206.211.230:3000/",
 				"order_polling.enabled":     true,
 			}
+
+			err = eibcutils.AddRollappToEibc(raFeePercentage, raID, eibcHome)
+			if err != nil {
+				pterm.Error.Println("failed to add the rollapp to eibc config: ", err)
+				return
+			}
+
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
 				pterm.Error.Println("failed to update config", err)
