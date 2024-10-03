@@ -1,8 +1,6 @@
 package set
 
 import (
-	"fmt"
-	"math/big"
 	"os"
 	"path/filepath"
 
@@ -10,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
@@ -46,23 +44,11 @@ instance.
 				return
 			}
 
-			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			rollAppID := args[0]
 			value := args[1]
 
-			vf, _, err := big.ParseFloat(value, 10, 64, big.ToNearestEven)
-			valueFloat, _ := vf.Float32()
+			err = eibc.AddRollappToEibc(value, rollAppID, eibcHome)
 			if err != nil {
-				pterm.Error.Println("failed to convert value to float", err)
-				return
-			}
-
-			updates := map[string]interface{}{
-				fmt.Sprintf("fulfill_criteria.min_fee_percentage.chain.%s", rollAppID): valueFloat,
-			}
-			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
-			if err != nil {
-				pterm.Error.Println("failed to update config", err)
 				return
 			}
 		},
