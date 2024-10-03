@@ -8,8 +8,10 @@ import (
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
+	"github.com/dymensionxyz/roller/cmd/observability"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
+	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
 	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 )
@@ -30,16 +32,14 @@ func Execute() {
 }
 
 func init() {
-	// rootCmd.AddCommand(config.Cmd())
-	// rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(da_light_client.DALightClientCmd())
 	rootCmd.AddCommand(relayer.Cmd())
-	// rootCmd.AddCommand(binaries.Cmd())
-	// rootCmd.AddCommand(run.Cmd())
-	// rootCmd.AddCommand(migrate.Cmd())
+	rootCmd.AddCommand(keys.Cmd())
+	rootCmd.AddCommand(observability.Cmd())
 	rootCmd.AddCommand(rollapp.Cmd())
 	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(version.Cmd())
 	rollerutils.AddGlobalFlags(rootCmd)
+	// rootCmd.AddCommand(migrate.Cmd())
 }
