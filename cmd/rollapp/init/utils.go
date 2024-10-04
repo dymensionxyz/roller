@@ -282,12 +282,12 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	raSpinner.Success("rollapp initialized successfully")
 
 	/* ------------------------ Initialize DA light node ------------------------ */
-	celKi, err := celestialightclient.Initialize(env, initConfig)
+	daKeyInfo, err := celestialightclient.Initialize(env, initConfig)
 	if err != nil {
 		return err
 	}
 
-	addresses = append(addresses, *celKi)
+	addresses = append(addresses, *daKeyInfo)
 
 	/* ------------------------------ Print output ------------------------------ */
 
