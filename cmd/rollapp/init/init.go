@@ -35,6 +35,7 @@ func Cmd() *cobra.Command {
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			// rollerData, err := tomlconfig.LoadRollerConfig(home)
+
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend {
@@ -86,6 +87,7 @@ func Cmd() *cobra.Command {
 					"provide a rollapp ID that you want to run the node for",
 				).Show()
 			}
+			raID = strings.TrimSpace(raID)
 
 			_, err = rollapp.ValidateChainID(raID)
 			if err != nil {
@@ -122,7 +124,11 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			raID = strings.TrimSpace(raID)
+			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
+			if !isRollappRegistered {
+				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
+				return
+			}
 
 			getRaCmd := rollapp.GetRollappCmd(raID, hd)
 			var raResponse rollapp.ShowRollappResponse
@@ -139,7 +145,9 @@ func Cmd() *cobra.Command {
 			}
 
 			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
-				pterm.Error.Println("no bech")
+				pterm.Error.Println(
+					"RollApp does not contain Bech32Prefix, which is mandatory to continue",
+				)
 				return
 			}
 			start := time.Now()
@@ -151,12 +159,6 @@ func Cmd() *cobra.Command {
 			elapsed := time.Since(start)
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
-
-			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
-			if !isRollappRegistered {
-				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
-				return
-			}
 
 			bp, err := rollapp.ExtractBech32Prefix(
 				strings.ToLower(raResponse.Rollapp.VmType),
