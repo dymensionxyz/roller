@@ -3,27 +3,26 @@ package migrate
 import (
 	"fmt"
 
-	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/utils"
-
+	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/version"
 )
 
 var migrationsRegistry = []VersionMigrator{
-	&VersionMigratorV014{},
-	&VersionMigratorV015{},
-	&VersionMigratorV016{},
-	&VersionMigratorV018{},
-	&VersionMigratorV0111{},
-	&VersionMigratorV0112{},
-	&VersionMigratorV0113{},
-	&VersionMigratorV0118{},
-	&VersionMigratorV1000{},
-	&VersionMigratorV1005{},
+	// &VersionMigratorV014{},
+	// &VersionMigratorV015{},
+	// &VersionMigratorV016{},
+	// &VersionMigratorV018{},
+	// &VersionMigratorV0111{},
+	// &VersionMigratorV0112{},
+	// &VersionMigratorV0113{},
+	// &VersionMigratorV0118{},
+	// &VersionMigratorV1000{},
+	// &VersionMigratorV1005{},
 }
 
 func Cmd() *cobra.Command {
@@ -62,6 +61,7 @@ func GetPrevVersionData(rlpCfg configutils.RollappConfig) (*VersionData, error) 
 			Patch: 3,
 		}, nil
 	}
+
 	trimmedVersionStr := version.TrimVersionStr(rollerPrevVersion)
 	n, err := fmt.Sscanf(trimmedVersionStr, "v%d.%d.%d", &major, &minor, &patch)
 	if err != nil {
