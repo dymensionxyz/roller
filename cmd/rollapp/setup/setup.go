@@ -22,9 +22,10 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/celestia"
+	"github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -508,7 +509,7 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 
-						height, blockIdHash, err := initrollapp.GetLatestDABlock(rollerData)
+						height, blockIdHash, err := celestia.GetLatestBlock(rollerData)
 						if err != nil {
 							return
 						}
@@ -526,7 +527,7 @@ func Cmd() *cobra.Command {
 						)
 
 						pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-						err = initrollapp.UpdateCelestiaConfig(
+						err = lightclient.UpdateConfig(
 							celestiaConfigFilePath,
 							blockIdHash,
 							heightInt,
@@ -546,19 +547,19 @@ func Cmd() *cobra.Command {
 					// nolint:errcheck,gosec
 					daSpinner.Stop()
 
-					var result initrollapp.Result
+					var result lightclient.RollappStateResponse
 					if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
 						pterm.Error.Println("failed to unmarshal result: ", err)
 						return
 					}
 
-					h, err := initrollapp.ExtractHeightfromDAPath(result.StateInfo.DAPath)
+					h, err := celestia.ExtractHeightfromDAPath(result.StateInfo.DAPath)
 					if err != nil {
 						pterm.Error.Println("failed to extract height: ", err)
 						return
 					}
 
-					height, hash, err := initrollapp.GetDABlockByHeight(h, rollerData)
+					height, hash, err := celestia.GetBlockByHeight(h, rollerData)
 					if err != nil {
 						pterm.Error.Println("failed to retrieve block: ", err)
 						return
@@ -583,7 +584,7 @@ func Cmd() *cobra.Command {
 						hash,
 					)
 					pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-					err = initrollapp.UpdateCelestiaConfig(celestiaConfigFilePath, hash, heightInt)
+					err = lightclient.UpdateConfig(celestiaConfigFilePath, hash, heightInt)
 					if err != nil {
 						pterm.Error.Println("failed to update celestia config: ", err)
 						return
