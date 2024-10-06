@@ -144,7 +144,7 @@ func PrintOutput(
 	if withEndpoints {
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Endpoints:")
-		if rlpCfg.VMType == "evm" {
+		if rlpCfg.RollappVMType == "evm" {
 			fmt.Printf("EVM RPC: http://0.0.0.0:%v\n", seq.JsonRPCPort)
 		}
 		fmt.Printf("Node RPC: http://0.0.0.0:%v\n", seq.RPCPort)

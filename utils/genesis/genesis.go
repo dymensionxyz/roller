@@ -289,12 +289,12 @@ func getDefaultGenesisParams(
 		{Path: "app_state.claims.params.claims_denom", Value: raCfg.BaseDenom},
 	}
 
-	if raCfg.VMType == consts.WASM_ROLLAPP {
+	if raCfg.RollappVMType == consts.WASM_ROLLAPP {
 		wasmParams := []config.PathValue{}
 		params = append(commonParams, wasmParams...)
 	}
 
-	if raCfg.VMType == consts.EVM_ROLLAPP {
+	if raCfg.RollappVMType == consts.EVM_ROLLAPP {
 		evmParams := []config.PathValue{
 			{Path: "app_state.evm.params.evm_denom", Value: raCfg.BaseDenom},
 			{Path: "app_state.feemarket.params.no_base_fee", Value: true},

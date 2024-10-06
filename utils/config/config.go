@@ -15,27 +15,29 @@ import (
 var SupportedDas = []consts.DAType{consts.Celestia, consts.Local}
 
 type RollappConfig struct {
-	Home          string        `toml:"home"`
-	GenesisHash   string        `toml:"genesis_hash"`
-	GenesisUrl    string        `toml:"genesis_url"`
-	RollappID     string        `toml:"rollapp_id"`
-	RollappBinary string        `toml:"rollapp_binary"`
-	VMType        consts.VMType `toml:"execution"`
-	NodeType      string        `toml:"node_type"`
-	Denom         string        `toml:"denom"`
-	// TokenSupply   string
-	Decimals      uint
-	HubData       consts.HubData
-	DA            consts.DaData
+	// new roller.toml
+	Home          string `toml:"home"`
 	RollerVersion string `toml:"roller_version"`
 
-	// new roller.toml
+	NodeType string `toml:"node_type"`
+
+	GenesisHash string `toml:"genesis_hash"`
+	GenesisUrl  string `toml:"genesis_url"`
+	RollappID   string `toml:"rollapp_id"`
+
 	Environment string `toml:"environment"`
-	// Execution        string `toml:"execution"`
-	ExecutionVersion string `toml:"execution_version"`
-	Bech32Prefix     string `toml:"bech32_prefix"`
-	BaseDenom        string `toml:"base_denom"`
-	MinGasPrices     string `toml:"minimum_gas_prices"`
+
+	RollappVMType        consts.VMType `toml:"rollapp_vm_type"`
+	RollappBinary        string        `toml:"rollapp_binary"`
+	RollappBinaryVersion string        `toml:"rollapp_binary_version"`
+	Bech32Prefix         string        `toml:"bech32_prefix"`
+	BaseDenom            string        `toml:"base_denom"`
+	Denom                string        `toml:"denom"`
+	Decimals             uint
+	MinGasPrices         string `toml:"minimum_gas_prices"`
+
+	HubData consts.HubData
+	DA      consts.DaData
 }
 
 func (c RollappConfig) Validate() error {

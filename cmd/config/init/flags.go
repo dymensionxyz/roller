@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/spf13/cobra"
 )
 
 func AddFlags(cmd *cobra.Command) error {
@@ -104,7 +105,7 @@ func GetInitConfig(
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 
-	if cfg.VMType == consts.EVM_ROLLAPP {
+	if cfg.RollappVMType == consts.EVM_ROLLAPP {
 		cfg.Decimals = 18
 	} else {
 		cfg.Decimals = 6

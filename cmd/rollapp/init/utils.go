@@ -232,10 +232,10 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 
 	daData = consts.DaNetworks[daNetwork]
 	rollerTomlData := map[string]string{
-		"rollapp_id":     raID,
-		"rollapp_binary": strings.ToLower(consts.Executables.RollappEVM),
-		"execution":      string(initConfigPtr.VMType),
-		"home":           home,
+		"rollapp_id":      raID,
+		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
+		"rollapp_vm_type": string(initConfigPtr.RollappVMType),
+		"home":            home,
 
 		"HubData.id":              hd.ID,
 		"HubData.api_url":         hd.API_URL,

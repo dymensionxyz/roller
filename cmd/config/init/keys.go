@@ -73,7 +73,7 @@ func GetMockSequencerKeyConfig(rollappConfig config.RollappConfig) []utils.KeyCo
 			Dir:         consts.ConfigDirName.Rollapp,
 			ID:          consts.KeysIds.RollappSequencer,
 			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
+			Type:        rollappConfig.RollappVMType,
 		},
 	}
 }
@@ -84,7 +84,7 @@ func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.K
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
 			ID:          consts.KeysIds.RollappRelayer,
 			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
+			Type:        rollappConfig.RollappVMType,
 		},
 		consts.KeysIds.HubRelayer: {
 			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
