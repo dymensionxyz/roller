@@ -54,6 +54,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/Masterminds/semver/v3 v3.3.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
