@@ -7,11 +7,11 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func setRollappRPC(rlpCfg config.RollappConfig, value string) error {
+func setRollappRPC(rlpCfg roller.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
@@ -35,46 +35,46 @@ func validatePort(portStr string) error {
 	return nil
 }
 
-func updateRlpClientCfg(rlpCfg config.RollappConfig, newRpcPort string) error {
+func updateRlpClientCfg(rlpCfg roller.RollappConfig, newRpcPort string) error {
 	configFilePath := filepath.Join(
 		rlpCfg.Home,
 		consts.ConfigDirName.Rollapp,
 		"config",
 		"client.toml",
 	)
-	return utils.UpdateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
+	return tomlconfig.UpdateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
 }
 
-func updateRlpCfg(rlpCfg config.RollappConfig, newRpc string) error {
+func updateRlpCfg(rlpCfg roller.RollappConfig, newRpc string) error {
 	configFilePath := filepath.Join(
 		rlpCfg.Home,
 		consts.ConfigDirName.Rollapp,
 		"config",
 		"config.toml",
 	)
-	return utils.UpdateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
+	return tomlconfig.UpdateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
 }
 
-func setJsonRpcPort(cfg config.RollappConfig, value string) error {
+func setJsonRpcPort(cfg roller.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return utils.UpdateFieldInToml(appCfgFilePath, "json-rpc.address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "json-rpc.address", "0.0.0.0:"+value)
 }
 
-func setWSPort(cfg config.RollappConfig, value string) error {
+func setWSPort(cfg roller.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return utils.UpdateFieldInToml(appCfgFilePath, "json-rpc.ws-address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "json-rpc.ws-address", "0.0.0.0:"+value)
 }
 
-func setGRPCPort(cfg config.RollappConfig, value string) error {
+func setGRPCPort(cfg roller.RollappConfig, value string) error {
 	if err := validatePort(value); err != nil {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return utils.UpdateFieldInToml(appCfgFilePath, "grpc.address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "grpc.address", "0.0.0.0:"+value)
 }

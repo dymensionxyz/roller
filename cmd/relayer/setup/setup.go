@@ -13,18 +13,19 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	configutils "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -39,7 +40,9 @@ func Cmd() *cobra.Command {
 		Short: "Setup IBC connection between the Dymension hub and the RollApp.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// TODO: there are too many things set here, might be worth to refactor
-			home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, _ := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			relayerHome := filepath.Join(home, consts.ConfigDirName.Relayer)
 
 			// check for roller config, if it's present - fetch the rollapp ID from there
@@ -47,7 +50,7 @@ func Cmd() *cobra.Command {
 			var env string
 			var hd consts.HubData
 			var runForExisting bool
-			var rollerData configutils.RollappConfig
+			var rollerData roller.RollappConfig
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
@@ -64,7 +67,7 @@ func Cmd() *cobra.Command {
 				}
 			} else {
 				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-				rollerData, err = tomlconfig.LoadRollerConfig(home)
+				rollerData, err = roller.LoadRollerConfig(home)
 				if err != nil {
 					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 					return
@@ -117,8 +120,8 @@ func Cmd() *cobra.Command {
 			}
 
 			// check if there are active channels created for the rollapp
-			relayerLogFilePath := utils.GetRelayerLogPath(home)
-			relayerLogger := utils.GetLogger(relayerLogFilePath)
+			relayerLogFilePath := logging.GetRelayerLogPath(home)
+			relayerLogger := logging.GetLogger(relayerLogFilePath)
 
 			raData := consts.RollappData{
 				ID:     raID,
@@ -131,16 +134,15 @@ func Cmd() *cobra.Command {
 				hd.ID,
 			)
 			rly.SetLogger(relayerLogger)
-			logFileOption := utils.WithLoggerLogging(relayerLogger)
+			logFileOption := logging.WithLoggerLogging(relayerLogger)
 
-			rollappChainData, err := tomlconfig.GetRollappMetadataFromChain(
+			rollappChainData, err := rollapp.GetRollappMetadataFromChain(
 				home,
 				raData.ID,
 				&hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			outputHandler := initconfig.NewOutputHandler(false)
 			isRelayerInitialized, err := filesystem.DirNotEmpty(relayerHome)
 			if err != nil {
 				pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
@@ -149,8 +151,13 @@ func Cmd() *cobra.Command {
 
 			var shouldOverwrite bool
 			if isRelayerInitialized {
-				outputHandler.StopSpinner()
-				shouldOverwrite, err = outputHandler.PromptOverwriteConfig(relayerHome)
+				msg := fmt.Sprintf(
+					"Directory %s is not empty. Do you want to overwrite it?",
+					relayerHome,
+				)
+				shouldOverwrite, err = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+					WithDefaultValue(false).
+					Show()
 				if err != nil {
 					pterm.Error.Printf("failed to get your input: %v\n", err)
 					return
@@ -298,22 +305,22 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					keys, err := initconfig.GenerateRelayerKeys(rollerData)
+					relayerKeys, err := keys.GenerateRelayerKeys(rollerData)
 					if err != nil {
 						pterm.Error.Printf("failed to create relayer keys: %v\n", err)
 						return
 					}
 
-					for _, key := range keys {
-						key.Print(utils.WithMnemonic(), utils.WithName())
+					for _, key := range relayerKeys {
+						key.Print(keys.WithMnemonic(), keys.WithName())
 					}
 
-					keysToFund, err := initconfig.GetRelayerKeys(rollerData)
+					keysToFund, err := keys.GetRelayerKeys(rollerData)
 					pterm.Info.Println(
 						"please fund the hub relayer key with at least 20 dym tokens: ",
 					)
 					for _, k := range keysToFund {
-						k.Print(utils.WithName())
+						k.Print(keys.WithName())
 					}
 					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 						WithDefaultText(
@@ -363,7 +370,7 @@ func Cmd() *cobra.Command {
 
 				if isRelayerInitialized && !shouldOverwrite {
 					pterm.Info.Println("ensuring relayer keys are present")
-					kc := initconfig.GetRelayerKeysConfig(rollerData)
+					kc := keys.GetRelayerKeysConfig(rollerData)
 
 					for k, v := range kc {
 						pterm.Info.Printf("checking %s\n", k)
@@ -371,34 +378,34 @@ func Cmd() *cobra.Command {
 						switch v.ID {
 						case consts.KeysIds.RollappRelayer:
 							chainId := rollerData.RollappID
-							isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
 							if err != nil {
 								pterm.Error.Printf("failed to check address: %v\n", err)
 								return
 							}
 
 							if !isPresent {
-								key, err := initconfig.AddRlyKey(v, rollerData.RollappID)
+								key, err := keys.AddRlyKey(v, rollerData.RollappID)
 								if err != nil {
 									pterm.Error.Printf("failed to add key: %v\n", err)
 								}
 
-								key.Print(utils.WithMnemonic(), utils.WithName())
+								key.Print(keys.WithMnemonic(), keys.WithName())
 							}
 						case consts.KeysIds.HubRelayer:
 							chainId := rollerData.HubData.ID
-							isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
 							if err != nil {
 								pterm.Error.Printf("failed to check address: %v\n", err)
 								return
 							}
 							if !isPresent {
-								key, err := initconfig.AddRlyKey(v, rollerData.HubData.ID)
+								key, err := keys.AddRlyKey(v, rollerData.HubData.ID)
 								if err != nil {
 									pterm.Error.Printf("failed to add key: %v\n", err)
 								}
 
-								key.Print(utils.WithMnemonic(), utils.WithName())
+								key.Print(keys.WithMnemonic(), keys.WithName())
 							}
 						default:
 							pterm.Error.Println("invalid key name", err)
@@ -409,7 +416,7 @@ func Cmd() *cobra.Command {
 
 				if isRelayerInitialized && !shouldOverwrite {
 					pterm.Info.Println("ensuring relayer keys are present")
-					kc := initconfig.GetRelayerKeysConfig(rollerData)
+					kc := keys.GetRelayerKeysConfig(rollerData)
 
 					for k, v := range kc {
 						pterm.Info.Printf("checking %s\n", k)
@@ -417,34 +424,34 @@ func Cmd() *cobra.Command {
 						switch v.ID {
 						case consts.KeysIds.RollappRelayer:
 							chainId := rollerData.RollappID
-							isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
 							if err != nil {
 								pterm.Error.Printf("failed to check address: %v\n", err)
 								return
 							}
 
 							if !isPresent {
-								key, err := initconfig.AddRlyKey(v, rollerData.RollappID)
+								key, err := keys.AddRlyKey(v, rollerData.RollappID)
 								if err != nil {
 									pterm.Error.Printf("failed to add key: %v\n", err)
 								}
 
-								key.Print(utils.WithMnemonic(), utils.WithName())
+								key.Print(keys.WithMnemonic(), keys.WithName())
 							}
 						case consts.KeysIds.HubRelayer:
 							chainId := rollerData.HubData.ID
-							isPresent, err := utils.IsRlyAddressWithNameInKeyring(v, chainId)
+							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
 							if err != nil {
 								pterm.Error.Printf("failed to check address: %v\n", err)
 								return
 							}
 							if !isPresent {
-								key, err := initconfig.AddRlyKey(v, rollerData.HubData.ID)
+								key, err := keys.AddRlyKey(v, rollerData.HubData.ID)
 								if err != nil {
 									pterm.Error.Printf("failed to add key: %v\n", err)
 								}
 
-								key.Print(utils.WithMnemonic(), utils.WithName())
+								key.Print(keys.WithMnemonic(), keys.WithName())
 							}
 						default:
 							pterm.Error.Println("invalid key name", err)
@@ -577,21 +584,25 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			keys, err := initconfig.GenerateRelayerKeys(*rollappChainData)
+			rlyKeys, err := keys.GenerateRelayerKeys(*rollappChainData)
 			if err != nil {
 				pterm.Error.Printf("failed to create relayer keys: %v\n", err)
 				return
 			}
-			for _, key := range keys {
-				key.Print(utils.WithMnemonic(), utils.WithName())
+			for _, key := range rlyKeys {
+				key.Print(keys.WithMnemonic(), keys.WithName())
 			}
 
-			keysToFund, err := initconfig.GetRelayerKeys(*rollappChainData)
+			keysToFund, err := keys.GetRelayerKeys(*rollappChainData)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve relayer keys: ", err)
+				return
+			}
 			pterm.Info.Println(
 				"please fund the hub relayer key with at least 20 dym tokens: ",
 			)
 			for _, k := range keysToFund {
-				k.Print(utils.WithName())
+				k.Print(keys.WithName())
 			}
 			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 				WithDefaultText(
@@ -652,7 +663,7 @@ func verifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
 	if err != nil {
 		return err
 	}
-	err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 	if err != nil {
 		return err
 	}

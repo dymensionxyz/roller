@@ -12,10 +12,10 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -32,10 +32,16 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
+
+			err = filesystem.CreateDir(home)
+			if err != nil {
+				pterm.Error.Println("failed to create roller home directory: ", err)
+				return
+			}
 
 			isFirstInitialization, err := roller.CreateConfigFile(home)
 			if err != nil {
@@ -68,7 +74,6 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to install dymd: ", err)
 					return
 				}
-
 			}
 
 			var hd consts.HubData

@@ -1,4 +1,4 @@
-package utils
+package keys
 
 import (
 	"bytes"
@@ -6,13 +6,73 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/olekukonko/tablewriter"
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
+
+func PrintInsufficientBalancesIfAny(
+	addressesData []NotFundedAddressData,
+) error {
+	if len(addressesData) == 0 {
+		return errors.New("no addresses to print")
+	}
+
+	printAddresses := func() {
+		data := make([][]string, len(addressesData))
+		for i, addressData := range addressesData {
+			data[i] = []string{
+				addressData.KeyName,
+				addressData.Address,
+				addressData.CurrentBalance.String() + addressData.Denom,
+				addressData.RequiredBalance.String() + addressData.Denom,
+				addressData.Network,
+			}
+		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Name", "Address", "Current", "Required", "Network"})
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+		table.SetBorder(false)
+		table.AppendBulk(data)
+		fmt.Println()
+		table.Render()
+		fmt.Println()
+	}
+
+	pterm.DefaultSection.WithIndentCharacter("🔔").
+		Println("Please fund the addresses below.")
+	printAddresses()
+
+	// TODO: to util
+	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+		WithDefaultText(
+			"press 'y' when the wallets are funded",
+		).Show()
+	if !proceed {
+		pterm.Info.Println("exiting")
+		return errors.New("cancelled by user")
+	}
+
+	return nil
+}
+
+type NotFundedAddressData struct {
+	KeyName         string
+	Address         string
+	CurrentBalance  *big.Int
+	RequiredBalance *big.Int
+	Denom           string
+	Network         string
+}
 
 type ChainQueryConfig struct {
 	Denom  string
@@ -97,7 +157,7 @@ func formatBalance(balance *big.Int, decimals uint) string {
 	return quotient.String()
 }
 
-func (b *Balance) BiggerDenomStr(cfg config.RollappConfig) string {
+func (b *Balance) BiggerDenomStr(cfg roller.RollappConfig) string {
 	biggerDenom := b.Denom[1:]
 	decimalsMap := map[string]uint{
 		consts.Denoms.Hub:      18,

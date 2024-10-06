@@ -8,14 +8,14 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 // GetLatestDABlock returns the latest DA (Data Availability) block information.
 // It executes the CelestiaApp command "q block --node" to retrieve the block data.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func GetLatestBlock(raCfg config.RollappConfig) (string, string, error) {
+func GetLatestBlock(raCfg roller.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
 		"q", "block", "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),
@@ -62,7 +62,7 @@ func GetLatestBlock(raCfg config.RollappConfig) (string, string, error) {
 // where <height> is the input parameter.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
-func GetBlockByHeight(h string, raCfg config.RollappConfig) (string, string, error) {
+func GetBlockByHeight(h string, raCfg roller.RollappConfig) (string, string, error) {
 	cmd := exec.Command(
 		consts.Executables.CelestiaApp,
 		"q", "block", h, "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),

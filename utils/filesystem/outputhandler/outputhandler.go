@@ -1,4 +1,4 @@
-package filesystem
+package outputhandler
 
 import (
 	"fmt"
@@ -11,6 +11,19 @@ import (
 type OutputHandler struct {
 	NoOutput bool
 	spinner  *spinner.Spinner
+}
+
+func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
+	if o.NoOutput {
+		return true, nil
+	}
+
+	msg := fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", home)
+	shouldOverwrite, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		msg,
+	).WithDefaultValue(false).Show()
+
+	return shouldOverwrite, nil
 }
 
 func GetLoadingSpinner() *spinner.Spinner {
@@ -46,16 +59,4 @@ func (o *OutputHandler) StopSpinner() {
 	if !o.NoOutput {
 		o.spinner.Stop()
 	}
-}
-
-func (o *OutputHandler) PromptOverwriteConfig(home string) (bool, error) {
-	if o.NoOutput {
-		return true, nil
-	}
-
-	shouldOverwrite, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", home),
-	).WithDefaultValue(false).Show()
-
-	return shouldOverwrite, nil
 }

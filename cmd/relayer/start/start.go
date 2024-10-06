@@ -11,13 +11,15 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -49,7 +51,7 @@ func Cmd() *cobra.Command {
 Consider using 'services' if you want to run a 'systemd' service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			rlyConfigPath := filepath.Join(
 				home,
 				consts.ConfigDirName.Relayer,
@@ -74,7 +76,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			raChainID := rlyConfig.Paths.HubRollapp.Dst.ChainID
 			hubChainID := rlyConfig.Paths.HubRollapp.Src.ChainID
 
-			_, hd, found := config.FindHubDataByID(consts.Hubs, hubChainID)
+			_, hd, found := roller.FindHubDataByID(consts.Hubs, hubChainID)
 			if !found {
 				pterm.Error.Println("Hub Data not found for ", hubChainID)
 				return
@@ -113,9 +115,9 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				pterm.Error.Println("failed to check balances", err)
 				return
 			}
-			relayerLogFilePath := utils.GetRelayerLogPath(home)
-			logger := utils.GetLogger(relayerLogFilePath)
-			logFileOption := utils.WithLoggerLogging(logger)
+			relayerLogFilePath := logging.GetRelayerLogPath(home)
+			logger := logging.GetLogger(relayerLogFilePath)
+			logFileOption := logging.WithLoggerLogging(logger)
 			rly := relayer.NewRelayer(
 				home,
 				raChainID,
@@ -180,7 +182,7 @@ func VerifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
 		return err
 	}
 
-	err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+	err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 	if err != nil {
 		return err
 	}

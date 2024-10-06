@@ -13,17 +13,17 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 // Initialize function initializes the celestia light client on a local machine and returns the
 // KeyInfo of the created celestia address
-func Initialize(env string, rollerData config.RollappConfig) (*utils.KeyInfo, error) {
+func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, error) {
 	if env != "mock" {
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 		hd := rollerData.HubData
@@ -143,7 +143,7 @@ func Initialize(env string, rollerData config.RollappConfig) (*utils.KeyInfo, er
 		}
 
 		if daAddress != nil {
-			ki := &utils.KeyInfo{
+			ki := &keys.KeyInfo{
 				Name:     damanager.GetKeyName(),
 				Address:  daAddress.Address,
 				Mnemonic: mnemonic,

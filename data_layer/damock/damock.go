@@ -3,8 +3,8 @@ package damock
 import (
 	"os/exec"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type DAMock struct{}
@@ -16,7 +16,7 @@ func (d *DAMock) GetPrivateKey() (string, error) {
 func (d *DAMock) SetMetricsEndpoint(endpoint string) {
 }
 
-func (d *DAMock) GetStatus(c config.RollappConfig) string {
+func (d *DAMock) GetStatus(c roller.RollappConfig) string {
 	return "Running local DA"
 }
 
@@ -32,7 +32,7 @@ func NewDAMock() *DAMock {
 	return &DAMock{}
 }
 
-func (d *DAMock) GetDAAccountAddress() (*utils.KeyInfo, error) {
+func (d *DAMock) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	return nil, nil
 }
 
@@ -40,16 +40,16 @@ func (d *DAMock) InitializeLightNodeConfig() (string, error) {
 	return "", nil
 }
 
-func (d *DAMock) CheckDABalance() ([]utils.NotFundedAddressData, error) {
-	return []utils.NotFundedAddressData{}, nil
+func (d *DAMock) CheckDABalance() ([]keys.NotFundedAddressData, error) {
+	return []keys.NotFundedAddressData{}, nil
 }
 
 func (d *DAMock) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (d *DAMock) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error) {
-	return []utils.AccountData{}, nil
+func (d *DAMock) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error) {
+	return []keys.AccountData{}, nil
 }
 
 func (d *DAMock) GetLightNodeEndpoint() string {

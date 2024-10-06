@@ -8,12 +8,12 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/blockexplorer"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	rollerfilesystemutils "github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 		Short: "Run a RollApp node.",
 		Long:  ``,
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			isFlagChanged := cmd.Flags().Changed("block-explorer-rpc-endpoint")
 			defaultBeRpcEndpoint, _ := cmd.Flags().GetString("block-explorer-rpc-endpoint")
 
@@ -58,7 +58,7 @@ if you want to run block explorer for a rollapp on a different host, press 'n' a
 						return
 					}
 
-					rollerData, err := tomlconfig.LoadRollerConfig(home)
+					rollerData, err := roller.LoadRollerConfig(home)
 					if err != nil {
 						pterm.Error.Println("failed to load roller config file", err)
 						return

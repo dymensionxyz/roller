@@ -2,13 +2,12 @@ package set
 
 import (
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils"
-	configutils "github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func setHubRPC(rlpCfg configutils.RollappConfig, value string) error {
+func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 	rlpCfg.HubData.RPC_URL = value
 	if err := tomlconfig.Write(rlpCfg); err != nil {
 		return err
@@ -20,5 +19,5 @@ func setHubRPC(rlpCfg configutils.RollappConfig, value string) error {
 		return err
 	}
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	return utils.UpdateFieldInToml(dymintTomlPath, "settlement_node_address", value)
+	return tomlconfig.UpdateFieldInToml(dymintTomlPath, "settlement_node_address", value)
 }

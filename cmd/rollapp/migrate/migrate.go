@@ -5,10 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
-	configutils "github.com/dymensionxyz/roller/utils/config"
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -19,8 +19,8 @@ func Cmd() *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrates the roller configuration to the newly installed version.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rlpCfg, err := roller.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			prevVersionData, err := GetPrevVersionData(rlpCfg)
@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func GetPrevVersionData(rlpCfg configutils.RollappConfig) (*VersionData, error) {
+func GetPrevVersionData(rlpCfg roller.RollappConfig) (*VersionData, error) {
 	rollerPrevVersion := rlpCfg.RollerVersion
 	var major, minor, patch int
 	// Special case for the first version of roller, that didn't have a version field.
@@ -71,7 +71,7 @@ func GetPrevVersionData(rlpCfg configutils.RollappConfig) (*VersionData, error) 
 }
 
 type VersionMigrator interface {
-	PerformMigration(rlpCfg configutils.RollappConfig) error
+	PerformMigration(rlpCfg roller.RollappConfig) error
 	ShouldMigrate(prevVersion VersionData) bool
 }
 

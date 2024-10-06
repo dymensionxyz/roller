@@ -10,13 +10,13 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func InitializeRollappConfig(
-	initConfig *config.RollappConfig,
+	initConfig *roller.RollappConfig,
 	raResp rollapp.ShowRollappResponse,
 ) error {
 	raHomeDir := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
@@ -83,7 +83,7 @@ func InitializeRollappConfig(
 	return nil
 }
 
-func setRollappConfig(rlpCfg config.RollappConfig) error {
+func setRollappConfig(rlpCfg roller.RollappConfig) error {
 	if err := sequencer.SetAppConfig(rlpCfg); err != nil {
 		return err
 	}

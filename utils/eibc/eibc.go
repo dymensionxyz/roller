@@ -12,7 +12,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -76,14 +75,14 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 // and distributes funds across a set of wallets that fulfill the eibc orders
 func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
-	kc := utils.KeyConfig{
+	kc := keys.KeyConfig{
 		Dir:         consts.ConfigDirName.Eibc,
 		ID:          consts.KeysIds.Eibc,
 		ChainBinary: consts.Executables.Dymension,
 		Type:        "",
 	}
 
-	_, err := utils.GetAddressInfoBinary(kc, home)
+	_, err := keys.GetAddressInfoBinary(kc, home)
 	if err != nil {
 		pterm.Info.Println("whale account not found in the keyring, creating it now")
 		addressInfo, err := keys.CreateAddressBinary(kc, home)
@@ -91,7 +90,7 @@ func EnsureWhaleAccount() error {
 			return err
 		}
 
-		addressInfo.Print(utils.WithName(), utils.WithMnemonic())
+		addressInfo.Print(keys.WithName(), keys.WithMnemonic())
 	}
 
 	return nil

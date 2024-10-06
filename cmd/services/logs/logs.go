@@ -9,10 +9,10 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 // TODO: refactor
@@ -21,9 +21,9 @@ func RollappCmd() *cobra.Command {
 		Use:   "logs",
 		Short: "Follow the logs for rollapp and da light client",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
@@ -86,9 +86,9 @@ func RelayerCmd() *cobra.Command {
 		Use:   "logs",
 		Short: "Follow the logs for relayer",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

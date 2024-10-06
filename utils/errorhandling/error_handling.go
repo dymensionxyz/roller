@@ -6,7 +6,7 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -27,7 +27,7 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 	}
 }
 
-func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
+func RequireMigrateIfNeeded(rlpCfg roller.RollappConfig) {
 	currentRollerVersion := version.TrimVersionStr(version.BuildVersion)
 	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
 	if configRollerVersion != currentRollerVersion {

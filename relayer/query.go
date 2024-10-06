@@ -4,9 +4,8 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -16,15 +15,15 @@ var oneDayRelayPrice, _ = cosmossdkmath.NewIntFromString(
 
 // TODO: refactor to use consts.RollappData
 // nolint: unused
-func getRolRlyAccData(home string, raData config.RollappConfig) (*utils.AccountData, error) {
-	RollappRlyAddr, err := utils.GetRelayerAddress(home, raData.RollappID)
+func getRolRlyAccData(home string, raData roller.RollappConfig) (*keys.AccountData, error) {
+	RollappRlyAddr, err := keys.GetRelayerAddress(home, raData.RollappID)
 	seq := sequencer.GetInstance(raData)
 	if err != nil {
 		return nil, err
 	}
 
-	RollappRlyBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
+	RollappRlyBalance, err := keys.QueryBalance(
+		keys.ChainQueryConfig{
 			RPC:    seq.GetRPCEndpoint(),
 			Denom:  raData.Denom,
 			Binary: consts.Executables.RollappEVM,
@@ -34,20 +33,20 @@ func getRolRlyAccData(home string, raData config.RollappConfig) (*utils.AccountD
 		return nil, err
 	}
 
-	return &utils.AccountData{
+	return &keys.AccountData{
 		Address: RollappRlyAddr,
 		Balance: RollappRlyBalance,
 	}, nil
 }
 
-func getHubRlyAccData(home string, hd consts.HubData) (*utils.AccountData, error) {
-	HubRlyAddr, err := utils.GetRelayerAddress(home, hd.ID)
+func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error) {
+	HubRlyAddr, err := keys.GetRelayerAddress(home, hd.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	HubRlyBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
+	HubRlyBalance, err := keys.QueryBalance(
+		keys.ChainQueryConfig{
 			RPC:    hd.RPC_URL,
 			Denom:  consts.Denoms.Hub,
 			Binary: consts.Executables.Dymension,
@@ -57,7 +56,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*utils.AccountData, error
 		return nil, err
 	}
 
-	return &utils.AccountData{
+	return &keys.AccountData{
 		Address: HubRlyAddr,
 		Balance: HubRlyBalance,
 	}, nil
@@ -67,8 +66,8 @@ func GetRelayerAccountsData(
 	home string,
 	raData consts.RollappData,
 	hd consts.HubData,
-) ([]utils.AccountData, error) {
-	var data []utils.AccountData
+) ([]keys.AccountData, error) {
+	var data []keys.AccountData
 
 	// rollappRlyAcc, err := getRolRlyAccData(cfg)
 	// if err != nil {
@@ -88,8 +87,8 @@ func GetRelayerAccountsData(
 func GetRelayerInsufficientBalances(
 	raData consts.RollappData,
 	hd consts.HubData,
-) ([]utils.NotFundedAddressData, error) {
-	var insufficientBalances []utils.NotFundedAddressData
+) ([]keys.NotFundedAddressData, error) {
+	var insufficientBalances []keys.NotFundedAddressData
 	home := roller.GetRootDir()
 
 	accData, err := GetRelayerAccountsData(home, raData, hd)
@@ -102,7 +101,7 @@ func GetRelayerInsufficientBalances(
 	for _, acc := range accData {
 		if acc.Balance.Amount.Cmp(oneDayRelayPrice.BigInt()) < 0 {
 			insufficientBalances = append(
-				insufficientBalances, utils.NotFundedAddressData{
+				insufficientBalances, keys.NotFundedAddressData{
 					KeyName:         consts.KeysIds.HubRelayer,
 					Address:         acc.Address,
 					CurrentBalance:  acc.Balance.Amount,

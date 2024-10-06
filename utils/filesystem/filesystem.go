@@ -34,7 +34,7 @@ func DirNotEmpty(path string) (bool, error) {
 	return len(files) > 0, err
 }
 
-func OverwriteDir(path string, oh OutputHandler) error {
+func OverwriteDir(path string) error {
 	isRootExist, err := DirNotEmpty(path)
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
@@ -42,7 +42,11 @@ func OverwriteDir(path string, oh OutputHandler) error {
 	}
 
 	if isRootExist {
-		shouldOverwrite, err := oh.PromptOverwriteConfig(path)
+		msg := fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", path)
+		shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+			WithDefaultValue(false).
+			Show()
+		pterm.DefaultInteractiveConfirm.WithDefaultText("")
 		if err != nil {
 			errorhandling.PrettifyErrorIfExists(err)
 			return err
@@ -193,6 +197,44 @@ func TailFile(fp, svcName string, lineNumber int) error {
 
 	for line := range t.Lines {
 		cp.Println(line.Text)
+	}
+
+	return nil
+}
+
+func CreateDir(path string) error {
+	isRootExist, err := DirNotEmpty(path)
+	if err != nil {
+		return err
+	}
+
+	if isRootExist {
+		msg := fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", path)
+		shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+			WithDefaultValue(false).
+			Show()
+		if err != nil {
+			return err
+		}
+
+		if shouldOverwrite {
+			err = os.RemoveAll(path)
+			if err != nil {
+				return err
+			}
+
+			err = RemoveServiceFiles(consts.RollappSystemdServices)
+			if err != nil {
+				return err
+			}
+
+			err = os.MkdirAll(path, 0o755)
+			if err != nil {
+				return err
+			}
+		} else {
+			os.Exit(0)
+		}
 	}
 
 	return nil

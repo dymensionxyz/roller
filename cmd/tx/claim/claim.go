@@ -6,11 +6,12 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/keys"
 )
 
 func Cmd() *cobra.Command {
@@ -19,13 +20,13 @@ func Cmd() *cobra.Command {
 		Short: "Send the DYM rewards associated with the given private key to the destination address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			shouldProceed, err := utils.PromptBool(
+			shouldProceed, err := pterm.DefaultInteractiveConfirm.WithDefaultText(
 				fmt.Sprintf(
 					"This command will transfer all Rollapp rewards on the mainnet to %s. Please note that once"+
 						" initiated, this action cannot be undone. Do you wish to proceed",
 					args[1],
 				),
-			)
+			).Show()
 			if err != nil {
 				return err
 			}
@@ -47,8 +48,8 @@ func Cmd() *cobra.Command {
 				return err
 			}
 
-			sequencerAddr, err := utils.GetAddressBinary(
-				utils.KeyConfig{
+			sequencerAddr, err := keys.GetAddressBinary(
+				keys.KeyConfig{
 					ID:  consts.KeysIds.HubSequencer,
 					Dir: tempDir,
 				}, tempDir,
@@ -58,8 +59,8 @@ func Cmd() *cobra.Command {
 			}
 
 			mainnetHub := consts.Hubs[consts.MainnetHubName]
-			sequencerBalance, err := utils.QueryBalance(
-				utils.ChainQueryConfig{
+			sequencerBalance, err := keys.QueryBalance(
+				keys.ChainQueryConfig{
 					Binary: consts.Executables.Dymension,
 					Denom:  consts.Denoms.Hub,
 					RPC:    mainnetHub.RPC_URL,

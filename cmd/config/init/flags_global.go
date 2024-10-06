@@ -1,4 +1,4 @@
-package utils
+package initconfig
 
 import (
 	"github.com/spf13/cobra"
@@ -8,10 +8,10 @@ import (
 
 func AddGlobalFlags(command *cobra.Command) {
 	command.PersistentFlags().StringP(
-		FlagNames.Home, "", roller.GetRootDir(), "The directory of the roller config files")
+		GlobalFlagNames.Home, "", roller.GetRootDir(), "The directory of the roller config files")
 }
 
-var FlagNames = struct {
+var GlobalFlagNames = struct {
 	Home string
 }{
 	Home: "home",

@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -18,24 +18,24 @@ func Cmd() *cobra.Command {
 		Use:   "list",
 		Short: "List all rollapp addresses.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rollerData, err := roller.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			addresses := make([]utils.KeyInfo, 0)
+			addresses := make([]keys.KeyInfo, 0)
 
-			var kc []utils.KeyConfig
+			var kc []keys.KeyConfig
 			if rollerData.HubData.ID != "mock" {
-				kc = initconfig.GetSequencerKeysConfig()
+				kc = keys.GetSequencerKeysConfig()
 			} else {
-				kc = initconfig.GetMockSequencerKeyConfig(rollerData)
+				kc = keys.GetMockSequencerKeyConfig(rollerData)
 			}
 
-			ki, err := utils.GetAddressInfoBinary(kc[0], home)
+			ki, err := keys.GetAddressInfoBinary(kc[0], home)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve sequencer info: ", err)
 				return
 			}
-			seqPubKey, err := utils.GetSequencerPubKey(rollerData)
+			seqPubKey, err := keys.GetSequencerPubKey(rollerData)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve sequencer public key: ", err)
 				return
@@ -45,7 +45,7 @@ func Cmd() *cobra.Command {
 			addresses = append(addresses, *ki)
 
 			for _, address := range addresses {
-				address.Print(utils.WithName(), utils.WithPubKey())
+				address.Print(keys.WithName(), keys.WithPubKey())
 			}
 		},
 	}
@@ -54,7 +54,7 @@ func Cmd() *cobra.Command {
 }
 
 // nolint: unused
-func printAsJSON(addresses []utils.KeyInfo) error {
+func printAsJSON(addresses []keys.KeyInfo) error {
 	addrMap := make(map[string]string)
 	for _, addrData := range addresses {
 		addrMap[addrData.Name] = addrData.Address

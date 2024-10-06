@@ -11,8 +11,11 @@ import (
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
+	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/version"
 )
 
 func GetCurrentHeight() (*BlockInformation, error) {
@@ -143,16 +146,70 @@ func RollappConfigDir(root string) string {
 }
 
 func GetRollappSequencerAddress(home string) (string, error) {
-	seqKeyConfig := utils.KeyConfig{
+	seqKeyConfig := keys.KeyConfig{
 		Dir:         consts.ConfigDirName.Rollapp,
 		ID:          consts.KeysIds.RollappSequencer,
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        consts.EVM_ROLLAPP,
 	}
-	addr, err := utils.GetAddressBinary(seqKeyConfig, home)
+	addr, err := keys.GetAddressBinary(seqKeyConfig, home)
 	if err != nil {
 		return "", err
 	}
 
 	return addr, nil
+}
+
+func GetRollappMetadataFromChain(
+	home, raID string,
+	hd *consts.HubData,
+) (*roller.RollappConfig, error) {
+	var cfg roller.RollappConfig
+	var raResponse ShowRollappResponse
+
+	getRollappCmd := GetRollappCmd(raID, *hd)
+
+	out, err := bash.ExecCommandWithStdout(getRollappCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &raResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
+
+	var DA consts.DaData
+
+	switch hd.ID {
+	case consts.PlaygroundHubID:
+		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+	// case consts.MainnetHubID:
+	// 	DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+	default:
+		fmt.Println("unsupported Hub: ", hd.ID)
+	}
+
+	cfg = roller.RollappConfig{
+		Home:                 home,
+		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
+		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
+		RollappID:            raResponse.Rollapp.RollappId,
+		RollappBinary:        consts.Executables.RollappEVM,
+		RollappVMType:        vmt,
+		Denom:                raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
+		Decimals:             18,
+		HubData:              *hd,
+		DA:                   DA,
+		RollerVersion:        "latest",
+		Environment:          hd.ID,
+		RollappBinaryVersion: version.BuildVersion,
+		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
+		BaseDenom:            "",
+		MinGasPrices:         "0",
+	}
+
+	return &cfg, nil
 }

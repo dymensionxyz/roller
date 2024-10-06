@@ -8,7 +8,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
@@ -33,7 +32,7 @@ func Cmd() *cobra.Command {
 			}
 			fmt.Println("home directory: ", home)
 
-			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
+			rollerCfg, err := roller.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config: ", err)
 				return

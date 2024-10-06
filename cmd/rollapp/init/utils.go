@@ -13,23 +13,24 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	globalutils "github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-// nolint: gocyclo
-func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse) error {
+func runInit(
+	cmd *cobra.Command,
+	env string,
+	raResp rollapp.ShowRollappResponse,
+) error {
 	raID := raResp.Rollapp.RollappId
 
-	home, err := filesystem.ExpandHomePath(cmd.Flag(cmdutils.FlagNames.Home).Value.String())
+	home, err := filesystem.ExpandHomePath(cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
@@ -44,64 +45,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 
 	// Check if the file already exists
 
-	outputHandler := initconfig.NewOutputHandler(false)
-
 	// TODO: extract into util
-	isRootExist, err := filesystem.DirNotEmpty(home)
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
-	}
-
-	if isRootExist {
-		shouldOverwrite, err := outputHandler.PromptOverwriteConfig(home)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return err
-		}
-		if shouldOverwrite {
-			err = os.RemoveAll(home)
-			if err != nil {
-				errorhandling.PrettifyErrorIfExists(err)
-				return err
-			}
-
-			err = filesystem.RemoveServiceFiles(consts.RollappSystemdServices)
-			if err != nil {
-				return err
-			}
-
-			// nolint:gofumpt
-			err = os.MkdirAll(home, 0o755)
-			if err != nil {
-				errorhandling.PrettifyErrorIfExists(err)
-				return err
-			}
-
-			_, err := os.Stat(rollerConfigFilePath)
-			if err != nil {
-				if errors.Is(err, fs.ErrNotExist) {
-					// The file does not exist, so create it
-					_, err = os.Create(rollerConfigFilePath)
-					if err != nil {
-						pterm.Error.Println(
-							fmt.Sprintf("failed to create file %s: ", rollerConfigFilePath),
-							err,
-						)
-						return err
-					}
-				} else {
-					pterm.Error.Println(
-						fmt.Sprintf("failed to check if file %s exists: ", rollerConfigFilePath),
-						err,
-					)
-					return err
-				}
-			}
-		} else {
-			os.Exit(0)
-		}
-	}
 
 	_, err = os.Stat(rollerConfigFilePath)
 	if err != nil {
@@ -119,10 +63,10 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 
 	hd := consts.Hubs[env]
 	// TODO: refactor
-	var initConfigPtr *config.RollappConfig
+	var initConfigPtr *roller.RollappConfig
 
 	if env == consts.MockHubName {
-		initConfigPtr, err = tomlconfig.GetMockRollappMetadata(
+		initConfigPtr, err = roller.GetMockRollappMetadata(
 			home,
 			raID,
 			&hd,
@@ -133,7 +77,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 			return err
 		}
 	} else {
-		initConfigPtr, err = tomlconfig.GetRollappMetadataFromChain(
+		initConfigPtr, err = rollapp.GetRollappMetadataFromChain(
 			home,
 			raID,
 			&hd,
@@ -146,19 +90,19 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	initConfig := *initConfigPtr
 
 	/* ------------------------------ Generate keys ----------------------------- */
-	var addresses []cmdutils.KeyInfo
+	var addresses []keys.KeyInfo
 
 	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 		"would you like to import an existing sequencer key?",
 	).Show()
 
 	if useExistingSequencerWallet {
-		kc, err := utils.NewKeyConfig(
+		kc, err := keys.NewKeyConfig(
 			consts.ConfigDirName.HubKeys,
 			consts.KeysIds.HubSequencer,
 			consts.Executables.Dymension,
 			consts.SDK_ROLLAPP,
-			utils.WithRecover(),
+			keys.WithRecover(),
 		)
 		if err != nil {
 			return err
@@ -173,14 +117,14 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 	}
 
 	if initConfig.HubData.ID == "mock" {
-		addresses, err = initconfig.GenerateMockSequencerKeys(initConfig)
+		addresses, err = keys.GenerateMockSequencerKeys(initConfig)
 		if err != nil {
 			errorhandling.PrettifyErrorIfExists(err)
 			return err
 		}
 	} else {
 		if !useExistingSequencerWallet {
-			addresses, err = initconfig.GenerateSequencersKeys(initConfig)
+			addresses, err = keys.GenerateSequencersKeys(initConfig)
 			if err != nil {
 				return err
 			}
@@ -263,7 +207,6 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 		}
 	}
 
-	errorhandling.RunOnInterrupt(outputHandler.StopSpinner)
 	err = initConfig.Validate()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
@@ -290,7 +233,33 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 
 	/* ------------------------------ Print output ------------------------------ */
 
-	outputHandler.PrintInitOutput(initConfig, addresses, initConfig.RollappID)
+	PrintInitOutput(initConfig, addresses, initConfig.RollappID)
 
 	return nil
+}
+
+func PrintInitOutput(
+	rollappConfig roller.RollappConfig,
+	addresses []keys.KeyInfo,
+	rollappId string,
+) {
+	fmt.Printf(
+		"💈 RollApp '%s' configuration files have been successfully generated on your local machine. Congratulations!\n\n",
+		rollappId,
+	)
+
+	if rollappConfig.HubData.ID == consts.MockHubID {
+		roller.PrintTokenSupplyLine(rollappConfig)
+		fmt.Println()
+	}
+	keys.PrintAddressesWithTitle(addresses)
+
+	if rollappConfig.HubData.ID != consts.MockHubID {
+		pterm.DefaultSection.WithIndentCharacter("🔔").
+			Println("Please fund the addresses below to register and run the rollapp.")
+		fa := initconfig.FormatAddresses(rollappConfig, addresses)
+		for _, v := range fa {
+			v.Print(keys.WithName())
+		}
+	}
 }

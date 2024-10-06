@@ -11,8 +11,8 @@ import (
 	bip39 "github.com/cosmos/go-bip39"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 const (
@@ -78,7 +78,7 @@ func (a *Avail) GetDAAccountAddress() (string, error) {
 	return a.AccAddress, nil
 }
 
-func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
+func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DA balance: %w", err)
@@ -87,7 +87,7 @@ func (a *Avail) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
 	if required.Cmp(balance.Int) > 0 {
-		return []utils.NotFundedAddressData{
+		return []keys.NotFundedAddressData{
 			{
 				KeyName:         a.GetKeyName(),
 				Address:         a.AccAddress,
@@ -140,15 +140,15 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (a *Avail) GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error) {
+func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
 	}
-	return []utils.AccountData{
+	return []keys.AccountData{
 		{
 			Address: a.AccAddress,
-			Balance: utils.Balance{
+			Balance: keys.Balance{
 				Denom:  consts.Denoms.Avail,
 				Amount: balance.Int,
 			},
@@ -176,7 +176,7 @@ func (a *Avail) GetNetworkName() string {
 	return "avail"
 }
 
-func (a *Avail) GetStatus(c config.RollappConfig) string {
+func (a *Avail) GetStatus(c roller.RollappConfig) string {
 	return "Active"
 }
 

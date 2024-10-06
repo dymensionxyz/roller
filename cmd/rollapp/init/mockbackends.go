@@ -8,7 +8,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
@@ -30,7 +30,7 @@ type RollerConfig struct {
 }
 
 func NewMockRollerConfig(cmd *cobra.Command) *RollerConfig {
-	home, _ := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+	home, _ := filesystem.ExpandHomePath(cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String())
 
 	return &RollerConfig{
 		BaseDenom:            "amock",

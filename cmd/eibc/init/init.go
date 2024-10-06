@@ -12,14 +12,12 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	configutils "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -34,7 +32,7 @@ func Cmd() *cobra.Command {
 			}
 
 			rollerHome, err := filesystem.ExpandHomePath(
-				cmd.Flag(utils.FlagNames.Home).Value.String(),
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
@@ -48,7 +46,7 @@ func Cmd() *cobra.Command {
 			}
 
 			var hd consts.HubData
-			rollerConfig, err := tomlconfig.LoadRollerConfig(rollerHome)
+			rollerConfig, err := roller.LoadRollerConfig(rollerHome)
 			if err != nil {
 				pterm.Warning.Println("no roller config found")
 				pterm.Info.Println("initializing for environment")
@@ -71,11 +69,16 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to check eibc client initialized", err)
 				return
 			}
-			oh := filesystem.NewOutputHandler(false)
 
 			if isEibcClientInitialized {
 				pterm.Warning.Println("eibc client already initialized")
-				shouldOverwrite, err := oh.PromptOverwriteConfig(eibcHome)
+				msg := fmt.Sprintf(
+					"Directory %s is not empty. Do you want to overwrite it?",
+					eibcHome,
+				)
+				shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+					WithDefaultValue(false).
+					Show()
 				if err != nil {
 					errorhandling.PrettifyErrorIfExists(err)
 					return
@@ -114,7 +117,7 @@ func Cmd() *cobra.Command {
 			var runForExisting bool
 			var raID string
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-			var rollerData configutils.RollappConfig
+			var rollerData roller.RollappConfig
 
 			_, err = os.Stat(rollerConfigFilePath)
 			if err != nil {
@@ -127,7 +130,7 @@ func Cmd() *cobra.Command {
 				}
 			} else {
 				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-				rollerData, err = tomlconfig.LoadRollerConfig(home)
+				rollerData, err = roller.LoadRollerConfig(home)
 				if err != nil {
 					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 					return

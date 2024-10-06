@@ -22,19 +22,17 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
-	"github.com/dymensionxyz/roller/sequencer"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 // TODO: Test sequencing on 35-C and update the price
@@ -59,24 +57,26 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadRollerConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
 
-			hd, err := tomlconfig.LoadHubData(home)
+			hd, err := roller.LoadHubData(home)
 			if err != nil {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
 
-			rollappConfig, err := tomlconfig.GetRollappMetadataFromChain(
+			rollappConfig, err := rollapp.GetRollappMetadataFromChain(
 				home,
 				rollerData.RollappID,
 				&hd,
@@ -130,7 +130,7 @@ func Cmd() *cobra.Command {
 				Show()
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-			err = globalutils.UpdateFieldInToml(rollerConfigFilePath, "node_type", nodeType)
+			err = tomlconfig.UpdateFieldInToml(rollerConfigFilePath, "node_type", nodeType)
 			if err != nil {
 				pterm.Error.Println("failed to update node type in roller config file: ", err)
 				return
@@ -138,7 +138,7 @@ func Cmd() *cobra.Command {
 
 			switch nodeType {
 			case "sequencer":
-				canRegister, err := sequencerutils.CanSequencerBeRegisteredForRollapp(
+				canRegister, err := sequencer.CanSequencerBeRegisteredForRollapp(
 					raResponse.Rollapp.RollappId,
 					rollerData.HubData,
 				)
@@ -156,13 +156,13 @@ func Cmd() *cobra.Command {
 				}
 
 				pterm.Info.Println("getting the existing sequencer address ")
-				hubSeqKC := utils.KeyConfig{
+				hubSeqKC := keys.KeyConfig{
 					Dir:         consts.ConfigDirName.HubKeys,
 					ID:          consts.KeysIds.HubSequencer,
 					ChainBinary: consts.Executables.Dymension,
 					Type:        consts.SDK_ROLLAPP,
 				}
-				seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
+				seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
 				if err != nil {
 					pterm.Error.Println("failed to get address info: ", err)
 					return
@@ -175,7 +175,7 @@ func Cmd() *cobra.Command {
 					rollappConfig.RollappID,
 				)
 
-				seq, err := sequencerutils.RegisteredRollappSequencersOnHub(
+				seq, err := sequencer.RegisteredRollappSequencersOnHub(
 					rollappConfig.RollappID,
 					hd,
 				)
@@ -183,13 +183,13 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 				}
 
-				isSequencerRegistered := sequencerutils.IsRegisteredAsSequencer(
+				isSequencerRegistered := sequencer.IsRegisteredAsSequencer(
 					seq.Sequencers,
 					seqAddrInfo.Address,
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencerutils.GetMinSequencerBondInBaseDenom(hd)
+					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(hd)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
@@ -230,8 +230,8 @@ func Cmd() *cobra.Command {
 					}
 
 					pterm.Info.Println("getting the existing sequencer address balance")
-					balance, err := utils.QueryBalance(
-						utils.ChainQueryConfig{
+					balance, err := keys.QueryBalance(
+						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
 							RPC:    rollappConfig.HubData.RPC_URL,
 							Binary: consts.Executables.Dymension,
@@ -264,7 +264,7 @@ func Cmd() *cobra.Command {
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
-						seqAddrInfo.Print(utils.WithName())
+						seqAddrInfo.Print(keys.WithName())
 						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 							WithDefaultText(
 								"press 'y' when the wallets are funded",
@@ -281,8 +281,8 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					balance, err = utils.QueryBalance(
-						utils.ChainQueryConfig{
+					balance, err = keys.QueryBalance(
+						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
 							RPC:    rollappConfig.HubData.RPC_URL,
 							Binary: consts.Executables.Dymension,
@@ -308,7 +308,7 @@ func Cmd() *cobra.Command {
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
-						seqAddrInfo.Print(utils.WithName())
+						seqAddrInfo.Print(keys.WithName())
 						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 							WithDefaultText(
 								"press 'y' when funded",
@@ -319,7 +319,7 @@ func Cmd() *cobra.Command {
 						}
 					}
 
-					err = sequencerutils.Register(*rollappConfig, desiredBond)
+					err = sequencer.Register(*rollappConfig, desiredBond)
 					if err != nil {
 						pterm.Error.Println("failed to register sequencer: ", err)
 						return
@@ -341,7 +341,7 @@ func Cmd() *cobra.Command {
 
 			case "fullnode":
 				pterm.Info.Println("retrieving the latest available snapshot")
-				si, err := sequencerutils.GetLatestSnapshot(rollappConfig.RollappID, hd)
+				si, err := sequencer.GetLatestSnapshot(rollappConfig.RollappID, hd)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve latest snapshot")
 				}
@@ -362,7 +362,7 @@ func Cmd() *cobra.Command {
 
 				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
 				// defaults to syncing only from the DA
-				peers, err := sequencerutils.GetAllP2pPeers(rollappConfig.RollappID, hd)
+				peers, err := sequencer.GetAllP2pPeers(rollappConfig.RollappID, hd)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve p2p peers ")
 				}
@@ -483,7 +483,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 				daWalletInfo.Mnemonic = mnemonic
-				daWalletInfo.Print(utils.WithMnemonic(), utils.WithName())
+				daWalletInfo.Print(keys.WithMnemonic(), keys.WithName())
 
 				daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
 					Start("initializing da light client")
@@ -604,7 +604,7 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to check balance", err)
 				}
 
-				err = globalutils.UpdateFieldInToml(
+				err = tomlconfig.UpdateFieldInToml(
 					dymintConfigPath,
 					"p2p_advertising_enabled",
 					"false",
@@ -614,7 +614,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+				err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 				if err != nil {
 					pterm.Error.Println("failed to check insufficien balances: ", err)
 					return
@@ -656,7 +656,7 @@ func Cmd() *cobra.Command {
 				}
 
 				for k, v := range vtu {
-					err = globalutils.UpdateFieldInToml(
+					err = tomlconfig.UpdateFieldInToml(
 						dymintConfigPath,
 						k, v,
 					)
@@ -667,7 +667,7 @@ func Cmd() *cobra.Command {
 				}
 
 				for fnK, fnV := range fnVtu {
-					err = globalutils.UpdateFieldInToml(
+					err = tomlconfig.UpdateFieldInToml(
 						appConfigPath,
 						fnK, fnV,
 					)
@@ -690,29 +690,29 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("updating dymint configuration")
-			_ = globalutils.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInToml(
 				dymintConfigPath,
 				"da_layer",
 				string(rollappConfig.DA.Backend),
 			)
-			_ = globalutils.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInToml(
 				dymintConfigPath,
 				"namespace_id",
 				daNamespace,
 			)
-			_ = globalutils.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInToml(
 				dymintConfigPath,
 				"da_config",
 				daConfig,
 			)
-			_ = globalutils.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInToml(
 				dymintConfigPath,
 				"max_proof_time",
 				"1m",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
-			_ = globalutils.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInToml(
 				filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "be-json-rpc.toml"),
 				"enable",
 				"true",
@@ -734,7 +734,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func populateSequencerMetadata(raCfg config.RollappConfig) error {
+func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	cd := dymensionseqtypes.ContactDetails{
 		Website:  "",
 		Telegram: "",

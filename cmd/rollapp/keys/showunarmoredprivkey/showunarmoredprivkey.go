@@ -8,11 +8,12 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -20,8 +21,8 @@ func Cmd() *cobra.Command {
 		Use:   "show-unarmored-priv-key",
 		Short: "Exports the private key of the sequencer key.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rlpCfg, err := roller.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			var exportKeyCmd *exec.Cmd
 			var keyID string
@@ -32,7 +33,7 @@ func Cmd() *cobra.Command {
 				keyID = consts.KeysIds.RollappSequencer
 			}
 
-			exportKeyCmd = utils.GetExportKeyCmdBinary(
+			exportKeyCmd = keys.GetExportKeyCmdBinary(
 				keyID,
 				filepath.Join(home, consts.ConfigDirName.HubKeys),
 				consts.Executables.Dymension,

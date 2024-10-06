@@ -15,14 +15,13 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -56,13 +55,15 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				pterm.Error.Println("failed to add flags")
 				return
 			}
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			rollappConfig, err := roller.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			seq := sequencer.GetInstance(rollappConfig)
@@ -93,7 +94,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 					}
 				},
 				parseError,
-				utils.WithLogging(utils.GetSequencerLogPath(rollappConfig)),
+				logging.WithLogging(logging.GetSequencerLogPath(rollappConfig)),
 			)
 
 			select {}
@@ -106,7 +107,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 }
 
 func PrintOutput(
-	rlpCfg config.RollappConfig,
+	rlpCfg roller.RollappConfig,
 	pid string,
 	withBalance,
 	withEndpoints,

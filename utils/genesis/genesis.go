@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/jsonconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -179,7 +180,7 @@ func GetGenesisFilePath(root string) string {
 	)
 }
 
-func InitializeRollappGenesis(initConfig config.RollappConfig) error {
+func InitializeRollappGenesis(initConfig roller.RollappConfig) error {
 	// totalTokenSupply, success := new(big.Int).SetString(consts.DefaultTokenSupply, 10)
 	// if !success {
 	// 	return fmt.Errorf("invalid token supply")
@@ -222,7 +223,7 @@ func InitializeRollappGenesis(initConfig config.RollappConfig) error {
 	return nil
 }
 
-func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
+func UpdateGenesisParams(home string, raCfg *roller.RollappConfig) error {
 	params := getDefaultGenesisParams(raCfg)
 	addGenAccountCmd := GetAddGenesisAccountCmd(
 		consts.KeysIds.RollappSequencer,
@@ -269,7 +270,7 @@ func UpdateGenesisParams(home string, raCfg *config.RollappConfig) error {
 // }
 
 func getDefaultGenesisParams(
-	raCfg *config.RollappConfig,
+	raCfg *roller.RollappConfig,
 ) []config.PathValue {
 	var params []config.PathValue
 
@@ -349,7 +350,7 @@ type BankDenomUnitMetadata struct {
 	Exponent uint     `json:"exponent"`
 }
 
-func GetAddGenesisAccountCmd(addr, amount string, raCfg *config.RollappConfig) *exec.Cmd {
+func GetAddGenesisAccountCmd(addr, amount string, raCfg *roller.RollappConfig) *exec.Cmd {
 	home := raCfg.Home
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,

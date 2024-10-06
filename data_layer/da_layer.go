@@ -4,25 +4,25 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type DataLayer interface {
-	GetDAAccountAddress() (*utils.KeyInfo, error)
+	GetDAAccountAddress() (*keys.KeyInfo, error)
 	InitializeLightNodeConfig() (string, error)
-	CheckDABalance() ([]utils.NotFundedAddressData, error)
+	CheckDABalance() ([]keys.NotFundedAddressData, error)
 	GetStartDACmd() *exec.Cmd
-	GetDAAccData(c config.RollappConfig) ([]utils.AccountData, error)
+	GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error)
 	GetLightNodeEndpoint() string
 	// todo: Refactor, node type makes reusability awful
 	GetSequencerDAConfig(nt string) string
 	SetRPCEndpoint(string)
 	SetMetricsEndpoint(endpoint string)
 	GetNetworkName() string
-	GetStatus(c config.RollappConfig) string
+	GetStatus(c roller.RollappConfig) string
 	GetKeyName() string
 	GetPrivateKey() (string, error)
 	GetRootDirectory() string

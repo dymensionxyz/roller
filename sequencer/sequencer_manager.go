@@ -8,11 +8,11 @@ import (
 	"sync"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type Sequencer struct {
-	RlpCfg      config.RollappConfig
+	RlpCfg      roller.RollappConfig
 	RPCPort     string
 	APIPort     string
 	JsonRPCPort string
@@ -24,7 +24,7 @@ var (
 	once     sync.Once
 )
 
-func GetInstance(rlpCfg config.RollappConfig) *Sequencer {
+func GetInstance(rlpCfg roller.RollappConfig) *Sequencer {
 	once.Do(
 		func() {
 			seq := &Sequencer{

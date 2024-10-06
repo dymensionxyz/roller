@@ -7,8 +7,8 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils"
 )
 
@@ -19,7 +19,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			k := args[0]
 			v := args[1]
-			home := cmd.Flag(cmdutils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			dymintConfigPath := filepath.Join(
 				home,

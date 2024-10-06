@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type Relayer struct {
@@ -35,7 +35,7 @@ func (r *Relayer) SetLogger(logger *log.Logger) {
 }
 
 // TODO: review the servicemanager.Service implementation
-func (r *Relayer) GetRelayerStatus(config.RollappConfig) string {
+func (r *Relayer) GetRelayerStatus(roller.RollappConfig) string {
 	if r.ChannelReady() {
 		return fmt.Sprintf(
 			"Active Channels:\nrollapp: %s\n<->\nhub: %s",

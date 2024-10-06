@@ -10,9 +10,9 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/logging"
 )
 
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
@@ -99,7 +99,7 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
-	logger := utils.GetRollerLogger(seq.RlpCfg.Home)
+	logger := logging.GetRollerLogger(seq.RlpCfg.Home)
 	for {
 		select {
 		case <-timeout:
