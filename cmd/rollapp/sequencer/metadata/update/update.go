@@ -6,6 +6,9 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
@@ -13,9 +16,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -61,7 +63,7 @@ func Cmd() *cobra.Command {
 				"--gas-adjustment",
 				"1.3",
 				"--keyring-dir",
-				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+				filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
 			)
 

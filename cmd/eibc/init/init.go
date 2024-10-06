@@ -71,7 +71,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to check eibc client initialized", err)
 				return
 			}
-			oh := initconfig.NewOutputHandler(false)
+			oh := filesystem.NewOutputHandler(false)
 
 			if isEibcClientInitialized {
 				pterm.Warning.Println("eibc client already initialized")

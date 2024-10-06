@@ -17,6 +17,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -28,13 +29,20 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
-				pterm.Error.Println("failed to add flags")
+				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
-			// rollerData, err := tomlconfig.LoadRollerConfig(home)
+
+			isFirstInitialization, err := roller.CreateConfigFile(home)
+			if err != nil {
+				pterm.Error.Println("failed to initialize rollapp: ", err)
+				return
+			}
+			fmt.Println(isFirstInitialization)
 
 			// TODO: move to consts
 			// TODO(v2):  move to roller config

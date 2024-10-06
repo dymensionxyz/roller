@@ -26,7 +26,6 @@ import (
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: Test relaying on 35-C and update the prices
@@ -170,7 +169,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err := servicemanager.RemoveServiceFiles(consts.RelayerSystemdServices)
+				err := filesystem.RemoveServiceFiles(consts.RelayerSystemdServices)
 				if err != nil {
 					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
 					return

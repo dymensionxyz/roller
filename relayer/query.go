@@ -7,6 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 var oneDayRelayPrice, _ = cosmossdkmath.NewIntFromString(
@@ -89,7 +90,7 @@ func GetRelayerInsufficientBalances(
 	hd consts.HubData,
 ) ([]utils.NotFundedAddressData, error) {
 	var insufficientBalances []utils.NotFundedAddressData
-	home := utils.GetRollerRootDir()
+	home := roller.GetRootDir()
 
 	accData, err := GetRelayerAccountsData(home, raData, hd)
 	if err != nil {

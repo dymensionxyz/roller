@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -26,7 +26,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home := utils.GetRollerRootDir()
+			home := roller.GetRootDir()
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return

@@ -22,6 +22,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(utils.FlagNames.Home).Value.String()
 			rlpCfg, err := tomlconfig.LoadRollerConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
+
 			prevVersionData, err := GetPrevVersionData(rlpCfg)
 			errorhandling.PrettifyErrorIfExists(err)
 			for _, migrator := range migrationsRegistry {

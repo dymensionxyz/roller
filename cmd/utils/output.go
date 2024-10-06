@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"os"
-	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/manifoldco/promptui"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pterm/pterm"
@@ -69,15 +67,6 @@ type NotFundedAddressData struct {
 	Network         string
 }
 
-func GetLoadingSpinner() *spinner.Spinner {
-	return spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-}
-
-type OutputHandler struct {
-	NoOutput bool
-	spinner  *spinner.Spinner
-}
-
 func PromptBool(msg string) (bool, error) {
 	prompt := promptui.Prompt{
 		Label:     msg,
@@ -92,35 +81,4 @@ func PromptBool(msg string) (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-func NewOutputHandler(noOutput bool) *OutputHandler {
-	if noOutput {
-		return &OutputHandler{
-			NoOutput: noOutput,
-		}
-	}
-	return &OutputHandler{
-		NoOutput: noOutput,
-		spinner:  GetLoadingSpinner(),
-	}
-}
-
-func (o *OutputHandler) DisplayMessage(msg string) {
-	if !o.NoOutput {
-		fmt.Println(msg)
-	}
-}
-
-func (o *OutputHandler) StartSpinner(suffix string) {
-	if !o.NoOutput {
-		o.spinner.Suffix = suffix
-		o.spinner.Restart()
-	}
-}
-
-func (o *OutputHandler) StopSpinner() {
-	if !o.NoOutput {
-		o.spinner.Stop()
-	}
 }

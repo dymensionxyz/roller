@@ -23,7 +23,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // nolint: gocyclo
@@ -67,7 +66,7 @@ func runInit(cmd *cobra.Command, env string, raResp rollapp.ShowRollappResponse)
 				return err
 			}
 
-			err = servicemanager.RemoveServiceFiles(consts.RollappSystemdServices)
+			err = filesystem.RemoveServiceFiles(consts.RollappSystemdServices)
 			if err != nil {
 				return err
 			}

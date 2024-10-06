@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -55,7 +56,7 @@ func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 

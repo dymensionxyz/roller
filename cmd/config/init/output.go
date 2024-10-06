@@ -8,15 +8,16 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 type OutputHandler struct {
-	*utils.OutputHandler
+	*filesystem.OutputHandler
 }
 
 func NewOutputHandler(noOutput bool) *OutputHandler {
 	return &OutputHandler{
-		OutputHandler: utils.NewOutputHandler(noOutput),
+		OutputHandler: filesystem.NewOutputHandler(noOutput),
 	}
 }
 

@@ -15,12 +15,12 @@ import (
 	"github.com/schollz/progressbar/v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func InstallBinaries(
@@ -46,12 +46,13 @@ func InstallBinaries(
 			pterm.Error.Println("failed to download genesis file: ", err)
 			return err
 		}
+
 		as, err := genesisutils.GetGenesisAppState(home)
 		if err != nil {
 			return err
 		}
-		fmt.Println(rollerutils.GetRollerRootDir())
-		err = os.RemoveAll(rollerutils.GetRollerRootDir())
+
+		err = os.RemoveAll(roller.GetRootDir())
 		if err != nil {
 			return err
 		}
