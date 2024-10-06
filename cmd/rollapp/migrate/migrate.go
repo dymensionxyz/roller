@@ -12,18 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/version"
 )
 
-var migrationsRegistry = []VersionMigrator{
-	// &VersionMigratorV014{},
-	// &VersionMigratorV015{},
-	// &VersionMigratorV016{},
-	// &VersionMigratorV018{},
-	// &VersionMigratorV0111{},
-	// &VersionMigratorV0112{},
-	// &VersionMigratorV0113{},
-	// &VersionMigratorV0118{},
-	// &VersionMigratorV1000{},
-	// &VersionMigratorV1005{},
-}
+var migrationsRegistry = []VersionMigrator{}
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
