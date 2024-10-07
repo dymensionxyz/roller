@@ -19,7 +19,7 @@ func Cmd() *cobra.Command {
 		Short: "List all rollapp addresses.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
-			rollerData, err := roller.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			addresses := make([]keys.KeyInfo, 0)
 

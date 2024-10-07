@@ -13,9 +13,9 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -90,7 +90,7 @@ func (c *Celestia) getRPCPort() string {
 	if c.RPCPort != "" {
 		return c.RPCPort
 	}
-	port, err := globalutils.GetKeyFromTomlFile(
+	port, err := tomlconfig.GetKeyFromFile(
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
 		"RPC.Port",
 	)
@@ -122,7 +122,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 }
 
 func (c *Celestia) InitializeLightNodeConfig() (string, error) {
-	raCfg, err := roller.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return "", err
 	}
@@ -175,7 +175,7 @@ func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 	}
 
 	// TODO: refactor to support multiple DA chains
-	raCfg, err := roller.LoadRollerConfig(home)
+	raCfg, err := roller.LoadConfig(home)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (c *Celestia) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 		return nil, err
 	}
 
-	raCfg, err := roller.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (c *Celestia) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 }
 
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
-	raCfg, err := roller.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return nil
 	}
@@ -326,7 +326,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	var authToken string
 	var err error
 
-	raCfg, err := roller.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return ""
 	}

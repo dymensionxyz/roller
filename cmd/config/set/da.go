@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -56,7 +55,7 @@ func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 		return err
 	}
 
-	if err := tomlconfig.Write(rlpCfg); err != nil {
+	if err := roller.WriteConfig(rlpCfg); err != nil {
 		return err
 	}
 

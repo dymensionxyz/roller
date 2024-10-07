@@ -3,23 +3,9 @@ package tomlconfig
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
-	naoinatoml "github.com/naoina/toml"
-	toml "github.com/pelletier/go-toml"
-
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/pelletier/go-toml"
 )
-
-func Write(rlpCfg roller.RollappConfig) error {
-	tomlBytes, err := naoinatoml.Marshal(rlpCfg)
-	if err != nil {
-		return err
-	}
-	// nolint:gofumpt
-	return os.WriteFile(filepath.Join(rlpCfg.Home, consts.RollerConfigFileName), tomlBytes, 0o644)
-}
 
 func Load(path string) ([]byte, error) {
 	tomlBytes, err := os.ReadFile(path)
@@ -46,7 +32,7 @@ func WriteTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
 	return nil
 }
 
-func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
+func GetKeyFromFile(tmlFilePath, key string) (string, error) {
 	tomlTree, err := toml.LoadFile(tmlFilePath)
 	if err != nil {
 		return "", err
@@ -55,7 +41,7 @@ func GetKeyFromTomlFile(tmlFilePath, key string) (string, error) {
 }
 
 // TODO: improve
-func UpdateFieldInToml(tmlFilePath, key string, value any) error {
+func UpdateFieldInFile(tmlFilePath, key string, value any) error {
 	tomlCfg, err := toml.LoadFile(tmlFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)

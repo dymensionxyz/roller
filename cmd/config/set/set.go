@@ -32,7 +32,7 @@ func Cmd() *cobra.Command {
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
-			rlpCfg, err := roller.LoadRollerConfig(home)
+			rlpCfg, err := roller.LoadConfig(home)
 			if err != nil {
 				return err
 			}

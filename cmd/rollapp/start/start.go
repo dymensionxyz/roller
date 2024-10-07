@@ -63,7 +63,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			rollappConfig, err := roller.LoadRollerConfig(home)
+			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			seq := sequencer.GetInstance(rollappConfig)

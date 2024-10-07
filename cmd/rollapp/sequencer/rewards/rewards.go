@@ -44,7 +44,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollerCfg, err := roller.LoadRollerConfig(home)
+			rollerCfg, err := roller.LoadConfig(home)
 			if err != nil {
 				return
 			}

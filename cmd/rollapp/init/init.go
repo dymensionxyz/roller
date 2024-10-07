@@ -13,11 +13,13 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/version"
 )
 
 func Cmd() *cobra.Command {
@@ -32,12 +34,19 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
-			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
+			if err != nil {
+				pterm.Error.Println("failed to initialize rollapp: ", err)
+				return
+			}
 
 			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
-			err = filesystem.CreateDir(home)
+			// check whether roller was already initialized on the host
+			err = filesystem.CreateDirWithOptionalOverwrite(home)
 			if err != nil {
 				pterm.Error.Println("failed to create roller home directory: ", err)
 				return
@@ -48,7 +57,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
-			fmt.Println(isFirstInitialization)
 
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
@@ -120,7 +128,7 @@ func Cmd() *cobra.Command {
 						VmType:    vmtype,
 					},
 				}
-				err = dependencies.InstallBinaries(home, true, raRespMock)
+				_, _, err = dependencies.InstallBinaries(home, true, raRespMock)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
@@ -164,7 +172,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 			start := time.Now()
-			err = dependencies.InstallBinaries(home, false, raResponse)
+			builtDeps, _, err := dependencies.InstallBinaries(home, false, raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -172,6 +180,29 @@ func Cmd() *cobra.Command {
 			elapsed := time.Since(start)
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
+
+			// if roller has not been initialized or it was reset
+			// set the versions to the current version
+			if isFirstInitialization {
+				rollerConfigFilePath := roller.GetConfigPath(home)
+
+				valuesToUpdate := map[string]string{
+					"roller_version":         version.BuildVersion,
+					"rollapp_binary_version": builtDeps["rollapp"].Release,
+				}
+
+				for k, v := range valuesToUpdate {
+					err := tomlconfig.UpdateFieldInFile(
+						rollerConfigFilePath,
+						k,
+						v,
+					)
+					if err != nil {
+						pterm.Error.Println("failed to update roller config file: ", err)
+						return
+					}
+				}
+			}
 
 			bp, err := rollapp.ExtractBech32Prefix(
 				strings.ToLower(raResponse.Rollapp.VmType),

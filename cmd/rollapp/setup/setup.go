@@ -65,7 +65,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollerData, err := roller.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
@@ -130,7 +130,7 @@ func Cmd() *cobra.Command {
 				Show()
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-			err = tomlconfig.UpdateFieldInToml(rollerConfigFilePath, "node_type", nodeType)
+			err = tomlconfig.UpdateFieldInFile(rollerConfigFilePath, "node_type", nodeType)
 			if err != nil {
 				pterm.Error.Println("failed to update node type in roller config file: ", err)
 				return
@@ -604,7 +604,7 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to check balance", err)
 				}
 
-				err = tomlconfig.UpdateFieldInToml(
+				err = tomlconfig.UpdateFieldInFile(
 					dymintConfigPath,
 					"p2p_advertising_enabled",
 					"false",
@@ -656,7 +656,7 @@ func Cmd() *cobra.Command {
 				}
 
 				for k, v := range vtu {
-					err = tomlconfig.UpdateFieldInToml(
+					err = tomlconfig.UpdateFieldInFile(
 						dymintConfigPath,
 						k, v,
 					)
@@ -667,7 +667,7 @@ func Cmd() *cobra.Command {
 				}
 
 				for fnK, fnV := range fnVtu {
-					err = tomlconfig.UpdateFieldInToml(
+					err = tomlconfig.UpdateFieldInFile(
 						appConfigPath,
 						fnK, fnV,
 					)
@@ -690,29 +690,29 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("updating dymint configuration")
-			_ = tomlconfig.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_layer",
 				string(rollappConfig.DA.Backend),
 			)
-			_ = tomlconfig.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"namespace_id",
 				daNamespace,
 			)
-			_ = tomlconfig.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",
 				daConfig,
 			)
-			_ = tomlconfig.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"max_proof_time",
 				"1m",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
-			_ = tomlconfig.UpdateFieldInToml(
+			_ = tomlconfig.UpdateFieldInFile(
 				filepath.Join(home, consts.ConfigDirName.Rollapp, "config", "be-json-rpc.toml"),
 				"enable",
 				"true",

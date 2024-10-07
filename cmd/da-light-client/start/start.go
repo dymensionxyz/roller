@@ -34,7 +34,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			pterm.Info.Println("loading roller config file")
-			rollappConfig, err := roller.LoadRollerConfig(home)
+			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// TODO: refactor the version comparison for migrations

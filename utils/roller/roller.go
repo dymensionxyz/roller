@@ -45,7 +45,7 @@ func CreateConfigFile(home string) (bool, error) {
 }
 
 // TODO: should be called from root command
-func LoadRollerConfig(root string) (RollappConfig, error) {
+func LoadConfig(root string) (RollappConfig, error) {
 	var rc RollappConfig
 	tomlBytes, err := os.ReadFile(filepath.Join(root, consts.RollerConfigFileName))
 	if err != nil {
@@ -57,6 +57,15 @@ func LoadRollerConfig(root string) (RollappConfig, error) {
 	}
 
 	return rc, nil
+}
+
+func WriteConfig(rlpCfg RollappConfig) error {
+	tomlBytes, err := naoinatoml.Marshal(rlpCfg)
+	if err != nil {
+		return err
+	}
+	// nolint:gofumpt
+	return os.WriteFile(filepath.Join(rlpCfg.Home, consts.RollerConfigFileName), tomlBytes, 0o644)
 }
 
 func LoadHubData(root string) (consts.HubData, error) {

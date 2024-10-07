@@ -9,7 +9,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 func Cmd() *cobra.Command {
@@ -46,49 +46,49 @@ func Cmd() *cobra.Command {
 			switch k {
 			case "rollapp_minimum_gas_price":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "minimum-gas-prices", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "minimum-gas-prices", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "rollapp_rpc_port":
 				cfg := configConfigPath
-				err := utils.UpdateFieldInToml(cfg, "rpc.laddr", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "rpc.laddr", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "rollapp_grpc_port":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "grpc-web.address", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "grpc-web.address", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "rollapp_rest_api_port":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "api.address", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "api.address", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "rollapp_json_rpc_port":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "json-rpc.address", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "json-rpc.address", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "rollapp_ws_port":
 				cfg := appConfigPath
-				err := utils.UpdateFieldInToml(cfg, "json-rpc.ws-address", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "json-rpc.ws-address", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
 			case "settlement_node_address":
 				cfg := dymintConfigPath
-				err := utils.UpdateFieldInToml(cfg, "settlement_node_address", v)
+				err := tomlconfig.UpdateFieldInFile(cfg, "settlement_node_address", v)
 				if err != nil {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return

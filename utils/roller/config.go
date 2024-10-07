@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils"
 )
 
 // RollappConfig struct represents the information for creating roller.toml  config file
@@ -114,7 +114,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		"config.toml",
 	)
 
-	settlementNodeAddress, err := utils.GetKeyFromTomlFile(
+	settlementNodeAddress, err := tomlconfig.GetKeyFromFile(
 		dymintConfigPath,
 		"settlement_node_address",
 	)
@@ -123,7 +123,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	rollappMinimumGasPrice, err := utils.GetKeyFromTomlFile(
+	rollappMinimumGasPrice, err := tomlconfig.GetKeyFromFile(
 		appConfigPath,
 		"minimum-gas-prices",
 	)
@@ -132,7 +132,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	apiAddress, err := utils.GetKeyFromTomlFile(
+	apiAddress, err := tomlconfig.GetKeyFromFile(
 		appConfigPath,
 		"api.address",
 	)
@@ -141,7 +141,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	jsonRpcAddress, err := utils.GetKeyFromTomlFile(
+	jsonRpcAddress, err := tomlconfig.GetKeyFromFile(
 		appConfigPath,
 		"json-rpc.address",
 	)
@@ -150,7 +150,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	wsAddress, err := utils.GetKeyFromTomlFile(
+	wsAddress, err := tomlconfig.GetKeyFromFile(
 		appConfigPath,
 		"json-rpc.ws-address",
 	)
@@ -159,7 +159,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	grpcAddress, err := utils.GetKeyFromTomlFile(
+	grpcAddress, err := tomlconfig.GetKeyFromFile(
 		appConfigPath,
 		"grpc-web.address",
 	)
@@ -168,7 +168,7 @@ func GetConfigurableRollappValues(home string) (map[string]string, error) {
 		return nil, err
 	}
 
-	rpcAddr, err := utils.GetKeyFromTomlFile(
+	rpcAddr, err := tomlconfig.GetKeyFromFile(
 		configConfigPath,
 		"rpc.laddr",
 	)

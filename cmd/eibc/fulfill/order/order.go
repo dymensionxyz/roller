@@ -32,7 +32,7 @@ func Cmd() *cobra.Command {
 			}
 			fmt.Println("home directory: ", home)
 
-			rollerCfg, err := roller.LoadRollerConfig(home)
+			rollerCfg, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config: ", err)
 				return

@@ -48,7 +48,7 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
-			rollerData, err := roller.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

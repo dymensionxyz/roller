@@ -109,26 +109,26 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		pterm.Info.Println("updating dymint config")
 		pterm.Info.Println("block time: ", want)
 
-		err = tomlconfig.UpdateFieldInToml(dymintPath, "max_idle_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "max_idle_time", want.String())
 		if err != nil {
 			return err
 		}
-		err = tomlconfig.UpdateFieldInToml(dymintPath, "batch_submit_max_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_max_time", want.String())
 		if err != nil {
 			return err
 		}
-		err = tomlconfig.UpdateFieldInToml(dymintPath, "batch_submit_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_time", want.String())
 		if err != nil {
 			return err
 		}
 
 		if want < time.Minute*1 {
-			err = tomlconfig.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
+			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", want.String())
 			if err != nil {
 				return err
 			}
 		} else {
-			err = tomlconfig.UpdateFieldInToml(dymintPath, "max_proof_time", "1m")
+			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", "1m")
 			if err != nil {
 				return err
 			}

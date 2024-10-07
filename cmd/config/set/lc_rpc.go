@@ -17,7 +17,7 @@ func setLCGatewayPort(cfg roller.RollappConfig, value string) error {
 	if cfg.DA.Backend != consts.Celestia {
 		return errors.New("setting the LC RPC port is only supported for Celestia")
 	}
-	if err := tomlconfig.UpdateFieldInToml(
+	if err := tomlconfig.UpdateFieldInFile(
 		filepath.Join(cfg.Home, consts.ConfigDirName.DALightNode, "config.toml"),
 		"Gateway.Port", value,
 	); err != nil {
@@ -33,7 +33,7 @@ func setLCRPCPort(cfg roller.RollappConfig, value string) error {
 	if cfg.DA.Backend != consts.Celestia {
 		return errors.New("setting the LC RPC port is only supported for Celestia")
 	}
-	if err := tomlconfig.UpdateFieldInToml(
+	if err := tomlconfig.UpdateFieldInFile(
 		filepath.Join(cfg.Home, consts.ConfigDirName.DALightNode, "config.toml"),
 		"RPC.Port", value,
 	); err != nil {

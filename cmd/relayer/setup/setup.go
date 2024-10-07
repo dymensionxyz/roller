@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -67,7 +67,7 @@ func Cmd() *cobra.Command {
 				}
 			} else {
 				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-				rollerData, err = roller.LoadRollerConfig(home)
+				rollerData, err = roller.LoadConfig(home)
 				if err != nil {
 					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 					return
@@ -232,7 +232,7 @@ func Cmd() *cobra.Command {
 				}
 				rollappDenom := as.Bank.Supply[0].Denom
 
-				err = globalutils.UpdateFieldInToml(
+				err = tomlconfig.UpdateFieldInFile(
 					rollerConfigFilePath,
 					"base_denom",
 					rollappDenom,

@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 		Short: "Exports the private key of the sequencer key.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
-			rlpCfg, err := roller.LoadRollerConfig(home)
+			rlpCfg, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			var exportKeyCmd *exec.Cmd
 			var keyID string

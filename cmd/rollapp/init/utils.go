@@ -1,20 +1,17 @@
 package initrollapp
 
 import (
-	"errors"
 	"fmt"
-	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -36,30 +33,6 @@ func runInit(
 		return err
 	}
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-
-	err = os.MkdirAll(home, 0o755)
-	if err != nil {
-		pterm.Error.Println("failed to create roller home directory: ", err)
-		return err
-	}
-
-	// Check if the file already exists
-
-	// TODO: extract into util
-
-	_, err = os.Stat(rollerConfigFilePath)
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			pterm.Info.Println("roller.toml not found, creating")
-			_, err := os.Create(rollerConfigFilePath)
-			if err != nil {
-				pterm.Error.Printf(
-					"failed to create %s: %v", rollerConfigFilePath, err,
-				)
-				return err
-			}
-		}
-	}
 
 	hd := consts.Hubs[env]
 	// TODO: refactor
@@ -196,7 +169,7 @@ func runInit(
 	}
 
 	for key, value := range rollerTomlData {
-		err = globalutils.UpdateFieldInToml(
+		err = tomlconfig.UpdateFieldInFile(
 			rollerConfigFilePath,
 			key,
 			value,

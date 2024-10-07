@@ -23,16 +23,16 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func InstallBinaries(
-	home string,
-	withMockDA bool,
-	raResp rollapp.ShowRollappResponse,
-) error {
+func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappResponse) (
+	map[string]types.Dependency,
+	map[string]types.Dependency,
+	error,
+) {
 	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
 	_, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to create %s\n", consts.InternalBinsDir)
-		return errors.New(errMsg)
+		return nil, nil, errors.New(errMsg)
 	}
 
 	var raBinCommit string
@@ -44,17 +44,17 @@ func InstallBinaries(
 		err = genesisutils.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
 		if err != nil {
 			pterm.Error.Println("failed to download genesis file: ", err)
-			return err
+			return nil, nil, err
 		}
 
 		as, err := genesisutils.GetGenesisAppState(home)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		err = os.RemoveAll(roller.GetRootDir())
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 		raBinCommit = as.RollappParams.Params.Version
 		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
@@ -130,7 +130,7 @@ func InstallBinaries(
 				},
 			}
 		} else {
-			return fmt.Errorf("RollApp VM '%s' type is not supported", raVmType)
+			return nil, nil, fmt.Errorf("RollApp VM '%s' type is not supported", raVmType)
 		}
 	}
 
@@ -199,7 +199,7 @@ func InstallBinaries(
 			outputPath = "/usr/local/lib"
 			libName = "libwasmvm.dylib"
 		} else {
-			return errors.New("unsupported OS")
+			return nil, nil, errors.New("unsupported OS")
 		}
 
 		downloadPath := fmt.Sprintf(
@@ -211,13 +211,13 @@ func InstallBinaries(
 		fsc := exec.Command("sudo", "mkdir", "-p", outputPath)
 		_, err := bash.ExecCommandWithStdout(fsc)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		c := exec.Command("sudo", "wget", "-O", filepath.Join(outputPath, libName), downloadPath)
 		_, err = bash.ExecCommandWithStdout(c)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 
 		if raVmType == "evm" {
@@ -252,7 +252,7 @@ func InstallBinaries(
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
 			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
-			return errors.New(errMsg)
+			return nil, nil, errors.New(errMsg)
 		}
 
 	}
@@ -261,11 +261,11 @@ func InstallBinaries(
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
 			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
-			return errors.New(errMsg)
+			return nil, nil, errors.New(errMsg)
 		}
 	}
 
-	return nil
+	return buildableDeps, goreleaserDeps, nil
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {

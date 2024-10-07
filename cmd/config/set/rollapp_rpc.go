@@ -42,7 +42,7 @@ func updateRlpClientCfg(rlpCfg roller.RollappConfig, newRpcPort string) error {
 		"config",
 		"client.toml",
 	)
-	return tomlconfig.UpdateFieldInToml(configFilePath, "node", "tcp://localhost:"+newRpcPort)
+	return tomlconfig.UpdateFieldInFile(configFilePath, "node", "tcp://localhost:"+newRpcPort)
 }
 
 func updateRlpCfg(rlpCfg roller.RollappConfig, newRpc string) error {
@@ -52,7 +52,7 @@ func updateRlpCfg(rlpCfg roller.RollappConfig, newRpc string) error {
 		"config",
 		"config.toml",
 	)
-	return tomlconfig.UpdateFieldInToml(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
+	return tomlconfig.UpdateFieldInFile(configFilePath, "rpc.laddr", "tcp://0.0.0.0:"+newRpc)
 }
 
 func setJsonRpcPort(cfg roller.RollappConfig, value string) error {
@@ -60,7 +60,7 @@ func setJsonRpcPort(cfg roller.RollappConfig, value string) error {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "json-rpc.address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInFile(appCfgFilePath, "json-rpc.address", "0.0.0.0:"+value)
 }
 
 func setWSPort(cfg roller.RollappConfig, value string) error {
@@ -68,7 +68,7 @@ func setWSPort(cfg roller.RollappConfig, value string) error {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "json-rpc.ws-address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInFile(appCfgFilePath, "json-rpc.ws-address", "0.0.0.0:"+value)
 }
 
 func setGRPCPort(cfg roller.RollappConfig, value string) error {
@@ -76,5 +76,5 @@ func setGRPCPort(cfg roller.RollappConfig, value string) error {
 		return err
 	}
 	appCfgFilePath := filepath.Join(cfg.Home, consts.ConfigDirName.Rollapp, "config", "app.toml")
-	return tomlconfig.UpdateFieldInToml(appCfgFilePath, "grpc.address", "0.0.0.0:"+value)
+	return tomlconfig.UpdateFieldInFile(appCfgFilePath, "grpc.address", "0.0.0.0:"+value)
 }

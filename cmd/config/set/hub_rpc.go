@@ -9,7 +9,7 @@ import (
 
 func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 	rlpCfg.HubData.RPC_URL = value
-	if err := tomlconfig.Write(rlpCfg); err != nil {
+	if err := roller.WriteConfig(rlpCfg); err != nil {
 		return err
 	}
 	if err := relayer.UpdateRlyConfigValue(
@@ -19,5 +19,5 @@ func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 		return err
 	}
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	return tomlconfig.UpdateFieldInToml(dymintTomlPath, "settlement_node_address", value)
+	return tomlconfig.UpdateFieldInFile(dymintTomlPath, "settlement_node_address", value)
 }

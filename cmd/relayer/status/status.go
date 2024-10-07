@@ -20,7 +20,7 @@ func Cmd() *cobra.Command {
 		Short: "Show the status of the relayer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
-			rollappConfig, err := roller.LoadRollerConfig(home)
+			rollappConfig, err := roller.LoadConfig(home)
 
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			errorhandling.PrettifyErrorIfExists(err)
