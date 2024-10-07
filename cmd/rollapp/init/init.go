@@ -62,19 +62,19 @@ func Cmd() *cobra.Command {
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend {
 				dymdBinaryOptions := types.Dependency{
-					Name:       "dymension",
-					Repository: "https://github.com/artemijspavlovs/dymension",
-					Release:    "v3.1.0-pg07",
+					DependencyName:  "dymension",
+					RepositoryOwner: "dymensionxyz",
+					RepositoryName:  "dymension",
+					RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
+					Release:         "v3.1.0-pg07",
 					Binaries: []types.BinaryPathPair{
 						{
 							Binary:            "dymd",
 							BinaryDestination: consts.Executables.Dymension,
-							BuildCommand: exec.Command(
-								"make",
-								"build",
-							),
+							BuildCommand:      exec.Command("make", "build"),
 						},
 					},
+					PersistFiles: []types.PersistFile{},
 				}
 				pterm.Info.Println("installing dependencies")
 				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)

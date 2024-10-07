@@ -72,9 +72,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 
 	if !withMockDA {
 		buildableDeps["celestia"] = types.Dependency{
-			Name:       "celestia",
-			Repository: "https://github.com/celestiaorg/celestia-node.git",
-			Release:    "v0.16.0",
+			DependencyName:  "celestia",
+			RepositoryOwner: "celestiaorg",
+			RepositoryName:  "celestia-node",
+			RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
+			Release:         "v0.16.0",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/celestia",
@@ -97,9 +99,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 
 		if raVmType == "evm" {
 			buildableDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp",
-				Repository: "https://github.com/dymensionxyz/rollapp-evm.git",
-				Release:    raBinCommit,
+				DependencyName:  "rollapp",
+				RepositoryOwner: "dymensionxyz",
+				RepositoryName:  "rollapp-evm",
+				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
+				Release:         raBinCommit,
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "./build/rollapp-evm",
@@ -111,12 +115,15 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 						),
 					},
 				},
+				PersistFiles: []types.PersistFile{},
 			}
 		} else if raVmType == "wasm" {
 			buildableDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp",
-				Repository: "https://github.com/dymensionxyz/rollapp-wasm.git",
-				Release:    raBinCommit,
+				DependencyName:  "rollapp",
+				RepositoryOwner: "dymensionxyz",
+				RepositoryName:  "rollapp-wasm",
+				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm.git",
+				Release:         raBinCommit,
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "./build/rollapp-wasm",
@@ -139,9 +146,9 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 	if !withMockDA {
 		necessaryDeps := map[string]types.Dependency{
 			"celestia-app": {
-				Name:       "celestia-app",
-				Repository: "https://github.com/celestiaorg/celestia-app",
-				Release:    "v2.1.2",
+				DependencyName: "celestia-app",
+				RepositoryUrl:  "https://github.com/celestiaorg/celestia-app",
+				Release:        "v2.1.2",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "celestia-appd",
@@ -154,9 +161,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 				},
 			},
 			"eibc-client": {
-				Name:       "eibc-client",
-				Repository: "https://github.com/artemijspavlovs/eibc-client",
-				Release:    "v1.1.4-roller",
+				DependencyName:  "eibc-client",
+				RepositoryOwner: "artemijspavlovs",
+				RepositoryName:  "eibc-client",
+				RepositoryUrl:   "https://github.com/artemijspavlovs/eibc-client",
+				Release:         "v1.1.4-roller",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "eibc-client",
@@ -165,9 +174,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 				},
 			},
 			"rly": {
-				Name:       "go-relayer",
-				Repository: "https://github.com/artemijspavlovs/go-relayer",
-				Release:    "v0.4.0-v2.5.2-relayer-pg-roller",
+				DependencyName:  "go-relayer",
+				RepositoryOwner: "artemijspavlovs",
+				RepositoryName:  "go-relayer",
+				RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
+				Release:         "v0.4.0-v2.5.2-relayer-pg-roller",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rly",
@@ -222,9 +233,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 
 		if raVmType == "evm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp-evm",
-				Repository: "https://github.com/artemijspavlovs/rollapp-evm",
-				Release:    "v2.3.4-pg-roller-02",
+				DependencyName:  "rollapp-evm",
+				RepositoryOwner: "artemijspavlovs",
+				RepositoryName:  "rollapp-evm",
+				RepositoryUrl:   "https://github.com/artemijspavlovs/rollapp-evm",
+				Release:         "v2.3.4-pg-roller-02",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -234,9 +247,11 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 			}
 		} else if raVmType == "wasm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
-				Name:       "rollapp-wasm",
-				Repository: "https://github.com/artemijspavlovs/rollapp-wasm",
-				Release:    "v1.0.0-rc04-roller-07",
+				DependencyName:  "rollapp-wasm",
+				RepositoryOwner: "artemijspavlovs",
+				RepositoryName:  "rollapp-wasm",
+				RepositoryUrl:   "https://github.com/artemijspavlovs/rollapp-wasm",
+				Release:         "v1.0.0-rc04-roller-07",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -270,7 +285,7 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s", dep.Name),
+		fmt.Sprintf("Installing %s", dep.DependencyName),
 	)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
@@ -285,7 +300,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return err
 	}
 
-	c := exec.Command("git", "clone", dep.Repository, targetDir)
+	c := exec.Command("git", "clone", dep.RepositoryUrl)
 	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
 		spinner.Fail("failed to clone")
@@ -307,7 +322,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	spinner.UpdateText(
 		fmt.Sprintf(
 			"starting %s build from %s (this can take several minutes)",
-			dep.Name,
+			dep.DependencyName,
 			dep.Release,
 		),
 	)
@@ -330,28 +345,28 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		)
 	}
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.DependencyName))
 	return nil
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s", dep.Name),
+		fmt.Sprintf("Installing %s", dep.DependencyName),
 	)
 	goOs := strings.Title(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
-	if goArch == "amd64" && dep.Name == "celestia-app" {
+	if goArch == "amd64" && dep.DependencyName == "celestia-app" {
 		goArch = "x86_64"
 	}
 
-	targetDir, err := os.MkdirTemp(os.TempDir(), dep.Name)
+	targetDir, err := os.MkdirTemp(os.TempDir(), dep.DependencyName)
 	if err != nil {
 		// nolint: errcheck,gosec
 		return err
 	}
 	archiveName := fmt.Sprintf(
 		"%s_%s_%s.tar.gz",
-		dep.Name,
+		dep.DependencyName,
 		goOs,
 		goArch,
 	)
@@ -360,21 +375,21 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 
 	url := fmt.Sprintf(
 		"%s/releases/download/%s/%s",
-		dep.Repository,
+		dep.RepositoryUrl,
 		dep.Release,
 		archiveName,
 	)
 
-	spinner.UpdateText(fmt.Sprintf("Downloading %s %s", dep.Name, dep.Release))
+	spinner.UpdateText(fmt.Sprintf("Downloading %s %s", dep.DependencyName, dep.Release))
 	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {
 		// nolint: errcheck,gosec
 		spinner.Fail("failed to download release")
 		return err
 	}
-	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s", dep.Name))
+	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s", dep.DependencyName))
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.Name))
+	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.DependencyName))
 	return nil
 }
 
