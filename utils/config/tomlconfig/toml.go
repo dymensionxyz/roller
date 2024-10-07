@@ -37,6 +37,7 @@ func GetKeyFromFile(tmlFilePath, key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return tomlTree.Get(key).(string), nil
 }
 
@@ -52,6 +53,49 @@ func UpdateFieldInFile(tmlFilePath, key string, value any) error {
 		tomlCfg.Set(key, v)
 	default:
 		return fmt.Errorf("unsupported type for key %s: %T", key, value)
+	}
+
+	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
+}
+
+func RemoveFieldFromFile(tmlFilePath, keyPath string) error {
+	tomlCfg, err := toml.LoadFile(tmlFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)
+	}
+
+	if !tomlCfg.Has(keyPath) {
+		return fmt.Errorf("key %s does not exist", keyPath)
+	}
+
+	err = tomlCfg.Delete(keyPath)
+	if err != nil {
+		return err
+	}
+
+	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
+}
+
+func ReplaceFieldInFile(tmlFilePath, oldPath, newPath string, value any) error {
+	tomlCfg, err := toml.LoadFile(tmlFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to load %s: %v", tmlFilePath, err)
+	}
+
+	if !tomlCfg.Has(oldPath) {
+		return fmt.Errorf("old key %s does not exist", oldPath)
+	}
+
+	err = tomlCfg.Delete(oldPath)
+	if err != nil {
+		return err
+	}
+
+	switch v := value.(type) {
+	case string, int, int64, float64, bool:
+		tomlCfg.Set(newPath, v)
+	default:
+		return fmt.Errorf("unsupported type for new key %s: %T", newPath, value)
 	}
 
 	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
