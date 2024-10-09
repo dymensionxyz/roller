@@ -13,6 +13,8 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/schollz/progressbar/v3"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
@@ -76,7 +78,7 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 			RepositoryOwner: "celestiaorg",
 			RepositoryName:  "celestia-node",
 			RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
-			Release:         "v0.16.0",
+			Release:         "v0.16.2-mocha",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/celestia",
@@ -285,7 +287,7 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s", dep.DependencyName),
+		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
 	targetDir, err := os.MkdirTemp(os.TempDir(), td)
 	if err != nil {
@@ -300,28 +302,41 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return err
 	}
 
-	c := exec.Command("git", "clone", dep.RepositoryUrl)
+	spinner.UpdateText(
+		fmt.Sprintf("[%s] cloning the repository", dep.DependencyName),
+	)
+	c := exec.Command("git", "clone", dep.RepositoryUrl, targetDir)
 	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
-		spinner.Fail("failed to clone")
+		spinner.Fail(
+			fmt.Sprintf("[%s] failed to clone", dep.DependencyName),
+		)
+
 		return err
 	}
+
 	// Change directory to the cloned repo
 	if err := os.Chdir(targetDir); err != nil {
-		spinner.Fail("failed to create a temp directory")
+		spinner.Fail(
+			fmt.Sprintf("[%s] failed to create a temp directory", dep.DependencyName),
+		)
 		return err
 	}
 
 	if dep.Release != "main" {
 		// Checkout a specific version (e.g., a tag or branch)
+		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
 		if err := exec.Command("git", "checkout", dep.Release).Run(); err != nil {
+			spinner.Fail(
+				fmt.Sprintf("[%s] failed to checkout %s", dep.DependencyName, dep.Release),
+			)
 			return err
 		}
 	}
 
 	spinner.UpdateText(
 		fmt.Sprintf(
-			"starting %s build from %s (this can take several minutes)",
+			"[%s] starting build from %s (this can take several minutes)",
 			dep.DependencyName,
 			dep.Release,
 		),
@@ -341,19 +356,21 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 		spinner.UpdateText(
-			fmt.Sprintf("Finishing installation %s", filepath.Base(binary.BinaryDestination)),
+			fmt.Sprintf("[%s] finishing installation", filepath.Base(binary.BinaryDestination)),
 		)
 	}
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.DependencyName))
+	spinner.Success(fmt.Sprintf("[%s] installed\n", dep.DependencyName))
 	return nil
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
 	spinner, _ := pterm.DefaultSpinner.Start(
-		fmt.Sprintf("Installing %s", dep.DependencyName),
+		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
-	goOs := strings.Title(runtime.GOOS)
+
+	goOsCaser := cases.Title(language.Und)
+	goOs := goOsCaser.String(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.DependencyName == "celestia-app" {
 		goArch = "x86_64"
@@ -380,16 +397,16 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		archiveName,
 	)
 
-	spinner.UpdateText(fmt.Sprintf("Downloading %s %s", dep.DependencyName, dep.Release))
+	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
 	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {
 		// nolint: errcheck,gosec
 		spinner.Fail("failed to download release")
 		return err
 	}
-	spinner.UpdateText(fmt.Sprintf("Successfully downloaded %s", dep.DependencyName))
+	spinner.UpdateText(fmt.Sprintf("[%s] downloaded successfully", dep.DependencyName))
 
-	spinner.Success(fmt.Sprintf("Successfully installed %s\n", dep.DependencyName))
+	spinner.Success(fmt.Sprintf("[%s] installed\n", dep.DependencyName))
 	return nil
 }
 

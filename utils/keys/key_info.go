@@ -59,7 +59,7 @@ func (ki *KeyInfo) Print(o ...KeyInfoOption) {
 	if ki.PrintMnemonic {
 		fmt.Printf("\t%s\n", ki.Mnemonic)
 		fmt.Println()
-		fmt.Println(pterm.LightYellow("💡 save the information and keep it safe"))
+		fmt.Println(pterm.LightYellow("💡 save this information and keep it safe"))
 	}
 
 	fmt.Println()
