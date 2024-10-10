@@ -64,6 +64,7 @@ func CreateDirWithOptionalOverwrite(path string) error {
 				return err
 			}
 		} else {
+			pterm.Info.Println("cancelled by user")
 			os.Exit(0)
 		}
 	} else {
