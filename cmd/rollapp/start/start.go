@@ -21,8 +21,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -65,6 +67,21 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+			if err != nil {
+				pterm.Error.Println("failed to check rollapp version equality: ", err)
+			}
+
+			err = migrations.RequireRollappMigrateIfNeeded(
+				raUpgrade.CurrentVersionCommit,
+				rollappConfig.RollappBinaryVersion,
+				string(rollappConfig.RollappVMType),
+			)
+			if err != nil {
+				pterm.Error.Println(err)
+				return
+			}
 
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd(logLevel)

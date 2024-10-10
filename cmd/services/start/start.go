@@ -5,6 +5,12 @@ import (
 	"runtime"
 	"strings"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/migrations"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -17,6 +23,32 @@ func RollappCmd() *cobra.Command {
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
+			if err != nil {
+				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
+			rollappConfig, err := roller.LoadConfig(home)
+			errorhandling.PrettifyErrorIfExists(err)
+
+			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+			if err != nil {
+				pterm.Error.Println("failed to check rollapp version equality: ", err)
+			}
+
+			err = migrations.RequireRollappMigrateIfNeeded(
+				raUpgrade.CurrentVersionCommit,
+				rollappConfig.RollappBinaryVersion,
+				string(rollappConfig.RollappVMType),
+			)
+			if err != nil {
+				pterm.Error.Println(err)
+				return
+			}
+
 			if runtime.GOOS == "darwin" {
 				err := startLaunchctlServices(consts.RollappSystemdServices)
 				if err != nil {
