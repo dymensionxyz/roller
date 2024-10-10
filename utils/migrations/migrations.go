@@ -129,6 +129,7 @@ func GetCommitTimestamp(owner, repo, sha string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
+	// nolint: errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -174,6 +175,7 @@ func GetCommitTimestampByTag(owner, repo, tag string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
+	// nolint: errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -202,6 +204,7 @@ func GetCommitTimestampByRelease(owner, repo, releaseTag string) (time.Time, err
 	if err != nil {
 		return time.Time{}, err
 	}
+	// nolint: errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {

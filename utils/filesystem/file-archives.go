@@ -107,6 +107,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 				return fmt.Errorf("failed to create directory %s: %v", target, err)
 			}
 		case tar.TypeReg:
+			// nolint: gosec
 			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, 0o755)
 			if err != nil {
 				return fmt.Errorf("failed to create file %s: %v", target, err)

@@ -431,6 +431,7 @@ func DownloadRelease(
 	if err != nil {
 		return err
 	}
+	// nolint: errcheck
 	defer resp.Body.Close()
 
 	// Create a progress bar
