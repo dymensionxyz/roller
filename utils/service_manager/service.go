@@ -5,17 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 
-	"github.com/pterm/pterm"
-
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type ServiceConfig struct {
@@ -28,7 +23,7 @@ type ServiceConfig struct {
 type UIData struct {
 	// TODO: try to remove as it stored in a map
 	Name     string
-	Accounts []utils.AccountData
+	Accounts []keys.AccountData
 	Balance  string
 	Status   string
 }
@@ -36,13 +31,13 @@ type UIData struct {
 // Service TODO: The relayer, sequencer and data layer should implement the Service interface (#208)
 type Service struct {
 	Command  *exec.Cmd
-	FetchFn  func(config.RollappConfig) ([]utils.AccountData, error)
-	StatusFn func(config.RollappConfig) string
+	FetchFn  func(roller.RollappConfig) ([]keys.AccountData, error)
+	StatusFn func(roller.RollappConfig) string
 	UIData   UIData
 }
 
 // TODO: fetch all data and populate UIData
-func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
+func (s *ServiceConfig) FetchServicesData(cfg roller.RollappConfig) {
 	for k, service := range s.Services {
 		if service.FetchFn != nil {
 			accountData, err := service.FetchFn(cfg)
@@ -60,7 +55,7 @@ func (s *ServiceConfig) FetchServicesData(cfg config.RollappConfig) {
 	}
 }
 
-func (s *ServiceConfig) InitServicesData(cfg config.RollappConfig) {
+func (s *ServiceConfig) InitServicesData(cfg roller.RollappConfig) {
 	for k, service := range s.Services {
 		service.UIData.Status = "Starting..."
 		s.Services[k] = service
@@ -198,36 +193,6 @@ func StopLaunchdService(serviceName string) error {
 	err := bash.ExecCmd(cmd)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func RemoveServiceFiles(services []string) error {
-	if runtime.GOOS == "linux" {
-		pterm.Info.Println("removing old systemd services")
-		for _, svc := range services {
-			svcFileName := fmt.Sprintf("%s.service", svc)
-			svcFilePath := filepath.Join("/etc/systemd/system/", svcFileName)
-
-			err := filesystem.RemoveFileIfExists(svcFilePath)
-			if err != nil {
-				pterm.Error.Println("failed to remove systemd service: ", err)
-				return err
-			}
-		}
-	} else if runtime.GOOS == "darwin" {
-		pterm.Info.Println("removing old systemd services")
-		for _, svc := range services {
-			svcFileName := fmt.Sprintf("xyz.dymension.roller.%s.plist", svc)
-			svcFilePath := filepath.Join("/Library/LaunchDaemons/", svcFileName)
-
-			err := filesystem.RemoveFileIfExists(svcFilePath)
-			if err != nil {
-				pterm.Error.Println("failed to remove systemd service: ", err)
-				return err
-			}
-		}
 	}
 
 	return nil

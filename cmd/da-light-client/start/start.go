@@ -8,12 +8,14 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 const (
@@ -30,9 +32,9 @@ func Cmd() *cobra.Command {
 		Use:   "start",
 		Short: "Runs the DA light client.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			pterm.Info.Println("loading roller config file")
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// TODO: refactor the version comparison for migrations
@@ -49,7 +51,7 @@ func Cmd() *cobra.Command {
 			pterm.Info.Println("checking for da address balance")
 			insufficientBalances, err := damanager.CheckDABalance()
 			errorhandling.PrettifyErrorIfExists(err)
-			err = utils.PrintInsufficientBalancesIfAny(insufficientBalances)
+			err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve insufficient balances: ", err)
 				return
@@ -69,7 +71,7 @@ func Cmd() *cobra.Command {
 				)
 			}
 
-			LogFilePath = utils.GetDALogFilePath(rollappConfig.Home)
+			LogFilePath = logging.GetDALogFilePath(rollappConfig.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
 
@@ -80,7 +82,7 @@ func Cmd() *cobra.Command {
 				startDALCCmd,
 				printOutput,
 				parseError,
-				utils.WithLogging(LogFilePath),
+				logging.WithLogging(LogFilePath),
 			)
 			select {}
 		},

@@ -10,9 +10,9 @@ import (
 	toml "github.com/pelletier/go-toml"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 	addressPattern   = `.*\.address`
 )
 
-func SanitizeConfigDir(root string, rlpCfg *config.RollappConfig) error {
+func SanitizeConfigDir(root string, rlpCfg *roller.RollappConfig) error {
 	dirsToClean := []string{
 		getLightNodeKeysDir(root), getRelayerKeysDir(root), getRollappKeysDir(root),
 		getHubKeysDir(root), filepath.Join(root, consts.ConfigDirName.LocalHub),
@@ -60,7 +60,7 @@ func SanitizeDymintToml(root string) error {
 	tomlCfg.Set("keyring_home_dir", "PLACEHOLDER_KEYRING_HOME_DIR")
 	tomlCfg.Set("namespace_id", "PLACEHOLDER_NAMESPACE_ID")
 	tomlCfg.Set("da_config", "PLACEHOLDER_DA_CONFIG")
-	return utils.WriteTomlTreeToFile(tomlCfg, dymintTomlPath)
+	return tomlconfig.WriteTomlTreeToFile(tomlCfg, dymintTomlPath)
 }
 
 func verifyFileExists(path string) error {

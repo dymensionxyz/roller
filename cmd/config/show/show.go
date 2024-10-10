@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
@@ -17,7 +17,7 @@ func Cmd() *cobra.Command {
 		Use:   "show",
 		Short: "Show the configuration of the rollapp on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			errorhandling.PrettifyErrorIfExists(
 				printFileContent(filepath.Join(home, consts.RollerConfigFileName)),
 			)

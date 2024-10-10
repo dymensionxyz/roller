@@ -5,13 +5,14 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
-	"github.com/dymensionxyz/roller/utils/tx"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 func Cmd() *cobra.Command {
@@ -19,9 +20,9 @@ func Cmd() *cobra.Command {
 		Use:   "unbond",
 		Short: "Commands to manage sequencer instance",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

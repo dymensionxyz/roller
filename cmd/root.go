@@ -6,13 +6,13 @@ import (
 	"github.com/spf13/cobra"
 
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/observability"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
-	rollerutils "github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/cmd/version"
 )
 
@@ -40,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(version.Cmd())
-	rollerutils.AddGlobalFlags(rootCmd)
+
+	initconfig.AddGlobalFlags(rootCmd)
 	// rootCmd.AddCommand(migrate.Cmd())
 }

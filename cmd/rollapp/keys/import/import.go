@@ -6,8 +6,8 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -17,7 +17,7 @@ func Cmd() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "Exports the private key of the sequencer key.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			keyName := args[0]
 			privKeyFilePath := args[1]

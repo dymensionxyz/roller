@@ -13,14 +13,14 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/cronjobs"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type Service struct {
@@ -40,13 +40,15 @@ func Cmd(services []string, module string) *cobra.Command {
 		Use:   "load",
 		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

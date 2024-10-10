@@ -1,4 +1,4 @@
-package utils
+package keys
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type keyConfigOptions struct {
@@ -118,37 +117,6 @@ func GetRelayerAddress(home string, chainID string) (string, error) {
 type AddressData struct {
 	Name string
 	Addr string
-}
-
-func GetSequencerPubKey(rollappConfig config.RollappConfig) (string, error) {
-	cmd := exec.Command(
-		rollappConfig.RollappBinary,
-		"dymint",
-		"show-sequencer",
-		"--home",
-		filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp),
-	)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.ReplaceAll(strings.ReplaceAll(string(out), "\n", ""), "\\", ""), nil
-}
-
-func GetAddressPrefix(binaryPath string) (string, error) {
-	cmd := exec.Command(binaryPath, "debug", "addr", "ffffffffffffff")
-	out, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return "", err
-	}
-	lines := strings.Split(out.String(), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "Bech32 Acc:") {
-			prefix := strings.Split(strings.TrimSpace(strings.Split(line, ":")[1]), "1")[0]
-			return strings.TrimSpace(prefix), nil
-		}
-	}
-	return "", fmt.Errorf("could not find address prefix in binary debug command output")
 }
 
 // TODO: refactor, user should approve rather then pipe to 'yes'

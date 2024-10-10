@@ -8,7 +8,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type RelayerFileChainConfig struct {
@@ -135,7 +135,7 @@ func addChainsConfig(
 func InitializeRelayerConfig(
 	rollappConfig relayer.ChainConfig,
 	hubConfig relayer.ChainConfig,
-	initConfig config.RollappConfig,
+	initConfig roller.RollappConfig,
 ) error {
 	relayerHome := filepath.Join(initConfig.Home, consts.ConfigDirName.Relayer)
 

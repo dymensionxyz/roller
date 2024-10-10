@@ -13,8 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 )
 
 func RunCommandEvery(

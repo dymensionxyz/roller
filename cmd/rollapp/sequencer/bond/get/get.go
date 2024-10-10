@@ -6,8 +6,8 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -16,9 +16,9 @@ func Cmd() *cobra.Command {
 		Use:   "get",
 		Short: "Retrieve the current sequencer bond amount",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

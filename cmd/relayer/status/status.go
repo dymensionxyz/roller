@@ -7,10 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/utils"
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/relayer"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -18,10 +19,10 @@ func Cmd() *cobra.Command {
 		Use:   "status",
 		Short: "Show the status of the relayer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollappConfig, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rollappConfig, err := roller.LoadConfig(home)
 
-			relayerLogFilePath := utils.GetRelayerLogPath(home)
+			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			errorhandling.PrettifyErrorIfExists(err)
 			rly := relayer.NewRelayer(
 				rollappConfig.Home,

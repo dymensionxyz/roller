@@ -9,24 +9,24 @@ import (
 	"github.com/dymensionxyz/roller/cmd/utils"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
-	configutils "github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func setDA(rlpCfg configutils.RollappConfig, value string) error {
+func setDA(rlpCfg roller.RollappConfig, value string) error {
 	daValue := consts.DAType(value)
 	if daValue == rlpCfg.DA.Backend {
 		return nil
 	}
 
-	if !configutils.IsValidDAType(value) {
-		return fmt.Errorf("invalid DA type. Supported types are: %v", configutils.SupportedDas)
+	if !roller.IsValidDAType(value) {
+		return fmt.Errorf("invalid DA type. Supported types are: %v", roller.SupportedDas)
 	}
 	return updateDaConfig(rlpCfg, daValue)
 }
 
-func updateDaConfig(rlpCfg configutils.RollappConfig, newDa consts.DAType) error {
+func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
 	dirExist, err := filesystem.DirNotEmpty(daCfgDirPath)
 	if err != nil {
@@ -55,26 +55,26 @@ func updateDaConfig(rlpCfg configutils.RollappConfig, newDa consts.DAType) error
 		return err
 	}
 
-	if err := tomlconfig.Write(rlpCfg); err != nil {
+	if err := roller.WriteConfig(rlpCfg); err != nil {
 		return err
 	}
 
 	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
 	if newDa != consts.Local {
-		addresses := make([]utils.KeyInfo, 0)
+		addresses := make([]keys.KeyInfo, 0)
 		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home)
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return err
 		}
 		addresses = append(
-			addresses, utils.KeyInfo{
+			addresses, keys.KeyInfo{
 				Name:    damanager.GetKeyName(),
 				Address: daAddress.Address,
 			},
 		)
 
-		utils.PrintAddressesWithTitle(addresses)
+		keys.PrintAddressesWithTitle(addresses)
 		fmt.Printf("\n🔔 Please fund this address to run the DA light client.\n")
 	}
 	return nil

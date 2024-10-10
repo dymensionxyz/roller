@@ -69,5 +69,6 @@ linters-settings:
       - G304
       - G306
       - G307
+      - G115 # https://github.com/securego/gosec/issues/1185
     severity: low
     confidence: low

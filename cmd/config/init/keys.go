@@ -1,195 +1,30 @@
 package initconfig
 
 import (
-	"os/exec"
-	"path"
-
-	"github.com/pterm/pterm"
+	"fmt"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
-	keyutils "github.com/dymensionxyz/roller/utils/keys"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func GenerateSequencersKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	keys := GetSequencerKeysConfig()
-	addresses := make([]utils.KeyInfo, 0)
-	for _, key := range keys {
-		var address *utils.KeyInfo
-		var err error
-		address, err = keyutils.CreateAddressBinary(key, initConfig.Home)
-		if err != nil {
-			return nil, err
+func FormatAddresses(
+	raCfg roller.RollappConfig,
+	addresses []keys.KeyInfo,
+) []keys.KeyInfo {
+	damanager := datalayer.NewDAManager(raCfg.DA.Backend, raCfg.Home)
+	requireFundingKeys := map[string]string{
+		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", raCfg.HubData.ID),
+		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", raCfg.HubData.ID),
+		damanager.GetKeyName():      fmt.Sprintf("DA, %s Network", damanager.GetNetworkName()),
+	}
+	filteredAddresses := make([]keys.KeyInfo, 0)
+	for _, address := range addresses {
+		if newName, ok := requireFundingKeys[address.Name]; ok {
+			address.Name = newName
+			filteredAddresses = append(filteredAddresses, address)
 		}
-		addresses = append(
-			addresses, utils.KeyInfo{
-				Address:  address.Address,
-				Name:     key.ID,
-				Mnemonic: address.Mnemonic,
-			},
-		)
 	}
-	return addresses, nil
-}
-
-func GenerateMockSequencerKeys(initConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	keys := GetMockSequencerKeyConfig(initConfig)
-	addresses := make([]utils.KeyInfo, 0)
-	for _, key := range keys {
-		var address *utils.KeyInfo
-		var err error
-		address, err = keyutils.CreateAddressBinary(key, initConfig.Home)
-		if err != nil {
-			return nil, err
-		}
-		addresses = append(
-			addresses, utils.KeyInfo{
-				Address:  address.Address,
-				Name:     key.ID,
-				Mnemonic: address.Mnemonic,
-			},
-		)
-	}
-	return addresses, nil
-}
-
-func GetSequencerKeysConfig() []utils.KeyConfig {
-	return []utils.KeyConfig{
-		{
-			Dir:         consts.ConfigDirName.HubKeys,
-			ID:          consts.KeysIds.HubSequencer,
-			ChainBinary: consts.Executables.Dymension,
-			// Eventhough the hub can get evm signatures, we still use the native
-			Type: consts.SDK_ROLLAPP,
-		},
-	}
-}
-
-func GetMockSequencerKeyConfig(rollappConfig config.RollappConfig) []utils.KeyConfig {
-	return []utils.KeyConfig{
-		{
-			Dir:         consts.ConfigDirName.Rollapp,
-			ID:          consts.KeysIds.RollappSequencer,
-			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
-		},
-	}
-}
-
-func GetRelayerKeysConfig(rollappConfig config.RollappConfig) map[string]utils.KeyConfig {
-	return map[string]utils.KeyConfig{
-		consts.KeysIds.RollappRelayer: {
-			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
-			ID:          consts.KeysIds.RollappRelayer,
-			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.VMType,
-		},
-		consts.KeysIds.HubRelayer: {
-			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
-			ID:          consts.KeysIds.HubRelayer,
-			ChainBinary: consts.Executables.Dymension,
-			Type:        consts.SDK_ROLLAPP,
-		},
-	}
-}
-
-func GetRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	relayerAddresses := make([]utils.KeyInfo, 0)
-	keys := GetRelayerKeysConfig(rollappConfig)
-
-	relayerHubAddress, err := utils.GetRelayerAddressInfo(
-		keys[consts.KeysIds.HubRelayer],
-		rollappConfig.HubData.ID,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	relayerAddresses = append(
-		relayerAddresses, *relayerHubAddress,
-	)
-
-	return relayerAddresses, nil
-}
-
-func AddRlyKey(kc utils.KeyConfig, chainID string) (*utils.KeyInfo, error) {
-	addKeyCmd := getAddRlyKeyCmd(
-		kc,
-		chainID,
-	)
-
-	out, err := bash.ExecCommandWithStdout(addKeyCmd)
-	if err != nil {
-		return nil, err
-	}
-
-	ki, err := utils.ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
-	}
-	ki.Name = kc.ID
-
-	return ki, nil
-}
-
-func GenerateRelayerKeys(rollappConfig config.RollappConfig) ([]utils.KeyInfo, error) {
-	pterm.Info.Println("creating relayer keys")
-	var relayerAddresses []utils.KeyInfo
-	keys := GetRelayerKeysConfig(rollappConfig)
-
-	pterm.Info.Println("creating relayer rollapp key")
-	relayerRollappAddress, err := AddRlyKey(
-		keys[consts.KeysIds.RollappRelayer],
-		rollappConfig.RollappID,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	relayerAddresses = append(
-		relayerAddresses, *relayerRollappAddress,
-	)
-
-	pterm.Info.Println("creating relayer hub key")
-	relayerHubAddress, err := AddRlyKey(keys[consts.KeysIds.HubRelayer], rollappConfig.HubData.ID)
-	if err != nil {
-		return nil, err
-	}
-	relayerAddresses = append(
-		relayerAddresses, *relayerHubAddress,
-	)
-
-	return relayerAddresses, nil
-}
-
-func getAddRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	coinType := "60"
-	if keyConfig.Type == consts.WASM_ROLLAPP {
-		coinType = "118"
-	}
-	return exec.Command(
-		consts.Executables.Relayer,
-		"keys",
-		"add",
-		chainID,
-		keyConfig.ID,
-		"--home",
-		keyConfig.Dir,
-		"--coin-type",
-		coinType,
-	)
-}
-
-func getShowRlyKeyCmd(keyConfig utils.KeyConfig, chainID string) *exec.Cmd {
-	return exec.Command(
-		consts.Executables.Relayer,
-		"keys",
-		"show",
-		chainID,
-		keyConfig.ID,
-		"--home",
-		keyConfig.Dir,
-	)
+	return filteredAddresses
 }

@@ -5,9 +5,6 @@ import (
 	"os/signal"
 
 	"github.com/pterm/pterm"
-
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/version"
 )
 
 func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
@@ -24,20 +21,6 @@ func PrettifyErrorIfExists(err error, printAdditionalInfo ...func()) {
 		}
 
 		panic(err)
-	}
-}
-
-func RequireMigrateIfNeeded(rlpCfg config.RollappConfig) {
-	currentRollerVersion := version.TrimVersionStr(version.BuildVersion)
-	configRollerVersion := version.TrimVersionStr(rlpCfg.RollerVersion)
-	if configRollerVersion != currentRollerVersion {
-		//nolint:errcheck,gosec
-		pterm.Warning.Printf(
-			"💈 Your rollapp config version ('%s') is older than your"+
-				" installed roller version ('%s'),"+
-				" please run 'roller migrate' to update your config.\n", configRollerVersion, currentRollerVersion,
-		)
-		os.Exit(1)
 	}
 }
 

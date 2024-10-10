@@ -9,12 +9,12 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/structs"
 )
 
@@ -29,46 +29,48 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
 
 			// redundant
-			hd, err := tomlconfig.LoadHubData(home)
+			hd, err := roller.LoadHubData(home)
 			if err != nil {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
 
-			rollappConfig, err := tomlconfig.GetRollappMetadataFromChain(
+			rollappConfig, err := rollapp.GetRollappMetadataFromChain(
 				home,
 				rollerData.RollappID,
 				&hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			hubSeqKC := utils.KeyConfig{
+			hubSeqKC := keys.KeyConfig{
 				Dir:         consts.ConfigDirName.HubKeys,
 				ID:          consts.KeysIds.HubSequencer,
 				ChainBinary: consts.Executables.Dymension,
 				Type:        consts.SDK_ROLLAPP,
 			}
 
-			seqAddrInfo, err := utils.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
+			seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
 			if err != nil {
 				pterm.Error.Println("failed to get address info: ", err)
 				return
 			}
 			seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
-			seq, err := sequencerutils.RegisteredRollappSequencersOnHub(rollappConfig.RollappID, hd)
+			seq, err := sequencer.RegisteredRollappSequencersOnHub(rollappConfig.RollappID, hd)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve registered sequencers: ", err)
 			}

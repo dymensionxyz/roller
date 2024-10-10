@@ -11,10 +11,10 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func CreatePath(rlpCfg config.RollappConfig) error {
+func CreatePath(rlpCfg roller.RollappConfig) error {
 	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
 	pterm.Info.Printf("creating new ibc path from %s to %s\n", rlpCfg.HubData.ID, rlpCfg.RollappID)
 
@@ -44,7 +44,7 @@ type ChainConfig struct {
 }
 
 func UpdateRlyConfigValue(
-	rlpCfg config.RollappConfig,
+	rlpCfg roller.RollappConfig,
 	keyPath []string,
 	newValue interface{},
 ) error {

@@ -13,12 +13,11 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
@@ -37,13 +36,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollerCfg, err := tomlconfig.LoadRollerConfig(home)
+			rollerCfg, err := roller.LoadConfig(home)
 			if err != nil {
 				return
 			}
@@ -94,14 +95,14 @@ func Cmd() *cobra.Command {
 			// of registering the sequencer and settings the reward address
 			var address string
 			bech32Prefix = raResponse.Rollapp.GenesisInfo.Bech32Prefix
-			kc := utils.KeyConfig{
+			kc := keys.KeyConfig{
 				Dir:         consts.ConfigDirName.RollappSequencerKeys,
 				ID:          consts.KeysIds.RollappSequencerReward,
 				ChainBinary: consts.Executables.RollappEVM,
 				Type:        consts.EVM_ROLLAPP,
 			}
 
-			isKeyInKeyring, err := utils.IsAddressWithNameInKeyring(kc, home)
+			isKeyInKeyring, err := keys.IsAddressWithNameInKeyring(kc, home)
 			if err != nil {
 				pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
 				return
@@ -116,7 +117,7 @@ func Cmd() *cobra.Command {
 			}
 
 			if isKeyInKeyring {
-				address, err = utils.GetAddressBinary(kc, home)
+				address, err = keys.GetAddressBinary(kc, home)
 				if err != nil {
 					pterm.Error.Println("failed to get address", err)
 				}
@@ -136,7 +137,7 @@ func Cmd() *cobra.Command {
 							return
 						}
 
-						ki.Print(utils.WithName(), utils.WithMnemonic())
+						ki.Print(keys.WithName(), keys.WithMnemonic())
 						address = ki.Address
 					}
 				}

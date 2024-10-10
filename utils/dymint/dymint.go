@@ -12,9 +12,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -110,26 +109,26 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		pterm.Info.Println("updating dymint config")
 		pterm.Info.Println("block time: ", want)
 
-		err = utils.UpdateFieldInToml(dymintPath, "max_idle_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "max_idle_time", want.String())
 		if err != nil {
 			return err
 		}
-		err = utils.UpdateFieldInToml(dymintPath, "batch_submit_max_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_max_time", want.String())
 		if err != nil {
 			return err
 		}
-		err = utils.UpdateFieldInToml(dymintPath, "batch_submit_time", want.String())
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_time", want.String())
 		if err != nil {
 			return err
 		}
 
 		if want < time.Minute*1 {
-			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", want.String())
+			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", want.String())
 			if err != nil {
 				return err
 			}
 		} else {
-			err = utils.UpdateFieldInToml(dymintPath, "max_proof_time", "1m")
+			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", "1m")
 			if err != nil {
 				return err
 			}

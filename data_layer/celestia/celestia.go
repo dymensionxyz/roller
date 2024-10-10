@@ -13,13 +13,12 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	globalutils "github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 var lcMinBalance = big.NewInt(1)
@@ -55,7 +54,7 @@ type BalanceResponse struct {
 	Result cosmossdktypes.Coin `json:"result"`
 }
 
-func (c *Celestia) GetStatus(rlpCfg config.RollappConfig) string {
+func (c *Celestia) GetStatus(rlpCfg roller.RollappConfig) string {
 	args := []string{
 		"state",
 		"balance",
@@ -91,7 +90,7 @@ func (c *Celestia) getRPCPort() string {
 	if c.RPCPort != "" {
 		return c.RPCPort
 	}
-	port, err := globalutils.GetKeyFromTomlFile(
+	port, err := tomlconfig.GetKeyFromFile(
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml"),
 		"RPC.Port",
 	)
@@ -108,7 +107,7 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 
 // GetDAAccountAddress implements datalayer.DataLayer.
 // FIXME: should be loaded once and cached
-func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
+func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
@@ -118,12 +117,12 @@ func (c *Celestia) GetDAAccountAddress() (*utils.KeyInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	address, err := utils.ParseAddressFromOutput(output)
+	address, err := keys.ParseAddressFromOutput(output)
 	return address, err
 }
 
 func (c *Celestia) InitializeLightNodeConfig() (string, error) {
-	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return "", err
 	}
@@ -169,14 +168,14 @@ func extractMnemonic(output string) string {
 	return strings.Join(mnemonicLines, " ")
 }
 
-func (c *Celestia) getDAAccData(home string) (*utils.AccountData, error) {
+func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 	celAddress, err := c.GetDAAccountAddress()
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: refactor to support multiple DA chains
-	raCfg, err := tomlconfig.LoadRollerConfig(home)
+	raCfg, err := roller.LoadConfig(home)
 	if err != nil {
 		return nil, err
 	}
@@ -200,20 +199,20 @@ func (c *Celestia) getDAAccData(home string) (*utils.AccountData, error) {
 	}
 	b := bytes.NewBuffer(output.Bytes())
 
-	balance, err := utils.ParseBalanceFromResponse(
+	balance, err := keys.ParseBalanceFromResponse(
 		*b,
 		consts.Denoms.Celestia,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &utils.AccountData{
+	return &keys.AccountData{
 		Address: celAddress.Address,
 		Balance: balance,
 	}, nil
 }
 
-func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, error) {
+func (c *Celestia) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	celAddress, err := c.getDAAccData(c.Root)
 	if err != nil {
 		return nil, err
@@ -221,7 +220,7 @@ func (c *Celestia) GetDAAccData(cfg config.RollappConfig) ([]utils.AccountData, 
 	if celAddress == nil {
 		return nil, fmt.Errorf("failed to get DA account data")
 	}
-	return []utils.AccountData{*celAddress}, err
+	return []keys.AccountData{*celAddress}, err
 }
 
 func (c *Celestia) GetKeyName() string {
@@ -229,28 +228,28 @@ func (c *Celestia) GetKeyName() string {
 }
 
 func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
-	return utils.GetExportKeyCmdBinary(
+	return keys.GetExportKeyCmdBinary(
 		c.GetKeyName(),
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
 		consts.Executables.CelKey,
 	)
 }
 
-func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
+func (c *Celestia) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	accData, err := c.getDAAccData(c.Root)
 	if err != nil {
 		return nil, err
 	}
 
-	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return nil, err
 	}
 
-	var insufficientBalances []utils.NotFundedAddressData
+	var insufficientBalances []keys.NotFundedAddressData
 	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(
-			insufficientBalances, utils.NotFundedAddressData{
+			insufficientBalances, keys.NotFundedAddressData{
 				Address:         accData.Address,
 				CurrentBalance:  accData.Balance.Amount,
 				RequiredBalance: lcMinBalance,
@@ -265,7 +264,7 @@ func (c *Celestia) CheckDABalance() ([]utils.NotFundedAddressData, error) {
 }
 
 func (c *Celestia) GetStartDACmd() *exec.Cmd {
-	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return nil
 	}
@@ -300,7 +299,7 @@ func (c *Celestia) GetNamespaceID() string {
 	return c.NamespaceID
 }
 
-func (c *Celestia) getAuthToken(t string, raCfg config.RollappConfig) (string, error) {
+func (c *Celestia) getAuthToken(t string, raCfg roller.RollappConfig) (string, error) {
 	getAuthTokenCmd := exec.Command(
 		consts.Executables.Celestia,
 		"light",
@@ -327,7 +326,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	var authToken string
 	var err error
 
-	raCfg, err := tomlconfig.LoadRollerConfig(c.Root)
+	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
 		return ""
 	}

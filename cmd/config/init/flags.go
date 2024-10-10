@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	cmdutils "github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func AddFlags(cmd *cobra.Command) error {
@@ -60,14 +59,10 @@ func AddFlags(cmd *cobra.Command) error {
 func GetInitConfig(
 	initCmd *cobra.Command,
 	withMockSettlement bool,
-) (*config.RollappConfig, error) {
-	var cfg config.RollappConfig
+) (*roller.RollappConfig, error) {
+	var cfg roller.RollappConfig
 
-	home, err := filesystem.ExpandHomePath(initCmd.Flag(cmdutils.FlagNames.Home).Value.String())
-	if err != nil {
-		fmt.Println("failed to expand home path: ", err)
-	}
-
+	home := initCmd.Flag(GlobalFlagNames.Home).Value.String()
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 	if _, err := toml.DecodeFile(rollerConfigFilePath, &cfg); err != nil {
 		return nil, err
@@ -104,7 +99,7 @@ func GetInitConfig(
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 
-	if cfg.VMType == consts.EVM_ROLLAPP {
+	if cfg.RollappVMType == consts.EVM_ROLLAPP {
 		cfg.Decimals = 18
 	} else {
 		cfg.Decimals = 6

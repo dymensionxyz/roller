@@ -6,7 +6,7 @@ import (
 
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	placerholderKeyDirectory = "PLACEHOLDER_KEY_DIRECTORY"
 )
 
-func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
+func SanitizeRlyConfig(rlpCfg *roller.RollappConfig) error {
 	rlyCfg, err := relayer.ReadRlyConfig(rlpCfg.Home)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func SanitizeRlyConfig(rlpCfg *config.RollappConfig) error {
 	return relayer.WriteRlyConfig(rlpCfg.Home, rlyCfg)
 }
 
-func VerifyRlyConfig(rollappConfig config.RollappConfig, goldenDirPath string) error {
+func VerifyRlyConfig(rollappConfig roller.RollappConfig, goldenDirPath string) error {
 	goldenRlyCfg, err := relayer.ReadRlyConfig(goldenDirPath)
 	if err != nil {
 		return err

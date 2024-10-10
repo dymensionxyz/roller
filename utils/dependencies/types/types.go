@@ -15,9 +15,11 @@ type PersistFile struct {
 }
 
 type Dependency struct {
-	Name         string
-	Repository   string
-	Release      string
-	Binaries     []BinaryPathPair
-	PersistFiles []PersistFile
+	DependencyName  string
+	RepositoryOwner string
+	RepositoryName  string
+	RepositoryUrl   string
+	Release         string
+	Binaries        []BinaryPathPair
+	PersistFiles    []PersistFile
 }

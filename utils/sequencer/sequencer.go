@@ -17,15 +17,15 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
-func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error {
-	seqPubKey, err := utils.GetSequencerPubKey(raCfg)
+func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
+	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func Register(raCfg config.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--keyring-dir", filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
 
@@ -134,9 +134,9 @@ func isValidSequencerMetadata(path string) (bool, error) {
 	return true, err
 }
 
-func GetSequencerAccountAddress(cfg config.RollappConfig) (string, error) {
-	seqAddr, err := utils.GetAddressBinary(
-		utils.KeyConfig{
+func GetSequencerAccountAddress(cfg roller.RollappConfig) (string, error) {
+	seqAddr, err := keys.GetAddressBinary(
+		keys.KeyConfig{
 			ChainBinary: consts.Executables.Dymension,
 			ID:          consts.KeysIds.HubSequencer,
 			Dir:         consts.ConfigDirName.HubKeys,
@@ -379,9 +379,9 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 	)
 }
 
-func GetHubSequencerAddress(cfg config.RollappConfig) (string, error) {
-	seqAddr, err := utils.GetAddressBinary(
-		utils.KeyConfig{
+func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
+	seqAddr, err := keys.GetAddressBinary(
+		keys.KeyConfig{
 			ChainBinary: consts.Executables.Dymension,
 			ID:          consts.KeysIds.HubSequencer,
 			Dir:         consts.ConfigDirName.HubKeys,
@@ -394,14 +394,14 @@ func GetHubSequencerAddress(cfg config.RollappConfig) (string, error) {
 	return seqAddr, nil
 }
 
-func GetSequencerData(cfg config.RollappConfig) ([]utils.AccountData, error) {
+func GetSequencerData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	seqAddr, err := GetHubSequencerAddress(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	sequencerBalance, err := utils.QueryBalance(
-		utils.ChainQueryConfig{
+	sequencerBalance, err := keys.QueryBalance(
+		keys.ChainQueryConfig{
 			Binary: consts.Executables.Dymension,
 			Denom:  consts.Denoms.Hub,
 			RPC:    cfg.HubData.RPC_URL,
@@ -410,7 +410,7 @@ func GetSequencerData(cfg config.RollappConfig) ([]utils.AccountData, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []utils.AccountData{
+	return []keys.AccountData{
 		{
 			Address: seqAddr,
 			Balance: sequencerBalance,
@@ -442,4 +442,12 @@ func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins,
 	}
 
 	return &GetSequencerResponse.Sequencer.Tokens, nil
+}
+
+func GetDymintFilePath(root string) string {
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "dymint.toml")
+}
+
+func GetAppConfigFilePath(root string) string {
+	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "app.toml")
 }

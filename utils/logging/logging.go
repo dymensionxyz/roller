@@ -1,4 +1,4 @@
-package utils
+package logging
 
 import (
 	"io"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func GetRollerLogger(home string) *log.Logger {
@@ -52,7 +52,7 @@ func GetLogger(filepath string) *log.Logger {
 	return logger
 }
 
-func GetSequencerLogPath(rollappConfig config.RollappConfig) string {
+func GetSequencerLogPath(rollappConfig roller.RollappConfig) string {
 	return filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 }
 

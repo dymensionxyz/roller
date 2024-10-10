@@ -9,10 +9,10 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 		Example: "roller rollapp sequencer bond increase 100000000000000000000adym",
 		Short:   "Commands to manage sequencer instance",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			var amount string
 			if len(args) != 0 {
@@ -38,7 +38,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return

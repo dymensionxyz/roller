@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp/config"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
+	"github.com/dymensionxyz/roller/cmd/rollapp/migrate"
 	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer"
 	"github.com/dymensionxyz/roller/cmd/rollapp/setup"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
@@ -31,6 +32,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(setup.Cmd())
 	cmd.AddCommand(sequencer.Cmd())
 	cmd.AddCommand(keys.Cmd())
+	cmd.AddCommand(migrate.Cmd())
 
 	sl := []string{"rollapp", "da-light-client"}
 	cmd.AddCommand(

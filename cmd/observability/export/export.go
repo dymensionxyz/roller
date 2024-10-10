@@ -10,7 +10,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 )
 
 //go:embed templates/grafana/dashboard.json
@@ -26,7 +25,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to add flags")
 				return
 			}
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			gdpath := filepath.Join(home, consts.ConfigDirName.Rollapp, "dashboard.json")
 
 			err = os.WriteFile(gdpath, grafanaDashboardTemplate, 0o644)

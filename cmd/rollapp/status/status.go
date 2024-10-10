@@ -7,11 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
-	"github.com/dymensionxyz/roller/cmd/utils"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dymint"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -19,8 +19,8 @@ func Cmd() *cobra.Command {
 		Use:   "status",
 		Short: "Show the status of the sequencer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollerConfig, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rollerConfig, err := roller.LoadConfig(home)
 			if err != nil {
 				fmt.Println("failed to load config:", err)
 				return

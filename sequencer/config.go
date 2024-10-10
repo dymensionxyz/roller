@@ -11,12 +11,13 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/utils"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
-	dymintTomlPath := GetDymintFilePath(rlpCfg.Home)
+func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
+	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -56,8 +57,8 @@ func SetDefaultDymintConfig(rlpCfg config.RollappConfig) error {
 	return err
 }
 
-func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
-	dymintTomlPath := GetDymintFilePath(rlpCfg.Home)
+func UpdateDymintDAConfig(rlpCfg roller.RollappConfig) error {
+	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -65,10 +66,10 @@ func UpdateDymintDAConfig(rlpCfg config.RollappConfig) error {
 	if err := updateDaConfigInToml(rlpCfg, dymintCfg); err != nil {
 		return err
 	}
-	return utils.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
+	return tomlconfig.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
 }
 
-func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) error {
+func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) error {
 	damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home)
 	dymintCfg.Set("da_layer", "mock")
 	// daConfig := damanager.GetSequencerDAConfig()
@@ -91,7 +92,7 @@ func updateDaConfigInToml(rlpCfg config.RollappConfig, dymintCfg *toml.Tree) err
 	return nil
 }
 
-func SetAppConfig(rlpCfg config.RollappConfig) error {
+func SetAppConfig(rlpCfg roller.RollappConfig) error {
 	appConfigFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "app.toml")
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
@@ -107,10 +108,10 @@ func SetAppConfig(rlpCfg config.RollappConfig) error {
 		appCfg.Set("json-rpc.address", "0.0.0.0:8545")
 		appCfg.Set("json-rpc.ws-address", "0.0.0.0:8546")
 	}
-	return utils.WriteTomlTreeToFile(appCfg, appConfigFilePath)
+	return tomlconfig.WriteTomlTreeToFile(appCfg, appConfigFilePath)
 }
 
-func SetTMConfig(rlpCfg config.RollappConfig) error {
+func SetTMConfig(rlpCfg roller.RollappConfig) error {
 	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
 	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
@@ -121,7 +122,7 @@ func SetTMConfig(rlpCfg config.RollappConfig) error {
 	tomlCfg.Set("rpc.max_subscriptions_per_client", "10")
 	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
-	return utils.WriteTomlTreeToFile(tomlCfg, configFilePath)
+	return tomlconfig.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
 func (seq *Sequencer) ReadPorts() error {

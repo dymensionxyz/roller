@@ -8,10 +8,10 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -19,15 +19,15 @@ func Cmd() *cobra.Command {
 		Use:   "export",
 		Short: "Exports the private key of the sequencer key.",
 		Run: func(cmd *cobra.Command, args []string) {
-			home := cmd.Flag(utils.FlagNames.Home).Value.String()
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
+			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			var kcs []utils.KeyConfig
+			var kcs []keys.KeyConfig
 			if rollerData.HubData.ID != "mock" {
-				kcs = initconfig.GetSequencerKeysConfig()
+				kcs = keys.GetSequencerKeysConfig()
 			} else {
-				kcs = initconfig.GetMockSequencerKeyConfig(rollerData)
+				kcs = keys.GetMockSequencerKeyConfig(rollerData)
 			}
 
 			kc := kcs[0]

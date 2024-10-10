@@ -6,16 +6,16 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
-	"github.com/dymensionxyz/roller/cmd/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -29,13 +29,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(cmd.Flag(utils.FlagNames.Home).Value.String())
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
 
-			rollerData, err := tomlconfig.LoadRollerConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
@@ -61,7 +63,7 @@ func Cmd() *cobra.Command {
 				"--gas-adjustment",
 				"1.3",
 				"--keyring-dir",
-				filepath.Join(utils.GetRollerRootDir(), consts.ConfigDirName.HubKeys),
+				filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
 			)
 
