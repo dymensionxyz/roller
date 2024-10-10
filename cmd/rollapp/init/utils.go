@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -202,7 +202,9 @@ func runInit(
 		return err
 	}
 
-	addresses = append(addresses, *daKeyInfo)
+	if daKeyInfo != nil {
+		addresses = append(addresses, *daKeyInfo)
+	}
 
 	/* ------------------------------ Print output ------------------------------ */
 

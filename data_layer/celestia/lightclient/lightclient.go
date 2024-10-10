@@ -1,7 +1,6 @@
 package lightclient
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -127,7 +126,12 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 					return nil, err
 				}
 
-				pterm.Info.Printf("the first %s state update has DA height of %s with hash %s\n", rollerData.RollappID, height, hash)
+				pterm.Info.Printf(
+					"the first %s state update has DA height of %s with hash %s\n",
+					rollerData.RollappID,
+					height,
+					hash,
+				)
 				pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
 				err = UpdateConfig(celestiaConfigFilePath, hash, heightInt)
 				if err != nil {
@@ -153,7 +157,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		}
 	}
 
-	return nil, errors.New("failed to initialize da client")
+	return nil, nil
 }
 
 func UpdateConfig(file, hash string, height int) error {
