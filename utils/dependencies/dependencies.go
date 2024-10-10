@@ -22,7 +22,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappResponse) (
@@ -37,24 +36,30 @@ func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappRes
 		return nil, nil, errors.New(errMsg)
 	}
 
+	genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
+	if err != nil {
+		return nil, nil, err
+	}
+	// nolint: errcheck
+	defer os.RemoveAll(genesisTmpDir)
+
 	var raBinCommit string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
 		// when the genesis file is big
-		err = genesisutils.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
+		err = genesisutils.DownloadGenesis(genesisTmpDir, raResp.Rollapp.Metadata.GenesisUrl)
 		if err != nil {
 			pterm.Error.Println("failed to download genesis file: ", err)
 			return nil, nil, err
 		}
 
-		as, err := genesisutils.GetGenesisAppState(home)
+		as, err := genesisutils.GetGenesisAppState(genesisTmpDir)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		err = os.RemoveAll(roller.GetRootDir())
 		if err != nil {
 			return nil, nil, err
 		}
