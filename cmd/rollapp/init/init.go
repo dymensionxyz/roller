@@ -171,6 +171,7 @@ func Cmd() *cobra.Command {
 				)
 				return
 			}
+
 			start := time.Now()
 			builtDeps, _, err := dependencies.InstallBinaries(home, false, raResponse)
 			if err != nil {
@@ -204,7 +205,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			bp, err := rollapp.ExtractBech32Prefix(
+			bp, err := rollapp.ExtractBech32PrefixFromBinary(
 				strings.ToLower(raResponse.Rollapp.VmType),
 			)
 			if err != nil {

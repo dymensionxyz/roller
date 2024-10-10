@@ -1,8 +1,7 @@
 package upgrades
 
 import (
-	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type VersionedSoftware interface {
@@ -16,9 +15,10 @@ type UpdateableSoftware interface {
 // Software struct should be used by all components of the system
 // as of 20241006, they are RollApp, Relayer and Eibc client
 type Software struct {
-	Name           string
-	Binary         string
-	CurrentVersion string
+	Name                 string
+	Binary               string
+	CurrentVersion       string
+	CurrentVersionCommit string
 }
 
 // Commit represents a git commit of the software version
@@ -44,7 +44,7 @@ type Version struct {
 type UpgradeModule struct {
 	Name           string
 	ConfigFilePath string
-	Values         VerstionValues
+	Values         VersionValues
 }
 
 type UpgradeableValue struct {
@@ -53,10 +53,10 @@ type UpgradeableValue struct {
 	Value        any
 }
 
-// VerstionValues struct stores the different types of configuration values
+// VersionValues struct stores the different types of configuration values
 // that might be used during an upgrade
-type VerstionValues struct {
-	NewValues         map[string]any
+type VersionValues struct {
+	NewValues         []config.PathValue
 	UpgradeableValues []UpgradeableValue
 	DeprecatedValues  []string
 }
@@ -69,44 +69,7 @@ func NewSoftware(name, bin, version string) *Software {
 	}
 }
 
-type (
-	RollappUpgrade Software
-)
-
-var EvmRollappUpgradeModules = []Version{
-	{
-		VersionIdentifier: "v2.2.1-rc05",
-		Modules: []UpgradeModule{
-			{
-				Name:           "dymint",
-				ConfigFilePath: sequencer.GetDymintFilePath(roller.GetRootDir()),
-				Values: VerstionValues{
-					NewValues: map[string]any{
-						"p2p_persistent_nodes":                 "",
-						"p2p_blocksync_enabled":                true,
-						"p2p_blocksync_block_request_interval": "30s",
-						"batch_acceptance_attempts":            5,
-					},
-					UpgradeableValues: []UpgradeableValue{
-						{
-							OldValuePath: "p2p_gossiped_blocks_cache_size",
-							NewValuePath: "p2p_gossip_cache_size",
-							Value:        50,
-						},
-						{
-							OldValuePath: "p2p_bootstrap_time",
-							NewValuePath: "p2p_bootstrap_retry_time",
-						},
-						{
-							OldValuePath: "p2p_advertising",
-							NewValuePath: "p2p_advertising_enabled",
-						},
-					},
-					DeprecatedValues: []string{
-						"aggregator",
-					},
-				},
-			},
-		},
-	},
+type RollappUpgrade struct {
+	RollappType string
+	Software
 }

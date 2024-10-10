@@ -203,7 +203,7 @@ func GetRollappMetadataFromChain(
 		Decimals:             18,
 		HubData:              *hd,
 		DA:                   DA,
-		RollerVersion:        "latest",
+		RollerVersion:        version.BuildCommit,
 		Environment:          hd.ID,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,

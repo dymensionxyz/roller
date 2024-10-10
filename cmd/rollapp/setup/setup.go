@@ -107,7 +107,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			bp, err := rollapp.ExtractBech32Prefix(
+			bp, err := rollapp.ExtractBech32PrefixFromBinary(
 				strings.ToLower(raResponse.Rollapp.VmType),
 			)
 			if err != nil {
