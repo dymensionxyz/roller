@@ -21,11 +21,10 @@ func WriteTomlTreeToFile(tomlConfig *toml.Tree, path string) error {
 	if err != nil {
 		return err
 	}
+	// nolint: errcheck
+	defer file.Close()
+
 	_, err = file.WriteString(tomlConfig.String())
-	if err != nil {
-		return err
-	}
-	err = file.Close()
 	if err != nil {
 		return err
 	}
@@ -86,12 +85,19 @@ func ReplaceFieldInFile(tmlFilePath, oldPath, newPath string, value any) error {
 		return fmt.Errorf("old key %s does not exist", oldPath)
 	}
 
+	var writeableValue any
+	if value == nil {
+		writeableValue = tomlCfg.Get(oldPath)
+	} else {
+		writeableValue = value
+	}
+
 	err = tomlCfg.Delete(oldPath)
 	if err != nil {
 		return err
 	}
 
-	switch v := value.(type) {
+	switch v := writeableValue.(type) {
 	case string, int, int64, float64, bool:
 		tomlCfg.Set(newPath, v)
 	default:
