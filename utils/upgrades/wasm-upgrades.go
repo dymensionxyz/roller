@@ -6,6 +6,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
+// TODO: most of upgrades are associated to dymint, dymint upgrades could be extracted into separate struct
+// based on dymint version and added to the upgrade modules to reduce code duplication
 var WasmRollappUpgradeModules = []Version{
 	{
 		VersionIdentifier: "v1.0.0-rc05",
@@ -29,7 +31,7 @@ var WasmRollappUpgradeModules = []Version{
 						},
 						{
 							Path:  "batch_acceptance_attempts",
-							Value: 5,
+							Value: "5",
 						},
 					},
 					UpgradeableValues: []UpgradeableValue{

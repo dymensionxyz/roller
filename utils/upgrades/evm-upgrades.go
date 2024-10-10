@@ -29,7 +29,7 @@ var EvmRollappUpgradeModules = []Version{
 						},
 						{
 							Path:  "batch_acceptance_attempts",
-							Value: 5,
+							Value: "5",
 						},
 					},
 					UpgradeableValues: []UpgradeableValue{
