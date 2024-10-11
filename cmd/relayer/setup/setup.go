@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -160,6 +160,12 @@ func Cmd() *cobra.Command {
 					Show()
 				if err != nil {
 					pterm.Error.Printf("failed to get your input: %v\n", err)
+					return
+				}
+			} else {
+				err = os.MkdirAll(relayerHome, 0o755)
+				if err != nil {
+					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
 					return
 				}
 			}
@@ -460,7 +466,7 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				err = verifyRelayerBalances(raData, hd)
+				err = VerifyRelayerBalances(raData, hd)
 				if err != nil {
 					return
 				}
@@ -510,7 +516,7 @@ func Cmd() *cobra.Command {
 
 				// TODO: look up relayer keys
 				if createIbcChannels || shouldOverwrite {
-					err = verifyRelayerBalances(raData, hd)
+					err = VerifyRelayerBalances(raData, hd)
 					if err != nil {
 						pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 						return
@@ -658,14 +664,17 @@ func Cmd() *cobra.Command {
 	return relayerStartCmd
 }
 
-func verifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
+func VerifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
 	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(raData, hd)
 	if err != nil {
 		return err
 	}
-	err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
-	if err != nil {
-		return err
+
+	if len(insufficientBalances) != 0 {
+		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

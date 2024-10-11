@@ -182,9 +182,11 @@ func VerifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
 		return err
 	}
 
-	err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
-	if err != nil {
-		return err
+	if len(insufficientBalances) != 0 {
+		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
