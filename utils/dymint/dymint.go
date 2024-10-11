@@ -219,37 +219,3 @@ func WaitForHealthyRollApp(url string) {
 		}
 	}
 }
-
-func IsRollappHealthy(url string) (bool, any) {
-	// nolint:gosec
-	resp, err := http.Get(url)
-	if err != nil {
-		msg := fmt.Sprintf("Error making request: %v\n", err)
-		return false, msg
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		msg := fmt.Sprintf("Error reading response body: %v\n", err)
-		return false, msg
-	}
-	// nolint:errcheck,gosec
-	resp.Body.Close()
-
-	var response RollappHealthResponse
-	if json.Valid(body) {
-		err = json.Unmarshal(body, &response)
-		if err != nil {
-			msg := fmt.Sprintf("Error unmarshaling JSON: %v\n", err)
-			return false, msg
-		}
-	} else {
-		return false, "invalid json"
-	}
-
-	if response.Result.IsHealthy {
-		return true, response.Result.Error
-	}
-
-	return true, response.Result.Error
-}

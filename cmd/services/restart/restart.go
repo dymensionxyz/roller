@@ -32,7 +32,7 @@ func Cmd(services []string) *cobra.Command {
 				return
 			}
 
-			err = restartSystemdServices(services, home)
+			err = RestartSystemdServices(services, home)
 			if err != nil {
 				pterm.Error.Println("failed to restart systemd services:", err)
 				return
@@ -42,7 +42,7 @@ func Cmd(services []string) *cobra.Command {
 	return cmd
 }
 
-func restartSystemdServices(services []string, home string) error {
+func RestartSystemdServices(services []string, home string) error {
 	if slices.Contains(services, "rollapp") {
 		rollappConfig, err := roller.LoadConfig(home)
 		errorhandling.PrettifyErrorIfExists(err)

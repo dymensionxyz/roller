@@ -148,7 +148,7 @@ func runInit(
 	}
 
 	daData = consts.DaNetworks[daNetwork]
-	rollerTomlData := map[string]string{
+	rollerTomlData := map[string]any{
 		"rollapp_id":      raID,
 		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
 		"rollapp_vm_type": string(initConfigPtr.RollappVMType),
@@ -160,12 +160,13 @@ func runInit(
 		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
 		"HubData.gas_price":       hd.GAS_PRICE,
 
-		"DA.backend":    string(daData.Backend),
-		"DA.id":         string(daData.ID),
-		"DA.api_url":    daData.ApiUrl,
-		"DA.rpc_url":    daData.RpcUrl,
-		"DA.state_node": daData.StateNode,
-		"DA.gas_price":  daData.GasPrice,
+		"DA.backend":            string(daData.Backend),
+		"DA.id":                 string(daData.ID),
+		"DA.api_url":            daData.ApiUrl,
+		"DA.rpc_url":            daData.RpcUrl,
+		"DA.current_state_node": daData.CurrentStateNode,
+		"DA.state_nodes":        daData.StateNodes,
+		"DA.gas_price":          daData.GasPrice,
 	}
 
 	for key, value := range rollerTomlData {

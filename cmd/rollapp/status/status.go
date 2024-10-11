@@ -10,7 +10,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
-	"github.com/dymensionxyz/roller/utils/dymint"
+	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -33,7 +33,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			ok, msg := dymint.IsRollappHealthy("http://localhost:26657/health")
+			ok, msg := healthagent.IsEndpointHealthy("http://localhost:26657/health")
 			if !ok {
 				start.PrintOutput(rollerConfig, string(pid), true, false, false, false)
 				fmt.Println("Unhealthy Message: ", msg)
