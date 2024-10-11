@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -18,7 +19,6 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/migrations"
@@ -66,21 +66,26 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			}
 
 			rollappConfig, err := roller.LoadConfig(home)
-			errorhandling.PrettifyErrorIfExists(err)
-
-			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 			if err != nil {
-				pterm.Error.Println("failed to check rollapp version equality: ", err)
+				pterm.Error.Println("failed to load roller config: ", err)
+				return
 			}
 
-			err = migrations.RequireRollappMigrateIfNeeded(
-				raUpgrade.CurrentVersionCommit,
-				rollappConfig.RollappBinaryVersion,
-				string(rollappConfig.RollappVMType),
-			)
-			if err != nil {
-				pterm.Error.Println(err)
-				return
+			if rollappConfig.HubData.ID != consts.MockHubID {
+				raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+				if err != nil {
+					pterm.Error.Println("failed to check rollapp version equality: ", err)
+				}
+
+				err = migrations.RequireRollappMigrateIfNeeded(
+					raUpgrade.CurrentVersionCommit,
+					rollappConfig.RollappBinaryVersion,
+					string(rollappConfig.RollappVMType),
+				)
+				if err != nil {
+					pterm.Error.Println(err)
+					return
+				}
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)
@@ -93,6 +98,10 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
+
+			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
+			go healthagent.Start(home, rollerLogger)
+
 			go bash.RunCmdAsync(
 				ctx,
 				startRollappCmd,

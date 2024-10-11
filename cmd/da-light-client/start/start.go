@@ -57,7 +57,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			damanager.SetRPCEndpoint(rollappConfig.DA.StateNode)
+			damanager.SetRPCEndpoint(rollappConfig.DA.CurrentStateNode)
 			if metricsEndpoint != "" {
 				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
@@ -94,7 +94,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", consts.DefaultCelestiaStateNode, "The DA rpc endpoint to connect to.")
+		StringP(rpcEndpointFlag, "", "mocha-4-consensus.mesa.newmetric.xyz", "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

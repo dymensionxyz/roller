@@ -13,8 +13,7 @@ const (
 	DefaultCelestiaRPC             = "http://mocha-4-consensus.mesa.newmetric.xyz:26657"
 
 	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
-	DefaultCelestiaStateNode = "mocha-4-consensus.mesa.newmetric.xyz"
-	DefaultCelestiaNetwork   = "mocha-4"
+	DefaultCelestiaNetwork = "mocha-4"
 )
 
 type DAType string
@@ -34,27 +33,42 @@ const (
 
 var DaNetworks = map[string]DaData{
 	"mock": {
-		Backend:   Local,
-		ApiUrl:    "",
-		ID:        "mock",
-		RpcUrl:    "",
-		StateNode: "",
-		GasPrice:  "",
+		Backend:          Local,
+		ApiUrl:           "",
+		ID:               "mock",
+		RpcUrl:           "",
+		CurrentStateNode: "mock",
+		StateNodes: []string{
+			"mock1",
+			"mock",
+		},
+		GasPrice: "",
 	},
 	"mocha-4": {
-		Backend:   Celestia,
-		ApiUrl:    DefaultCelestiaRestApiEndpoint,
-		ID:        CelestiaTestnet,
-		RpcUrl:    DefaultCelestiaRPC,
-		StateNode: DefaultCelestiaStateNode,
-		GasPrice:  "0.02",
+		Backend:          Celestia,
+		ApiUrl:           DefaultCelestiaRestApiEndpoint,
+		ID:               CelestiaTestnet,
+		RpcUrl:           DefaultCelestiaRPC,
+		CurrentStateNode: "mocha-4-consensus.mesa.newmetric.xyz",
+		StateNodes: []string{
+			"mocha-4-consensus.mesa.newmetric.xyz",
+			"public-celestia-mocha4-consensus.numia.xyz",
+			"mocha-4-consensus.mesa.newmetric.xyz",
+			"full.consensus.mocha-4.celestia-mocha.com",
+			"consensus-full-mocha-4.celestia-mocha.com",
+			"rpc-mocha.pops.one",
+		},
+		GasPrice: "0.02",
 	},
 	"celestia": {
-		Backend:   Celestia,
-		ApiUrl:    "api-celestia.mzonder.com",
-		ID:        CelestiaMainnet,
-		RpcUrl:    "rpc-celestia.mzonder.com",
-		StateNode: "",
-		GasPrice:  "0.002",
+		Backend:          Celestia,
+		ApiUrl:           "api-celestia.mzonder.com",
+		ID:               CelestiaMainnet,
+		RpcUrl:           "rpc-celestia.mzonder.com",
+		CurrentStateNode: "",
+		StateNodes: []string{
+			"",
+		},
+		GasPrice: "0.002",
 	},
 }

@@ -54,71 +54,9 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
-			if runtime.GOOS == "darwin" {
-				for _, service := range services {
-					serviceData := ServiceTemplateData{
-						Name:     service,
-						ExecPath: consts.Executables.Roller,
-						UserName: os.Getenv("USER"),
-					}
-
-					var tpl *bytes.Buffer
-					var err error
-
-					if service == "da-light-client" {
-						damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
-						c := damanager.GetStartDACmd()
-
-						tpl, err = generateCustomLaunchctlServiceTemplate(serviceData, c)
-						if err != nil {
-							pterm.Error.Println("failed to generate template", err)
-							return
-						}
-					} else {
-						tpl, err = generateLaunchctlServiceTemplate(serviceData)
-						if err != nil {
-							pterm.Error.Println("failed to generate template", err)
-							return
-						}
-					}
-
-					err = writeLaunchctlServiceFile(tpl, service)
-					if err != nil {
-						pterm.Error.Println("failed to write launchctl file", err)
-						return
-					}
-				}
-				pterm.Success.Printf(
-					"💈 Services %s been loaded successfully.\n",
-					strings.Join(services, ", "),
-				)
-			} else if runtime.GOOS == "linux" {
-				for _, service := range services {
-					serviceData := ServiceTemplateData{
-						Name:     service,
-						ExecPath: consts.Executables.Roller,
-						UserName: os.Getenv("USER"),
-					}
-					tpl, err := generateSystemdServiceTemplate(serviceData)
-					errorhandling.PrettifyErrorIfExists(err)
-					err = writeSystemdServiceFile(tpl, service)
-					errorhandling.PrettifyErrorIfExists(err)
-				}
-
-				_, err := bash.ExecCommandWithStdout(
-					exec.Command("sudo", "systemctl", "daemon-reload"),
-				)
-				errorhandling.PrettifyErrorIfExists(err)
-
-				pterm.Success.Printf(
-					"💈 Services %s been loaded successfully.\n",
-					strings.Join(services, ", "),
-				)
-			} else {
-				pterm.Info.Printf(
-					"the %s commands currently support only darwin and linux operating systems",
-					cmd.Use,
-				)
+			err = LoadServices(services, rollerData)
+			if err != nil {
+				pterm.Error.Println("failed to load services: ", err)
 				return
 			}
 
@@ -368,4 +306,100 @@ WantedBy=multi-user.target
 		return nil, err
 	}
 	return &tpl, nil
+}
+
+func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error {
+	for _, service := range services {
+		serviceData := ServiceTemplateData{
+			Name:     service,
+			ExecPath: consts.Executables.Roller,
+			UserName: os.Getenv("USER"),
+		}
+
+		var tpl *bytes.Buffer
+		var err error
+
+		if service == "da-light-client" {
+			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+			c := damanager.GetStartDACmd()
+
+			// during the development of ~v1.6.4 there was an issue running
+			// the da light client inside a launchctl service using the
+			// built-in roller's `roller da-light-client start` command, hence this workaround
+			// @20241011
+			tpl, err = generateCustomLaunchctlServiceTemplate(serviceData, c)
+			if err != nil {
+				pterm.Error.Println("failed to generate template", err)
+				return err
+			}
+		} else {
+			tpl, err = generateLaunchctlServiceTemplate(serviceData)
+			if err != nil {
+				pterm.Error.Println("failed to generate template", err)
+				return err
+			}
+		}
+
+		err = writeLaunchctlServiceFile(tpl, service)
+		if err != nil {
+			pterm.Error.Println("failed to write launchctl file", err)
+			return err
+		}
+	}
+	pterm.Success.Printf(
+		"💈 Services %s been loaded successfully.\n",
+		strings.Join(services, ", "),
+	)
+
+	return nil
+}
+
+func LoadLinuxServices(services []string) error {
+	for _, service := range services {
+		serviceData := ServiceTemplateData{
+			Name:     service,
+			ExecPath: consts.Executables.Roller,
+			UserName: os.Getenv("USER"),
+		}
+		tpl, err := generateSystemdServiceTemplate(serviceData)
+		errorhandling.PrettifyErrorIfExists(err)
+		err = writeSystemdServiceFile(tpl, service)
+		errorhandling.PrettifyErrorIfExists(err)
+	}
+
+	_, err := bash.ExecCommandWithStdout(
+		exec.Command("sudo", "systemctl", "daemon-reload"),
+	)
+	if err != nil {
+		pterm.Error.Println("failed to write launchctl file", err)
+		return err
+	}
+
+	pterm.Success.Printf(
+		"💈 Services %s been loaded successfully.\n",
+		strings.Join(services, ", "),
+	)
+
+	return nil
+}
+
+func LoadServices(services []string, rollerData roller.RollappConfig) error {
+	if runtime.GOOS == "darwin" {
+		err := LoadMacOsServices(services, rollerData)
+		if err != nil {
+			return err
+		}
+	} else if runtime.GOOS == "linux" {
+		err := LoadLinuxServices(services)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := fmt.Errorf(
+			"only linux and macos is currently supported",
+		)
+		return err
+	}
+
+	return nil
 }

@@ -48,7 +48,7 @@ func UpdateFieldInFile(tmlFilePath, key string, value any) error {
 	}
 
 	switch v := value.(type) {
-	case string, int, int64, float64, bool:
+	case string, int, int64, float64, bool, []string:
 		tomlCfg.Set(key, v)
 	default:
 		return fmt.Errorf("unsupported type for key %s: %T", key, value)
