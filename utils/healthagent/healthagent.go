@@ -12,13 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/services/load"
 	"github.com/dymensionxyz/roller/cmd/services/restart"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/pterm/pterm"
 )
 
 func Start(home string, l *log.Logger) {
@@ -131,6 +132,7 @@ func QueryFailedDaSubmissions(host, promMetricPort string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("error fetching metrics: %v", err)
 	}
+	// nolint: errcheck
 	defer resp.Body.Close()
 
 	scanner := bufio.NewScanner(resp.Body)
