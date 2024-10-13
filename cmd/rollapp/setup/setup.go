@@ -371,6 +371,20 @@ func Cmd() *cobra.Command {
 					pterm.Warning.Println(
 						"none of the sequencers provide p2p seed nodes this node will sync only from DA",
 					)
+				} else {
+					peers := strings.Join(peers, ",")
+					fieldsToUpdate := map[string]string{
+						"p2p_bootstrap_nodes":  peers,
+						"p2p_persistent_nodes": peers,
+					}
+					dymintFilePath := sequencer.GetDymintFilePath(rollappConfig.Home)
+
+					for k, v := range fieldsToUpdate {
+						err := tomlconfig.UpdateFieldInFile(dymintFilePath, k, v)
+						if err != nil {
+							pterm.Warning.Println("failed to add p2p peers: ", err)
+						}
+					}
 				}
 
 				// approve the data directory deletion before downloading the snapshot,
