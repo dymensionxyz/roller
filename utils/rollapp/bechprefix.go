@@ -7,21 +7,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
-	goCmd := exec.Command("which", "go")
-	goBinPath, err := bash.ExecCommandWithStdout(goCmd)
-	if err != nil {
-		return "", err
-	}
-
 	c := exec.Command(
-		strings.TrimSpace(goBinPath.String()),
+		"go",
 		"version",
 		"-m",
 		consts.Executables.RollappEVM,
@@ -64,15 +56,8 @@ func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
 }
 
 func ExtractCommitFromBinary() (string, error) {
-	goCmd := exec.Command("which", "go")
-	goBinPath, err := bash.ExecCommandWithStdout(goCmd)
-	if err != nil {
-		pterm.Error.Println("here")
-		return "", err
-	}
-
 	c := exec.Command(
-		strings.TrimSpace(goBinPath.String()),
+		"go",
 		"version",
 		"-m",
 		consts.Executables.RollappEVM,
