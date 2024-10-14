@@ -20,7 +20,12 @@ func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
 		return "", err
 	}
 
-	c := exec.Command(goBinPath.String(), "version", "-m", consts.Executables.RollappEVM)
+	c := exec.Command(
+		strings.TrimSpace(goBinPath.String()),
+		"version",
+		"-m",
+		consts.Executables.RollappEVM,
+	)
 	fmt.Println(c.String())
 
 	out, err := bash.ExecCommandWithStdout(c)
@@ -66,7 +71,12 @@ func ExtractCommitFromBinary() (string, error) {
 		return "", err
 	}
 
-	c := exec.Command(goBinPath.String(), "version", "-m", consts.Executables.RollappEVM)
+	c := exec.Command(
+		strings.TrimSpace(goBinPath.String()),
+		"version",
+		"-m",
+		consts.Executables.RollappEVM,
+	)
 	fmt.Println(c.String())
 
 	out, err := bash.ExecCommandWithStdout(c)
