@@ -545,6 +545,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			if srcIbcChannel != "" && dstIbcChannel != "" {
+				pterm.Info.Println("existing IBC channels found ")
+				pterm.Info.Println("Hub: ", srcIbcChannel)
+				pterm.Info.Println("RollApp: ", dstIbcChannel)
+				return
+			}
+
 			// TODO: remove code duplication
 			_, err = os.Stat(relayerHome)
 			if err != nil {
@@ -553,8 +560,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 			}
-
-			fmt.Println("rollapp chain data denom: ", rollappChainData.Denom)
 
 			pterm.Info.Println("initializing relayer config")
 			err = initconfig.InitializeRelayerConfig(
