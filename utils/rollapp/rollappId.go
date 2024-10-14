@@ -87,7 +87,7 @@ func ValidateChainID(id string) (ChainID, error) {
 		)
 	}
 
-	pterm.Success.Printf("'%s' is a valid RollApp ID", id)
+	pterm.Success.Printf("'%s' is a valid RollApp ID\n", id)
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,
