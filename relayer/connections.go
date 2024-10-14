@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -122,6 +123,8 @@ func (r *Relayer) GetActiveConnectionIDs(
 	)
 
 	hubConnection := hubIbcConnection.Connections[hubConnIndex]
+	j, _ := json.Marshal(hubConnection)
+	fmt.Println(string(j))
 
 	return rollappIbcConnection.Connections[0].ID, hubConnection.ID, nil
 }
