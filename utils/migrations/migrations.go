@@ -155,12 +155,12 @@ func GetCommitFromTag(owner, repo, tag string) (string, error) {
 	// nolint: errcheck
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to fetch tag data: %s", resp.Status)
-	}
-
 	if resp.StatusCode == http.StatusNotFound {
 		pterm.Warning.Println("tag not found ", tag)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to fetch tag data: %s", resp.Status)
 	}
 
 	var tagData Tag
@@ -182,15 +182,15 @@ func GetCommitTimestampByTag(owner, repo, tag string) (time.Time, error) {
 	// nolint: errcheck
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return time.Time{}, fmt.Errorf("failed to fetch tag data: %s", resp.Status)
-	}
-
 	if resp.StatusCode == http.StatusNotFound {
 		pterm.Warning.Println("tag not found ", tag)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return time.Time{}, fmt.Errorf("failed to fetch tag data: %s", resp.Status)
+	}
 	var tagData Tag
+
 	if err := json.NewDecoder(resp.Body).Decode(&tagData); err != nil {
 		return time.Time{}, err
 	}
