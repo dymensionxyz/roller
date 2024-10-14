@@ -107,7 +107,17 @@ func (r *Relayer) queryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
 
 func (r *Relayer) queryChannelsHubCmd(hd consts.HubData) *exec.Cmd {
 	args := []string{"q", "ibc", "channel", "channels"}
-	args = append(args, "--node", hd.RPC_URL, "--chain-id", hd.ID, "-o", "json")
+	args = append(
+		args,
+		"--node",
+		hd.RPC_URL,
+		"--chain-id",
+		hd.ID,
+		"-o",
+		"json",
+		"--limit",
+		"100000",
+	)
 
 	cmd := exec.Command(consts.Executables.Dymension, args...)
 
