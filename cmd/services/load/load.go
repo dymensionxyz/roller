@@ -285,6 +285,7 @@ Description=Roller {{.Name}} service
 After=network.target
 
 [Service]
+Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ExecStart={{.ExecPath}} {{.Name}} start
 Restart=on-failure
 RestartSec=10
