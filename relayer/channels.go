@@ -37,6 +37,9 @@ func (r *Relayer) LoadActiveChannel(
 		return "", "", nil
 	}
 
+	pterm.Info.Println("active connection found on the hub side: ", activeHubConnectionID)
+	pterm.Info.Println("active connection found on the rollapp side: ", activeRaConnectionID)
+
 	var raChannelResponse QueryChannelsResponse
 	rollappChannels, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(raData))
 	if err != nil {
@@ -82,6 +85,9 @@ func (r *Relayer) LoadActiveChannel(
 		},
 	)
 	hubChan := hubChannelResponse.Channels[hubChanIndex]
+
+	pterm.Info.Println("active channel found on the hub side: ", hubChan)
+	pterm.Info.Println("active channel found on the rollapp side: ", raChan)
 
 	spinner.Success("IBC channels loaded successfully")
 
