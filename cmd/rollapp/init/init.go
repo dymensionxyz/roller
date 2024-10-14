@@ -58,9 +58,25 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var hd consts.HubData
+			var env string
+			var raID string
+
+			if shouldUseMockBackend {
+				env = "mock"
+			}
+
+			if !isMockFlagSet && !shouldUseMockBackend {
+				envs := []string{"mock", "playground", "custom"}
+				env, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the environment you want to initialize for").
+					WithOptions(envs).
+					Show()
+			}
+
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
-			if !shouldUseMockBackend {
+			if !shouldUseMockBackend && env != "custom" {
 				dymdBinaryOptions := types.Dependency{
 					DependencyName:  "dymension",
 					RepositoryOwner: "dymensionxyz",
@@ -84,22 +100,55 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			var hd consts.HubData
-			var env string
-			var raID string
+			if env != "custom" {
+				hd = consts.Hubs[env]
+			} else {
+				id, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").Show()
+				rpcUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide hub rpc endpoint (including port, example: http://dym.dev:26657)",
+				).Show()
+				restUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide hub rest api endpoint (including port, example: http://dym.dev:1318)",
+				).Show()
+				gasPrice, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide gas price").
+					WithDefaultValue("2000000000").Show()
 
-			if shouldUseMockBackend {
-				env = "mock"
-			}
+				hd = consts.HubData{
+					API_URL:         restUrl,
+					ID:              id,
+					RPC_URL:         rpcUrl,
+					ARCHIVE_RPC_URL: rpcUrl,
+					GAS_PRICE:       gasPrice,
+				}
 
-			if !isMockFlagSet && !shouldUseMockBackend {
-				envs := []string{"mock", "playground"}
-				env, _ = pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(envs).
-					Show()
+				dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide dymensionxyz/dymension commit to build (example: 2cd612aaa6c21b473dbbb7dca9fd03b5aaae6583)",
+				).Show()
+
+				dymdDep := types.Dependency{
+					DependencyName:  "dymension",
+					RepositoryOwner: "dymensionxyz",
+					RepositoryName:  "dymension",
+					RepositoryUrl:   "https://github.com/dymensionxyz/dymension.git",
+					Release:         dymdCommit,
+					Binaries: []types.BinaryPathPair{
+						{
+							Binary:            "./build/dymd",
+							BinaryDestination: consts.Executables.Dymension,
+							BuildCommand: exec.Command(
+								"make",
+								"build",
+							),
+						},
+					},
+					PersistFiles: []types.PersistFile{},
+				}
+
+				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
+				if err != nil {
+					return
+				}
 			}
-			hd = consts.Hubs[env]
 
 			if len(args) != 0 {
 				raID = args[0]
@@ -128,7 +177,8 @@ func Cmd() *cobra.Command {
 						VmType:    vmtype,
 					},
 				}
-				_, _, err = dependencies.InstallBinaries(home, true, raRespMock)
+
+				_, _, err = dependencies.InstallBinaries(true, raRespMock)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
@@ -173,7 +223,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(home, false, raResponse)
+			builtDeps, _, err := dependencies.InstallBinaries(false, raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
