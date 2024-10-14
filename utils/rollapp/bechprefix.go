@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
@@ -57,6 +59,7 @@ func ExtractCommitFromBinary() (string, error) {
 	goCmd := exec.Command("which", "go")
 	goBinPath, err := bash.ExecCommandWithStdout(goCmd)
 	if err != nil {
+		pterm.Error.Println("here")
 		return "", err
 	}
 
