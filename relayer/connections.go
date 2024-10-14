@@ -210,6 +210,7 @@ func (r *Relayer) queryConnectionRollappCmd(
 	return cmd
 }
 
+// TODO: refactor the limit
 func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
 	args := []string{
 		"q",
@@ -222,6 +223,8 @@ func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
 		hd.RPC_URL,
 		"-o",
 		"json",
+		"--limit",
+		"100000",
 	}
 
 	return exec.Command(consts.Executables.Dymension, args...)
