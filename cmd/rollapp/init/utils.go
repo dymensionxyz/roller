@@ -23,6 +23,7 @@ import (
 func runInit(
 	cmd *cobra.Command,
 	env string,
+	customHubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 ) error {
 	raID := raResp.Rollapp.RollappId
@@ -34,7 +35,12 @@ func runInit(
 	}
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
-	hd := consts.Hubs[env]
+	var hd consts.HubData
+	if env != "custom" {
+		hd = consts.Hubs[env]
+	} else {
+		hd = customHubData
+	}
 	// TODO: refactor
 	var initConfigPtr *roller.RollappConfig
 
