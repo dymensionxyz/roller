@@ -141,6 +141,12 @@ func runInit(
 		} else {
 			return fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
+	case "custom":
+		if daBackend == string(consts.Celestia) {
+			daNetwork = string(consts.CelestiaTestnet)
+		} else {
+			return fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
 	case "mock":
 		daNetwork = "mock"
 	default:
