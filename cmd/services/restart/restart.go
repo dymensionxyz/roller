@@ -7,16 +7,17 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
+
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/upgrades"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 func Cmd(services []string) *cobra.Command {
@@ -47,18 +48,20 @@ func RestartSystemdServices(services []string, home string) error {
 		rollappConfig, err := roller.LoadConfig(home)
 		errorhandling.PrettifyErrorIfExists(err)
 
-		raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
-		if err != nil {
-			pterm.Error.Println("failed to check rollapp version equality: ", err)
-		}
+		if rollappConfig.HubData.ID != consts.MockHubID {
+			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+			if err != nil {
+				pterm.Error.Println("failed to check rollapp version equality: ", err)
+			}
 
-		err = migrations.RequireRollappMigrateIfNeeded(
-			raUpgrade.CurrentVersionCommit,
-			rollappConfig.RollappBinaryVersion,
-			string(rollappConfig.RollappVMType),
-		)
-		if err != nil {
-			return err
+			err = migrations.RequireRollappMigrateIfNeeded(
+				raUpgrade.CurrentVersionCommit,
+				rollappConfig.RollappBinaryVersion,
+				string(rollappConfig.RollappVMType),
+			)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

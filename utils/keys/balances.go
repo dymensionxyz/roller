@@ -22,7 +22,7 @@ func PrintInsufficientBalancesIfAny(
 	addressesData []NotFundedAddressData,
 ) error {
 	if len(addressesData) == 0 {
-		return errors.New("no addresses to print")
+		return nil
 	}
 
 	printAddresses := func() {

@@ -24,7 +24,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(home string, withMockDA bool, raResp rollapp.ShowRollappResponse) (
+func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	map[string]types.Dependency,
 	map[string]types.Dependency,
 	error,

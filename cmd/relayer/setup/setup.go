@@ -151,17 +151,7 @@ func Cmd() *cobra.Command {
 
 			var shouldOverwrite bool
 			if isRelayerInitialized {
-				msg := fmt.Sprintf(
-					"Directory %s is not empty. Do you want to overwrite it?",
-					relayerHome,
-				)
-				shouldOverwrite, err = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
-					WithDefaultValue(false).
-					Show()
-				if err != nil {
-					pterm.Error.Printf("failed to get your input: %v\n", err)
-					return
-				}
+				pterm.Info.Println("relayer already initialized")
 			} else {
 				err = os.MkdirAll(relayerHome, 0o755)
 				if err != nil {
@@ -170,30 +160,30 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if shouldOverwrite {
-				pterm.Info.Println("overriding the existing relayer configuration")
-				err = os.RemoveAll(relayerHome)
-				if err != nil {
-					pterm.Error.Printf(
-						"failed to recuresively remove %s: %v\n",
-						relayerHome,
-						err,
-					)
-					return
-				}
-
-				err := filesystem.RemoveServiceFiles(consts.RelayerSystemdServices)
-				if err != nil {
-					pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
-					return
-				}
-
-				err = os.MkdirAll(relayerHome, 0o755)
-				if err != nil {
-					pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
-					return
-				}
-			}
+			// if shouldOverwrite {
+			// 	pterm.Info.Println("overriding the existing relayer configuration")
+			// 	err = os.RemoveAll(relayerHome)
+			// 	if err != nil {
+			// 		pterm.Error.Printf(
+			// 			"failed to recuresively remove %s: %v\n",
+			// 			relayerHome,
+			// 			err,
+			// 		)
+			// 		return
+			// 	}
+			//
+			// 	err := filesystem.RemoveServiceFiles(consts.RelayerSystemdServices)
+			// 	if err != nil {
+			// 		pterm.Error.Printf("failed to remove relayer systemd services: %v\n", err)
+			// 		return
+			// 	}
+			//
+			// 	err = os.MkdirAll(relayerHome, 0o755)
+			// 	if err != nil {
+			// 		pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
+			// 		return
+			// 	}
+			// }
 
 			srcIbcChannel, dstIbcChannel, err := rly.LoadActiveChannel(raData, hd)
 			if err != nil {
@@ -555,6 +545,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			if srcIbcChannel != "" && dstIbcChannel != "" {
+				pterm.Info.Println("existing IBC channels found ")
+				pterm.Info.Println("Hub: ", srcIbcChannel)
+				pterm.Info.Println("RollApp: ", dstIbcChannel)
+				return
+			}
+
 			// TODO: remove code duplication
 			_, err = os.Stat(relayerHome)
 			if err != nil {
@@ -563,8 +560,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 			}
-
-			fmt.Println("rollapp chain data denom: ", rollappChainData.Denom)
 
 			pterm.Info.Println("initializing relayer config")
 			err = initconfig.InitializeRelayerConfig(

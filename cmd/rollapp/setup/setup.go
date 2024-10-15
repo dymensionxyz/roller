@@ -630,7 +630,7 @@ func Cmd() *cobra.Command {
 
 				err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 				if err != nil {
-					pterm.Error.Println("failed to check insufficien balances: ", err)
+					pterm.Error.Println("failed to check insufficient balances: ", err)
 					return
 				}
 

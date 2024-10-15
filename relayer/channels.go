@@ -37,6 +37,9 @@ func (r *Relayer) LoadActiveChannel(
 		return "", "", nil
 	}
 
+	pterm.Info.Println("active connection found on the hub side: ", activeHubConnectionID)
+	pterm.Info.Println("active connection found on the rollapp side: ", activeRaConnectionID)
+
 	var raChannelResponse QueryChannelsResponse
 	rollappChannels, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(raData))
 	if err != nil {
@@ -83,6 +86,9 @@ func (r *Relayer) LoadActiveChannel(
 	)
 	hubChan := hubChannelResponse.Channels[hubChanIndex]
 
+	pterm.Info.Println("active channel found on the hub side: ", hubChan.ChannelID)
+	pterm.Info.Println("active channel found on the rollapp side: ", raChan.ChannelID)
+
 	spinner.Success("IBC channels loaded successfully")
 
 	r.SrcChannel = hubChan.ChannelID
@@ -101,7 +107,17 @@ func (r *Relayer) queryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
 
 func (r *Relayer) queryChannelsHubCmd(hd consts.HubData) *exec.Cmd {
 	args := []string{"q", "ibc", "channel", "channels"}
-	args = append(args, "--node", hd.RPC_URL, "--chain-id", hd.ID, "-o", "json")
+	args = append(
+		args,
+		"--node",
+		hd.RPC_URL,
+		"--chain-id",
+		hd.ID,
+		"-o",
+		"json",
+		"--limit",
+		"100000",
+	)
 
 	cmd := exec.Command(consts.Executables.Dymension, args...)
 

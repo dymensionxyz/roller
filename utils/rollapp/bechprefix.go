@@ -2,6 +2,7 @@ package rollapp
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -11,7 +12,14 @@ import (
 )
 
 func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
-	c := exec.Command("go", "version", "-m", consts.Executables.RollappEVM)
+	c := exec.Command(
+		"go",
+		"version",
+		"-m",
+		consts.Executables.RollappEVM,
+	)
+	fmt.Println(c.String())
+
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
 		return "", err
@@ -48,7 +56,14 @@ func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
 }
 
 func ExtractCommitFromBinary() (string, error) {
-	c := exec.Command("go", "version", "-m", consts.Executables.RollappEVM)
+	c := exec.Command(
+		"go",
+		"version",
+		"-m",
+		consts.Executables.RollappEVM,
+	)
+	fmt.Println(c.String())
+
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
 		return "", err

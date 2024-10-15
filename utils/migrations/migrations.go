@@ -11,6 +11,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
 )
@@ -155,6 +156,16 @@ func GetCommitFromTag(owner, repo, tag string) (string, error) {
 	// nolint: errcheck
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNotFound {
+		pterm.Warning.Println("tag not found, extracting commit from build flags ", tag)
+		commit, err := rollapp.ExtractCommitFromBinary()
+		if err != nil {
+			return "", err
+		}
+
+		return commit, nil
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to fetch tag data: %s", resp.Status)
 	}
@@ -178,11 +189,21 @@ func GetCommitTimestampByTag(owner, repo, tag string) (time.Time, error) {
 	// nolint: errcheck
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNotFound {
+		pterm.Warning.Println("tag not found, extracting commit from build flags ", tag)
+		commit, err := rollapp.ExtractCommitFromBinary()
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		return GetCommitTimestamp(owner, repo, commit)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return time.Time{}, fmt.Errorf("failed to fetch tag data: %s", resp.Status)
 	}
-
 	var tagData Tag
+
 	if err := json.NewDecoder(resp.Body).Decode(&tagData); err != nil {
 		return time.Time{}, err
 	}
