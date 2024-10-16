@@ -177,7 +177,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
+			builtDeps, _, err := dependencies.InstallBinaries(false, raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -225,7 +225,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, *raResponse)
+			err = runInit(cmd, env, hd, raResponse)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return

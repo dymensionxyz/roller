@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
