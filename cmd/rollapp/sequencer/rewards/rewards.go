@@ -2,7 +2,6 @@ package rewards
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -49,17 +48,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			getRaCmd := rollapp.GetRollappCmd(rollerCfg.RollappID, rollerCfg.HubData)
-			var raResponse rollapp.ShowRollappResponse
-			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			raResponse, err := rollapp.GetMetadataFromChain(rollerCfg.RollappID, rollerCfg.HubData)
 			if err != nil {
-				pterm.Error.Println("failed to get rollapp: ", err)
-				return
-			}
-
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
 

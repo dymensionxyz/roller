@@ -65,7 +65,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollerData, err := roller.LoadConfig(home)
+			localRollerConfig, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
@@ -76,10 +76,10 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
 
-			rollappConfig, err := rollapp.GetRollappMetadataFromChain(
+			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
-				rollerData.RollappID,
-				&hd,
+				localRollerConfig.RollappID,
+				hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -93,17 +93,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			getRaCmd := rollapp.GetRollappCmd(rollerData.RollappID, rollerData.HubData)
-			var raResponse rollapp.ShowRollappResponse
-			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			raResponse, err := rollapp.GetMetadataFromChain(localRollerConfig.RollappID, hd)
 			if err != nil {
-				pterm.Error.Println("failed to get rollapp: ", err)
-				return
-			}
-
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
 
@@ -140,7 +132,7 @@ func Cmd() *cobra.Command {
 			case "sequencer":
 				canRegister, err := sequencer.CanSequencerBeRegisteredForRollapp(
 					raResponse.Rollapp.RollappId,
-					rollerData.HubData,
+					localRollerConfig.HubData,
 				)
 				if err != nil {
 					pterm.Error.Println(
@@ -521,7 +513,7 @@ func Cmd() *cobra.Command {
 							rollappConfig.RollappID,
 						)
 
-						height, blockIdHash, err := celestia.GetLatestBlock(rollerData)
+						height, blockIdHash, err := celestia.GetLatestBlock(localRollerConfig)
 						if err != nil {
 							return
 						}
@@ -571,7 +563,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 
-					height, hash, err := celestia.GetBlockByHeight(h, rollerData)
+					height, hash, err := celestia.GetBlockByHeight(h, localRollerConfig)
 					if err != nil {
 						pterm.Error.Println("failed to retrieve block: ", err)
 						return

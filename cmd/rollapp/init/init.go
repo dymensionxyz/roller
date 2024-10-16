@@ -2,7 +2,6 @@ package initrollapp
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -12,10 +11,8 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/dependencies"
-	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -42,75 +39,31 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			isMockFlagSet := cmd.Flags().Changed("mock")
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
-			// check whether roller was already initialized on the host
+			// preflight checks
+			var env string
+			var raID string
+
 			err = filesystem.CreateDirWithOptionalOverwrite(home)
 			if err != nil {
 				pterm.Error.Println("failed to create roller home directory: ", err)
 				return
 			}
-
 			isFirstInitialization, err := roller.CreateConfigFile(home)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
 
-			var hd consts.HubData
-			var env string
-			var raID string
-
 			if shouldUseMockBackend {
 				env = "mock"
-			}
-
-			if !isMockFlagSet && !shouldUseMockBackend {
+			} else {
 				envs := []string{"mock", "playground", "custom"}
 				env, _ = pterm.DefaultInteractiveSelect.
 					WithDefaultText("select the environment you want to initialize for").
 					WithOptions(envs).
 					Show()
-			}
-
-			// TODO: move to consts
-			// TODO(v2):  move to roller config
-			if !shouldUseMockBackend && env != "custom" {
-				dymdBinaryOptions := types.Dependency{
-					DependencyName:  "dymension",
-					RepositoryOwner: "dymensionxyz",
-					RepositoryName:  "dymension",
-					RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-					Release:         "v3.1.0-pg07",
-					Binaries: []types.BinaryPathPair{
-						{
-							Binary:            "dymd",
-							BinaryDestination: consts.Executables.Dymension,
-							BuildCommand:      exec.Command("make", "build"),
-						},
-					},
-					PersistFiles: []types.PersistFile{},
-				}
-				pterm.Info.Println("installing dependencies")
-				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
-				if err != nil {
-					pterm.Error.Println("failed to install dymd: ", err)
-					return
-				}
-			}
-
-			if env != "custom" {
-				hd = consts.Hubs[env]
-			} else {
-				hd = config.CreateCustomHubData()
-				dymdDep := dependencies.CustomDymdDependency()
-
-				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
-				if err != nil {
-					pterm.Error.Println("failed to install custom dymd version: ", err)
-					return
-				}
 			}
 
 			if len(args) != 0 {
@@ -121,14 +74,24 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 			raID = strings.TrimSpace(raID)
-
 			_, err = rollapp.ValidateChainID(raID)
 			if err != nil {
 				pterm.Error.Println("failed to validate chain id: ", err)
 				return
 			}
 
-			if env == "mock" {
+			var hd consts.HubData
+			// env handling
+			switch env {
+			case "custom":
+				hd = config.CreateCustomHubData()
+				dymdDep := dependencies.CustomDymdDependency()
+
+				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
+				if err != nil {
+					return
+				}
+			case "mock":
 				vmType := config.PromptVmType()
 				raRespMock := rollapp.ShowRollappResponse{
 					Rollapp: rollapp.Rollapp{
@@ -153,8 +116,17 @@ func Cmd() *cobra.Command {
 					return
 				}
 				return
+			default:
+				hd = consts.Hubs[env]
+				dymdDep := dependencies.DefaultDymdDependency()
+				err = dependencies.InstallBinaryFromRelease(dymdDep)
+				if err != nil {
+					pterm.Error.Println("failed to install dymd: ", err)
+					return
+				}
 			}
 
+			// default flow
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
@@ -175,7 +147,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, raResponse)
+			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -193,7 +165,6 @@ func Cmd() *cobra.Command {
 					"roller_version":         version.BuildVersion,
 					"rollapp_binary_version": builtDeps["rollapp"].Release,
 				}
-
 				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
 				if err != nil {
 					pterm.Error.Println("failed to update roller config file: ", err)
@@ -217,7 +188,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, raResponse)
+			err = runInit(cmd, env, hd, *raResponse)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
