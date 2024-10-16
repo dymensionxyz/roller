@@ -57,6 +57,21 @@ func UpdateFieldInFile(tmlFilePath, key string, value any) error {
 	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
 }
 
+func UpdateFieldsInFile(tmlFilePath string, fields map[string]interface{}) error {
+	for k, v := range fields {
+		err := UpdateFieldInFile(
+			tmlFilePath,
+			k,
+			v,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func RemoveFieldFromFile(tmlFilePath, keyPath string) error {
 	tomlCfg, err := toml.LoadFile(tmlFilePath)
 	if err != nil {
