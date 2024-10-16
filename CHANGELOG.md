@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.7.0-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc02...v1.7.0-alpha-rc02) (2024-10-16)
+
+
+### Features
+
+* add `rollapp migrate` command for config migrations ([#1067](https://github.com/dymensionxyz/roller/issues/1067)) ([358ac6c](https://github.com/dymensionxyz/roller/commit/358ac6c33de92a98c67e4f1dd3c153d32f7e51ef))
+* add cmd to export a grafana dashboard with vital metrics ([#1058](https://github.com/dymensionxyz/roller/issues/1058)) ([a475d5b](https://github.com/dymensionxyz/roller/commit/a475d5b8e511a8f88b598ab66cceb67ae6d909cc))
+* add health agent for hotswapping unhealthy da node ([#1070](https://github.com/dymensionxyz/roller/issues/1070)) ([f5c4f70](https://github.com/dymensionxyz/roller/commit/f5c4f70c558069c9994bc4ea4081348eea075796))
+* add support for different full node types (rpc and archive) ([#1052](https://github.com/dymensionxyz/roller/issues/1052)) ([b560aa9](https://github.com/dymensionxyz/roller/commit/b560aa9cc5905bbf1732cb1bd98829076df95d60))
+* add the ability to manage rollapp keys ([#1054](https://github.com/dymensionxyz/roller/issues/1054)) ([3d1b220](https://github.com/dymensionxyz/roller/commit/3d1b22071678faa5f0bf7aabab5537d1649e4ecc))
+* **eibc:** prompts user for fee percentage for the rollapp upon init ([#1059](https://github.com/dymensionxyz/roller/issues/1059)) ([b6ec48a](https://github.com/dymensionxyz/roller/commit/b6ec48a14539d0b5ea7c863f85f9f5b685494bc2))
+* it should be possible to import an existing `hub_sequencer` key ([#1045](https://github.com/dymensionxyz/roller/issues/1045)) ([a0644a8](https://github.com/dymensionxyz/roller/commit/a0644a878aa7542ff991c8fe0eccc1d4551971ee))
+* it should be possible to run relayer for any rollapp when there's an active IBC connection ([#1042](https://github.com/dymensionxyz/roller/issues/1042)) ([d3e3913](https://github.com/dymensionxyz/roller/commit/d3e3913863964d204348c70134b8553367f46b8a))
+
+
+### Bug Fixes
+
+* add `extra-codecs` to relayer config root ([#1038](https://github.com/dymensionxyz/roller/issues/1038)) ([70fd554](https://github.com/dymensionxyz/roller/commit/70fd554eb7cfea03183591a41b1ae46588f27313))
+* add p2p peers to dymint config ([abf0d7e](https://github.com/dymensionxyz/roller/commit/abf0d7e6ac178aebe3ab007a740a3a7a1fed93c7))
+* all "next steps" messages should be last ([#1025](https://github.com/dymensionxyz/roller/issues/1025)) ([e617da5](https://github.com/dymensionxyz/roller/commit/e617da5c26390f583dcf3d5eb99a105f2e2c74a0))
+* coin type should be 60 for all keys ([#1035](https://github.com/dymensionxyz/roller/issues/1035)) ([7c95e1e](https://github.com/dymensionxyz/roller/commit/7c95e1e1a0e5859e465a6c13ca0a51754c38c6dc))
+* **doc:** updated docs link in readme ([#1064](https://github.com/dymensionxyz/roller/issues/1064)) ([0edb047](https://github.com/dymensionxyz/roller/commit/0edb047d0b5783dac4aed7ac378ba4c463a8220e))
+* eibc client should not rely on roller config ([#1024](https://github.com/dymensionxyz/roller/issues/1024)) ([94dd1d0](https://github.com/dymensionxyz/roller/commit/94dd1d03e6398015b367513cb26f5290d149748d))
+* handle rollapp's vm type properly during dep installation ([a31f605](https://github.com/dymensionxyz/roller/commit/a31f60552b8c2b9c73e069fb1f18ae6dcdd5ecae))
+* handle the initial sequencer ([#1027](https://github.com/dymensionxyz/roller/issues/1027)) ([c2934b2](https://github.com/dymensionxyz/roller/commit/c2934b25a7e330fe35b9926062bb649c1cc49f79))
+* improve custom env support for rollapp and relayer ([#1073](https://github.com/dymensionxyz/roller/issues/1073)) ([3fa7d04](https://github.com/dymensionxyz/roller/commit/3fa7d049b7154b2b760a21f878f741e036c2287a))
+* mock da backend initialization ([88b2724](https://github.com/dymensionxyz/roller/commit/88b2724338064ce45d9af003af0058be637ab5bb))
+* relayer `setup` and `start` commands should handle metadata from chain ([#1044](https://github.com/dymensionxyz/roller/issues/1044)) ([15bf087](https://github.com/dymensionxyz/roller/commit/15bf087d93b0ac4bd198412c4b1e880f94d783e9))
+* relayer setup flow for new and existing ibc channels ([#1072](https://github.com/dymensionxyz/roller/issues/1072)) ([55afb56](https://github.com/dymensionxyz/roller/commit/55afb56dca1f3a94ddff8d6e1f584cac11afc3b7))
+* **relayer:** initialization for remote rollapp on empty host ([4fde0ff](https://github.com/dymensionxyz/roller/commit/4fde0ff5814717e204ea9046a4fde79069df2198))
+* require user to run `eibc init` before `start` ([#1023](https://github.com/dymensionxyz/roller/issues/1023)) ([61a002f](https://github.com/dymensionxyz/roller/commit/61a002fa3a7913f2f1d232b0c8efbefb0912d211))
+* set cointype to 118 for wasm rollapp ([#1036](https://github.com/dymensionxyz/roller/issues/1036)) ([09b708e](https://github.com/dymensionxyz/roller/commit/09b708edd354a9b6b0d8191bc54f800713617167))
+* show da balance in status ([#1026](https://github.com/dymensionxyz/roller/issues/1026)) ([d9c17f9](https://github.com/dymensionxyz/roller/commit/d9c17f95d469b04eba143f141398275fafaafa6f))
+* wait for valid ra height relayer setup ([#1020](https://github.com/dymensionxyz/roller/issues/1020)) ([4f8462a](https://github.com/dymensionxyz/roller/commit/4f8462ab3168fc0f5a35ec374983a48bebbd6c04))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
