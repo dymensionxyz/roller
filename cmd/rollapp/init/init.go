@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -14,7 +14,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -130,15 +129,11 @@ func Cmd() *cobra.Command {
 			}
 
 			if env == "mock" {
-				vmtypes := []string{"evm", "wasm"}
-				vmtype, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the rollapp VM type you want to initialize for").
-					WithOptions(vmtypes).
-					Show()
+				vmType := config.PromptVmType()
 				raRespMock := rollapp.ShowRollappResponse{
 					Rollapp: rollapp.Rollapp{
 						RollappId: raID,
-						VmType:    vmtype,
+						VmType:    vmType,
 					},
 				}
 
@@ -194,21 +189,15 @@ func Cmd() *cobra.Command {
 			if isFirstInitialization {
 				rollerConfigFilePath := roller.GetConfigPath(home)
 
-				valuesToUpdate := map[string]string{
+				fieldsToUpdate := map[string]any{
 					"roller_version":         version.BuildVersion,
 					"rollapp_binary_version": builtDeps["rollapp"].Release,
 				}
 
-				for k, v := range valuesToUpdate {
-					err := tomlconfig.UpdateFieldInFile(
-						rollerConfigFilePath,
-						k,
-						v,
-					)
-					if err != nil {
-						pterm.Error.Println("failed to update roller config file: ", err)
-						return
-					}
+				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+				if err != nil {
+					pterm.Error.Println("failed to update roller config file: ", err)
+					return
 				}
 			}
 

@@ -373,17 +373,15 @@ func Cmd() *cobra.Command {
 					)
 				} else {
 					peers := strings.Join(peers, ",")
-					fieldsToUpdate := map[string]string{
+					fieldsToUpdate := map[string]any{
 						"p2p_bootstrap_nodes":  peers,
 						"p2p_persistent_nodes": peers,
 					}
 					dymintFilePath := sequencer.GetDymintFilePath(rollappConfig.Home)
 
-					for k, v := range fieldsToUpdate {
-						err := tomlconfig.UpdateFieldInFile(dymintFilePath, k, v)
-						if err != nil {
-							pterm.Warning.Println("failed to add p2p peers: ", err)
-						}
+					err = tomlconfig.UpdateFieldsInFile(dymintFilePath, fieldsToUpdate)
+					if err != nil {
+						pterm.Warning.Println("failed to add p2p peers: ", err)
 					}
 				}
 
@@ -644,8 +642,13 @@ func Cmd() *cobra.Command {
 					consts.NodeType.FullNode,
 				)
 
-				vtu := map[string]string{
+				vtu := map[string]any{
 					"p2p_advertising_enabled": "true",
+				}
+				err := tomlconfig.UpdateFieldsInFile(dymintConfigPath, vtu)
+				if err != nil {
+					pterm.Error.Println("failed to update dymint config", err)
+					return
 				}
 
 				fullNodeTypes := []string{"rpc", "archive"}
@@ -669,32 +672,14 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				for k, v := range vtu {
-					err = tomlconfig.UpdateFieldInFile(
-						dymintConfigPath,
-						k, v,
-					)
-					if err != nil {
-						pterm.Error.Printf("failed to update `%s` field", k)
-						return
-					}
+				err = tomlconfig.UpdateFieldsInFile(appConfigPath, fnVtu)
+				if err != nil {
+					pterm.Error.Println("failed to update app config", err)
+					return
 				}
-
-				for fnK, fnV := range fnVtu {
-					err = tomlconfig.UpdateFieldInFile(
-						appConfigPath,
-						fnK, fnV,
-					)
-					if err != nil {
-						pterm.Error.Printf("failed to update `%s` field", fnK)
-						return
-					}
-				}
-
 			default:
 				pterm.Error.Println("unsupported node type")
 				return
-
 			}
 
 			daNamespace := damanager.DataLayer.GetNamespaceID()
