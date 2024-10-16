@@ -73,7 +73,7 @@ func addCommasToNum(number string) string {
 	return result.String()
 }
 
-func (c RollappConfig) Validate() error {
+func (c RollappConfig) ValidateConfig() error {
 	err := VerifyHubData(c.HubData)
 	if err != nil {
 		return err

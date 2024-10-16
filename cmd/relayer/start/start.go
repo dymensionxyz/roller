@@ -2,12 +2,10 @@ package start
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -16,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/logging"
@@ -92,17 +91,9 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				hd = config.CreateCustomHubData()
 			}
 
-			getRaCmd := rollapp.GetRollappCmd(raChainID, hd)
-			var raResponse rollapp.ShowRollappResponse
-
-			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			raResponse, err := rollapp.GetMetadataFromChain(raChainID, hd)
 			if err != nil {
-				pterm.Error.Println("failed to get rollapp: ", err)
-				return
-			}
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
 

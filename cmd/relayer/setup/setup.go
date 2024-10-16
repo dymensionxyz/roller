@@ -190,10 +190,10 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			logFileOption := logging.WithLoggerLogging(relayerLogger)
 
-			rollappChainData, err := rollapp.GetRollappMetadataFromChain(
+			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				raData.ID,
-				&hd,
+				hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -471,7 +471,7 @@ func Cmd() *cobra.Command {
 
 				// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
-				err = rollerData.Validate()
+				err = rollerData.ValidateConfig()
 				if err != nil {
 					pterm.Error.Printf("failed to validate rollapp config: %v\n", err)
 					return

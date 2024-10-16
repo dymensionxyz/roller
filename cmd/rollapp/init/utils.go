@@ -56,10 +56,10 @@ func runInit(
 			return err
 		}
 	} else {
-		initConfigPtr, err = rollapp.GetRollappMetadataFromChain(
+		initConfigPtr, err = rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 			home,
 			raID,
-			&hd,
+			hd,
 		)
 		if err != nil {
 			errorhandling.PrettifyErrorIfExists(err)
@@ -193,7 +193,7 @@ func runInit(
 		}
 	}
 
-	err = initConfig.Validate()
+	err = initConfig.ValidateConfig()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
