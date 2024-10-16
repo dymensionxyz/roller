@@ -86,8 +86,8 @@ func (r *Relayer) LoadActiveChannel(
 	)
 	hubChan := hubChannelResponse.Channels[hubChanIndex]
 
-	pterm.Info.Println("active channel found on the hub side:", hubChan.ChannelID)
-	pterm.Info.Println("active channel found on the rollapp side:", raChan.ChannelID)
+	pterm.Info.Println("active channel found on the hub side: ", hubChan.ChannelID)
+	pterm.Info.Println("active channel found on the rollapp side: ", raChan.ChannelID)
 
 	spinner.Success("IBC channels loaded successfully")
 
