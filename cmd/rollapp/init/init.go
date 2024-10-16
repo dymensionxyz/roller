@@ -103,9 +103,10 @@ func Cmd() *cobra.Command {
 			if env != "custom" {
 				hd = consts.Hubs[env]
 			} else {
-				hd = config.GenerateCustomHubData()
+				hd = config.CreateCustomHubData()
+				dymdDep := dependencies.CustomDymdDependency()
 
-				err = dependencies.InstallCustomDymdVersion()
+				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
 				if err != nil {
 					pterm.Error.Println("failed to install custom dymd version: ", err)
 					return
