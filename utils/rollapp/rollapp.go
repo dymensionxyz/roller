@@ -184,12 +184,9 @@ func GetRollappMetadataFromChain(
 	var DA consts.DaData
 
 	switch hd.ID {
-	case consts.PlaygroundHubID:
-		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
-	// case consts.MainnetHubID:
-	// 	DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+	case consts.MockHubID:
 	default:
-		fmt.Println("unsupported Hub: ", hd.ID)
+		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
 	}
 
 	cfg = roller.RollappConfig{

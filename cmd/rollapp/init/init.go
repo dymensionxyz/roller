@@ -113,6 +113,11 @@ func Cmd() *cobra.Command {
 				gasPrice, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide gas price").
 					WithDefaultValue("2000000000").Show()
 
+				id = strings.TrimSpace(id)
+				rpcUrl = strings.TrimSpace(rpcUrl)
+				restUrl = strings.TrimSpace(restUrl)
+				gasPrice = strings.TrimSpace(gasPrice)
+
 				hd = consts.HubData{
 					API_URL:         restUrl,
 					ID:              id,
@@ -124,6 +129,7 @@ func Cmd() *cobra.Command {
 				dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 					"provide dymensionxyz/dymension commit to build (example: 2cd612aaa6c21b473dbbb7dca9fd03b5aaae6583)",
 				).Show()
+				dymdCommit = strings.TrimSpace(dymdCommit)
 
 				dymdDep := types.Dependency{
 					DependencyName:  "dymension",
@@ -186,6 +192,7 @@ func Cmd() *cobra.Command {
 				err := runInit(
 					cmd,
 					env,
+					consts.HubData{},
 					raRespMock,
 				)
 				if err != nil {
@@ -271,7 +278,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, raResponse)
+			err = runInit(cmd, env, hd, raResponse)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
