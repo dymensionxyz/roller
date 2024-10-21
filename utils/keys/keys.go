@@ -9,10 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/pterm/pterm"
 )
 
 func ParseAddressFromOutput(output bytes.Buffer) (*KeyInfo, error) {
@@ -79,39 +76,4 @@ func IsAddressWithNameInKeyring(
 			return strings.EqualFold(i.Name, info.ID)
 		},
 	), nil
-}
-
-func GenerateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
-	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like to import an existing sequencer key?",
-	).Show()
-
-	var addr []KeyInfo
-	var err error
-
-	if useExistingSequencerWallet {
-		kc, err := NewKeyConfig(
-			consts.ConfigDirName.HubKeys,
-			consts.KeysIds.HubSequencer,
-			consts.Executables.Dymension,
-			consts.SDK_ROLLAPP,
-			WithRecover(),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		ki, err := kc.Create(home)
-		if err != nil {
-			return nil, err
-		}
-		addr = append(addr, *ki)
-	} else {
-		addr, err = GenerateSequencersKeys(rollerData)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return addr, nil
 }
