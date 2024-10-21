@@ -70,20 +70,12 @@ func runInit(
 	var addresses []keys.KeyInfo
 	var k []keys.KeyInfo
 
-	if env == "mock" {
-		k, err = keys.GenerateMockSequencerKeys(initConfig)
-		if err != nil {
-			return err
-		}
-		addresses = append(addresses, k...)
-	} else {
-		k, err = keys.GenerateRaSequencerKeys(home, initConfig)
-		if err != nil {
-			return err
-		}
-	}
-
 	addresses = append(addresses, k...)
+	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, initConfig)
+	if err != nil {
+		return err
+	}
+	addresses = append(addresses, sequencerKeys...)
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")

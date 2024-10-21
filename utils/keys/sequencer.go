@@ -7,10 +7,51 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/pterm/pterm"
 )
 
-func GenerateSequencersKeys(initConfig roller.RollappConfig) ([]KeyInfo, error) {
+func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
 	sequencerKeys := GetSequencerKeysConfig()
+	addresses := make([]KeyInfo, 0)
+	for _, key := range sequencerKeys {
+		var address *KeyInfo
+		var err error
+		address, err = CreateAddressBinary(key, rollerData.Home)
+		if err != nil {
+			return nil, err
+		}
+		addresses = append(
+			addresses, KeyInfo{
+				Address:  address.Address,
+				Name:     key.ID,
+				Mnemonic: address.Mnemonic,
+			},
+		)
+	}
+	return addresses, nil
+}
+
+func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
+	var k []KeyInfo
+	var err error
+
+	if env == "mock" {
+		k, err = generateMockSequencerKeys(rollerData)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		k, err = generateRaSequencerKeys(home, rollerData)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return k, nil
+}
+
+func generateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, error) {
+	sequencerKeys := GetMockSequencerKeyConfig(initConfig)
 	addresses := make([]KeyInfo, 0)
 	for _, key := range sequencerKeys {
 		var address *KeyInfo
@@ -30,25 +71,39 @@ func GenerateSequencersKeys(initConfig roller.RollappConfig) ([]KeyInfo, error) 
 	return addresses, nil
 }
 
-func GenerateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, error) {
-	sequencerKeys := GetMockSequencerKeyConfig(initConfig)
-	addresses := make([]KeyInfo, 0)
-	for _, key := range sequencerKeys {
-		var address *KeyInfo
-		var err error
-		address, err = CreateAddressBinary(key, initConfig.Home)
+func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
+	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"would you like to import an existing sequencer key?",
+	).Show()
+
+	var addr []KeyInfo
+	var err error
+
+	if useExistingSequencerWallet {
+		kc, err := NewKeyConfig(
+			consts.ConfigDirName.HubKeys,
+			consts.KeysIds.HubSequencer,
+			consts.Executables.Dymension,
+			consts.SDK_ROLLAPP,
+			WithRecover(),
+		)
 		if err != nil {
 			return nil, err
 		}
-		addresses = append(
-			addresses, KeyInfo{
-				Address:  address.Address,
-				Name:     key.ID,
-				Mnemonic: address.Mnemonic,
-			},
-		)
+
+		ki, err := kc.Create(home)
+		if err != nil {
+			return nil, err
+		}
+		addr = append(addr, *ki)
+	} else {
+		addr, err = createSequencersKeys(rollerData)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return addresses, nil
+
+	return addr, nil
 }
 
 func GetSequencerKeysConfig() []KeyConfig {
