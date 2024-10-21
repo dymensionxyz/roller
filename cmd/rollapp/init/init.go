@@ -81,6 +81,7 @@ func Cmd() *cobra.Command {
 			}
 
 			var hd consts.HubData
+
 			// env handling
 			switch env {
 			case "custom":
