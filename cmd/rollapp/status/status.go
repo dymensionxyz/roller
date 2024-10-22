@@ -10,6 +10,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
+	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -33,14 +34,20 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			nodeID, err := dymint.GetNodeID(home)
+			if err != nil {
+				fmt.Println("failed to retrieve dymint node id:", err)
+				return
+			}
+
 			ok, msg := healthagent.IsEndpointHealthy("http://localhost:26657/health")
 			if !ok {
-				start.PrintOutput(rollerConfig, string(pid), true, false, false, false)
+				start.PrintOutput(rollerConfig, string(pid), true, false, false, false, nodeID)
 				fmt.Println("Unhealthy Message: ", msg)
 				return
 			}
 
-			start.PrintOutput(rollerConfig, string(pid), true, true, true, true)
+			start.PrintOutput(rollerConfig, string(pid), true, true, true, true, nodeID)
 		},
 	}
 	return cmd

@@ -18,6 +18,10 @@ import (
 	"github.com/dymensionxyz/roller/version"
 )
 
+func GetHomeDir(home string) string {
+	return filepath.Join(home, consts.ConfigDirName.Rollapp)
+}
+
 func GetCurrentHeight() (*BlockInformation, error) {
 	cmd := getCurrentBlockCmd()
 	out, err := bashutils.ExecCommandWithStdout(cmd)
