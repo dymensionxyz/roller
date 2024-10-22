@@ -83,7 +83,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			RepositoryOwner: "celestiaorg",
 			RepositoryName:  "celestia-node",
 			RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
-			Release:         "v0.16.2-mocha",
+			Release:         "v0.18.2-mocha",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/celestia",
