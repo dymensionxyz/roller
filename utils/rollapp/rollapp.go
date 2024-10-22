@@ -214,3 +214,20 @@ func GetRollappMetadataFromChain(
 
 	return &cfg, nil
 }
+
+func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
+	getRaCmd := GetRollappCmd(raID, hd)
+	var raResponse ShowRollappResponse
+
+	out, err := bash.ExecCommandWithStdout(getRaCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &raResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &raResponse, nil
+}
