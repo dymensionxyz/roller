@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1-alpha-rc03](https://github.com/dymensionxyz/roller/compare/v1.7.0-alpha-rc03...v1.7.1-alpha-rc03) (2024-10-22)
+
+
+### Bug Fixes
+
+* handle IRO time during `rollapp setup` ([18059f6](https://github.com/dymensionxyz/roller/commit/18059f613fa24c5873b00cacfabf8788648a1002))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
