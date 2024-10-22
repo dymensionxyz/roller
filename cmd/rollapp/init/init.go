@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -81,7 +81,7 @@ func Cmd() *cobra.Command {
 					RepositoryOwner: "dymensionxyz",
 					RepositoryName:  "dymension",
 					RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-					Release:         "v3.1.0-pg07",
+					Release:         "v3.1.0-pg10",
 					Binaries: []types.BinaryPathPair{
 						{
 							Binary:            "dymd",
