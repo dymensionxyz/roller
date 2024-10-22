@@ -23,6 +23,7 @@ type Summary struct {
 type Rollapp struct {
 	RollappId             string              `json:"rollapp_id,omitempty"`
 	Owner                 string              `json:"owner,omitempty"`
+	PreLaunchTime         string              `json:"pre_launch_time,omitempty"`
 	GenesisState          RollappGenesisState `json:"genesis_state"`
 	ChannelId             string              `json:"channel_id,omitempty"`
 	Frozen                bool                `json:"frozen,omitempty"`

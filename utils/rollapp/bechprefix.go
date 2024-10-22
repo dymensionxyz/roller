@@ -62,7 +62,6 @@ func ExtractCommitFromBinary() (string, error) {
 		"-m",
 		consts.Executables.RollappEVM,
 	)
-	fmt.Println(c.String())
 
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {

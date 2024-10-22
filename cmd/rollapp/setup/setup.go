@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -104,6 +105,33 @@ func Cmd() *cobra.Command {
 			err = json.Unmarshal(out.Bytes(), &raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to unmarshal", err)
+				return
+			}
+
+			if raResponse.Rollapp.PreLaunchTime == "" {
+				pterm.Error.Printf(
+					"you can't setup a node for %s right now",
+					raResponse.Rollapp.RollappId,
+				)
+				return
+			}
+
+			timeLayout := time.RFC3339Nano
+			expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
+			if err != nil {
+				pterm.Error.Println("failed to parse launch time", err)
+				return
+			}
+
+			if expectedLaunchTime.After(time.Now()) {
+				pterm.Error.Printf(
+					`Nodes can be set up only after the minimum IRO duration has passed
+Current time: %v
+RollApp's IRO time: %v`,
+					time.Now().UTC().Format(timeLayout),
+					expectedLaunchTime.Format(timeLayout),
+				)
+
 				return
 			}
 
