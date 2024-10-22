@@ -79,8 +79,8 @@ func (r *Relayer) CreateIBCChannel(
 
 	fmt.Printf(
 		"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s\n",
-		r.SrcChannel,
 		r.DstChannel,
+		r.SrcChannel,
 	)
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err

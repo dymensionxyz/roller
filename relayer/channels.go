@@ -86,13 +86,14 @@ func (r *Relayer) LoadActiveChannel(
 	)
 	hubChan := hubChannelResponse.Channels[hubChanIndex]
 
-	pterm.Info.Println("active channel found on the hub side: ", hubChan.ChannelID)
-	pterm.Info.Println("active channel found on the rollapp side: ", raChan.ChannelID)
+	pterm.Info.Println("active channel found on the hub side:", hubChan.ChannelID)
+	pterm.Info.Println("active channel found on the rollapp side:", raChan.ChannelID)
 
 	spinner.Success("IBC channels loaded successfully")
 
 	r.SrcChannel = hubChan.ChannelID
 	r.DstChannel = raChan.ChannelID
+
 	return r.SrcChannel, r.DstChannel, nil
 }
 
@@ -159,6 +160,12 @@ type Height struct {
 	RevisionHeight string `json:"revision_height"`
 }
 
+// @20241022
+// The code below represents responses from the 'rly' command
+// as of v1.16.* of roller, the information is fetched from the chain
+// using the `rollappd` and `dymd` binaries respectfully.
+// this code is left here in case it's required to perform actions
+// specific to the 'rly' binary
 type RlyCounterparty struct {
 	PortID       string `json:"port_id"`
 	ChannelID    string `json:"channel_id"`

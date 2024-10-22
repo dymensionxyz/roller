@@ -1,18 +1,17 @@
 package initrollapp
 
 import (
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
 	"time"
 
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -103,55 +102,11 @@ func Cmd() *cobra.Command {
 			if env != "custom" {
 				hd = consts.Hubs[env]
 			} else {
-				id, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").Show()
-				rpcUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide hub rpc endpoint (including port, example: http://dym.dev:26657)",
-				).Show()
-				restUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide hub rest api endpoint (including port, example: http://dym.dev:1318)",
-				).Show()
-				gasPrice, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide gas price").
-					WithDefaultValue("2000000000").Show()
+				hd = config.GenerateCustomHubData()
 
-				id = strings.TrimSpace(id)
-				rpcUrl = strings.TrimSpace(rpcUrl)
-				restUrl = strings.TrimSpace(restUrl)
-				gasPrice = strings.TrimSpace(gasPrice)
-
-				hd = consts.HubData{
-					API_URL:         restUrl,
-					ID:              id,
-					RPC_URL:         rpcUrl,
-					ARCHIVE_RPC_URL: rpcUrl,
-					GAS_PRICE:       gasPrice,
-				}
-
-				dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide dymensionxyz/dymension commit to build (example: 2cd612aaa6c21b473dbbb7dca9fd03b5aaae6583)",
-				).Show()
-				dymdCommit = strings.TrimSpace(dymdCommit)
-
-				dymdDep := types.Dependency{
-					DependencyName:  "dymension",
-					RepositoryOwner: "dymensionxyz",
-					RepositoryName:  "dymension",
-					RepositoryUrl:   "https://github.com/dymensionxyz/dymension.git",
-					Release:         dymdCommit,
-					Binaries: []types.BinaryPathPair{
-						{
-							Binary:            "./build/dymd",
-							BinaryDestination: consts.Executables.Dymension,
-							BuildCommand: exec.Command(
-								"make",
-								"build",
-							),
-						},
-					},
-					PersistFiles: []types.PersistFile{},
-				}
-
-				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
+				err = dependencies.InstallCustomDymdVersion()
 				if err != nil {
+					pterm.Error.Println("failed to install custom dymd version: ", err)
 					return
 				}
 			}
@@ -208,17 +163,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			getRaCmd := rollapp.GetRollappCmd(raID, hd)
-			var raResponse rollapp.ShowRollappResponse
-
-			out, err := bash.ExecCommandWithStdout(getRaCmd)
+			raResponse, err := rollapp.Show(raID, hd)
 			if err != nil {
-				pterm.Error.Println("failed to get rollapp: ", err)
-				return
-			}
-			err = json.Unmarshal(out.Bytes(), &raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal", err)
+				pterm.Error.Println("failed to retrieve rollapp information: ", err)
 				return
 			}
 
@@ -230,7 +177,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, raResponse)
+			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
@@ -278,7 +225,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, raResponse)
+			err = runInit(cmd, env, hd, *raResponse)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
