@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.7.0-alpha-rc01...v1.7.1-alpha-rc01) (2024-10-22)
+
+
+### Bug Fixes
+
+* dont require da funding for full nodes ([#1078](https://github.com/dymensionxyz/roller/issues/1078)) ([9342c13](https://github.com/dymensionxyz/roller/commit/9342c13d0ddf7f7885006cfe094cbb61dd072002))
+* relayer setup should create keys on remote hosts ([#1080](https://github.com/dymensionxyz/roller/issues/1080)) ([14a4d8a](https://github.com/dymensionxyz/roller/commit/14a4d8ac3f6f553ceb5b3941a260e2e5933f49c5))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
