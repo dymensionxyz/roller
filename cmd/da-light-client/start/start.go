@@ -34,30 +34,32 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			pterm.Info.Println("loading roller config file")
-			rollappConfig, err := roller.LoadConfig(home)
+			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// TODO: refactor the version comparison for migrations
-			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
+			// errorhandling.RequireMigrateIfNeeded(rollerData)
 
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
-			if metricsEndpoint != "" && rollappConfig.DA.Backend != consts.Celestia {
+			if metricsEndpoint != "" && rollerData.DA.Backend != consts.Celestia {
 				errorhandling.PrettifyErrorIfExists(
 					errors.New("metrics endpoint can only be set for celestia"),
 				)
 			}
-			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
 
-			pterm.Info.Println("checking for da address balance")
-			insufficientBalances, err := damanager.CheckDABalance()
-			errorhandling.PrettifyErrorIfExists(err)
-			err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve insufficient balances: ", err)
-				return
+			if rollerData.NodeType == "sequencer" {
+				pterm.Info.Println("checking for da address balance")
+				insufficientBalances, err := damanager.CheckDABalance()
+				errorhandling.PrettifyErrorIfExists(err)
+				err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve insufficient balances: ", err)
+					return
+				}
 			}
 
-			damanager.SetRPCEndpoint(rollappConfig.DA.CurrentStateNode)
+			damanager.SetRPCEndpoint(rollerData.DA.CurrentStateNode)
 			if metricsEndpoint != "" {
 				damanager.SetMetricsEndpoint(metricsEndpoint)
 			}
@@ -71,7 +73,7 @@ func Cmd() *cobra.Command {
 				)
 			}
 
-			LogFilePath = logging.GetDALogFilePath(rollappConfig.Home)
+			LogFilePath = logging.GetDALogFilePath(rollerData.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
 

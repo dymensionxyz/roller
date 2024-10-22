@@ -410,52 +410,6 @@ func Cmd() *cobra.Command {
 					}
 				}
 
-				if isRelayerInitialized && !shouldOverwrite {
-					pterm.Info.Println("ensuring relayer keys are present")
-					kc := keys.GetRelayerKeysConfig(rollerData)
-
-					for k, v := range kc {
-						pterm.Info.Printf("checking %s\n", k)
-
-						switch v.ID {
-						case consts.KeysIds.RollappRelayer:
-							chainId := rollerData.RollappID
-							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
-							if err != nil {
-								pterm.Error.Printf("failed to check address: %v\n", err)
-								return
-							}
-
-							if !isPresent {
-								key, err := keys.AddRlyKey(v, rollerData.RollappID)
-								if err != nil {
-									pterm.Error.Printf("failed to add key: %v\n", err)
-								}
-
-								key.Print(keys.WithMnemonic(), keys.WithName())
-							}
-						case consts.KeysIds.HubRelayer:
-							chainId := rollerData.HubData.ID
-							isPresent, err := keys.IsRlyAddressWithNameInKeyring(v, chainId)
-							if err != nil {
-								pterm.Error.Printf("failed to check address: %v\n", err)
-								return
-							}
-							if !isPresent {
-								key, err := keys.AddRlyKey(v, rollerData.HubData.ID)
-								if err != nil {
-									pterm.Error.Printf("failed to add key: %v\n", err)
-								}
-
-								key.Print(keys.WithMnemonic(), keys.WithName())
-							}
-						default:
-							pterm.Error.Println("invalid key name", err)
-							return
-						}
-					}
-				}
-
 				err = VerifyRelayerBalances(raData, hd)
 				if err != nil {
 					return

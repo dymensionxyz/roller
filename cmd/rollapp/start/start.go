@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -100,6 +101,13 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			defer cancel()
 
 			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
+
+			nodeID, err := dymint.GetNodeID(home)
+			if err != nil {
+				fmt.Println("failed to retrieve dymint node id:", err)
+				return
+			}
+
 			go healthagent.Start(home, rollerLogger)
 
 			go bash.RunCmdAsync(
@@ -113,6 +121,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 						true,
 						true,
 						true,
+						nodeID,
 					)
 					err := createPidFile(RollappDirPath, startRollappCmd)
 					if err != nil {
@@ -139,6 +148,7 @@ func PrintOutput(
 	withEndpoints,
 	withProcessInfo,
 	isHealthy bool,
+	dymintNodeID string,
 ) {
 	logPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 	rollappDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp)
@@ -166,6 +176,11 @@ func PrintOutput(
 	fmt.Printf(
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 			Sprintf(rlpCfg.RollappID),
+	)
+
+	fmt.Printf(
+		"💈 Node ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+			Sprint(dymintNodeID),
 	)
 
 	if withEndpoints {

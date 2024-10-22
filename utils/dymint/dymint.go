@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os/exec"
 	"runtime"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
+	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -176,6 +180,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 	return nil
 }
 
+// TODO: move to rollapp utils
 func WaitForHealthyRollApp(url string) {
 	timeout := time.After(20 * time.Second)
 	ticker := time.NewTicker(2 * time.Second)
@@ -218,4 +223,23 @@ func WaitForHealthyRollApp(url string) {
 			}
 		}
 	}
+}
+
+func GetNodeID(home string) (string, error) {
+	h := rollapputils.GetHomeDir(home)
+
+	cmd := exec.Command(
+		"sudo",
+		consts.Executables.RollappEVM,
+		"dymint",
+		"show-node-id",
+		"--home",
+		h,
+	)
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	return out.String(), nil
 }
