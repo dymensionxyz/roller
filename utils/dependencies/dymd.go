@@ -4,9 +4,10 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-	"github.com/pterm/pterm"
 )
 
 func CustomDymdDependency() types.Dependency {
@@ -33,6 +34,17 @@ func CustomDymdDependency() types.Dependency {
 		},
 		PersistFiles: []types.PersistFile{},
 	}
+}
+
+func InstallCustomDymdVersion() error {
+	dep := CustomDymdDependency()
+
+	err := InstallBinaryFromRepo(dep, dep.DependencyName)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func DefaultDymdDependency() types.Dependency {

@@ -18,6 +18,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -118,11 +119,11 @@ func Cmd() *cobra.Command {
 					hd = consts.Hubs[env]
 				} else {
 					hd = config.GenerateCustomHubData()
-					// err = dependencies.InstallCustomDymdVersion()
-					// if err != nil {
-					// 	pterm.Error.Println("failed to install custom dymd version: ", err)
-					// 	return
-					// }
+					err = dependencies.InstallCustomDymdVersion()
+					if err != nil {
+						pterm.Error.Println("failed to install custom dymd version: ", err)
+						return
+					}
 				}
 
 				if !existingRollerConfig {
