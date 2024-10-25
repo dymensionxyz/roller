@@ -227,7 +227,7 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	getRaCmd := GetRollappCmd(raID, hd)
 	var raResponse ShowRollappResponse
 
-	out, err := bash.ExecCommandWithStdout(getRaCmd)
+	out, err := bashutils.ExecCommandWithStdout(getRaCmd)
 	if err != nil {
 		return nil, err
 	}
