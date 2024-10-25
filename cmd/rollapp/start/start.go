@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dymensionxyz/roller/utils/dymint"
-	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -20,7 +18,9 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -108,7 +108,9 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			go healthagent.Start(home, rollerLogger)
+			if rollappConfig.HubData.ID != "mock" {
+				go healthagent.Start(home, rollerLogger)
+			}
 
 			go bash.RunCmdAsync(
 				ctx,
