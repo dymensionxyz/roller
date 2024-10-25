@@ -12,8 +12,6 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "observability",
 		Short: "Commands related to RollApp's component observability",
-		Run: func(cmd *cobra.Command, args []string) {
-		},
 	}
 
 	cmd.AddCommand(export.Cmd())

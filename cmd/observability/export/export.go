@@ -17,8 +17,8 @@ var grafanaDashboardTemplate []byte
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "observability",
-		Short: "Commands related to RollApp's component observability",
+		Use:   "export",
+		Short: "Exports a baseline grafana dashboard for the RollApp's key metrics",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -37,8 +37,6 @@ func Cmd() *cobra.Command {
 			pterm.Info.Printf("example grafana dashboard exported to %s\n", gdpath)
 		},
 	}
-
-	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
 
 	return cmd
 }
