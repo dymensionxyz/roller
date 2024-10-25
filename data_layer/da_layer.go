@@ -1,6 +1,7 @@
 package datalayer
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -52,4 +53,30 @@ func NewDAManager(datype consts.DAType, home string) *DAManager {
 		datype:    datype,
 		DataLayer: dalayer,
 	}
+}
+
+func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
+	var daData consts.DaData
+	var daNetwork string
+	switch env {
+	case "playground":
+		if daBackend == string(consts.Celestia) {
+			daNetwork = string(consts.CelestiaTestnet)
+		} else {
+			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
+	case "custom":
+		if daBackend == string(consts.Celestia) {
+			daNetwork = string(consts.CelestiaTestnet)
+		} else {
+			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
+	case "mock":
+		daNetwork = "mock"
+	default:
+		return nil, fmt.Errorf("unsupported environment: %s", env)
+	}
+	daData = consts.DaNetworks[daNetwork]
+
+	return &daData, nil
 }

@@ -465,36 +465,3 @@ func DownloadRelease(
 
 	return nil
 }
-
-func InstallCustomDymdVersion() error {
-	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide dymensionxyz/dymension commit to build (example: 2cd612aaa6c21b473dbbb7dca9fd03b5aaae6583)",
-	).Show()
-	dymdCommit = strings.TrimSpace(dymdCommit)
-
-	dymdDep := types.Dependency{
-		DependencyName:  "dymension",
-		RepositoryOwner: "dymensionxyz",
-		RepositoryName:  "dymension",
-		RepositoryUrl:   "https://github.com/dymensionxyz/dymension.git",
-		Release:         dymdCommit,
-		Binaries: []types.BinaryPathPair{
-			{
-				Binary:            "./build/dymd",
-				BinaryDestination: consts.Executables.Dymension,
-				BuildCommand: exec.Command(
-					"make",
-					"build",
-				),
-			},
-		},
-		PersistFiles: []types.PersistFile{},
-	}
-
-	err := InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

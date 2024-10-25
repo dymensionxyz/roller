@@ -11,7 +11,6 @@ import (
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -164,21 +163,30 @@ func GetRollappSequencerAddress(home string) (string, error) {
 	return addr, nil
 }
 
-func GetRollappMetadataFromChain(
-	home, raID string,
-	hd *consts.HubData,
-) (*roller.RollappConfig, error) {
-	var cfg roller.RollappConfig
+func GetMetadataFromChain(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	var raResponse ShowRollappResponse
+	getRollappCmd := GetRollappCmd(raID, hd)
 
-	getRollappCmd := GetRollappCmd(raID, *hd)
-
-	out, err := bash.ExecCommandWithStdout(getRollappCmd)
+	out, err := bashutils.ExecCommandWithStdout(getRollappCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	err = json.Unmarshal(out.Bytes(), &raResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &raResponse, nil
+}
+
+// nice function name, ik
+func PopulateRollerConfigWithRaMetadataFromChain(
+	home, raID string,
+	hd consts.HubData,
+) (*roller.RollappConfig, error) {
+	var cfg roller.RollappConfig
+	raResponse, err := GetMetadataFromChain(raID, hd)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +210,7 @@ func GetRollappMetadataFromChain(
 		RollappVMType:        vmt,
 		Denom:                raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
 		Decimals:             18,
-		HubData:              *hd,
+		HubData:              hd,
 		DA:                   DA,
 		RollerVersion:        version.BuildCommit,
 		Environment:          hd.ID,
@@ -219,7 +227,7 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	getRaCmd := GetRollappCmd(raID, hd)
 	var raResponse ShowRollappResponse
 
-	out, err := bash.ExecCommandWithStdout(getRaCmd)
+	out, err := bashutils.ExecCommandWithStdout(getRaCmd)
 	if err != nil {
 		return nil, err
 	}

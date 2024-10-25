@@ -111,22 +111,11 @@ func calculateSHA256(filepath string) (string, error) {
 }
 
 func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
-	var raResponse rollapp.ShowRollappResponse
-	getRollappCmd := exec.Command(
-		consts.Executables.Dymension,
-		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
-	)
-
-	out, err := bash.ExecCommandWithStdout(getRollappCmd)
+	raResponse, err := rollapp.GetMetadataFromChain(raID, hd)
 	if err != nil {
 		return "", err
 	}
 
-	err = json.Unmarshal(out.Bytes(), &raResponse)
-	if err != nil {
-		return "", err
-	}
 	return raResponse.Rollapp.GenesisInfo.GenesisChecksum, nil
 }
 

@@ -2,16 +2,14 @@ package initrollapp
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -33,9 +31,9 @@ func runInit(
 		pterm.Error.Println("failed to expand home directory")
 		return err
 	}
-	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
 	var hd consts.HubData
+	// todo: refactor
 	if env != "custom" {
 		hd = consts.Hubs[env]
 	} else {
@@ -56,10 +54,10 @@ func runInit(
 			return err
 		}
 	} else {
-		initConfigPtr, err = rollapp.GetRollappMetadataFromChain(
+		initConfigPtr, err = rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 			home,
 			raID,
-			&hd,
+			hd,
 		)
 		if err != nil {
 			errorhandling.PrettifyErrorIfExists(err)
@@ -70,45 +68,14 @@ func runInit(
 
 	/* ------------------------------ Generate keys ----------------------------- */
 	var addresses []keys.KeyInfo
+	var k []keys.KeyInfo
 
-	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like to import an existing sequencer key?",
-	).Show()
-
-	if useExistingSequencerWallet {
-		kc, err := keys.NewKeyConfig(
-			consts.ConfigDirName.HubKeys,
-			consts.KeysIds.HubSequencer,
-			consts.Executables.Dymension,
-			consts.SDK_ROLLAPP,
-			keys.WithRecover(),
-		)
-		if err != nil {
-			return err
-		}
-
-		ki, err := kc.Create(home)
-		if err != nil {
-			return err
-		}
-
-		addresses = append(addresses, *ki)
+	addresses = append(addresses, k...)
+	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, initConfig)
+	if err != nil {
+		return err
 	}
-
-	if initConfig.HubData.ID == "mock" {
-		addresses, err = keys.GenerateMockSequencerKeys(initConfig)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return err
-		}
-	} else {
-		if !useExistingSequencerWallet {
-			addresses, err = keys.GenerateSequencersKeys(initConfig)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	addresses = append(addresses, sequencerKeys...)
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
@@ -122,7 +89,6 @@ func runInit(
 		return err
 	}
 
-	// adds the sequencer address to the whitelists
 	if env == "mock" {
 		err = genesisutils.InitializeRollappGenesis(initConfig)
 		if err != nil {
@@ -135,65 +101,21 @@ func runInit(
 	if err != nil {
 		return err
 	}
+
 	daBackend := as.RollappParams.Params.Da
 	pterm.Info.Println("DA backend: ", daBackend)
 
-	var daData consts.DaData
-	var daNetwork string
-	switch env {
-	case "playground":
-		if daBackend == string(consts.Celestia) {
-			daNetwork = string(consts.CelestiaTestnet)
-		} else {
-			return fmt.Errorf("unsupported DA backend: %s", daBackend)
-		}
-	case "custom":
-		if daBackend == string(consts.Celestia) {
-			daNetwork = string(consts.CelestiaTestnet)
-		} else {
-			return fmt.Errorf("unsupported DA backend: %s", daBackend)
-		}
-	case "mock":
-		daNetwork = "mock"
-	default:
-		return fmt.Errorf("unsupported environment: %s", env)
+	daData, err := datalayer.GetDaInfo(env, daBackend)
+	if err != nil {
+		return err
 	}
 
-	daData = consts.DaNetworks[daNetwork]
-	rollerTomlData := map[string]any{
-		"rollapp_id":      raID,
-		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
-		"rollapp_vm_type": string(initConfigPtr.RollappVMType),
-		"home":            home,
-
-		"HubData.id":              hd.ID,
-		"HubData.api_url":         hd.API_URL,
-		"HubData.rpc_url":         hd.RPC_URL,
-		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
-		"HubData.gas_price":       hd.GAS_PRICE,
-
-		"DA.backend":            string(daData.Backend),
-		"DA.id":                 string(daData.ID),
-		"DA.api_url":            daData.ApiUrl,
-		"DA.rpc_url":            daData.RpcUrl,
-		"DA.current_state_node": daData.CurrentStateNode,
-		"DA.state_nodes":        daData.StateNodes,
-		"DA.gas_price":          daData.GasPrice,
+	err = roller.PopulateConfig(home, raID, hd, *daData, initConfig)
+	if err != nil {
+		return err
 	}
 
-	for key, value := range rollerTomlData {
-		err = tomlconfig.UpdateFieldInFile(
-			rollerConfigFilePath,
-			key,
-			value,
-		)
-		if err != nil {
-			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-			return err
-		}
-	}
-
-	err = initConfig.Validate()
+	err = initConfig.ValidateConfig()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err

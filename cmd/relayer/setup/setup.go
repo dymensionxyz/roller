@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
@@ -191,10 +191,10 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			logFileOption := logging.WithLoggerLogging(relayerLogger)
 
-			rollappChainData, err := rollapp.GetRollappMetadataFromChain(
+			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				raData.ID,
-				&hd,
+				hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -472,7 +472,7 @@ func Cmd() *cobra.Command {
 
 				// errorhandling.RequireMigrateIfNeeded(rollappConfig)
 
-				err = rollerData.Validate()
+				err = rollerData.ValidateConfig()
 				if err != nil {
 					pterm.Error.Printf("failed to validate rollapp config: %v\n", err)
 					return

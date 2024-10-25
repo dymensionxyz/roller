@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 // RollappConfig struct represents the information for creating roller.toml  config file
@@ -73,7 +73,51 @@ func addCommasToNum(number string) string {
 	return result.String()
 }
 
-func (c RollappConfig) Validate() error {
+func PopulateConfig(
+	home, raID string,
+	hd consts.HubData,
+	daData consts.DaData,
+	rollerData RollappConfig,
+) error {
+	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+
+	rollerTomlData := map[string]any{
+		"rollapp_id":      raID,
+		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
+		"rollapp_vm_type": string(rollerData.RollappVMType),
+		"home":            home,
+
+		"HubData.id":              hd.ID,
+		"HubData.api_url":         hd.API_URL,
+		"HubData.rpc_url":         hd.RPC_URL,
+		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
+		"HubData.gas_price":       hd.GAS_PRICE,
+
+		"DA.backend":            string(daData.Backend),
+		"DA.id":                 string(daData.ID),
+		"DA.api_url":            daData.ApiUrl,
+		"DA.rpc_url":            daData.RpcUrl,
+		"DA.current_state_node": daData.CurrentStateNode,
+		"DA.state_nodes":        daData.StateNodes,
+		"DA.gas_price":          daData.GasPrice,
+	}
+
+	for key, value := range rollerTomlData {
+		err := tomlconfig.UpdateFieldInFile(
+			rollerConfigFilePath,
+			key,
+			value,
+		)
+		if err != nil {
+			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c RollappConfig) ValidateConfig() error {
 	err := VerifyHubData(c.HubData)
 	if err != nil {
 		return err
