@@ -2,17 +2,19 @@ package initrollapp
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -42,6 +44,7 @@ func Cmd() *cobra.Command {
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 
 			// preflight checks
+			var hd consts.HubData
 			var env string
 			var raID string
 
@@ -118,8 +121,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to validate chain id: ", err)
 				return
 			}
-
-			var hd consts.HubData
 
 			// env handling
 			switch env {
