@@ -69,11 +69,9 @@ func (r *Relayer) GetActiveConnectionIDs(
 	raData consts.RollappData,
 	hd consts.HubData,
 ) (string, string, error) {
-	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
-		r.queryConnectionRollappCmd(
-			raData,
-		),
-	)
+	cmd := r.queryConnectionRollappCmd(raData)
+
+	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		r.logger.Printf(
 			"failed to find connection on the rollapp side for %s: %v",

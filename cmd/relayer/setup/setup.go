@@ -246,6 +246,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")
+			err = dymintutils.UpdateDymintConfigForIBC(home, "5s", true)
+			if err != nil {
+				pterm.Error.Println("failed to update dymint config: ", err)
+				return
+			}
+
 			if rly.ChannelReady() {
 				pterm.DefaultSection.WithIndentCharacter("💈").
 					Println("IBC transfer channel is already established!")
