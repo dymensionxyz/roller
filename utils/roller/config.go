@@ -123,14 +123,11 @@ func (c RollappConfig) ValidateConfig() error {
 		return err
 	}
 
-	// the assumption is that the supply is coming from the genesis creator
-	// err = VerifyTokenSupply(c.TokenSupply)
-	// if err != nil {
-	// 	return err
-	// }
+	if c.BaseDenom == "" {
+		return fmt.Errorf("base denom should be populated")
+	}
 
 	if !IsValidDAType(string(c.DA.Backend)) {
-		fmt.Println(c.DA.Backend)
 		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
 	}
 

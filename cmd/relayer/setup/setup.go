@@ -89,6 +89,12 @@ func Cmd() *cobra.Command {
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
+			err = rollappChainData.ValidateConfig()
+			if err != nil {
+				pterm.Error.Println("rollapp data validation error: ", err)
+				return
+			}
+
 			// things to check:
 			// 1. relayer folder exists
 			isRelayerDirPresent, err := filesystem.DirNotEmpty(relayerHome)
@@ -227,12 +233,6 @@ func Cmd() *cobra.Command {
 			err = relayerutils.InitializeRelayer(home, *rollappChainData)
 			if err != nil {
 				pterm.Error.Println("failed to initialize relayer:", err)
-				return
-			}
-
-			err = relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
-			if err != nil {
-				pterm.Error.Println("failed to ensure relayer keys are created/funded:", err)
 				return
 			}
 
