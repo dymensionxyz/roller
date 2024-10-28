@@ -1,8 +1,6 @@
 package roller
 
 import (
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +9,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -19,29 +18,31 @@ func GetRootDir() string {
 }
 
 func GetConfigPath(home string) string {
-	return filepath.Join(home, "roller.toml")
+	return filepath.Join(home, consts.RollerConfigFileName)
 }
 
-func CreateConfigFile(home string) (bool, error) {
+func CreateConfigFileIfNotPresent(home string) (bool, error) {
 	rollerConfigFilePath := GetConfigPath(home)
-
-	_, err := os.Stat(rollerConfigFilePath)
+	ok, err := filesystem.DoesFileExist(rollerConfigFilePath)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			pterm.Info.Println("roller.toml not found, creating")
-			_, err := os.Create(rollerConfigFilePath)
-			if err != nil {
-				pterm.Error.Printf(
-					"failed to create %s: %v", rollerConfigFilePath, err,
-				)
-				return false, err
-			}
-
-			return true, nil
-		}
+		pterm.Error.Println("failed to check roller config file existence", err)
+		return false, err
 	}
 
-	return false, nil
+	if !ok {
+		pterm.Info.Printf("%s does not exist, creating...\n", rollerConfigFilePath)
+		_, err := os.Create(rollerConfigFilePath)
+		if err != nil {
+			pterm.Error.Printf(
+				"failed to create %s: %v", rollerConfigFilePath, err,
+			)
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return true, nil
 }
 
 // TODO: should be called from root command

@@ -180,7 +180,7 @@ func GetMetadataFromChain(raID string, hd consts.HubData) (*ShowRollappResponse,
 	return &raResponse, nil
 }
 
-// nice function name, ik
+// misleading function name, how to call this?
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -216,7 +216,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Environment:          hd.ID,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
-		BaseDenom:            "",
+		BaseDenom:            raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
 		MinGasPrices:         "0",
 	}
 

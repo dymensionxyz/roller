@@ -53,7 +53,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to create roller home directory: ", err)
 				return
 			}
-			isFirstInitialization, err := roller.CreateConfigFile(home)
+			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
@@ -157,7 +157,7 @@ func Cmd() *cobra.Command {
 			// default flow
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
 			if !isRollappRegistered {
-				pterm.Error.Printf("%s was not found as a registered rollapp: %v", raID, err)
+				pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
 				return
 			}
 

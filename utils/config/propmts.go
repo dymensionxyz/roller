@@ -1,6 +1,10 @@
 package config
 
-import "github.com/pterm/pterm"
+import (
+	"strings"
+
+	"github.com/pterm/pterm"
+)
 
 func PromptVmType() string {
 	vmtypes := []string{"evm", "wasm"}
@@ -10,4 +14,23 @@ func PromptVmType() string {
 		Show()
 
 	return vmtype
+}
+
+func PromptRaID() string {
+	raID, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID").
+		Show()
+
+	return strings.TrimSpace(raID)
+}
+
+func PromptEnvironment() string {
+	envs := []string{"playground", "custom"}
+	env, _ := pterm.DefaultInteractiveSelect.
+		WithDefaultText(
+			"select the environment you want to initialize relayer for",
+		).
+		WithOptions(envs).
+		Show()
+
+	return strings.TrimSpace(env)
 }

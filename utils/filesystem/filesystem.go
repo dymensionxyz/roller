@@ -1,8 +1,10 @@
 package filesystem
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -200,4 +202,19 @@ func TailFile(fp, svcName string, lineNumber int) error {
 	}
 
 	return nil
+}
+
+func DoesFileExist(path string) (bool, error) {
+	_, err := os.Stat(path)
+
+	if errors.Is(err, fs.ErrNotExist) {
+		pterm.Info.Println("existing roller configuration not found")
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

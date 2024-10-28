@@ -18,7 +18,6 @@ import (
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
 // and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(
-	override bool,
 	logFileOption bash.CommandOption,
 	raData consts.RollappData,
 	hd consts.HubData,
@@ -37,19 +36,17 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
-	if connectionID == "" || override {
+	if connectionID == "" {
 		pterm.Info.Println("💈 Creating connection...")
 		if err := r.WriteRelayerStatus(status); err != nil {
 			return ConnectionChannels{}, err
 		}
 
-		createConnectionCmd := r.getCreateConnectionCmd(override)
+		createConnectionCmd := r.getCreateConnectionCmd()
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
 	}
-
-	var src, dst string
 
 	// Sleep for a few seconds to make sure the connection is created
 	time.Sleep(15 * time.Second)
@@ -85,9 +82,10 @@ func (r *Relayer) CreateIBCChannel(
 	if err := r.WriteRelayerStatus(status); err != nil {
 		return ConnectionChannels{}, err
 	}
+
 	return ConnectionChannels{
-		Src: src,
-		Dst: dst,
+		Src: r.SrcChannel,
+		Dst: r.DstChannel,
 	}, nil
 }
 
@@ -136,11 +134,8 @@ func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
 	return cmd
 }
 
-func (r *Relayer) getCreateConnectionCmd(override bool) *exec.Cmd {
+func (r *Relayer) getCreateConnectionCmd() *exec.Cmd {
 	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
-	if override {
-		args = append(args, "--override")
-	}
 	args = append(args, r.getRelayerDefaultArgs()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
