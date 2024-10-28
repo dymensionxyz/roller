@@ -130,6 +130,8 @@ func GetCurrentProposerCmd(raID string, hd consts.HubData) *exec.Cmd {
 func GetCurrentProposer(raID string, hd consts.HubData) (string, error) {
 	cmd := GetCurrentProposerCmd(raID, hd)
 
+	fmt.Println(cmd.String())
+
 	out, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
@@ -180,7 +182,7 @@ func GetMetadataFromChain(raID string, hd consts.HubData) (*ShowRollappResponse,
 	return &raResponse, nil
 }
 
-// nice function name, ik
+// misleading function name, how to call this?
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,

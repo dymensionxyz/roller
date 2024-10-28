@@ -53,7 +53,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to create roller home directory: ", err)
 				return
 			}
-			isFirstInitialization, err := roller.CreateConfigFile(home)
+			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return

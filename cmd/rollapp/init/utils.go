@@ -110,7 +110,7 @@ func runInit(
 		return err
 	}
 
-	err = roller.PopulateConfig(home, raID, hd, *daData, initConfig)
+	err = roller.PopulateConfig(home, raID, hd, *daData, string(initConfig.RollappVMType))
 	if err != nil {
 		return err
 	}

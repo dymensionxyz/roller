@@ -77,14 +77,14 @@ func PopulateConfig(
 	home, raID string,
 	hd consts.HubData,
 	daData consts.DaData,
-	rollerData RollappConfig,
+	vmType string,
 ) error {
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
 	rollerTomlData := map[string]any{
 		"rollapp_id":      raID,
 		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
-		"rollapp_vm_type": string(rollerData.RollappVMType),
+		"rollapp_vm_type": vmType,
 		"home":            home,
 
 		"HubData.id":              hd.ID,

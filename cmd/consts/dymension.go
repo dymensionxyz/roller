@@ -6,6 +6,7 @@ var MainnetHubData = HubData{
 	RPC_URL:         "https://dymension-mainnet-tendermint.public.blastapi.io",
 	ARCHIVE_RPC_URL: "https://dymension-mainnet-tendermint.public.blastapi.io",
 	GAS_PRICE:       "20000000000",
+	DA_NETWORK:      string(CelestiaMainnet),
 }
 
 var TestnetHubData = HubData{
@@ -14,6 +15,7 @@ var TestnetHubData = HubData{
 	RPC_URL:         "https://rpc-blumbus.mzonder.com",
 	ARCHIVE_RPC_URL: "https://rpc-blumbus-archive.mzonder.com",
 	GAS_PRICE:       "20000000000",
+	DA_NETWORK:      string(CelestiaTestnet),
 }
 
 var DevnetHubData = HubData{
@@ -22,6 +24,7 @@ var DevnetHubData = HubData{
 	RPC_URL:         "http://52.58.111.62:36657",
 	ARCHIVE_RPC_URL: "http://52.58.111.62:36657",
 	GAS_PRICE:       "100000000",
+	DA_NETWORK:      string(CelestiaTestnet),
 }
 
 var LocalHubData = HubData{
@@ -30,6 +33,7 @@ var LocalHubData = HubData{
 	RPC_URL:         "http://localhost:36657",
 	ARCHIVE_RPC_URL: "http://localhost:36657",
 	GAS_PRICE:       "100000000",
+	DA_NETWORK:      string(MockDA),
 }
 
 var MockHubData = HubData{
@@ -38,6 +42,7 @@ var MockHubData = HubData{
 	RPC_URL:         "",
 	ARCHIVE_RPC_URL: "",
 	GAS_PRICE:       "",
+	DA_NETWORK:      string(MockDA),
 }
 
 var PlaygroundHubData = HubData{
@@ -46,6 +51,7 @@ var PlaygroundHubData = HubData{
 	RPC_URL:         "https://rpc-dymension-playground-2.mzonder.com:443",
 	ARCHIVE_RPC_URL: "https://rpc-dymension-playground-2.mzonder.com:443",
 	GAS_PRICE:       "2000000000",
+	DA_NETWORK:      string(CelestiaTestnet),
 }
 
 // TODO(#112): The available hub networks should be read from YAML file

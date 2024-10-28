@@ -16,8 +16,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/logging"
+	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
@@ -28,19 +28,6 @@ import (
 const (
 	flagOverride = "override"
 )
-
-type Config struct {
-	Paths struct {
-		HubRollapp struct {
-			Dst struct {
-				ChainID string `yaml:"chain-id"`
-			} `yaml:"dst"`
-			Src struct {
-				ChainID string `yaml:"chain-id"`
-			} `yaml:"src"`
-		} `yaml:"hub-rollapp"`
-	} `yaml:"paths"`
-}
 
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
@@ -65,7 +52,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			var rlyConfig Config
+			var rlyConfig relayerutils.Config
 			err = yaml.Unmarshal(data, &rlyConfig)
 			if err != nil {
 				fmt.Printf("Error unmarshaling YAML: %v\n", err)
@@ -111,7 +98,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				Denom:  raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
 			}
 
-			err = VerifyRelayerBalances(raData, hd)
+			err = relayerutils.VerifyRelayerBalances(hd)
 			if err != nil {
 				pterm.Error.Println("failed to check balances", err)
 				return
@@ -175,20 +162,4 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 	relayerStartCmd.Flags().
 		BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
 	return relayerStartCmd
-}
-
-func VerifyRelayerBalances(raData consts.RollappData, hd consts.HubData) error {
-	insufficientBalances, err := relayer.GetRelayerInsufficientBalances(raData, hd)
-	if err != nil {
-		return err
-	}
-
-	if len(insufficientBalances) != 0 {
-		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
