@@ -101,10 +101,19 @@ func Cmd() *cobra.Command {
 			}
 
 			timeLayout := time.RFC3339Nano
-			expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
-			if err != nil {
-				pterm.Error.Println("failed to parse launch time", err)
-				return
+			var expectedLaunchTime time.Time
+			if raResponse.Rollapp.PreLaunchTime == "" {
+				pterm.Error.Printf(
+					"you can't setup a node for %s right now",
+					raResponse.Rollapp.RollappId,
+				)
+				expectedLaunchTime = time.Now()
+			} else {
+				expectedLaunchTime, err = time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
+				if err != nil {
+					pterm.Error.Println("failed to parse launch time", err)
+					return
+				}
 			}
 
 			if expectedLaunchTime.After(time.Now()) {
