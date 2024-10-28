@@ -53,7 +53,7 @@ func DefaultDymdDependency() types.Dependency {
 		RepositoryOwner: "dymensionxyz",
 		RepositoryName:  "dymension",
 		RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-		Release:         "v3.1.0-pg07",
+		Release:         "v3.1.0-pg10",
 		Binaries: []types.BinaryPathPair{
 			{
 				Binary:            "dymd",
