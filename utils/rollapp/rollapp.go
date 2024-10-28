@@ -77,6 +77,7 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 // TODO: most of rollapp utility functions should be tied to an entity
 func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
+	fmt.Println(cmd.String())
 	_, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
