@@ -219,7 +219,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Environment:          hd.ID,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
-		BaseDenom:            "",
+		BaseDenom:            raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
 		MinGasPrices:         "0",
 	}
 
