@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.7.2-alpha-rc01...v1.8.0-alpha-rc01) (2024-10-29)
+
+
+### Features
+
+* display os info in the `rollapp status` output ([#1093](https://github.com/dymensionxyz/roller/issues/1093)) ([9bdac2e](https://github.com/dymensionxyz/roller/commit/9bdac2e751adb52c0efc8a54a3e166bfc213199f))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
