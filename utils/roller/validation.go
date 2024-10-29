@@ -33,7 +33,7 @@ func VerifyHubData(data consts.HubData) error {
 		return fmt.Errorf("invalid hub id: %s. ID cannot be empty", data.ID)
 	}
 
-	if data.RPC_URL == "" {
+	if data.RpcUrl == "" {
 		return fmt.Errorf("invalid RPC endpoint: %s. RPC URL cannot be empty", data.ID)
 	}
 	return nil

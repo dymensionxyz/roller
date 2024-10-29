@@ -22,12 +22,12 @@ type KeyConfigOption func(opt *keyConfigOptions) error
 // KeyConfig struct store information about a wallet
 // Dir refers to the keyringDir where the key is created
 type KeyConfig struct {
-	Dir string
-	// TODO: this is not descriptive, Name would be more expressive
-	ID            string
-	ChainBinary   string
-	Type          consts.VMType
-	ShouldRecover bool
+	Dir            string
+	ID             string
+	ChainBinary    string
+	Type           consts.VMType
+	KeyringBackend string
+	ShouldRecover  bool
 }
 
 func WithRecover() KeyConfigOption {
@@ -40,6 +40,7 @@ func WithRecover() KeyConfigOption {
 func NewKeyConfig(
 	dir, id, cb string,
 	vmt consts.VMType,
+	kb string,
 	opts ...KeyConfigOption,
 ) (*KeyConfig, error) {
 	var options keyConfigOptions
@@ -54,11 +55,12 @@ func NewKeyConfig(
 	shouldRecover := options.recover
 
 	return &KeyConfig{
-		Dir:           dir,
-		ID:            id,
-		ChainBinary:   cb,
-		Type:          vmt,
-		ShouldRecover: shouldRecover,
+		Dir:            dir,
+		ID:             id,
+		ChainBinary:    cb,
+		Type:           vmt,
+		KeyringBackend: kb,
+		ShouldRecover:  shouldRecover,
 	}, nil
 }
 

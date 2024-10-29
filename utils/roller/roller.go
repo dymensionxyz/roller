@@ -95,6 +95,7 @@ func GetMockRollappMetadata(
 	cfg := RollappConfig{
 		Home:                 home,
 		RollappID:            raID,
+		KeyringBackend:       "test",
 		GenesisHash:          "",
 		GenesisUrl:           "",
 		RollappBinary:        consts.Executables.RollappEVM,

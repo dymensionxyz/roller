@@ -22,11 +22,6 @@ import (
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-// TODO: Test relaying on 35-C and update the prices
-const (
-	flagOverride = "override"
-)
-
 // TODO: cleanup required, a lot of duplicate code in this cmd
 func Cmd() *cobra.Command {
 	relayerStartCmd := &cobra.Command{
@@ -59,7 +54,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			ok, err := rollapp.IsRollappRegistered(raID, *hd)
+			ok, err := rollapp.IsRegistered(raID, *hd)
 			if err != nil {
 				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
 				return
@@ -334,7 +329,5 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	relayerStartCmd.Flags().
-		BoolP(flagOverride, "", false, "override the existing relayer clients and channels")
 	return relayerStartCmd
 }

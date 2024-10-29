@@ -81,7 +81,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 				"--index",
 				"1",
 				"--node",
-				hd.RPC_URL,
+				hd.RpcUrl,
 				"--chain-id",
 				hd.ID,
 			)

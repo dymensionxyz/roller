@@ -23,6 +23,7 @@ func runInit(
 	env string,
 	customHubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
+	keyringBackend string,
 ) error {
 	raID := raResp.Rollapp.RollappId
 

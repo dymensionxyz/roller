@@ -75,7 +75,7 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 }
 
 // TODO: most of rollapp utility functions should be tied to an entity
-func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
+func IsRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
 	_, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -96,7 +96,7 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		"show",
 		raID,
 		"-o", "json",
-		"--node", hd.RPC_URL,
+		"--node", hd.RpcUrl,
 		"--chain-id", hd.ID,
 	)
 
@@ -107,7 +107,7 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd
@@ -121,7 +121,7 @@ func GetCurrentProposerCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "proposer",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd
@@ -192,6 +192,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	}
 
 	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
+	kb := keys.KeyringBackendFromEnv(hd.Environment)
 
 	var DA consts.DaData
 
@@ -203,6 +204,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	cfg = roller.RollappConfig{
 		Home:                 home,
+		KeyringBackend:       kb,
 		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
 		RollappID:            raResponse.Rollapp.RollappId,

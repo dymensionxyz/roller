@@ -82,7 +82,7 @@ func promptForRaAndHd() (string, *consts.HubData, error) {
 	if env == "playground" {
 		hd = consts.Hubs[env]
 	} else {
-		hd = config.GenerateCustomHubData()
+		hd = config.CreateCustomHubData()
 		err := dependencies.InstallCustomDymdVersion()
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
@@ -194,7 +194,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 
 	HubRlyBalance, err := keys.QueryBalance(
 		keys.ChainQueryConfig{
-			RPC:    hd.RPC_URL,
+			RPC:    hd.RpcUrl,
 			Denom:  consts.Denoms.Hub,
 			Binary: consts.Executables.Dymension,
 		}, HubRlyAddr,

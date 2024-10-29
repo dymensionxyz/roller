@@ -64,7 +64,7 @@ func Cmd() *cobra.Command {
 				"1.3",
 				"--keyring-dir",
 				filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
-				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
+				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
 			)
 
 			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
@@ -85,7 +85,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = tx.MonitorTransaction(rollerData.HubData.RPC_URL, txHash)
+			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
 				return

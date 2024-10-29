@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/pterm/pterm"
 )
 
 func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
@@ -85,6 +86,7 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 			consts.KeysIds.HubSequencer,
 			consts.Executables.Dymension,
 			consts.SDK_ROLLAPP,
+			rollerData.KeyringBackend,
 			WithRecover(),
 		)
 		if err != nil {

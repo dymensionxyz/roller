@@ -84,7 +84,7 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 		"--output",
 		"json",
 		"--node",
-		seq.RlpCfg.HubData.RPC_URL,
+		seq.RlpCfg.HubData.RpcUrl,
 		"--chain-id",
 		seq.RlpCfg.HubData.ID,
 	)
@@ -161,7 +161,6 @@ error: %v
 	}
 
 	hubHeight, err := seq.GetHubHeight()
-
 	if err != nil {
 		seq.logger.Println(err)
 

@@ -16,6 +16,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
@@ -109,6 +110,8 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			kb := keys.KeyringBackendFromEnv(env)
+
 			// env handling
 			switch env {
 			case "custom":
@@ -138,6 +141,7 @@ func Cmd() *cobra.Command {
 					env,
 					consts.HubData{},
 					raRespMock,
+					kb,
 				)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
@@ -155,7 +159,7 @@ func Cmd() *cobra.Command {
 			}
 
 			// default flow
-			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
+			isRollappRegistered, _ := rollapp.IsRegistered(raID, hd)
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
 				return
@@ -216,7 +220,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, *raResponse)
+			err = runInit(cmd, env, hd, *raResponse, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return

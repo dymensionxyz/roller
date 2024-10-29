@@ -64,7 +64,7 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--keyring-backend", "test",
-		"--node", hd.RPC_URL, "--chain-id", hd.ID,
+		"--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd, nil

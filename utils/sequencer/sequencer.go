@@ -56,7 +56,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
-		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
+		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
 	)
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
@@ -81,7 +81,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	err = tx.MonitorTransaction(raCfg.HubData.RPC_URL, txHash)
+	err = tx.MonitorTransaction(raCfg.HubData.RpcUrl, txHash)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, er
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		"q", "sequencer", "params", "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -338,7 +338,7 @@ func GetMetadata(
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencer", addr,
-		"--node", hd.RPC_URL, "-o", "json", "--chain-id", hd.ID,
+		"--node", hd.RpcUrl, "-o", "json", "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -358,7 +358,7 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 }
 
@@ -395,7 +395,7 @@ func GetSequencerData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 		keys.ChainQueryConfig{
 			Binary: consts.Executables.Dymension,
 			Denom:  consts.Denoms.Hub,
-			RPC:    cfg.HubData.RPC_URL,
+			RPC:    cfg.HubData.RpcUrl,
 		}, seqAddr,
 	)
 	if err != nil {
@@ -418,7 +418,7 @@ func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins,
 		address,
 		"--output",
 		"json",
-		"--node", hd.RPC_URL,
+		"--node", hd.RpcUrl,
 		"--chain-id", hd.ID,
 	)
 

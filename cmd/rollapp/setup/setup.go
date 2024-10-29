@@ -249,7 +249,7 @@ RollApp's IRO time: %v`,
 					balance, err := keys.QueryBalance(
 						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
-							RPC:    rollappConfig.HubData.RPC_URL,
+							RPC:    rollappConfig.HubData.RpcUrl,
 							Binary: consts.Executables.Dymension,
 						}, seqAddrInfo.Address,
 					)
@@ -300,7 +300,7 @@ RollApp's IRO time: %v`,
 					balance, err = keys.QueryBalance(
 						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
-							RPC:    rollappConfig.HubData.RPC_URL,
+							RPC:    rollappConfig.HubData.RpcUrl,
 							Binary: consts.Executables.Dymension,
 						}, seqAddrInfo.Address,
 					)
@@ -525,7 +525,7 @@ RollApp's IRO time: %v`,
 					"--index",
 					"1",
 					"--node",
-					hd.RPC_URL,
+					hd.RpcUrl,
 					"--chain-id", hd.ID,
 				)
 
@@ -756,7 +756,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 	defaultGasPrice, ok := github_com_cosmos_cosmos_sdk_types.NewIntFromString(
-		raCfg.HubData.GAS_PRICE,
+		raCfg.HubData.GasPrice,
 	)
 	if !ok {
 		return errors.New("failed to parse gas price")
