@@ -31,7 +31,6 @@ func Cmd() *cobra.Command {
 			pid, err := os.ReadFile(pidFilePath)
 			if err != nil {
 				fmt.Println("failed to read pid file:", err)
-				return
 			}
 
 			nodeID, err := dymint.GetNodeID(home)
@@ -42,7 +41,8 @@ func Cmd() *cobra.Command {
 
 			ok, msg := healthagent.IsEndpointHealthy("http://localhost:26657/health")
 			if !ok {
-				start.PrintOutput(rollerConfig, string(pid), true, false, false, false, nodeID)
+				// TODO: use options pattern, this is ugly af
+				start.PrintOutput(rollerConfig, string(pid), true, false, true, false, nodeID)
 				fmt.Println("Unhealthy Message: ", msg)
 				return
 			}

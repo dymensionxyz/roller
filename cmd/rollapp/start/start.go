@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -203,7 +204,9 @@ func PrintOutput(
 	if withProcessInfo {
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Process Info:")
-		fmt.Println("PID: ", pid)
+		fmt.Println("PID:", pid)
+		fmt.Println("OS:", runtime.GOOS)
+		fmt.Println("Architecture:", runtime.GOARCH)
 	}
 
 	if isHealthy {
