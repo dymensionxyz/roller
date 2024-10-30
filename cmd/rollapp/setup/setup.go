@@ -109,7 +109,10 @@ func Cmd() *cobra.Command {
 				// )
 				// return
 				pterm.Info.Println("empty pre launch time, using ", time.Now())
-				expectedLaunchTime, err = time.Parse(timeLayout, time.Now().String())
+				expectedLaunchTime, err = time.Parse(
+					timeLayout,
+					time.Now().UTC().Format(timeLayout),
+				)
 				if err != nil {
 					pterm.Error.Println("failed to parse launch time", err)
 					return
