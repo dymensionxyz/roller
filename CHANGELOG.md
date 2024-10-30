@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.7.2-alpha-rc02...v1.7.3-alpha-rc02) (2024-10-30)
+
+
+### Bug Fixes
+
+* support no iro rollapps ([bf475f9](https://github.com/dymensionxyz/roller/commit/bf475f9e4917220aa7280a6eb81fc525037698de))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
