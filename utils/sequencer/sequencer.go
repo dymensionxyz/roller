@@ -50,11 +50,13 @@ func getCreateSequencerCmd(
 	customRewardAddress, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"would you like to use a custom reward address (leave empty to use the sequencer address)",
 	).Show()
+	customRewardAddress = strings.TrimSpace(customRewardAddress)
 
 	// TODO: improve ux
 	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"provide a comma separated list of addresses that you want to allow to relaye IBC packets to\nexample: addr1,addr2",
 	).Show()
+	relayerAddresses = strings.TrimSpace(relayerAddresses)
 
 	cmd := exec.Command(
 		consts.Executables.Dymension,
