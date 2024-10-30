@@ -100,31 +100,27 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if raResponse.Rollapp.PreLaunchTime == "" {
-				pterm.Error.Printf(
-					"you can't setup a node for %s right now",
-					raResponse.Rollapp.RollappId,
-				)
-				return
-			}
+			if raResponse.Rollapp.PreLaunchTime != "" {
+				timeLayout := time.RFC3339Nano
+				expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
+				if err != nil {
+					pterm.Error.Println("failed to parse launch time", err)
+					return
+				}
 
-			timeLayout := time.RFC3339Nano
-			expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
-			if err != nil {
-				pterm.Error.Println("failed to parse launch time", err)
-				return
-			}
-
-			if expectedLaunchTime.After(time.Now()) {
-				pterm.Error.Printf(
-					`Nodes can be set up only after the minimum IRO duration has passed
+				if expectedLaunchTime.After(time.Now()) {
+					pterm.Error.Printf(
+						`Nodes can be set up only after the minimum IRO duration has passed
 Current time: %v
 RollApp's IRO time: %v`,
-					time.Now().UTC().Format(timeLayout),
-					expectedLaunchTime.Format(timeLayout),
-				)
+						time.Now().UTC().Format(timeLayout),
+						expectedLaunchTime.Format(timeLayout),
+					)
 
-				return
+					return
+				}
+			} else {
+				pterm.Info.Printf("no IRO set up for %s\n", raResponse.Rollapp.RollappId)
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
