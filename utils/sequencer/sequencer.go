@@ -54,7 +54,7 @@ func getCreateSequencerCmd(
 
 	// TODO: improve ux
 	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide a comma separated list of addresses that you want to allow to relaye IBC packets to (example: addr1,addr2)",
+		"provide a comma separated list of addresses that you want to enable relay IBC packets (example: addr1,addr2)",
 	).Show()
 	relayerAddresses = strings.TrimSpace(relayerAddresses)
 
