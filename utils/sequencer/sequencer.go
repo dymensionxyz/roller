@@ -1,5 +1,7 @@
 package sequencer
 
+// TODO: most of the functions here should be a part of sequencer_manager
+
 import (
 	"encoding/json"
 	"fmt"
@@ -24,10 +26,13 @@ import (
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
-func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
+func getCreateSequencerCmd(
+	raCfg roller.RollappConfig,
+	desiredBond cosmossdktypes.Coin,
+) (*exec.Cmd, error) {
 	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	seqMetadataPath := filepath.Join(
@@ -36,10 +41,20 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"init",
 		"sequencer-metadata.json",
 	)
+
 	_, err = isValidSequencerMetadata(seqMetadataPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	customRewardAddress, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+		"would you like to use a custom reward address (leave empty to use the sequencer address)",
+	).Show()
+
+	// TODO: improve ux
+	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+		"provide a comma separated list of addresses that you want to allow to relaye IBC packets to\nexample: addr1,addr2",
+	).Show()
 
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -58,6 +73,25 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
 	)
+
+	if customRewardAddress != "" {
+		args := []string{"--reward-address", customRewardAddress}
+		cmd.Args = append(cmd.Args, args...)
+	}
+
+	if relayerAddresses != "" {
+		args := []string{"--whitelisted-relayers", relayerAddresses}
+		cmd.Args = append(cmd.Args, args...)
+	}
+
+	return cmd, err
+}
+
+func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
+	cmd, err := getCreateSequencerCmd(raCfg, desiredBond)
+	if err != nil {
+		return err
+	}
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
 	if err != nil {
