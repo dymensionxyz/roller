@@ -72,15 +72,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			hd, err := roller.LoadHubData(home)
-			if err != nil {
-				pterm.Error.Println("failed to load hub data from roller.toml")
-			}
-
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				localRollerConfig.RollappID,
-				hd,
+				localRollerConfig.HubData,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -94,7 +89,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			raResponse, err := rollapp.GetMetadataFromChain(localRollerConfig.RollappID, hd)
+			raResponse, err := rollapp.GetMetadataFromChain(
+				localRollerConfig.RollappID,
+				localRollerConfig.HubData,
+			)
 			if err != nil {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
@@ -193,7 +191,7 @@ RollApp's IRO time: %v`,
 
 				seq, err := sequencer.RegisteredRollappSequencersOnHub(
 					rollappConfig.RollappID,
-					hd,
+					rollappConfig.HubData,
 				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
@@ -205,7 +203,7 @@ RollApp's IRO time: %v`,
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(hd)
+					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(rollappConfig.HubData)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
@@ -357,7 +355,10 @@ RollApp's IRO time: %v`,
 
 			case "fullnode":
 				pterm.Info.Println("retrieving the latest available snapshot")
-				si, err := sequencer.GetLatestSnapshot(rollappConfig.RollappID, hd)
+				si, err := sequencer.GetLatestSnapshot(
+					rollappConfig.RollappID,
+					rollappConfig.HubData,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve latest snapshot")
 				}
@@ -378,7 +379,10 @@ RollApp's IRO time: %v`,
 
 				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
 				// defaults to syncing only from the DA
-				peers, err := sequencer.GetAllP2pPeers(rollappConfig.RollappID, hd)
+				peers, err := sequencer.GetAllP2pPeers(
+					rollappConfig.RollappID,
+					rollappConfig.HubData,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve p2p peers ")
 				}
@@ -525,8 +529,8 @@ RollApp's IRO time: %v`,
 					"--index",
 					"1",
 					"--node",
-					hd.RpcUrl,
-					"--chain-id", hd.ID,
+					rollappConfig.HubData.RpcUrl,
+					"--chain-id", rollappConfig.HubData.ID,
 				)
 
 				out, err := bash.ExecCommandWithStdout(cmd)

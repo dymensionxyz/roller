@@ -11,6 +11,7 @@ import (
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -163,11 +164,14 @@ func GetRollappSequencerAddress(home string) (string, error) {
 	return addr, nil
 }
 
-func GetMetadataFromChain(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
+func GetMetadataFromChain(
+	raID string,
+	hd consts.HubData,
+) (*ShowRollappResponse, error) {
 	var raResponse ShowRollappResponse
 	getRollappCmd := GetRollappCmd(raID, hd)
 
-	out, err := bashutils.ExecCommandWithStdout(getRollappCmd)
+	out, err := bash.ExecCommandWithStdout(getRollappCmd)
 	if err != nil {
 		return nil, err
 	}
