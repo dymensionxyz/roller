@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -12,12 +13,14 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/scripts"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/version"
 )
 
 func Cmd() *cobra.Command {
@@ -182,30 +185,30 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// start := time.Now()
-			// builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
-			// if err != nil {
-			// 	pterm.Error.Println("failed to install binaries: ", err)
-			// 	return
-			// }
-			// elapsed := time.Since(start)
-			//
-			// pterm.Info.Println("all dependencies installed in: ", elapsed)
+			start := time.Now()
+			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
+			if err != nil {
+				pterm.Error.Println("failed to install binaries: ", err)
+				return
+			}
+			elapsed := time.Since(start)
+
+			pterm.Info.Println("all dependencies installed in: ", elapsed)
 
 			// if roller has not been initialized or it was reset
 			// set the versions to the current version
 			if isFirstInitialization {
-				// 	rollerConfigFilePath := roller.GetConfigPath(home)
-				//
-				// 	fieldsToUpdate := map[string]any{
-				// 		"roller_version":         version.BuildVersion,
-				// 		"rollapp_binary_version": builtDeps["rollapp"].Release,
-				// 	}
-				// 	err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
-				// 	if err != nil {
-				// 		pterm.Error.Println("failed to update roller config file: ", err)
-				// 		return
-				// 	}
+				rollerConfigFilePath := roller.GetConfigPath(home)
+
+				fieldsToUpdate := map[string]any{
+					"roller_version":         version.BuildVersion,
+					"rollapp_binary_version": builtDeps["rollapp"].Release,
+				}
+				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+				if err != nil {
+					pterm.Error.Println("failed to update roller config file: ", err)
+					return
+				}
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
