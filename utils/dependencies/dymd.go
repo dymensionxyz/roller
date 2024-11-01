@@ -37,8 +37,8 @@ func customDymdDependency(dymdCommit string) types.Dependency {
 	}
 }
 
-func ExtractCommitFromBinaryVersion() (string, error) {
-	cmd := exec.Command(consts.Executables.Dymension, "version", "--long")
+func ExtractCommitFromBinaryVersion(binary string) (string, error) {
+	cmd := exec.Command(binary, "version", "--long")
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -69,7 +69,7 @@ func InstallCustomDymdVersion() error {
 	).Show()
 	dep := customDymdDependency(dymdCommit)
 
-	commit, err := ExtractCommitFromBinaryVersion()
+	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
 	if err != nil {
 		return err
 	}

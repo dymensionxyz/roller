@@ -126,14 +126,14 @@ func isValidSequencerMetadata(path string) (bool, error) {
 }
 
 func GetSequencerAccountAddress(cfg roller.RollappConfig) (string, error) {
-	seqAddr, err := keys.GetAddressBinary(
-		keys.KeyConfig{
-			ChainBinary:    consts.Executables.Dymension,
-			ID:             consts.KeysIds.HubSequencer,
-			Dir:            consts.ConfigDirName.HubKeys,
-			KeyringBackend: cfg.KeyringBackend,
-		}, cfg.Home,
-	)
+	kc := keys.KeyConfig{
+		ChainBinary:    consts.Executables.Dymension,
+		ID:             consts.KeysIds.HubSequencer,
+		Dir:            consts.ConfigDirName.HubKeys,
+		KeyringBackend: cfg.KeyringBackend,
+	}
+
+	seqAddr, err := kc.Address(cfg.Home)
 	if err != nil {
 		return "", err
 	}
@@ -372,14 +372,13 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 }
 
 func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
-	seqAddr, err := keys.GetAddressBinary(
-		keys.KeyConfig{
-			ChainBinary:    consts.Executables.Dymension,
-			ID:             consts.KeysIds.HubSequencer,
-			Dir:            consts.ConfigDirName.HubKeys,
-			KeyringBackend: cfg.KeyringBackend,
-		}, cfg.Home,
-	)
+	kc := keys.KeyConfig{
+		ChainBinary:    consts.Executables.Dymension,
+		ID:             consts.KeysIds.HubSequencer,
+		Dir:            consts.ConfigDirName.HubKeys,
+		KeyringBackend: cfg.KeyringBackend,
+	}
+	seqAddr, err := kc.Address(cfg.Home)
 	if err != nil {
 		return "", err
 	}

@@ -177,7 +177,7 @@ RollApp's IRO time: %v`,
 					Type:           consts.SDK_ROLLAPP,
 					KeyringBackend: localRollerConfig.KeyringBackend,
 				}
-				seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
+				seqAddrInfo, err := hubSeqKC.Info(rollappConfig.Home)
 				if err != nil {
 					pterm.Error.Println("failed to get address info: ", err)
 					return

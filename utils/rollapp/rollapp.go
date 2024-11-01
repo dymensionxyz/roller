@@ -156,7 +156,8 @@ func GetRollappSequencerAddress(home string) (string, error) {
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        consts.EVM_ROLLAPP,
 	}
-	addr, err := keys.GetAddressBinary(seqKeyConfig, home)
+
+	addr, err := seqKeyConfig.Address(home)
 	if err != nil {
 		return "", err
 	}

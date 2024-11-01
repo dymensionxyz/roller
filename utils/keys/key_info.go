@@ -2,13 +2,8 @@ package keys
 
 import (
 	"fmt"
-	"os/exec"
-	"path/filepath"
-	"strings"
 
 	"github.com/pterm/pterm"
-
-	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 // KeyInfo struct stores information about a generated wallet
@@ -63,49 +58,6 @@ func (ki *KeyInfo) Print(o ...KeyInfoOption) {
 	}
 
 	fmt.Println()
-}
-
-func GetAddressInfoBinary(keyConfig KeyConfig, home string) (*KeyInfo, error) {
-	showKeyCommand := exec.Command(
-		keyConfig.ChainBinary,
-		"keys",
-		"show",
-		keyConfig.ID,
-		"--keyring-backend",
-		string(keyConfig.KeyringBackend),
-		"--keyring-dir",
-		filepath.Join(home, keyConfig.Dir),
-		"--output",
-		"json",
-	)
-
-	output, err := bash.ExecCommandWithStdout(showKeyCommand)
-	if err != nil {
-		return nil, err
-	}
-
-	return ParseAddressFromOutput(output)
-}
-
-func GetAddressBinary(keyConfig KeyConfig, home string) (string, error) {
-	showKeyCommand := exec.Command(
-		keyConfig.ChainBinary,
-		"keys",
-		"show",
-		keyConfig.ID,
-		"--address",
-		"--keyring-backend",
-		string(keyConfig.KeyringBackend),
-		"--keyring-dir",
-		filepath.Join(home, keyConfig.Dir),
-	)
-
-	output, err := bash.ExecCommandWithStdout(showKeyCommand)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimSpace(output.String()), nil
 }
 
 func PrintAddressesWithTitle(addresses []KeyInfo) {

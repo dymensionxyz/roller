@@ -94,7 +94,7 @@ func Cmd() *cobra.Command {
 				KeyringBackend: rollerCfg.KeyringBackend,
 			}
 
-			isKeyInKeyring, err := keys.IsAddressWithNameInKeyring(kc, home)
+			isKeyInKeyring, err := kc.IsInKeyring(home)
 			if err != nil {
 				pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
 				return
@@ -109,7 +109,7 @@ func Cmd() *cobra.Command {
 			}
 
 			if isKeyInKeyring {
-				address, err = keys.GetAddressBinary(kc, home)
+				address, err = kc.Address(home)
 				if err != nil {
 					pterm.Error.Println("failed to get address", err)
 				}
@@ -123,7 +123,7 @@ func Cmd() *cobra.Command {
 				if address == "" {
 					if !isKeyInKeyring {
 						pterm.Info.Println("existing reward wallet not found, creating new")
-						ki, err := keys.CreateAddressBinary(kc, home)
+						ki, err := kc.Create(home)
 						if err != nil {
 							pterm.Error.Println("failed to create wallet", err)
 							return

@@ -51,7 +51,6 @@ func IsRlyAddressWithNameInKeyring(
 		return false, err
 	}
 
-	fmt.Println("out", out.String())
 	lookFor := fmt.Sprintf("no keys found for chain %s", chainId)
 
 	if out.String() == "" {

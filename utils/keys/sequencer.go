@@ -14,10 +14,11 @@ import (
 func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
 	sequencerKeys := GetSequencerKeysConfig(rollerData.KeyringBackend)
 	addresses := make([]KeyInfo, 0)
+
 	for _, key := range sequencerKeys {
 		var address *KeyInfo
 		var err error
-		address, err = CreateAddressBinary(key, rollerData.Home)
+		address, err = key.Create(rollerData.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +58,7 @@ func generateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, erro
 	for _, key := range sequencerKeys {
 		var address *KeyInfo
 		var err error
-		address, err = CreateAddressBinary(key, initConfig.Home)
+		address, err = key.Create(initConfig.Home)
 		if err != nil {
 			return nil, err
 		}

@@ -1,9 +1,11 @@
 package keys
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -67,33 +69,115 @@ func NewKeyConfig(
 func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 	args := []string{
 		"keys", "add", kc.ID, "--keyring-backend", string(kc.KeyringBackend),
-		"--keyring-dir", filepath.Join(home, kc.Dir),
+		"--keyring-dir", filepath.Join(home, kc.Dir), "--home", filepath.Join(home, kc.Dir),
 		"--output", "json",
 	}
+
+	j, _ := json.MarshalIndent(kc, "", " ")
+	fmt.Println(string(j))
 
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
 	}
 	createKeyCommand := exec.Command(kc.ChainBinary, args...)
 
-	if kc.ShouldRecover {
+	if kc.ShouldRecover || kc.KeyringBackend == consts.SupportedKeyringBackends.OS {
 		err := bash.ExecCommandWithInteractions(kc.ChainBinary, args...)
 		if err != nil {
 			return nil, err
 		}
 
-		ki, err := GetAddressInfoBinary(kc, home)
+		ki, err := kc.Info(home)
 		if err != nil {
 			return nil, err
 		}
 
 		return ki, nil
 	}
+
 	out, err := bash.ExecCommandWithStdout(createKeyCommand)
 	if err != nil {
 		return nil, err
 	}
 	return ParseAddressFromOutput(out)
+}
+
+func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
+	showKeyCommand := exec.Command(
+		kc.ChainBinary,
+		"keys",
+		"show",
+		kc.ID,
+		"--keyring-backend",
+		string(kc.KeyringBackend),
+		"--keyring-dir",
+		filepath.Join(home, kc.Dir),
+		"--output",
+		"json",
+	)
+
+	output, err := bash.ExecCommandWithStdout(showKeyCommand)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseAddressFromOutput(output)
+}
+
+func (kc KeyConfig) Address(home string) (string, error) {
+	showKeyCommand := exec.Command(
+		kc.ChainBinary,
+		"keys",
+		"show",
+		kc.ID,
+		"--address",
+		"--keyring-backend",
+		string(kc.KeyringBackend),
+		"--keyring-dir",
+		filepath.Join(home, kc.Dir),
+	)
+
+	output, err := bash.ExecCommandWithStdout(showKeyCommand)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output.String()), nil
+}
+
+func (kc KeyConfig) IsInKeyring(
+	home string,
+) (bool, error) {
+	keyringDir := filepath.Join(home, kc.Dir)
+
+	cmd := exec.Command(
+		kc.ChainBinary,
+		"keys", "list", "--output", "json",
+		"--keyring-backend", string(kc.KeyringBackend), "--keyring-dir", keyringDir,
+	)
+
+	var ki []KeyInfo
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Println(out.String())
+
+	err = json.Unmarshal(out.Bytes(), &ki)
+	if err != nil {
+		return false, err
+	}
+
+	if len(ki) == 0 {
+		return false, nil
+	}
+
+	return slices.ContainsFunc(
+		ki, func(i KeyInfo) bool {
+			return strings.EqualFold(i.Name, kc.ID)
+		},
+	), nil
 }
 
 // TODO: KeyInfo and AddressData seem redundant, should be moved into

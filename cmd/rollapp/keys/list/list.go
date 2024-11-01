@@ -30,7 +30,7 @@ func Cmd() *cobra.Command {
 				kc = keys.GetMockSequencerKeyConfig(rollerData)
 			}
 
-			ki, err := keys.GetAddressInfoBinary(kc[0], home)
+			ki, err := kc[0].Info(home)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve sequencer info: ", err)
 				return

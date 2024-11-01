@@ -83,10 +83,10 @@ func EnsureWhaleAccount() error {
 		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
-	_, err := keys.GetAddressInfoBinary(kc, home)
+	_, err := kc.Info(home)
 	if err != nil {
 		pterm.Info.Println("whale account not found in the keyring, creating it now")
-		addressInfo, err := keys.CreateAddressBinary(kc, home)
+		addressInfo, err := kc.Create(home)
 		if err != nil {
 			return err
 		}

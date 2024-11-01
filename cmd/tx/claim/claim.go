@@ -48,12 +48,11 @@ func Cmd() *cobra.Command {
 				return err
 			}
 
-			sequencerAddr, err := keys.GetAddressBinary(
-				keys.KeyConfig{
-					ID:  consts.KeysIds.HubSequencer,
-					Dir: tempDir,
-				}, tempDir,
-			)
+			kc := keys.KeyConfig{
+				ID:  consts.KeysIds.HubSequencer,
+				Dir: tempDir,
+			}
+			sequencerAddr, err := kc.Address(tempDir)
 			if err != nil {
 				return err
 			}
