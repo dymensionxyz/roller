@@ -1,5 +1,7 @@
 package bash
 
+// TODO: there should be an abstraction fo running commands that would use
+// options to add extra behaviour, like .WithInteractions etc.
 import (
 	"bufio"
 	"bytes"

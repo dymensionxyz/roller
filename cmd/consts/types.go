@@ -1,13 +1,13 @@
 package consts
 
-type HubData = struct {
-	Environment   string    `toml:"environment"`
-	ApiUrl        string    `toml:"api_url"`
-	ID            string    `toml:"id"`
-	RpcUrl        string    `toml:"rpc_url"`
-	ArchiveRpcUrl string    `toml:"archive_rpc_url"`
-	GasPrice      string    `toml:"gas_price"`
-	DaNetwork     DaNetwork `toml:"da_network"`
+type HubData struct {
+	Environment   string    `toml:"environment"     json:"environment"`
+	ApiUrl        string    `toml:"api_url"         json:"apiUrl"`
+	ID            string    `toml:"id"              json:"id"`
+	RpcUrl        string    `toml:"rpc_url"         json:"rpcUrl"`
+	ArchiveRpcUrl string    `toml:"archive_rpc_url" json:"archiveRpcUrl"`
+	GasPrice      string    `toml:"gas_price"       json:"gasPrice"`
+	DaNetwork     DaNetwork `toml:"da_network"      json:"daNetwork"`
 }
 
 type RollappData = struct {

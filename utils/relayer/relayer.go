@@ -76,14 +76,20 @@ func NewIbcConnenctionCanBeCreatedOnCurrentNode(home, raID string) (bool, error)
 
 func promptForRaAndHd() (string, *consts.HubData, error) {
 	var hd consts.HubData
+
 	raID := config.PromptRaID()
 	env := config.PromptEnvironment()
 
 	if env == "playground" {
 		hd = consts.Hubs[env]
 	} else {
-		hd = config.CreateCustomHubData()
-		err := dependencies.InstallCustomDymdVersion()
+		chd, err := config.CreateCustomHubData()
+		hd = *chd
+		if err != nil {
+			return "", nil, err
+		}
+
+		err = dependencies.InstallCustomDymdVersion()
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
 			return "", nil, err

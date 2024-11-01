@@ -178,7 +178,11 @@ func PrintOutput(
 	pterm.Println()
 	fmt.Printf(
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-			Sprintf(rlpCfg.RollappID),
+			Sprint(rlpCfg.RollappID),
+	)
+	fmt.Printf(
+		"💈 Keyring Backend: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+			Sprint(rlpCfg.KeyringBackend),
 	)
 
 	fmt.Printf(
@@ -211,7 +215,7 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
+		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home, rlpCfg.KeyringBackend)
 		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return

@@ -63,7 +63,7 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 		"--from", consts.KeysIds.Eibc,
 		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-		"--keyring-backend", "test",
+		"--keyring-backend", string(consts.SupportedKeyringBackends.Test),
 		"--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
@@ -76,10 +76,11 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := keys.KeyConfig{
-		Dir:         consts.ConfigDirName.Eibc,
-		ID:          consts.KeysIds.Eibc,
-		ChainBinary: consts.Executables.Dymension,
-		Type:        "",
+		Dir:            consts.ConfigDirName.Eibc,
+		ID:             consts.KeysIds.Eibc,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           "",
+		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
 	_, err := keys.GetAddressInfoBinary(kc, home)

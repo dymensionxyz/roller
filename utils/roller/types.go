@@ -6,9 +6,9 @@ var SupportedDas = []consts.DAType{consts.Celestia, consts.Local}
 
 type RollappConfig struct {
 	// new roller.toml
-	Home           string `toml:"home"`
-	RollerVersion  string `toml:"roller_version"`
-	KeyringBackend string `toml:"keyring_backend"`
+	Home           string                         `toml:"home"`
+	RollerVersion  string                         `toml:"roller_version"`
+	KeyringBackend consts.SupportedKeyringBackend `toml:"keyring_backend"`
 
 	NodeType string `toml:"node_type"`
 

@@ -1,14 +1,36 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
-func CreateCustomHubData() consts.HubData {
+func CreateCustomHubData() (*consts.HubData, error) {
+	opts := []string{"from-file", "manual"}
+	opt, _ := pterm.DefaultInteractiveSelect.WithOptions(opts).Show()
+
+	var hd consts.HubData
+
+	switch opt {
+	case "from-file":
+		return createCustomHubDataFromFile()
+	case "manual":
+		hd = createCustomHubDataManually()
+	}
+
+	return &hd, nil
+}
+
+func createCustomHubDataManually() consts.HubData {
 	id, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").Show()
 	rpcUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"provide hub rpc endpoint (including port, example: http://dym.dev:26657)",
@@ -24,13 +46,55 @@ func CreateCustomHubData() consts.HubData {
 	restUrl = strings.TrimSpace(restUrl)
 	gasPrice = strings.TrimSpace(gasPrice)
 
-	return consts.HubData{
+	hd := consts.HubData{
 		Environment:   "custom",
 		ApiUrl:        restUrl,
 		ID:            id,
 		RpcUrl:        rpcUrl,
 		ArchiveRpcUrl: rpcUrl,
 		GasPrice:      gasPrice,
-		DaNetwork:     "",
+		DaNetwork:     consts.CelestiaTestnet,
 	}
+	return hd
+}
+
+func createCustomHubDataFromFile() (*consts.HubData, error) {
+	pterm.Info.Printf("provide a path to a json file that has the following structure")
+	fmt.Println(`
+{
+  "id": "<hub-id>",
+  "rpcUrl": "<hub-rpc-endpoint>",
+  "restUrl": "<hub-rest-endpoint>",
+}`)
+	path, _ := pterm.DefaultInteractiveTextInput.Show()
+	ep, err := filesystem.ExpandHomePath(path)
+	if err != nil {
+		return nil, err
+	}
+	path = ep
+
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("Failed to open JSON file: %s", err)
+	}
+	defer jsonFile.Close()
+
+	// Read file content into a byte slice
+	byteValue, err := io.ReadAll(jsonFile)
+	if err != nil {
+		log.Fatalf("Failed to read JSON file: %s", err)
+	}
+
+	// Unmarshal the byte slice into the Config struct
+	var hd consts.HubData
+	err = json.Unmarshal(byteValue, &hd)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal JSON: %s", err)
+	}
+	hd.DaNetwork = consts.CelestiaTestnet
+	hd.GasPrice = "2000000000"
+	hd.ArchiveRpcUrl = hd.RpcUrl
+	hd.Environment = "custom"
+
+	return &hd, nil
 }

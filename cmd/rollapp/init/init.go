@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -12,14 +11,13 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/version"
 )
 
 func Cmd() *cobra.Command {
@@ -110,18 +108,24 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			kb := keys.KeyringBackendFromEnv(env)
-
 			// env handling
+			kb := keys.KeyringBackendFromEnv(env)
 			switch env {
 			case "custom":
-				hd = config.CreateCustomHubData()
-				dymdDep := dependencies.CustomDymdDependency()
+				chd, err := config.CreateCustomHubData()
+				hd = *chd
 
-				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
 				if err != nil {
+					pterm.Info.Println("failed to create custom hub data", err)
 					return
 				}
+
+				err = dependencies.InstallCustomDymdVersion()
+				if err != nil {
+					pterm.Info.Println("failed to install dymd", err)
+					return
+				}
+
 			case "mock":
 				vmType := config.PromptVmType()
 				raRespMock := rollapp.ShowRollappResponse{
@@ -178,30 +182,30 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to install binaries: ", err)
-				return
-			}
-			elapsed := time.Since(start)
-
-			pterm.Info.Println("all dependencies installed in: ", elapsed)
+			// start := time.Now()
+			// builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
+			// if err != nil {
+			// 	pterm.Error.Println("failed to install binaries: ", err)
+			// 	return
+			// }
+			// elapsed := time.Since(start)
+			//
+			// pterm.Info.Println("all dependencies installed in: ", elapsed)
 
 			// if roller has not been initialized or it was reset
 			// set the versions to the current version
 			if isFirstInitialization {
-				rollerConfigFilePath := roller.GetConfigPath(home)
-
-				fieldsToUpdate := map[string]any{
-					"roller_version":         version.BuildVersion,
-					"rollapp_binary_version": builtDeps["rollapp"].Release,
-				}
-				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
-				if err != nil {
-					pterm.Error.Println("failed to update roller config file: ", err)
-					return
-				}
+				// 	rollerConfigFilePath := roller.GetConfigPath(home)
+				//
+				// 	fieldsToUpdate := map[string]any{
+				// 		"roller_version":         version.BuildVersion,
+				// 		"rollapp_binary_version": builtDeps["rollapp"].Release,
+				// 	}
+				// 	err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+				// 	if err != nil {
+				// 		pterm.Error.Println("failed to update roller config file: ", err)
+				// 		return
+				// 	}
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
@@ -224,6 +228,15 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
+			}
+
+			if kb == consts.SupportedKeyringBackends.OS {
+				pterm.Info.Println("creating startup scripts for OS keyring backend")
+				err := scripts.CreateRollappStartup(home)
+				if err != nil {
+					pterm.Error.Println("failed to generate startup scripts:", err)
+					return
+				}
 			}
 
 			defer func() {

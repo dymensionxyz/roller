@@ -79,7 +79,7 @@ func Cmd() *cobra.Command {
 
 			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
-				raData.ID,
+				raID,
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)

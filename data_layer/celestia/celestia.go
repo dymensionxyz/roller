@@ -13,10 +13,10 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -29,11 +29,13 @@ type Celestia struct {
 	metricsEndpoint string
 	RPCPort         string
 	NamespaceID     string
+	KeyringBackend  consts.SupportedKeyringBackend
 }
 
-func NewCelestia(home string) *Celestia {
+func NewCelestia(home string, kb consts.SupportedKeyringBackend) *Celestia {
 	return &Celestia{
-		Root: home,
+		Root:           home,
+		KeyringBackend: kb,
 	}
 }
 
@@ -111,7 +113,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
-		daKeysDir, "--keyring-backend", "test", "--output", "json",
+		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
 	)
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -232,6 +234,7 @@ func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
 		c.GetKeyName(),
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
 		consts.Executables.CelKey,
+		string(c.KeyringBackend),
 	)
 }
 

@@ -171,10 +171,11 @@ RollApp's IRO time: %v`,
 
 				pterm.Info.Println("getting the existing sequencer address ")
 				hubSeqKC := keys.KeyConfig{
-					Dir:         consts.ConfigDirName.HubKeys,
-					ID:          consts.KeysIds.HubSequencer,
-					ChainBinary: consts.Executables.Dymension,
-					Type:        consts.SDK_ROLLAPP,
+					Dir:            consts.ConfigDirName.HubKeys,
+					ID:             consts.KeysIds.HubSequencer,
+					ChainBinary:    consts.Executables.Dymension,
+					Type:           consts.SDK_ROLLAPP,
+					KeyringBackend: localRollerConfig.KeyringBackend,
 				}
 				seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
 				if err != nil {
@@ -486,7 +487,11 @@ RollApp's IRO time: %v`,
 			}
 
 			// DA
-			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(
+				rollappConfig.DA.Backend,
+				rollappConfig.Home,
+				rollappConfig.KeyringBackend,
+			)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,

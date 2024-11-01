@@ -1,0 +1,7 @@
+{
+	"id": "dymension_2019-1",
+	"rpcUrl": "https://rpc-dymension-playground-2.mzonder.com:443",
+	"restUrl": "https://api-dymension-playground-2.mzonder.com:443",
+	"gasPrice": "2000000000",
+	"dymdCommit": "4d52fe10"
+}

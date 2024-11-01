@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -26,18 +27,34 @@ func CreateAddressBinary(
 	home string,
 ) (*KeyInfo, error) {
 	args := []string{
-		"keys", "add", keyConfig.ID, "--keyring-backend", "test",
+		"keys", "add", keyConfig.ID, "--keyring-backend", string(keyConfig.KeyringBackend),
 		"--keyring-dir", filepath.Join(home, keyConfig.Dir),
 		"--output", "json",
 	}
+	fmt.Println(args)
 
 	if keyConfig.ShouldRecover {
 		args = append(args, "--recover")
 	}
 	createKeyCommand := exec.Command(keyConfig.ChainBinary, args...)
-	out, err := bash.ExecCommandWithStdout(createKeyCommand)
-	if err != nil {
-		return nil, err
+
+	var out bytes.Buffer
+	var err error
+	if keyConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		fmt.Println("running with interaction")
+		err = bash.ExecCommandWithInteractions(
+			keyConfig.ChainBinary,
+			args...,
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		fmt.Println("running without interaction")
+		out, err = bash.ExecCommandWithStdout(createKeyCommand)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return ParseAddressFromOutput(out)
 }
@@ -51,7 +68,7 @@ func IsAddressWithNameInKeyring(
 	cmd := exec.Command(
 		info.ChainBinary,
 		"keys", "list", "--output", "json",
-		"--keyring-backend", "test", "--keyring-dir", keyringDir,
+		"--keyring-backend", string(info.KeyringBackend), "--keyring-dir", keyringDir,
 	)
 
 	var ki []KeyInfo

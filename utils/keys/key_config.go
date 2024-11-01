@@ -26,7 +26,7 @@ type KeyConfig struct {
 	ID             string
 	ChainBinary    string
 	Type           consts.VMType
-	KeyringBackend string
+	KeyringBackend consts.SupportedKeyringBackend
 	ShouldRecover  bool
 }
 
@@ -40,7 +40,7 @@ func WithRecover() KeyConfigOption {
 func NewKeyConfig(
 	dir, id, cb string,
 	vmt consts.VMType,
-	kb string,
+	kb consts.SupportedKeyringBackend,
 	opts ...KeyConfigOption,
 ) (*KeyConfig, error) {
 	var options keyConfigOptions
@@ -66,7 +66,7 @@ func NewKeyConfig(
 
 func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 	args := []string{
-		"keys", "add", kc.ID, "--keyring-backend", "test",
+		"keys", "add", kc.ID, "--keyring-backend", string(kc.KeyringBackend),
 		"--keyring-dir", filepath.Join(home, kc.Dir),
 		"--output", "json",
 	}
@@ -122,8 +122,8 @@ type AddressData struct {
 }
 
 // TODO: refactor, user should approve rather then pipe to 'yes'
-func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
-	flags := getExportKeyFlags(keyringDir)
+func GetExportKeyCmdBinary(keyID, keyringDir, binary, keyringBackend string) *exec.Cmd {
+	flags := getExportKeyFlags(keyringDir, keyringBackend)
 	var commandStr string
 	if binary == consts.Executables.CelKey {
 		commandStr = fmt.Sprintf("%s export %s %s", binary, keyID, flags)
@@ -136,15 +136,16 @@ func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
 
 func GetExportPrivKeyCmd(kc KeyConfig) *exec.Cmd {
 	c := exec.Command(
-		kc.ChainBinary, "keys", "export", kc.ID, "--keyring-backend", "test",
+		kc.ChainBinary, "keys", "export", kc.ID, "--keyring-backend", string(kc.KeyringBackend),
 	)
 
 	return c
 }
 
-func getExportKeyFlags(keyringDir string) string {
+func getExportKeyFlags(keyringDir, keyringBackend string) string {
 	return fmt.Sprintf(
-		"--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe",
+		"--keyring-backend %s --keyring-dir %s --unarmored-hex --unsafe",
+		keyringBackend,
 		keyringDir,
 	)
 }

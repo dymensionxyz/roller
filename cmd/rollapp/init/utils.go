@@ -23,7 +23,7 @@ func runInit(
 	env string,
 	customHubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
-	keyringBackend string,
+	kb consts.SupportedKeyringBackend,
 ) error {
 	raID := raResp.Rollapp.RollappId
 
@@ -40,6 +40,7 @@ func runInit(
 	} else {
 		hd = customHubData
 	}
+
 	// TODO: refactor
 	var initConfigPtr *roller.RollappConfig
 
@@ -111,7 +112,7 @@ func runInit(
 		return err
 	}
 
-	err = roller.PopulateConfig(home, raID, hd, *daData, string(initConfig.RollappVMType))
+	err = roller.PopulateConfig(home, raID, hd, *daData, string(initConfig.RollappVMType), kb)
 	if err != nil {
 		return err
 	}

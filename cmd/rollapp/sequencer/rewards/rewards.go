@@ -87,10 +87,11 @@ func Cmd() *cobra.Command {
 			var address string
 			bech32Prefix = raResponse.Rollapp.GenesisInfo.Bech32Prefix
 			kc := keys.KeyConfig{
-				Dir:         consts.ConfigDirName.RollappSequencerKeys,
-				ID:          consts.KeysIds.RollappSequencerReward,
-				ChainBinary: consts.Executables.RollappEVM,
-				Type:        consts.EVM_ROLLAPP,
+				Dir:            consts.ConfigDirName.RollappSequencerKeys,
+				ID:             consts.KeysIds.RollappSequencerReward,
+				ChainBinary:    consts.Executables.RollappEVM,
+				Type:           consts.EVM_ROLLAPP,
+				KeyringBackend: rollerCfg.KeyringBackend,
 			}
 
 			isKeyInKeyring, err := keys.IsAddressWithNameInKeyring(kc, home)
@@ -198,7 +199,8 @@ func Cmd() *cobra.Command {
 					address, "--keyring-backend", "test", "--node", "http://localhost:26657",
 					"--chain-id", rollerCfg.RollappID,
 					"--from", "rollapp",
-					"--gas-prices", "100000000000aRUN",
+					"--gas-prices",
+					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.GenesisInfo.NativeDenom.Base),
 					"--keyring-backend", "test",
 					"--keyring-dir", filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 				)

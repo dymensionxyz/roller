@@ -21,7 +21,7 @@ func GetRelayerAddressInfo(keyConfig KeyConfig, chainId string) (*KeyInfo, error
 		"show",
 		keyConfig.ID,
 		"--keyring-backend",
-		"test",
+		string(keyConfig.KeyringBackend),
 		"--keyring-dir",
 		filepath.Join(keyConfig.Dir, "keys", chainId),
 		"--output",
@@ -70,16 +70,18 @@ type SecretAddressData struct {
 func GetRelayerKeysConfig(rollappConfig roller.RollappConfig) map[string]KeyConfig {
 	return map[string]KeyConfig{
 		consts.KeysIds.RollappRelayer: {
-			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
-			ID:          consts.KeysIds.RollappRelayer,
-			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.RollappVMType,
+			Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
+			ID:             consts.KeysIds.RollappRelayer,
+			ChainBinary:    rollappConfig.RollappBinary,
+			Type:           rollappConfig.RollappVMType,
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
 		},
 		consts.KeysIds.HubRelayer: {
-			Dir:         path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
-			ID:          consts.KeysIds.HubRelayer,
-			ChainBinary: consts.Executables.Dymension,
-			Type:        consts.SDK_ROLLAPP,
+			Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
+			ID:             consts.KeysIds.HubRelayer,
+			ChainBinary:    consts.Executables.Dymension,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
 		},
 	}
 }

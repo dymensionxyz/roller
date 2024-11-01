@@ -1,6 +1,7 @@
 package consts
 
 var MainnetHubData = HubData{
+	Environment:   "mainnet",
 	ApiUrl:        "https://dymension-mainnet-rest.public.blastapi.io",
 	ID:            MainnetHubID,
 	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io",
@@ -10,6 +11,7 @@ var MainnetHubData = HubData{
 }
 
 var TestnetHubData = HubData{
+	Environment:   "blumbus",
 	ApiUrl:        "https://api-blumbus.mzonder.com",
 	ID:            TestnetHubID,
 	RpcUrl:        "https://rpc-blumbus.mzonder.com",
@@ -18,16 +20,8 @@ var TestnetHubData = HubData{
 	DaNetwork:     CelestiaTestnet,
 }
 
-var DevnetHubData = HubData{
-	ApiUrl:        "http://52.58.111.62:1318",
-	ID:            DevnetHubID,
-	RpcUrl:        "http://52.58.111.62:36657",
-	ArchiveRpcUrl: "http://52.58.111.62:36657",
-	GasPrice:      "100000000",
-	DaNetwork:     CelestiaTestnet,
-}
-
 var LocalHubData = HubData{
+	Environment:   "local",
 	ApiUrl:        "http://localhost:1318",
 	ID:            LocalHubID,
 	RpcUrl:        "http://localhost:36657",
@@ -37,6 +31,7 @@ var LocalHubData = HubData{
 }
 
 var MockHubData = HubData{
+	Environment:   "mock",
 	ApiUrl:        "",
 	ID:            MockHubID,
 	RpcUrl:        "",
@@ -46,6 +41,7 @@ var MockHubData = HubData{
 }
 
 var PlaygroundHubData = HubData{
+	Environment:   "playground",
 	ApiUrl:        "https://api-dymension-playground-2.mzonder.com:443",
 	ID:            PlaygroundHubID,
 	RpcUrl:        "https://rpc-dymension-playground-2.mzonder.com:443",
@@ -58,7 +54,6 @@ var PlaygroundHubData = HubData{
 var Hubs = map[string]HubData{
 	MockHubName:       MockHubData,
 	LocalHubName:      LocalHubData,
-	DevnetHubName:     DevnetHubData,
 	TestnetHubName:    TestnetHubData,
 	PlaygroundHubName: PlaygroundHubData,
 	MainnetHubName:    MainnetHubData,
@@ -67,7 +62,6 @@ var Hubs = map[string]HubData{
 const (
 	MockHubName       = "mock"
 	LocalHubName      = "local"
-	DevnetHubName     = "devnet"
 	TestnetHubName    = "testnet"
 	PlaygroundHubName = "playground"
 	MainnetHubName    = "mainnet"
@@ -76,7 +70,6 @@ const (
 const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
-	DevnetHubID     = "dymension_100-1"
 	PlaygroundHubID = "dymension_2019-1"
 	TestnetHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"

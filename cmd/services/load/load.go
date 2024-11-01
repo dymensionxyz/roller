@@ -321,7 +321,11 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 		var err error
 
 		if service == "da-light-client" {
-			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+			damanager := datalayer.NewDAManager(
+				rollerData.DA.Backend,
+				rollerData.Home,
+				rollerData.KeyringBackend,
+			)
 			c := damanager.GetStartDACmd()
 
 			// during the development of ~v1.6.4 there was an issue running

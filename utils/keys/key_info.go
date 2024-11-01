@@ -72,7 +72,7 @@ func GetAddressInfoBinary(keyConfig KeyConfig, home string) (*KeyInfo, error) {
 		"show",
 		keyConfig.ID,
 		"--keyring-backend",
-		"test",
+		string(keyConfig.KeyringBackend),
 		"--keyring-dir",
 		filepath.Join(home, keyConfig.Dir),
 		"--output",
@@ -95,7 +95,7 @@ func GetAddressBinary(keyConfig KeyConfig, home string) (string, error) {
 		keyConfig.ID,
 		"--address",
 		"--keyring-backend",
-		"test",
+		string(keyConfig.KeyringBackend),
 		"--keyring-dir",
 		filepath.Join(home, keyConfig.Dir),
 	)

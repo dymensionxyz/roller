@@ -27,8 +27,9 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
 		hd := rollerData.HubData
 		raID := rollerData.RollappID
+		kb := rollerData.KeyringBackend
 
-		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return nil, err

@@ -46,7 +46,11 @@ func Cmd() *cobra.Command {
 					errors.New("metrics endpoint can only be set for celestia"),
 				)
 			}
-			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+			damanager := datalayer.NewDAManager(
+				rollerData.DA.Backend,
+				rollerData.Home,
+				rollerData.KeyringBackend,
+			)
 
 			if rollerData.NodeType == "sequencer" {
 				pterm.Info.Println("checking for da address balance")

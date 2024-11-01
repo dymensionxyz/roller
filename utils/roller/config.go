@@ -52,6 +52,7 @@ func PopulateConfig(
 	hd consts.HubData,
 	daData consts.DaData,
 	vmType string,
+	kb consts.SupportedKeyringBackend,
 ) error {
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
@@ -60,6 +61,7 @@ func PopulateConfig(
 		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
 		"rollapp_vm_type": vmType,
 		"home":            home,
+		"keyring_backend": string(kb),
 
 		"HubData.environment":     hd.Environment,
 		"HubData.id":              hd.ID,

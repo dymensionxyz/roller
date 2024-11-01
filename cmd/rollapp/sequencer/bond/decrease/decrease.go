@@ -20,7 +20,7 @@ func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "decrease <amount>",
 		Example: "roller rollapp sequencer bond increase 100000000000000000000adym",
-		Short:   "Commands to manage sequencer instance",
+		Short:   "Commands to increase the sequencer bond amount",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
@@ -45,13 +45,26 @@ func Cmd() *cobra.Command {
 			}
 
 			c := exec.Command(
-				consts.Executables.Dymension, "tx",
-				"sequencer", "decrease-bond", amount, "--keyring-backend",
-				"test", "--from", consts.KeysIds.HubSequencer, "--keyring-dir", filepath.Join(
+				consts.Executables.Dymension,
+				"tx",
+				"sequencer",
+				"decrease-bond",
+				amount,
+				"--keyring-backend",
+				string(rollerData.KeyringBackend),
+				"--from",
+				consts.KeysIds.HubSequencer,
+				"--keyring-dir",
+				filepath.Join(
 					home,
 					consts.ConfigDirName.HubKeys,
-				), "--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
+				),
+				"--fees",
+				fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
+				"--node",
+				rollerData.HubData.RpcUrl,
+				"--chain-id",
+				rollerData.HubData.ID,
 			)
 
 			txOutput, err := bash.ExecCommandWithInput(c, "signatures")

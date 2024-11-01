@@ -51,7 +51,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		desiredBond.String(),
 		seqMetadataPath,
 		"--from", consts.KeysIds.HubSequencer,
-		"--keyring-backend", "test",
+		"--keyring-backend", string(raCfg.KeyringBackend),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
@@ -128,9 +128,10 @@ func isValidSequencerMetadata(path string) (bool, error) {
 func GetSequencerAccountAddress(cfg roller.RollappConfig) (string, error) {
 	seqAddr, err := keys.GetAddressBinary(
 		keys.KeyConfig{
-			ChainBinary: consts.Executables.Dymension,
-			ID:          consts.KeysIds.HubSequencer,
-			Dir:         consts.ConfigDirName.HubKeys,
+			ChainBinary:    consts.Executables.Dymension,
+			ID:             consts.KeysIds.HubSequencer,
+			Dir:            consts.ConfigDirName.HubKeys,
+			KeyringBackend: cfg.KeyringBackend,
 		}, cfg.Home,
 	)
 	if err != nil {
@@ -373,9 +374,10 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
 	seqAddr, err := keys.GetAddressBinary(
 		keys.KeyConfig{
-			ChainBinary: consts.Executables.Dymension,
-			ID:          consts.KeysIds.HubSequencer,
-			Dir:         consts.ConfigDirName.HubKeys,
+			ChainBinary:    consts.Executables.Dymension,
+			ID:             consts.KeysIds.HubSequencer,
+			Dir:            consts.ConfigDirName.HubKeys,
+			KeyringBackend: cfg.KeyringBackend,
 		}, cfg.Home,
 	)
 	if err != nil {
