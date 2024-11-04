@@ -2,12 +2,17 @@ package servicemanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os/exec"
+	"runtime"
 	"sync"
 	"time"
 
+	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -193,6 +198,33 @@ func StopLaunchdService(serviceName string) error {
 	err := bash.ExecCmd(cmd)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func StopSystemServices() error {
+	pterm.Info.Println("stopping existing system services, if any...")
+	switch runtime.GOOS {
+	case "linux":
+		for _, svc := range consts.RollappSystemdServices {
+			err := StopSystemdService(svc)
+			if err != nil {
+				pterm.Error.Println("failed to stop systemd service: ", err)
+				return err
+			}
+		}
+	case "darwin":
+		for _, svc := range consts.RollappSystemdServices {
+			err := StopLaunchdService(svc)
+			if err != nil {
+				pterm.Error.Println("failed to remove systemd service: ", err)
+				return err
+			}
+		}
+	default:
+		pterm.Error.Println("OS not supported")
+		return errors.New("OS not supported")
 	}
 
 	return nil

@@ -20,6 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -49,6 +50,12 @@ func Cmd() *cobra.Command {
 			var hd consts.HubData
 			var env string
 			var raID string
+
+			err = servicemanager.StopSystemServices()
+			if err != nil {
+				pterm.Error.Println("failed to stop system services: ", err)
+				return
+			}
 
 			err = filesystem.CreateDirWithOptionalOverwrite(home)
 			if err != nil {
