@@ -208,7 +208,7 @@ func DoesFileExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 
 	if errors.Is(err, fs.ErrNotExist) {
-		pterm.Info.Println("existing roller configuration not found")
+		pterm.Info.Printfln("%s does not exist", path)
 		return false, nil
 	}
 
