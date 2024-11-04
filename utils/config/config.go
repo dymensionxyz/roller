@@ -1,10 +1,12 @@
 package config
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"os"
 	"strings"
 
@@ -12,6 +14,13 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+)
+
+const (
+	lowerCase   = "abcdefghijklmnopqrstuvwxyz"
+	upperCase   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	numbers     = "0123456789"
+	specialChar = "!@#$%^&*()_-+={}[/?]"
 )
 
 func CreateCustomHubData() (*consts.HubData, error) {
@@ -97,4 +106,50 @@ func createCustomHubDataFromFile() (*consts.HubData, error) {
 	hd.Environment = "custom"
 
 	return &hd, nil
+}
+
+func generateSecurePassword() ([]byte, error) {
+	charSet := lowerCase + upperCase + numbers + specialChar
+	password := make([]byte, 24)
+
+	for i := range password {
+		randNum, err := rand.Int(rand.Reader, big.NewInt(int64(len(charSet))))
+		if err != nil {
+			return nil, err
+		}
+		password[i] = charSet[randNum.Int64()]
+	}
+
+	return password, nil
+}
+
+func WritePasswordToFile(path string) error {
+	p, err := generateSecurePassword()
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(path, p, 0o755)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadFromFile(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+
+	// nolint:errcheck
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), err
 }

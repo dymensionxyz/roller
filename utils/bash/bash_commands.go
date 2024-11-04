@@ -1,7 +1,5 @@
 package bash
 
-// TODO: there should be an abstraction fo running commands that would use
-// options to add extra behaviour, like .WithInteractions etc.
 import (
 	"bufio"
 	"bytes"
@@ -255,6 +253,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (str
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
+		// nocheck: errcheck
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
@@ -295,4 +294,42 @@ func ExtractTxHash(output string) (string, error) {
 	}
 
 	return "", fmt.Errorf("txhash not found in output")
+}
+
+func ExecuteCommandWithPrompts(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+
+	// Immediately write all expected responses
+	go func() {
+		defer stdin.Close()
+		// Add a small delay to ensure the command has started
+		time.Sleep(100 * time.Millisecond)
+
+		// Write all responses
+		for _, response := range promptResponses {
+			fmt.Printf("Sending response: %s\n", response)
+			// nolint: errcheck
+			stdin.Write([]byte(response + "\n"))
+			// Small delay between responses
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
+	// Capture output
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("command execution failed: %v\nOutput: %s", err, string(output))
+	}
+
+	return bytes.NewBuffer(output), nil
 }

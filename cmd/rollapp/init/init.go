@@ -45,6 +45,7 @@ func Cmd() *cobra.Command {
 			}
 
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
+			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
 
 			// preflight checks
 			var hd consts.HubData
@@ -62,6 +63,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to create roller home directory: ", err)
 				return
 			}
+
 			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
@@ -135,7 +137,6 @@ func Cmd() *cobra.Command {
 					pterm.Info.Println("failed to install dymd", err)
 					return
 				}
-
 			case "mock":
 				vmType := config.PromptVmType()
 				raRespMock := rollapp.ShowRollappResponse{
@@ -145,11 +146,14 @@ func Cmd() *cobra.Command {
 					},
 				}
 
-				_, _, err = dependencies.InstallBinaries(true, raRespMock)
-				if err != nil {
-					pterm.Error.Println("failed to install binaries: ", err)
-					return
+				if !shouldSkipBinaryInstallation {
+					_, _, err = dependencies.InstallBinaries(true, raRespMock)
+					if err != nil {
+						pterm.Error.Println("failed to install binaries: ", err)
+						return
+					}
 				}
+
 				err := runInit(
 					cmd,
 					env,
@@ -164,11 +168,14 @@ func Cmd() *cobra.Command {
 				return
 			default:
 				hd = consts.Hubs[env]
-				dymdDep := dependencies.DefaultDymdDependency()
-				err = dependencies.InstallBinaryFromRelease(dymdDep)
-				if err != nil {
-					pterm.Error.Println("failed to install dymd: ", err)
-					return
+
+				if shouldSkipBinaryInstallation {
+					dymdDep := dependencies.DefaultDymdDependency()
+					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					if err != nil {
+						pterm.Error.Println("failed to install dymd: ", err)
+						return
+					}
 				}
 			}
 
@@ -262,6 +269,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
+	cmd.Flags().Bool("skip-binary-installation", false, "skips the binary installation")
 
 	return cmd
 }

@@ -139,7 +139,6 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 					return nil, err
 				}
 			}
-
 		}
 
 		daAddress, err := damanager.GetDAAccountAddress()

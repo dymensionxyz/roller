@@ -1,14 +1,12 @@
 package start
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -19,7 +17,6 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
@@ -32,10 +29,8 @@ import (
 // var OneDaySequencePrice = big.NewInt(1)
 
 var (
-	RollappDirPath string
-	LogPath        string
-	DaLcEndpoint   string
-	DaLogPath      string
+	DaLcEndpoint string
+	DaLogPath    string
 )
 
 func Cmd() *cobra.Command {
@@ -44,10 +39,9 @@ func Cmd() *cobra.Command {
 		Short: "Start the RollApp node interactively",
 		Long: `Start the RollApp node interactively.
 
-Consider using 'services' if you want to run a 'systemd' service instead.
+Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac) service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
-			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
 			logLevel, _ := cmd.Flags().GetString("log-level")
 			logLevels := []string{"debug", "info", "warn", "error", "fatal"}
 			if !slices.Contains(logLevels, logLevel) {
@@ -95,50 +89,18 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			fmt.Println(startRollappCmd.String())
 
-			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
-			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
 			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
-
-			nodeID, err := dymint.GetNodeID(home)
-			if err != nil {
-				fmt.Println("failed to retrieve dymint node id:", err)
-				return
-			}
 
 			if rollappConfig.HubData.ID != "mock" {
 				go healthagent.Start(home, rollerLogger)
 			}
 
-			go bash.RunCmdAsync(
-				ctx,
-				startRollappCmd,
-				func() {
-					PrintOutput(
-						rollappConfig,
-						strconv.Itoa(startRollappCmd.Process.Pid),
-						showSequencerBalance,
-						true,
-						true,
-						true,
-						nodeID,
-					)
-					err := createPidFile(RollappDirPath, startRollappCmd)
-					if err != nil {
-						pterm.Warning.Println("failed to create pid file")
-					}
-				},
-				parseError,
-				logging.WithLogging(logging.GetSequencerLogPath(rollappConfig)),
-			)
+			// nolint: errcheck
+			go bash.ExecCmdFollow(startRollappCmd)
 
 			select {}
 		},
 	}
-	cmd.Flags().Bool("show-sequencer-balance", false, "initialize the rollapp with mock backend")
 	cmd.Flags().String("log-level", "debug", "pass the log level to the rollapp")
 
 	return cmd

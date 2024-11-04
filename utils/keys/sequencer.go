@@ -1,6 +1,8 @@
 package keys
 
 import (
+	"encoding/json"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -8,6 +10,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -31,6 +34,11 @@ func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
 		)
 	}
 	return addresses, nil
+}
+
+func CreateSequencerOsKeyringPswFile(home string) error {
+	raFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.RollApp))
+	return config.WritePasswordToFile(raFp)
 }
 
 func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
@@ -101,6 +109,10 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 		addr = append(addr, *ki)
 	} else {
 		addr, err = createSequencersKeys(rollerData)
+		j, _ := json.Marshal(addr)
+		fmt.Println("addr:", string(j))
+		fmt.Println("err:", err)
+
 		if err != nil {
 			return nil, err
 		}

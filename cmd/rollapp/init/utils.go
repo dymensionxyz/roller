@@ -34,52 +34,78 @@ func runInit(
 	}
 
 	var hd consts.HubData
-	// todo: refactor
 	if env != "custom" {
 		hd = consts.Hubs[env]
 	} else {
 		hd = customHubData
 	}
 
-	// TODO: refactor
-	var initConfigPtr *roller.RollappConfig
-
-	if env == consts.MockHubName {
-		initConfigPtr, err = roller.GetMockRollappMetadata(
-			home,
-			raID,
-			&hd,
-			raResp.Rollapp.VmType,
-		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return err
-		}
-	} else {
-		initConfigPtr, err = rollapp.PopulateRollerConfigWithRaMetadataFromChain(
-			home,
-			raID,
-			hd,
-		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return err
-		}
-	}
-	initConfig := *initConfigPtr
-
-	/* ------------------------------ Generate keys ----------------------------- */
-	var addresses []keys.KeyInfo
-	var k []keys.KeyInfo
-
-	addresses = append(addresses, k...)
-	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, initConfig)
+	ic, err := prepareConfig(env, home, raID, hd, raResp)
 	if err != nil {
 		return err
 	}
-	addresses = append(addresses, sequencerKeys...)
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
+	err = initRollapp(ic, raResp, env, home, raID, hd, kb)
+	if err != nil {
+		return err
+	}
+
+	/* ------------------------------ Generate keys ----------------------------- */
+	var addresses []keys.KeyInfo
+
+	sequencerKeys, err := initSequencerKeys(home, env, ic)
+	if err != nil {
+		return err
+	}
+
+	addresses = append(addresses, sequencerKeys...)
+
+	/* ------------------------------ Initialize Local Hub ---------------------------- */
+	// TODO: local hub is out of scope, implement as the last step
+	// hub := cmd.Flag(FlagNames.HubID).Value.String()
+	// if hub == consts.LocalHubName {
+	// 	err := initLocalHub(initConfig)
+	// 	utils.PrettifyErrorIfExists(err)
+	// }
+
+	/* ------------------------ Initialize DA light node ------------------------ */
+	daKeyInfo, err := celestialightclient.Initialize(env, ic)
+	if err != nil {
+		return err
+	}
+
+	if daKeyInfo != nil {
+		addresses = append(addresses, *daKeyInfo)
+	}
+
+	/* ------------------------------ Print output ------------------------------ */
+	PrintInitOutput(ic, addresses, ic.RollappID)
+
+	return nil
+}
+
+func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys.KeyInfo, error) {
+	err := keys.CreateSequencerOsKeyringPswFile(home)
+	if err != nil {
+		return nil, err
+	}
+	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, ic)
+	if err != nil {
+		return nil, err
+	}
+	return sequencerKeys, nil
+}
+
+func initRollapp(
+	initConfig roller.RollappConfig,
+	raResp rollapp.ShowRollappResponse,
+	env string,
+	home string,
+	raID string,
+	hd consts.HubData,
+	kb consts.SupportedKeyringBackend,
+) error {
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
 	if err != nil {
 		return err
@@ -98,7 +124,6 @@ func runInit(
 		}
 	}
 
-	// Initialize roller config
 	as, err := genesisutils.GetGenesisAppState(home)
 	if err != nil {
 		return err
@@ -123,31 +148,44 @@ func runInit(
 		return err
 	}
 
-	/* ------------------------------ Initialize Local Hub ---------------------------- */
-	// TODO: local hub is out of scope, implement as the last step
-	// hub := cmd.Flag(FlagNames.HubID).Value.String()
-	// if hub == consts.LocalHubName {
-	// 	err := initLocalHub(initConfig)
-	// 	utils.PrettifyErrorIfExists(err)
-	// }
-
 	raSpinner.Success("rollapp initialized successfully")
-
-	/* ------------------------ Initialize DA light node ------------------------ */
-	daKeyInfo, err := celestialightclient.Initialize(env, initConfig)
-	if err != nil {
-		return err
-	}
-
-	if daKeyInfo != nil {
-		addresses = append(addresses, *daKeyInfo)
-	}
-
-	/* ------------------------------ Print output ------------------------------ */
-
-	PrintInitOutput(initConfig, addresses, initConfig.RollappID)
-
 	return nil
+}
+
+func prepareConfig(
+	env string,
+	home string,
+	raID string,
+	hd consts.HubData,
+	raResp rollapp.ShowRollappResponse,
+) (roller.RollappConfig, error) {
+	var initConfig roller.RollappConfig
+
+	if env == consts.MockHubName {
+		ic, err := roller.GetMockRollappMetadata(
+			home,
+			raID,
+			&hd,
+			raResp.Rollapp.VmType,
+		)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return roller.RollappConfig{}, err
+		}
+		initConfig = *ic
+	} else {
+		ic, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+			home,
+			raID,
+			hd,
+		)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return roller.RollappConfig{}, err
+		}
+		initConfig = *ic
+	}
+	return initConfig, nil
 }
 
 func PrintInitOutput(
