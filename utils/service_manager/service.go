@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -176,28 +178,44 @@ func RestartLaunchctlService(serviceName string) error {
 }
 
 func StopSystemdService(serviceName string) error {
-	// not ideal, shouldn't run sudo commands from within roller
-	cmd := exec.Command("sudo", "systemctl", "stop", serviceName)
-	err := bash.ExecCmd(cmd)
+	svcFilePath := filepath.Join("/etc/systemd/system/", fmt.Sprintf("%s.service", serviceName))
+	ok, err := filesystem.DoesFileExist(svcFilePath)
 	if err != nil {
 		return err
+	}
+
+	if ok {
+		// not ideal, shouldn't run sudo commands from within roller
+		cmd := exec.Command("sudo", "systemctl", "stop", serviceName)
+		err := bash.ExecCmd(cmd)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func StopLaunchdService(serviceName string) error {
-	svcFilaPath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
-	cmd := exec.Command(
-		"sudo",
-		"launchctl",
-		"unload",
-		"-w",
-		svcFilaPath,
-	)
-	err := bash.ExecCmd(cmd)
+	svcFilePath := fmt.Sprintf("/Library/LaunchDaemons/xyz.dymension.roller.%s.plist", serviceName)
+
+	ok, err := filesystem.DoesFileExist(svcFilePath)
 	if err != nil {
 		return err
+	}
+
+	if ok {
+		cmd := exec.Command(
+			"sudo",
+			"launchctl",
+			"unload",
+			"-w",
+			svcFilePath,
+		)
+		err := bash.ExecCmd(cmd)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
