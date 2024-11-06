@@ -13,6 +13,7 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -132,6 +133,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	}
 
 	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		pterm.Info.Println("creating keyring passphrase file")
 		err := keys.CreateDaOsKeyringPswFile(c.Root)
 		if err != nil {
 			return "", err
