@@ -122,6 +122,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	address, err := keys.ParseAddressFromOutput(output)
 	return address, err
 }
@@ -149,21 +150,30 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	)
 	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
 	// err := initLightNodeCmd.Run()
-	raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFileNames.Da))
-	psw, err := config.ReadFromFile(raFp)
-	if err != nil {
-		return "", err
-	}
 
-	pr := map[string]string{
-		"Enter keyring passphrase":    psw,
-		"Re-enter keyring passphrase": psw,
-	}
-	out, err := bash.ExecuteCommandWithPrompts(
-		consts.Executables.Celestia, initLightNodeCmd.Args, pr,
-	)
-	if err != nil {
-		return "", err
+	var out *bytes.Buffer
+	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFileNames.Da))
+		psw, err := config.ReadFromFile(raFp)
+		if err != nil {
+			return "", err
+		}
+
+		pr := map[string]string{
+			"Enter keyring passphrase":    psw,
+			"Re-enter keyring passphrase": psw,
+		}
+		out, err = bash.ExecuteCommandWithPrompts(
+			consts.Executables.Celestia, initLightNodeCmd.Args, pr,
+		)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		out, err = bash.ExecCommandWithStdout(initLightNodeCmd)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	mnemonic := extractMnemonic(out.String())

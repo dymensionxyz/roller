@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-func ParseAddressFromOutput(output bytes.Buffer) (*KeyInfo, error) {
+func ParseAddressFromOutput(output *bytes.Buffer) (*KeyInfo, error) {
 	key := &KeyInfo{}
 	err := json.Unmarshal(output.Bytes(), key)
 	if err != nil {

@@ -118,7 +118,7 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 		}
 		pterm.Info.Println("inputs handled")
 
-		return ParseAddressFromOutput(*out)
+		return ParseAddressFromOutput(out)
 	}
 
 	out, err := bash.ExecCommandWithStdout(createKeyCommand)

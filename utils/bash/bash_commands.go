@@ -103,28 +103,28 @@ func RunCmdAsync(
 	}
 }
 
-func ExecCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdout(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return &stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
-	return stdout, nil
+	return &stdout, nil
 }
 
-func ExecCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdErr(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return &stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
-	return stderr, nil
+	return &stderr, nil
 }
 
 func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {

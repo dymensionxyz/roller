@@ -96,7 +96,7 @@ func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error)
 	if err != nil {
 		return Balance{}, err
 	}
-	return ParseBalanceFromResponse(out, chainConfig.Denom)
+	return ParseBalanceFromResponse(*out, chainConfig.Denom)
 }
 
 func ParseBalance(balResp BalanceResp) (*big.Int, error) {
