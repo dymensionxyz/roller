@@ -302,6 +302,7 @@ func ExecuteCommandWithPrompts(
 	promptResponses map[string]string,
 ) (*bytes.Buffer, error) {
 	cmd := exec.Command(command, args...)
+	pterm.Info.Println("executing command with prompts:", cmd.String())
 
 	// Create pipes
 	stdin, err := cmd.StdinPipe()
