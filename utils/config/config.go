@@ -138,20 +138,3 @@ func WritePasswordToFile(path string) error {
 
 	return nil
 }
-
-func ReadFromFile(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-
-	// nolint:errcheck
-	defer f.Close()
-
-	b, err := io.ReadAll(f)
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), err
-}

@@ -67,7 +67,7 @@ func Cmd() *cobra.Command {
 				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
 			)
 
-			txOutput, err := bash.ExecCommandWithInput(updateSeqCmd, "signatures")
+			txOutput, err := bash.ExecCommandWithInput(home, updateSeqCmd, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update sequencer metadata", err)
 				return

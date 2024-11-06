@@ -18,6 +18,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -43,8 +44,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 
 	home := roller.GetRootDir()
 
-	cmd := exec.Command(
-		consts.Executables.Dymension,
+	args := []string{
 		"tx",
 		"sequencer",
 		"create-sequencer",
@@ -59,26 +59,44 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
-	)
+	}
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
 	if err != nil {
 		return err
 	}
 
-	txOutput, err := bash.ExecCommandWithInput(
-		cmd,
-		"signatures",
-		fmt.Sprintf(
+	pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
+	if err != nil {
+		return err
+	}
+	fp := filepath.Join(home, string(pswFileName))
+	psw, err := filesystem.ReadFromFile(fp)
+	if err != nil {
+		return err
+	}
+
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase":    psw,
+		"Re-enter keyring passphrase": psw,
+	}
+	manualPromptResponses := map[string]string{
+		"signatures": fmt.Sprintf(
 			"this transaction is going to register your sequencer with %s bond. do you want to continue?",
 			pterm.Yellow(pterm.Bold.Sprint(displayBond.String())),
 		),
+	}
+	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.Dymension,
+		args,
+		automaticPrompts,
+		manualPromptResponses,
 	)
 	if err != nil {
 		return err
 	}
 
-	txHash, err := bash.ExtractTxHash(txOutput)
+	txHash, err := bash.ExtractTxHash(txOutput.String())
 	if err != nil {
 		return err
 	}

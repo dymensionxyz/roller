@@ -66,7 +66,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			txOutput, err := bash.ExecCommandWithInput(gCmd, "signatures")
+			txOutput, err := bash.ExecCommandWithInput(home, gCmd, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update sequencer metadata", err)
 				return

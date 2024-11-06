@@ -106,8 +106,7 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 
 func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 	kp := filepath.Join(home, kc.Dir)
-	showKeyCommand := exec.Command(
-		kc.ChainBinary,
+	args := []string{
 		"keys",
 		"show",
 		kc.ID,
@@ -117,9 +116,9 @@ func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 		kp,
 		"--output",
 		"json",
-	)
+	}
 
-	output, err := bash.ExecCommandWithStdout(showKeyCommand)
+	output, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +127,8 @@ func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 }
 
 func (kc KeyConfig) Address(home string) (string, error) {
-	showKeyCommand := exec.Command(
-		kc.ChainBinary,
+	kp := filepath.Join(home, kc.Dir)
+	args := []string{
 		"keys",
 		"show",
 		kc.ID,
@@ -137,10 +136,10 @@ func (kc KeyConfig) Address(home string) (string, error) {
 		"--keyring-backend",
 		string(kc.KeyringBackend),
 		"--keyring-dir",
-		filepath.Join(home, kc.Dir),
-	)
+		kp,
+	}
 
-	output, err := bash.ExecCommandWithStdout(showKeyCommand)
+	output, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return "", err
 	}
@@ -151,16 +150,14 @@ func (kc KeyConfig) Address(home string) (string, error) {
 func (kc KeyConfig) IsInKeyring(
 	home string,
 ) (bool, error) {
-	keyringDir := filepath.Join(home, kc.Dir)
-
-	cmd := exec.Command(
-		kc.ChainBinary,
+	kp := filepath.Join(home, kc.Dir)
+	args := []string{
 		"keys", "list", "--output", "json",
-		"--keyring-backend", string(kc.KeyringBackend), "--keyring-dir", keyringDir,
-	)
+		"--keyring-backend", string(kc.KeyringBackend), "--keyring-dir", kp,
+	}
 
 	var ki []KeyInfo
-	out, err := bash.ExecCommandWithStdout(cmd)
+	out, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return false, err
 	}

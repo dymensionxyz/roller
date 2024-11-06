@@ -2,7 +2,6 @@ package keys
 
 import (
 	"bytes"
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -11,7 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 // KeyringBackendFromEnv determines the appropriate keyring backend based on the environment.
@@ -51,20 +50,14 @@ func RunCmdBasedOnKeyringBackend(
 	var out *bytes.Buffer
 	var pswFileName consts.OsKeyringPwdFileName
 
-	switch command {
-	case consts.Executables.Celestia:
-		pswFileName = consts.OsKeyringPwdFileNames.Da
-	case consts.Executables.RollappEVM:
-		pswFileName = consts.OsKeyringPwdFileNames.RollApp
-	case consts.Executables.Dymension:
-		pswFileName = consts.OsKeyringPwdFileNames.RollApp
-	default:
-		return nil, fmt.Errorf("unsupported command: %s", command)
+	pswFileName, err := filesystem.GetOsKeyringPswFileName(command)
+	if err != nil {
+		return nil, err
 	}
 
 	if kb == consts.SupportedKeyringBackends.OS {
 		fp := filepath.Join(home, string(pswFileName))
-		psw, err := config.ReadFromFile(fp)
+		psw, err := filesystem.ReadFromFile(fp)
 		if err != nil {
 			return nil, err
 		}

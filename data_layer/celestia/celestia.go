@@ -17,7 +17,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -116,7 +115,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 
 	args := []string{
 		"show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
-		daKeysDir, "--keyring.backend", string(c.KeyringBackend), "--output", "json",
+		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
 	}
 	cmd := exec.Command(
 		consts.Executables.CelKey, args...,
@@ -124,16 +123,12 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 
 	fmt.Println("cmd:", cmd.String())
 
-	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
-		psw, err := config.ReadFromFile(
-			filepath.Join(c.Root, string(consts.OsKeyringPwdFileNames.Da)),
-		)
-		if err != nil {
-			return nil, err
-		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DA_KEYRING_PASSPHRASE=%s", psw))
-	}
-	output, err := bash.ExecCommandWithStdout(cmd)
+	output, err := keys.RunCmdBasedOnKeyringBackend(
+		c.Root,
+		consts.Executables.CelKey,
+		args,
+		c.KeyringBackend,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +156,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		"--p2p.network",
 		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--keyring.backend", "test",
+		"--keyring.backend", string(c.KeyringBackend),
 	}
 	initLightNodeCmd := exec.Command(
 		consts.Executables.Celestia, args...,
@@ -193,8 +188,12 @@ func extractMnemonic(output string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if mnemonicLineFound {
-			// Collect all subsequent lines as part of the mnemonic
-			mnemonicLines = append(mnemonicLines, line)
+			// Extract only the 24 words from the line
+			words := strings.Fields(line)
+			fmt.Println("words:", words)
+			if len(words) == 24 {
+				mnemonicLines = append(mnemonicLines, strings.Join(words, " "))
+			}
 		}
 		if strings.HasPrefix(line, "MNEMONIC") {
 			mnemonicLineFound = true

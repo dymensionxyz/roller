@@ -173,10 +173,7 @@ func Cmd() *cobra.Command {
 				)
 				fmt.Println(createSeqCmd.String())
 
-				createSeqOut, err := bash.ExecCommandWithInput(
-					createSeqCmd,
-					"signatures",
-				)
+				createSeqOut, err := bash.ExecCommandWithInput(home, createSeqCmd, "signatures")
 				if err != nil {
 					pterm.Error.Println("failed to create sequencer: ", err)
 					return
@@ -207,7 +204,7 @@ func Cmd() *cobra.Command {
 
 				fmt.Println(updSeqCmd.String())
 
-				uTxOutput, err := bash.ExecCommandWithInput(updSeqCmd, "signatures")
+				uTxOutput, err := bash.ExecCommandWithInput(home, updSeqCmd, "signatures")
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
 					return

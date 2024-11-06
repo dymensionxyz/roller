@@ -85,7 +85,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)
-			startRollappCmd := seq.GetStartCmd(logLevel)
+			startRollappCmd := seq.GetStartCmd(logLevel, rollappConfig.KeyringBackend)
 
 			fmt.Println(startRollappCmd.String())
 
@@ -96,7 +96,34 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 			}
 
 			// nolint: errcheck
-			go bash.ExecCmdFollow(startRollappCmd)
+			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
+				pswFileName, err := filesystem.GetOsKeyringPswFileName(
+					consts.Executables.RollappEVM,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to get os keyring password file name: ", err)
+					return
+				}
+
+				fp := filepath.Join(home, string(pswFileName))
+				psw, err := filesystem.ReadFromFile(fp)
+				if err != nil {
+					pterm.Error.Println("failed to read os keyring password file: ", err)
+					return
+				}
+
+				pr := map[string]string{
+					"Enter keyring passphrase":    psw,
+					"Re-enter keyring passphrase": psw,
+				}
+
+				go bash.ExecCmdFollow(
+					startRollappCmd,
+					pr,
+				)
+			} else {
+				go bash.ExecCmdFollow(startRollappCmd, nil)
+			}
 
 			select {}
 		},

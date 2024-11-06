@@ -44,6 +44,7 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 	dymintCfg.Set("settlement_node_address", rlpCfg.HubData.RpcUrl)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
 	dymintCfg.Set("keyring_home_dir", hubKeysDir)
+	dymintCfg.Set("keyring_backend", string(rlpCfg.KeyringBackend))
 	dymintCfg.Set("gas_prices", rlpCfg.HubData.GasPrice+consts.Denoms.Hub)
 	dymintCfg.Set("instrumentation.prometheus", true)
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")

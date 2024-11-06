@@ -18,6 +18,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/cronjobs"
+	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -57,6 +58,12 @@ func Cmd(services []string, module string) *cobra.Command {
 			err = LoadServices(services, rollerData)
 			if err != nil {
 				pterm.Error.Println("failed to load services: ", err)
+				return
+			}
+
+			err = scripts.CreateRollappStartup(home)
+			if err != nil {
+				pterm.Error.Println("failed to generate startup scripts:", err)
 				return
 			}
 

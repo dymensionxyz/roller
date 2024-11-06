@@ -54,7 +54,7 @@ func Cmd() *cobra.Command {
 				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
 			)
 
-			txOutput, err := bash.ExecCommandWithInput(c, "signatures")
+			txOutput, err := bash.ExecCommandWithInput(home, c, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update bond: ", err)
 				return
