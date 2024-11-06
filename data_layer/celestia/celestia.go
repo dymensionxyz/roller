@@ -141,12 +141,15 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		}
 	}
 
-	initLightNodeCmd := exec.Command(
-		consts.Executables.Celestia, "light", "init",
+	args := []string{
+		"light", "init",
 		"--p2p.network",
 		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--keyring.backend", string(c.KeyringBackend),
+	}
+	initLightNodeCmd := exec.Command(
+		consts.Executables.Celestia, args...,
 	)
 	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
 	// err := initLightNodeCmd.Run()
@@ -164,7 +167,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 			"Re-enter keyring passphrase": psw,
 		}
 		out, err = bash.ExecuteCommandWithPrompts(
-			consts.Executables.Celestia, initLightNodeCmd.Args, pr,
+			consts.Executables.Celestia, args, pr,
 		)
 		if err != nil {
 			return "", err
