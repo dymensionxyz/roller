@@ -161,7 +161,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		"--p2p.network",
 		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--keyring.backend", string(c.KeyringBackend),
+		"--keyring.backend", "test",
 	}
 	initLightNodeCmd := exec.Command(
 		consts.Executables.Celestia, args...,
