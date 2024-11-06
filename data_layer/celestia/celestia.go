@@ -113,11 +113,24 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 // FIXME: should be loaded once and cached
 func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
-	cmd := exec.Command(
-		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
+
+	args := []string{
+		"show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring.backend", string(c.KeyringBackend), "--output", "json",
+	}
+	cmd := exec.Command(
+		consts.Executables.CelKey, args...,
 	)
-	fmt.Println("cmd:", cmd.String())
+
+	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		psw, err := config.ReadFromFile(
+			filepath.Join(c.Root, string(consts.OsKeyringPwdFileNames.Da)),
+		)
+		if err != nil {
+			return nil, err
+		}
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DA_KEYRING_PASSPHRASE=%s", psw))
+	}
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
@@ -155,28 +168,14 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	// err := initLightNodeCmd.Run()
 
 	var out *bytes.Buffer
-	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
-		raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFileNames.Da))
-		psw, err := config.ReadFromFile(raFp)
-		if err != nil {
-			return "", err
-		}
-
-		pr := map[string]string{
-			"Enter keyring passphrase":    psw,
-			"Re-enter keyring passphrase": psw,
-		}
-		out, err = bash.ExecuteCommandWithPrompts(
-			consts.Executables.Celestia, args, pr,
-		)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		out, err = bash.ExecCommandWithStdout(initLightNodeCmd)
-		if err != nil {
-			return "", err
-		}
+	out, err = keys.RunCmdBasedOnKeyringBackend(
+		c.Root,
+		consts.Executables.Celestia,
+		args,
+		c.KeyringBackend,
+	)
+	if err != nil {
+		return "", err
 	}
 
 	mnemonic := extractMnemonic(out.String())

@@ -12,7 +12,6 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 )
 
 type keyConfigOptions struct {
@@ -82,7 +81,6 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
 	}
-	createKeyCommand := exec.Command(kc.ChainBinary, args...)
 
 	if kc.ShouldRecover {
 		err := bash.ExecCommandWithInteractions(kc.ChainBinary, args...)
@@ -98,33 +96,11 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 		return ki, nil
 	}
 
-	if kc.KeyringBackend == consts.SupportedKeyringBackends.OS {
-		pterm.Info.Println("handling os keyring key creation")
-		raFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
-		psw, err := config.ReadFromFile(raFp)
-		if err != nil {
-			return nil, err
-		}
-
-		pr := map[string]string{
-			"Enter keyring passphrase":    psw,
-			"Re-enter keyring passphrase": psw,
-		}
-
-		out, err := bash.ExecuteCommandWithPrompts(kc.ChainBinary, args, pr)
-		if err != nil {
-			pterm.Error.Printf("Command failed: %v\n", err)
-			return nil, err
-		}
-		pterm.Info.Println("inputs handled")
-
-		return ParseAddressFromOutput(out)
-	}
-
-	out, err := bash.ExecCommandWithStdout(createKeyCommand)
+	out, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return nil, err
 	}
+
 	return ParseAddressFromOutput(out)
 }
 
