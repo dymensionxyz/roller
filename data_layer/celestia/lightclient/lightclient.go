@@ -24,25 +24,20 @@ import (
 // KeyInfo of the created celestia address
 func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, error) {
 	if env != "mock" {
-		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+		daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(false).
+			Start("initializing da light client")
 		hd := rollerData.HubData
 		raID := rollerData.RollappID
 		kb := rollerData.KeyringBackend
 
-		if kb == consts.SupportedKeyringBackends.OS {
-			daSpinner.UpdateText("creating keyring passphrase file")
-			err := keys.CreateDaOsKeyringPswFile(rollerData.Home)
-			if err != nil {
-				return nil, err
-			}
-		}
-
+		daSpinner.UpdateText("initializing da light node configuration")
 		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return nil, err
 		}
 
+		daSpinner.UpdateText("checking for registered sequencers")
 		sequencers, err := sequencer.RegisteredRollappSequencersOnHub(
 			rollerData.RollappID,
 			rollerData.HubData,
@@ -51,6 +46,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			return nil, err
 		}
 
+		daSpinner.UpdateText("retrieving latest block")
 		latestHeight, latestBlockIdHash, err := celestia.GetLatestBlock(rollerData)
 		if err != nil {
 			return nil, err
@@ -60,14 +56,15 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			return nil, err
 		}
 
+		daSpinner.UpdateText("updating da light client configuration")
 		celestiaConfigFilePath := filepath.Join(
 			rollerData.Home,
 			consts.ConfigDirName.DALightNode,
 			"config.toml",
 		)
 		if len(sequencers.Sequencers) == 0 {
-			pterm.Info.Println("no sequencers registered for the rollapp")
-			pterm.Info.Println("using latest height for da-light-client configuration")
+			daSpinner.UpdateText("no sequencers registered for the rollapp")
+			daSpinner.UpdateText("using latest height for da-light-client configuration")
 
 			pterm.Info.Printf(
 				"da light client will be initialized at height %s, block hash %s",
@@ -95,6 +92,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 				hd.ID,
 			)
 
+			daSpinner.UpdateText("checking for state update")
 			out, err := bash.ExecCommandWithStdout(cmd)
 			if err != nil {
 				if strings.Contains(out.String(), "NotFound") {
