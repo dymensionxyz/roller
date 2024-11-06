@@ -30,7 +30,7 @@ func writeTemplateToFile(tmpl *bytes.Buffer, fp string) error {
 
 func writeDaTemplateToFile(home string) error {
 	daDirPath := filepath.Join(home, consts.ConfigDirName.DALightNode)
-	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.Da))
+	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.Da))
 	scriptFp := filepath.Join(home, string(consts.StartupScriptFilePaths.Da))
 
 	daD := DaStartupTemplateData{
@@ -56,7 +56,7 @@ func writeDaTemplateToFile(home string) error {
 
 func writeRaTemplateToFile(home string) error {
 	raDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.RollApp))
+	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
 	scriptFp := filepath.Join(home, string(consts.StartupScriptFilePaths.RollApp))
 
 	raD := RaStartupTemplateData{

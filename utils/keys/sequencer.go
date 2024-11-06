@@ -1,8 +1,6 @@
 package keys
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -37,19 +35,12 @@ func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
 }
 
 func CreateSequencerOsKeyringPswFile(home string) error {
-	raFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.RollApp))
+	raFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
 	return config.WritePasswordToFile(raFp)
 }
 
 func CreateDaOsKeyringPswFile(home string) error {
-	daFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.Da))
-
-	d := filepath.Join(home, consts.ConfigDirName.DALightNode)
-	pterm.Info.Println("creating da light node directory:", d)
-	err := os.MkdirAll(filepath.Dir(d), 0o755)
-	if err != nil {
-		return fmt.Errorf("failed to create da light node directory: %w", err)
-	}
+	daFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.Da))
 
 	return config.WritePasswordToFile(daFp)
 }

@@ -1,9 +1,5 @@
 package consts
 
-import (
-	"path/filepath"
-)
-
 type SupportedKeyringBackend string
 
 var SupportedKeyringBackends = struct {
@@ -14,15 +10,12 @@ var SupportedKeyringBackends = struct {
 	Test: "test",
 }
 
-type OsKeyringPwdFilePath string
+type OsKeyringPwdFileName string
 
-// nolint: gosec
-var OsKeyringPwdFileName = ".os-keyring-psw"
-
-var OsKeyringPwdFilePaths = struct {
-	RollApp OsKeyringPwdFilePath
-	Da      OsKeyringPwdFilePath
+var OsKeyringPwdFileNames = struct {
+	RollApp OsKeyringPwdFileName
+	Da      OsKeyringPwdFileName
 }{
-	RollApp: OsKeyringPwdFilePath(filepath.Join(ConfigDirName.Rollapp, OsKeyringPwdFileName)),
-	Da:      OsKeyringPwdFilePath(filepath.Join(ConfigDirName.DALightNode, OsKeyringPwdFileName)),
+	RollApp: ".ra-os-keyring-psw",
+	Da:      ".da-os-keyring-psw",
 }

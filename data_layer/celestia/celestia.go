@@ -149,7 +149,7 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	)
 	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
 	// err := initLightNodeCmd.Run()
-	raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFilePaths.RollApp))
+	raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFileNames.Da))
 	psw, err := config.ReadFromFile(raFp)
 	if err != nil {
 		return "", err

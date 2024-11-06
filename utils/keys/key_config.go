@@ -100,7 +100,7 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 
 	if kc.KeyringBackend == consts.SupportedKeyringBackends.OS {
 		pterm.Info.Println("handling os keyring key creation")
-		raFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.RollApp))
+		raFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
 		psw, err := config.ReadFromFile(raFp)
 		if err != nil {
 			return nil, err
