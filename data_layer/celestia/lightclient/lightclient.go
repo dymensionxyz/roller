@@ -29,6 +29,14 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		raID := rollerData.RollappID
 		kb := rollerData.KeyringBackend
 
+		if kb == consts.SupportedKeyringBackends.OS {
+			daSpinner.UpdateText("creating keyring passphrase file")
+			err := keys.CreateDaOsKeyringPswFile(rollerData.Home)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {

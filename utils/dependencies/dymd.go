@@ -2,7 +2,6 @@ package dependencies
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -73,9 +72,6 @@ func InstallCustomDymdVersion() error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("comm", commit)
-	fmt.Println("release", dep.Release)
 
 	if commit[:6] != dep.Release[:6] {
 		err := InstallBinaryFromRepo(dep, dep.DependencyName)

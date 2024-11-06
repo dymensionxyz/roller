@@ -39,6 +39,11 @@ func CreateSequencerOsKeyringPswFile(home string) error {
 	return config.WritePasswordToFile(raFp)
 }
 
+func CreateDaOsKeyringPswFile(home string) error {
+	daFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.Da))
+	return config.WritePasswordToFile(daFp)
+}
+
 func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
 	var k []KeyInfo
 	var err error

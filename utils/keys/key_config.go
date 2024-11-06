@@ -106,7 +106,6 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 			return nil, err
 		}
 
-		pterm.Info.Println("handling inputs")
 		pr := map[string]string{
 			"Enter keyring passphrase":    psw,
 			"Re-enter keyring passphrase": psw,

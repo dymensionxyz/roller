@@ -16,6 +16,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -139,7 +140,19 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 	)
 	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
 	// err := initLightNodeCmd.Run()
-	out, err := bash.ExecCommandWithStdout(initLightNodeCmd)
+	raFp := filepath.Join(raCfg.Home, string(consts.OsKeyringPwdFilePaths.RollApp))
+	psw, err := config.ReadFromFile(raFp)
+	if err != nil {
+		return "", err
+	}
+
+	pr := map[string]string{
+		"Enter keyring passphrase":    psw,
+		"Re-enter keyring passphrase": psw,
+	}
+	out, err := bash.ExecuteCommandWithPrompts(
+		consts.Executables.Celestia, initLightNodeCmd.Args, pr,
+	)
 	if err != nil {
 		return "", err
 	}
