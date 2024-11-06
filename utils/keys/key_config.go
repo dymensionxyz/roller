@@ -111,7 +111,6 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 			"Re-enter keyring passphrase": psw,
 		}
 
-		pterm.Info.Printf("Running command: %s %v\n", kc.ChainBinary, args)
 		out, err := bash.ExecuteCommandWithPrompts(kc.ChainBinary, args, pr)
 		if err != nil {
 			pterm.Error.Printf("Command failed: %v\n", err)
