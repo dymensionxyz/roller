@@ -217,6 +217,7 @@ func Cmd() *cobra.Command {
 				fieldsToUpdate := map[string]any{
 					"roller_version":         version.BuildVersion,
 					"rollapp_binary_version": builtDeps["rollapp"].Release,
+					"keyring_backend":        kb,
 				}
 				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
 				if err != nil {
