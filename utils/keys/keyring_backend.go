@@ -74,7 +74,7 @@ func RunCmdBasedOnKeyringBackend(
 			"Re-enter keyring passphrase": psw,
 		}
 		out, err = bash.ExecuteCommandWithPrompts(
-			consts.Executables.Celestia, args, pr,
+			command, args, pr,
 		)
 		if err != nil {
 			return nil, err
@@ -82,7 +82,7 @@ func RunCmdBasedOnKeyringBackend(
 	} else {
 		var err error
 
-		cmd := exec.Command(consts.Executables.Celestia, args...)
+		cmd := exec.Command(command, args...)
 		out, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return nil, err
