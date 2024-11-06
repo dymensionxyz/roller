@@ -30,7 +30,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		raID := rollerData.RollappID
 		kb := rollerData.KeyringBackend
 
-		fmt.Println(kb)
+		fmt.Println("kb:", kb)
 		if kb == consts.SupportedKeyringBackends.OS {
 			daSpinner.UpdateText("creating keyring passphrase file")
 			err := keys.CreateDaOsKeyringPswFile(rollerData.Home)
