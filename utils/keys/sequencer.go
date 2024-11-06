@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -44,9 +45,10 @@ func CreateDaOsKeyringPswFile(home string) error {
 	daFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.Da))
 
 	d := filepath.Join(home, consts.ConfigDirName.DALightNode)
+	pterm.Info.Println("creating da light node directory:", d)
 	err := os.MkdirAll(filepath.Dir(d), 0o755)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create da light node directory: %w", err)
 	}
 
 	return config.WritePasswordToFile(daFp)
