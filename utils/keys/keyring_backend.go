@@ -15,9 +15,11 @@ func KeyringBackendFromEnv(env string) consts.SupportedKeyringBackend {
 	case "custom":
 		krBackends := []string{"test"}
 		if runtime.GOOS != "darwin" {
-			krBackends = append(krBackends, "os")
+			krBackends = []string{"os"}
 		}
-		keyringBackend, _ := pterm.DefaultInteractiveSelect.WithOptions(krBackends).Show()
+		keyringBackend, _ := pterm.DefaultInteractiveSelect.WithDefaultText(
+			"select the keyring backend you want to use",
+		).WithOptions(krBackends).Show()
 		return consts.SupportedKeyringBackend(keyringBackend)
 	default:
 		if runtime.GOOS != "darwin" {
