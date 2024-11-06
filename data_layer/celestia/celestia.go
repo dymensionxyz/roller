@@ -113,7 +113,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
 	cmd := exec.Command(
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
-		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
+		daKeysDir, "--keyring.backend", string(c.KeyringBackend), "--output", "json",
 	)
 	fmt.Println("cmd:", cmd.String())
 	output, err := bash.ExecCommandWithStdout(cmd)
@@ -136,8 +136,8 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--keyring.backend", string(c.KeyringBackend),
-		"--keyring.keyname", consts.KeysIds.Da,
 	)
+	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
 	// err := initLightNodeCmd.Run()
 	out, err := bash.ExecCommandWithStdout(initLightNodeCmd)
 	if err != nil {
