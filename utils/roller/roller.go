@@ -1,6 +1,7 @@
 package roller
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,8 +14,13 @@ import (
 	"github.com/dymensionxyz/roller/version"
 )
 
-func GetRootDir() string {
-	return filepath.Join(os.Getenv("HOME"), ".roller")
+// GetRootDir returns the root directory for roller configuration (~/.roller)
+func GetRootDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get user home directory: %w", err)
+	}
+	return home, nil
 }
 
 func GetConfigPath(home string) string {

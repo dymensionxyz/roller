@@ -105,6 +105,7 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 }
 
 func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
+	kp := filepath.Join(home, kc.Dir)
 	showKeyCommand := exec.Command(
 		kc.ChainBinary,
 		"keys",
@@ -113,7 +114,7 @@ func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 		"--keyring-backend",
 		string(kc.KeyringBackend),
 		"--keyring-dir",
-		filepath.Join(home, kc.Dir),
+		kp,
 		"--output",
 		"json",
 	)

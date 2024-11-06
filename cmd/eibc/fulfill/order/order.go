@@ -1,14 +1,13 @@
 package order
 
 import (
-	"fmt"
-
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/eibc"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
@@ -25,12 +24,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home := roller.GetRootDir()
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
-			fmt.Println("home directory: ", home)
 
 			rollerCfg, err := roller.LoadConfig(home)
 			if err != nil {

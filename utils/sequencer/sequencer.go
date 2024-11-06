@@ -41,6 +41,11 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
+	home, err := roller.GetRootDir()
+	if err != nil {
+		return err
+	}
+
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -55,7 +60,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
+		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
 	)
 

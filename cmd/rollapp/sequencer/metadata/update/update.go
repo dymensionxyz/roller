@@ -63,7 +63,7 @@ func Cmd() *cobra.Command {
 				"--gas-adjustment",
 				"1.3",
 				"--keyring-dir",
-				filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
+				filepath.Join(home, consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
 			)
 

@@ -119,7 +119,10 @@ func getRelayerInsufficientBalances(
 	hd consts.HubData,
 ) ([]keys.NotFundedAddressData, error) {
 	var insufficientBalances []keys.NotFundedAddressData
-	home := roller.GetRootDir()
+	home, err := roller.GetRootDir()
+	if err != nil {
+		return nil, err
+	}
 
 	accData, err := GetRelayerAccountsData(home, hd)
 	if err != nil {
