@@ -317,7 +317,6 @@ func ExecuteCommandWithPrompts(
 
 		// Write all responses
 		for _, response := range promptResponses {
-			fmt.Printf("Sending response: %s\n", response)
 			// nolint: errcheck
 			stdin.Write([]byte(response + "\n"))
 			// Small delay between responses

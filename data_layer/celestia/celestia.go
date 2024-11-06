@@ -115,6 +115,7 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
 	)
+	fmt.Println("cmd:", cmd.String())
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err

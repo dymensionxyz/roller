@@ -25,7 +25,9 @@ const (
 
 func CreateCustomHubData() (*consts.HubData, error) {
 	opts := []string{"from-file", "manual"}
-	opt, _ := pterm.DefaultInteractiveSelect.WithOptions(opts).Show()
+	opt, _ := pterm.DefaultInteractiveSelect.WithDefaultText(
+		"select how you want to provide the hub data",
+	).WithOptions(opts).Show()
 
 	var hd consts.HubData
 

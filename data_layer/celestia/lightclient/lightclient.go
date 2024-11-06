@@ -141,6 +141,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			}
 		}
 
+		daSpinner.UpdateText("retrieving da address")
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return nil, err

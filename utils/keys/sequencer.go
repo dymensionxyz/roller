@@ -1,8 +1,6 @@
 package keys
 
 import (
-	"encoding/json"
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -109,10 +107,6 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 		addr = append(addr, *ki)
 	} else {
 		addr, err = createSequencersKeys(rollerData)
-		j, _ := json.Marshal(addr)
-		fmt.Println("addr:", string(j))
-		fmt.Println("err:", err)
-
 		if err != nil {
 			return nil, err
 		}
