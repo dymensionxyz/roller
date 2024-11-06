@@ -9,10 +9,12 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
@@ -197,7 +199,33 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	}
 
 	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
-	kb := keys.KeyringBackendFromEnv(hd.Environment)
+	var kb consts.SupportedKeyringBackend
+
+	rollerConfigExists, err := filesystem.DoesFileExist(roller.GetConfigPath(home))
+	if err != nil {
+		return nil, err
+	}
+
+	if rollerConfigExists {
+		pterm.Info.Println(
+			"existing roller configuration found, retrieving keyring backend from it",
+		)
+		rollerData, err := roller.LoadConfig(home)
+		if err != nil {
+			return nil, err
+		}
+		if rollerData.KeyringBackend == "" {
+			pterm.Info.Println(
+				"keyring backend not set in roller config, retrieving it from environment",
+			)
+			kb = keys.KeyringBackendFromEnv(hd.Environment)
+		} else {
+			kb = rollerData.KeyringBackend
+		}
+	} else {
+		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
+		kb = keys.KeyringBackendFromEnv(hd.Environment)
+	}
 
 	var DA consts.DaData
 
