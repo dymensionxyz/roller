@@ -2,6 +2,7 @@ package dependencies
 
 import (
 	"errors"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -37,6 +38,14 @@ func customDymdDependency(dymdCommit string) types.Dependency {
 }
 
 func ExtractCommitFromBinaryVersion(binary string) (string, error) {
+	_, err := os.Stat(binary)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+
 	cmd := exec.Command(binary, "version", "--long")
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -73,7 +82,7 @@ func InstallCustomDymdVersion() error {
 		return err
 	}
 
-	if commit[:6] != dep.Release[:6] {
+	if commit[:6] != dep.Release[:6] || commit == "" {
 		err := InstallBinaryFromRepo(dep, dep.DependencyName)
 		if err != nil {
 			return err
