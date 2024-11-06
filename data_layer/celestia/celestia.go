@@ -122,6 +122,8 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 		consts.Executables.CelKey, args...,
 	)
 
+	fmt.Println("cmd:", cmd.String())
+
 	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
 		psw, err := config.ReadFromFile(
 			filepath.Join(c.Root, string(consts.OsKeyringPwdFileNames.Da)),
