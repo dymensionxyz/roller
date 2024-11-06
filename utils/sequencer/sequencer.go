@@ -41,10 +41,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	home, err := roller.GetRootDir()
-	if err != nil {
-		return err
-	}
+	home := roller.GetRootDir()
 
 	cmd := exec.Command(
 		consts.Executables.Dymension,

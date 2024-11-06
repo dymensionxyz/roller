@@ -36,6 +36,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
+
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
