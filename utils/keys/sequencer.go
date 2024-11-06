@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -41,6 +42,8 @@ func CreateSequencerOsKeyringPswFile(home string) error {
 
 func CreateDaOsKeyringPswFile(home string) error {
 	daFp := filepath.Join(home, string(consts.OsKeyringPwdFilePaths.Da))
+
+	fmt.Println("daFp:", daFp)
 	return config.WritePasswordToFile(daFp)
 }
 
