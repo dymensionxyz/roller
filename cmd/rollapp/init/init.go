@@ -60,7 +60,7 @@ func Cmd() *cobra.Command {
 
 			err = filesystem.CreateDirWithOptionalOverwrite(home)
 			if err != nil {
-				pterm.Error.Println("failed to create roller home directory: ", err)
+				pterm.Error.Printf("failed to create roller home directory (%s): %v\n", home, err)
 				return
 			}
 
