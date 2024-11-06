@@ -1,7 +1,6 @@
 package lightclient
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,8 +29,6 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		raID := rollerData.RollappID
 		kb := rollerData.KeyringBackend
 
-		fmt.Println("kb:", kb)
-		fmt.Println("is os:", kb == consts.SupportedKeyringBackends.OS)
 		if kb == consts.SupportedKeyringBackends.OS {
 			daSpinner.UpdateText("creating keyring passphrase file")
 			err := keys.CreateDaOsKeyringPswFile(rollerData.Home)

@@ -131,6 +131,13 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		return "", err
 	}
 
+	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		err := keys.CreateDaOsKeyringPswFile(c.Root)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	initLightNodeCmd := exec.Command(
 		consts.Executables.Celestia, "light", "init",
 		"--p2p.network",
