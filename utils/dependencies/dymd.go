@@ -73,16 +73,22 @@ func ExtractCommitFromBinaryVersion(binary string) (string, error) {
 
 func InstallCustomDymdVersion() error {
 	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide dymensionxyz/dymension commit to build (example: 2cd612)",
+		"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
 	).Show()
 	dep := customDymdDependency(dymdCommit)
+
+	for len(dymdCommit) < 6 {
+		dymdCommit, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
+		).Show()
+	}
 
 	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
 	if err != nil {
 		return err
 	}
 
-	if commit[:6] != dep.Release[:6] || commit == "" {
+	if commit == "" || commit[:6] != dep.Release[:6] {
 		err := InstallBinaryFromRepo(dep, dep.DependencyName)
 		if err != nil {
 			return err
