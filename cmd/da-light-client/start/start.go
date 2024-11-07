@@ -47,6 +47,7 @@ func Cmd() *cobra.Command {
 				)
 			}
 			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+			fmt.Println("da manager here....", damanager)
 
 			if rollerData.NodeType == "sequencer" {
 				pterm.Info.Println("checking for da address balance")

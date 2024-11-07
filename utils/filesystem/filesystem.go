@@ -118,6 +118,43 @@ func ExpandHomePath(path string) (string, error) {
 }
 
 // TODO: download the file in chunks if possible
+// func DownloadFile(url, fp string) error {
+// 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	spinner, _ := pterm.DefaultSpinner.
+// 		Start("Downloading ", filepath.Base(fp))
+// 	fmt.Println()
+
+// 	// nolint:gosec
+// 	resp, err := http.Get(url)
+// 	if err != nil || resp.StatusCode != http.StatusOK {
+// 		// nolint:errcheck,gosec
+// 		resp.Body.Close()
+// 		spinner.Fail("failed to download file: ", err)
+// 		return err
+// 	}
+// 	// nolint:errcheck
+// 	defer resp.Body.Close()
+
+// 	out, err := os.Create(fp)
+// 	if err != nil {
+// 		spinner.Fail("failed to download file: ", err)
+// 		return err
+// 	}
+// 	// nolint:errcheck
+// 	defer out.Close()
+
+// 	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))
+// 	_, err = io.Copy(out, resp.Body)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
 func DownloadFile(url, fp string) error {
 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
 	if err != nil {
@@ -125,26 +162,50 @@ func DownloadFile(url, fp string) error {
 	}
 
 	spinner, _ := pterm.DefaultSpinner.
-		Start("Downloading ", filepath.Base(fp))
+		Start("Accessing ", filepath.Base(fp))
 	fmt.Println()
 
-	// nolint:gosec
+	// Check if the URL is a local file path
+	if _, err := os.Stat(url); err == nil {
+		// The URL is a local file; copy it to the target location
+		sourceFile, err := os.Open(url)
+		if err != nil {
+			spinner.Fail("failed to access local file: ", err)
+			return err
+		}
+		defer sourceFile.Close()
+
+		out, err := os.Create(fp)
+		if err != nil {
+			spinner.Fail("failed to create output file: ", err)
+			return err
+		}
+		defer out.Close()
+
+		// Copy the local file to the target path
+		_, err = io.Copy(out, sourceFile)
+		if err != nil {
+			spinner.Fail("failed to copy local file: ", err)
+			return err
+		}
+		spinner.Success(fmt.Sprintf("Successfully accessed the local file %s", filepath.Base(fp)))
+		return nil
+	}
+
+	// If not a local file, proceed with downloading from the URL
 	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		// nolint:errcheck,gosec
 		resp.Body.Close()
 		spinner.Fail("failed to download file: ", err)
 		return err
 	}
-	// nolint:errcheck
 	defer resp.Body.Close()
 
 	out, err := os.Create(fp)
 	if err != nil {
-		spinner.Fail("failed to download file: ", err)
+		spinner.Fail("failed to create output file: ", err)
 		return err
 	}
-	// nolint:errcheck
 	defer out.Close()
 
 	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))

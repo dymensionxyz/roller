@@ -698,11 +698,11 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			daNamespace := damanager.DataLayer.GetNamespaceID()
-			if daNamespace == "" {
-				pterm.Error.Println("failed to retrieve da namespace id")
-				return
-			}
+			// daNamespace := damanager.DataLayer.GetNamespaceID()
+			// if daNamespace == "" {
+			// 	pterm.Error.Println("failed to retrieve da namespace id")
+			// 	return
+			// }
 
 			pterm.Info.Println("updating dymint configuration")
 			_ = tomlconfig.UpdateFieldInFile(
@@ -713,7 +713,7 @@ RollApp's IRO time: %v`,
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"namespace_id",
-				daNamespace,
+				1,
 			)
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,

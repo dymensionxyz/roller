@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -27,7 +28,7 @@ type DataLayer interface {
 	GetKeyName() string
 	GetPrivateKey() (string, error)
 	GetRootDirectory() string
-	GetNamespaceID() string
+	// GetNamespaceID() string
 }
 
 type DAManager struct {
@@ -41,8 +42,8 @@ func NewDAManager(datype consts.DAType, home string) *DAManager {
 	switch datype {
 	case consts.Celestia:
 		dalayer = celestia.NewCelestia(home)
-	// case config.Avail:
-	// 	dalayer = avail.NewAvail(home)
+	case consts.Avail:
+		dalayer = avail.NewAvail(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
@@ -62,6 +63,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	case "playground":
 		if daBackend == string(consts.Celestia) {
 			daNetwork = string(consts.CelestiaTestnet)
+		} else if daBackend == string(consts.AvailTestnet) {
+			daNetwork = string(consts.AvailTestnet)
 		} else {
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}

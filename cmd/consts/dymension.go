@@ -46,12 +46,15 @@ var MockHubData = HubData{
 }
 
 var PlaygroundHubData = HubData{
-	API_URL:         "https://api-dymension-playground-2.mzonder.com:443",
-	ID:              PlaygroundHubID,
-	RPC_URL:         "https://rpc-dymension-playground-2.mzonder.com:443",
-	ARCHIVE_RPC_URL: "https://rpc-dymension-playground-2.mzonder.com:443",
+	// API_URL: "https://api-dymension-playground-2.mzonder.com:443",
+	API_URL: "http://localhost:1318",
+	ID:      PlaygroundHubID,
+	// RPC_URL:         "https://rpc-dymension-playground-2.mzonder.com:443",
+	RPC_URL:         "http://localhost:36657",
+	ARCHIVE_RPC_URL: "http://localhost:36657",
 	GAS_PRICE:       "2000000000",
-	DA_NETWORK:      string(CelestiaTestnet),
+	// DA_NETWORK:      string(CelestiaTestnet),
+	DA_NETWORK: string(AvailTestnet),
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
@@ -77,7 +80,7 @@ const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
 	DevnetHubID     = "dymension_100-1"
-	PlaygroundHubID = "dymension_2019-1"
+	PlaygroundHubID = "dymension_100-1"
 	TestnetHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"
 )

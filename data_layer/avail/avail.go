@@ -70,12 +70,20 @@ func NewAvail(root string) *Avail {
 	return &availConfig
 }
 
-func (a *Avail) InitializeLightNodeConfig() error {
-	return nil
+func (a *Avail) InitializeLightNodeConfig() (string, error) {
+	return "", nil
 }
 
-func (a *Avail) GetDAAccountAddress() (string, error) {
-	return a.AccAddress, nil
+func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
+	key := keys.KeyInfo{
+		Address: a.AccAddress,
+	}
+	// return a.AccAddress, nil
+	return &key, nil
+}
+
+func (c *Avail) GetRootDirectory() string {
+	return c.Root
 }
 
 func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
@@ -156,7 +164,7 @@ func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error)
 	}, nil
 }
 
-func (a *Avail) GetSequencerDAConfig() string {
+func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
 		`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`,
 		a.Mnemonic,

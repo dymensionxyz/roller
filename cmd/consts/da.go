@@ -30,6 +30,7 @@ const (
 	MockDA          DaNetwork = "mock"
 	CelestiaTestnet DaNetwork = "mocha-4"
 	CelestiaMainnet DaNetwork = "celestia"
+	AvailTestnet    DaNetwork = "avail"
 )
 
 var DaNetworks = map[string]DaData{
@@ -71,5 +72,14 @@ var DaNetworks = map[string]DaData{
 			"",
 		},
 		GasPrice: "0.002",
+	},
+	string(AvailTestnet): {
+		Backend:          Avail,
+		ApiUrl:           "http://localhost:8000",
+		ID:               AvailTestnet,
+		RpcUrl:           "ws://127.0.0.1:9944",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
 	},
 }

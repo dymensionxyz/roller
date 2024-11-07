@@ -46,9 +46,11 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	var raBinCommit string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
+	fmt.Println("****** raBech32Prefix........******", raBech32Prefix)
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
 		// when the genesis file is big
+		fmt.Println("genesis url......", raResp.Rollapp.Metadata.GenesisUrl)
 		err = genesisutils.DownloadGenesis(genesisTmpDir, raResp.Rollapp.Metadata.GenesisUrl)
 		if err != nil {
 			pterm.Error.Println("failed to download genesis file: ", err)
@@ -60,10 +62,14 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			return nil, nil, err
 		}
 
+		fmt.Println("aasssssss.......", as.RollappParams)
+
 		if err != nil {
 			return nil, nil, err
 		}
 		raBinCommit = as.RollappParams.Params.Version
+		// raBinCommit = "DRS-1"
+		fmt.Println("** rollup binary version genesis file***", as.RollappParams.Params, raBinCommit)
 		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
 	}
 
@@ -107,10 +113,11 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		if raVmType == "evm" {
 			buildableDeps["rollapp"] = types.Dependency{
 				DependencyName:  "rollapp",
-				RepositoryOwner: "dymensionxyz",
+				RepositoryOwner: "vitwit",
 				RepositoryName:  "rollapp-evm",
-				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
-				Release:         raBinCommit,
+				RepositoryUrl:   "https://github.com/vitwit/rollapp-evm.git",
+				// Release:         raBinCommit,
+				Release: "main",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "./build/rollapp-evm",
@@ -273,6 +280,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
+			fmt.Println("issue with the go releaserrr........", err)
 			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
@@ -282,6 +290,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	for k, dep := range buildableDeps {
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
+			fmt.Println("issue with the binary dependencies.......")
 			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
@@ -311,6 +320,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		fmt.Sprintf("[%s] cloning the repository", dep.DependencyName),
 	)
 	c := exec.Command("git", "clone", dep.RepositoryUrl, targetDir)
+	fmt.Println("*** clone rep cmd.........", c)
 	_, err = bash.ExecCommandWithStdout(c)
 	if err != nil {
 		spinner.Fail(
@@ -328,6 +338,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return err
 	}
 
+	fmt.Println("dependency heree......", dep.DependencyName, dep.Release)
 	if dep.Release != "main" {
 		// Checkout a specific version (e.g., a tag or branch)
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
@@ -370,6 +381,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {
+	fmt.Println("** here depppppppp **", dep.DependencyName)
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
@@ -401,6 +413,8 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		dep.Release,
 		archiveName,
 	)
+
+	fmt.Println("*** url ****", url)
 
 	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
 	err = DownloadRelease(url, targetDir, dep, spinner)
