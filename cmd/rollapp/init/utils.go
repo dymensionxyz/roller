@@ -132,13 +132,32 @@ func runInit(
 	raSpinner.Success("rollapp initialized successfully")
 
 	/* ------------------------ Initialize DA light node ------------------------ */
-	daKeyInfo, err := celestialightclient.Initialize(env, initConfig)
-	if err != nil {
-		return err
-	}
+	if daBackend == string(consts.Celestia) {
+		daKeyInfo, err := celestialightclient.Initialize(env, initConfig)
+		if err != nil {
+			return err
+		}
 
-	if daKeyInfo != nil {
-		addresses = append(addresses, *daKeyInfo)
+		if daKeyInfo != nil {
+			addresses = append(addresses, *daKeyInfo)
+		}
+	} else if daBackend == string(consts.Avail) {
+		damanager := datalayer.NewDAManager(consts.Avail, initConfig.Home)
+		_, err = damanager.InitializeLightNodeConfig()
+		if err != nil {
+			return err
+		}
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return err
+		}
+
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
 	}
 
 	/* ------------------------------ Print output ------------------------------ */

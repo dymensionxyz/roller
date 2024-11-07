@@ -7,19 +7,11 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pterm/pterm"
-
-	"github.com/dymensionxyz/roller/cmd/services/load"
-	"github.com/dymensionxyz/roller/cmd/services/restart"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dymint"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Start(home string, l *log.Logger) {
@@ -27,10 +19,11 @@ func Start(home string, l *log.Logger) {
 		var healthy bool
 		localEndpoint := "localhost"
 		defaultRaMetricPort := "2112"
-		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "26658")
+		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "8000")
 
 		isDaNodeHealthy, _ := IsEndpointHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
+		fmt.Println("is node healthyyyyyyy........", healthy, localDaRpcEndpoint)
 
 		submissions, err := QueryFailedDaSubmissions(localEndpoint, defaultRaMetricPort)
 		if err != nil {
@@ -41,50 +34,50 @@ func Start(home string, l *log.Logger) {
 			healthy = false
 		}
 
-		// TODO: improve the node swapping, add health checks before swapping etc.
-		if !healthy {
-			rollerData, err := roller.LoadConfig(home)
-			errorhandling.PrettifyErrorIfExists(err)
-			rollerConfigPath := roller.GetConfigPath(home)
+		// // TODO: improve the node swapping, add health checks before swapping etc.
+		// if !healthy {
+		// 	rollerData, err := roller.LoadConfig(home)
+		// 	errorhandling.PrettifyErrorIfExists(err)
+		// 	rollerConfigPath := roller.GetConfigPath(home)
 
-			i := slices.Index(rollerData.DA.StateNodes, rollerData.DA.CurrentStateNode)
-			var newStateNode string
-			var nodeIndex int
-			if i >= 0 && i+1 < len(rollerData.DA.StateNodes) {
-				nodeIndex = i + 1
-			} else {
-				nodeIndex = 0
-			}
+		// 	i := slices.Index(rollerData.DA.StateNodes, rollerData.DA.CurrentStateNode)
+		// 	var newStateNode string
+		// 	var nodeIndex int
+		// 	if i >= 0 && i+1 < len(rollerData.DA.StateNodes) {
+		// 		nodeIndex = i + 1
+		// 	} else {
+		// 		nodeIndex = 0
+		// 	}
 
-			pterm.Warning.Printf(
-				"detected problems with DA, hotswapping node to %s\n",
-				rollerData.DA.StateNodes[nodeIndex],
-			)
-			nsn := rollerData.DA.StateNodes[nodeIndex]
-			newStateNode = nsn
-			err = tomlconfig.UpdateFieldInFile(
-				rollerConfigPath,
-				"DA.current_state_node",
-				newStateNode,
-			)
-			if err != nil {
-				pterm.Error.Println("failed to update state node: ", err)
-			}
+		// 	pterm.Warning.Printf(
+		// 		"detected problems with DA, hotswapping node to %s\n",
+		// 		rollerData.DA.StateNodes[nodeIndex],
+		// 	)
+		// 	nsn := rollerData.DA.StateNodes[nodeIndex]
+		// 	newStateNode = nsn
+		// 	err = tomlconfig.UpdateFieldInFile(
+		// 		rollerConfigPath,
+		// 		"DA.current_state_node",
+		// 		newStateNode,
+		// 	)
+		// 	if err != nil {
+		// 		pterm.Error.Println("failed to update state node: ", err)
+		// 	}
 
-			servicesToRestart := []string{
-				"da-light-client",
-			}
+		// 	servicesToRestart := []string{
+		// 		"da-light-client",
+		// 	}
 
-			err = load.LoadServices(servicesToRestart, rollerData)
-			if err != nil {
-				pterm.Error.Println("failed to update services")
-			}
+		// 	err = load.LoadServices(servicesToRestart, rollerData)
+		// 	if err != nil {
+		// 		pterm.Error.Println("failed to update services")
+		// 	}
 
-			err = restart.RestartSystemdServices(servicesToRestart, home)
-			if err != nil {
-				pterm.Error.Println("failed to restart services")
-			}
-		}
+		// 	err = restart.RestartSystemdServices(servicesToRestart, home)
+		// 	if err != nil {
+		// 		pterm.Error.Println("failed to restart services")
+		// 	}
+		// }
 
 		healthy = true
 		time.Sleep(15 * time.Second)

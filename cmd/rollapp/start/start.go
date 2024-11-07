@@ -23,10 +23,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
-	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -73,21 +71,23 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			if rollappConfig.HubData.ID != consts.MockHubID {
-				raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
-				if err != nil {
-					pterm.Error.Println("failed to check rollapp version equality: ", err)
-				}
+			fmt.Println("rollapp config hub data id.....", rollappConfig.HubData.ID)
 
-				err = migrations.RequireRollappMigrateIfNeeded(
-					raUpgrade.CurrentVersionCommit,
-					rollappConfig.RollappBinaryVersion,
-					string(rollappConfig.RollappVMType),
-				)
-				if err != nil {
-					pterm.Error.Println(err)
-					return
-				}
+			if rollappConfig.HubData.ID != consts.MockHubID {
+				// raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+				// if err != nil {
+				// 	pterm.Error.Println("failed to check rollapp version equality: ", err)
+				// }
+
+				// err = migrations.RequireRollappMigrateIfNeeded(
+				// 	raUpgrade.CurrentVersionCommit,
+				// 	rollappConfig.RollappBinaryVersion,
+				// 	string(rollappConfig.RollappVMType),
+				// )
+				// if err != nil {
+				// 	pterm.Error.Println(err)
+				// 	return
+				// }
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)
