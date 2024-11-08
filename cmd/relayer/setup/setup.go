@@ -62,6 +62,7 @@ func Cmd() *cobra.Command {
 
 			if !ok {
 				pterm.Error.Printf("%s rollapp not registered on %s", raID, hd.ID)
+				return
 			}
 
 			raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, *hd)
@@ -83,6 +84,7 @@ func Cmd() *cobra.Command {
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+			pterm.Info.Println("rollappChainData", rollappChainData)
 
 			err = rollappChainData.ValidateConfig()
 			if err != nil {
