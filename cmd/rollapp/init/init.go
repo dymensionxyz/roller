@@ -55,12 +55,6 @@ func Cmd() *cobra.Command {
 			var env string
 			var raID string
 
-			err = servicemanager.StopSystemServices()
-			if err != nil {
-				pterm.Error.Println("failed to stop system services: ", err)
-				return
-			}
-
 			isRootExist, err := filesystem.DirNotEmpty(home)
 			if err != nil {
 				pterm.Error.Printf(
@@ -99,6 +93,12 @@ func Cmd() *cobra.Command {
 					)
 					return
 				}
+			}
+
+			err = servicemanager.StopSystemServices()
+			if err != nil {
+				pterm.Error.Println("failed to stop system services: ", err)
+				return
 			}
 
 			err = filesystem.CreateRollerRootWithOptionalOverride(home)
