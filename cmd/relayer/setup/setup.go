@@ -84,13 +84,13 @@ func Cmd() *cobra.Command {
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
-			pterm.Info.Println("rollappChainData", rollappChainData)
 
 			err = rollappChainData.ValidateConfig()
 			if err != nil {
 				pterm.Error.Println("rollapp data validation error: ", err)
 				return
 			}
+			pterm.Info.Println("rollapp chain data validation passed")
 
 			// things to check:
 			// 1. relayer folder exists
