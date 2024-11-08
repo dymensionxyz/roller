@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pterm/pterm"
 	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -14,19 +15,21 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 
 	data, err := os.ReadFile(cfp)
 	if err != nil {
+		pterm.Error.Println("failed to read config file:", err)
 		return false, err
 	}
 
 	var config map[string]interface{}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
+		pterm.Error.Println("failed to unmarshal config file:", err)
 		return false, err
 	}
 
 	// Navigate to paths and check for hub-rollapp
 	if paths, ok := config["paths"].(map[interface{}]interface{}); ok {
 		if _, exists := paths[consts.DefaultRelayerPath]; exists {
-			fmt.Println("hub-rollapp exists in the YAML configuration.")
+			pterm.Success.Println("hub-rollapp exists in the YAML configuration.")
 			return true, nil
 		}
 
