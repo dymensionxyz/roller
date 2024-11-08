@@ -463,3 +463,67 @@ func GetDymintFilePath(root string) string {
 func GetAppConfigFilePath(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "app.toml")
 }
+
+func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error) {
+	rollerData, err := roller.LoadConfig(home)
+	if err != nil {
+		return nil, err
+	}
+
+	pterm.Info.Printfln("checking for existing sequencer keys")
+	kcs := keys.GetSequencerKeysConfig(rollerData.KeyringBackend)
+	kc := kcs[0]
+
+	ok, err := kc.IsInKeyring(home)
+	if err != nil {
+		return nil, err
+	}
+	if ok {
+		pterm.Info.Printfln("sequencer key already exists, verifying...")
+		ki, err := kc.Info(home)
+		if err != nil {
+			return nil, err
+		}
+
+		existingSeqs, err := RegisteredRollappSequencersOnHub(
+			rollerData.RollappID,
+			rollerData.HubData,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		isSequencer := IsRegisteredAsSequencer(existingSeqs.Sequencers, ki.Address)
+		if isSequencer {
+			cp, err := rollapp.GetCurrentProposer(rollerData.RollappID, rollerData.HubData)
+			if err != nil {
+				return nil, err
+			}
+
+			if cp == ki.Address {
+				pterm.Warning.Printfln(
+					"sequencer key already exists and is registered on the hub as proposer",
+				)
+				return &CheckExistingSequencerResponse{
+					IsSequencerAlreadyRegistered: true,
+					IsSequencerKeyPresent:        true,
+					IsSequencerProposer:          true,
+				}, nil
+			}
+			pterm.Warning.Printfln("sequencer key already exists and is registered on the hub")
+			return &CheckExistingSequencerResponse{
+				IsSequencerAlreadyRegistered: true,
+				IsSequencerKeyPresent:        true,
+				IsSequencerProposer:          false,
+			}, nil
+		} else {
+			pterm.Info.Printfln("sequencer key already exists but is not registered on the hub")
+		}
+	}
+
+	return &CheckExistingSequencerResponse{
+		IsSequencerAlreadyRegistered: false,
+		IsSequencerKeyPresent:        false,
+		IsSequencerProposer:          false,
+	}, nil
+}

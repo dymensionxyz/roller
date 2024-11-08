@@ -75,9 +75,6 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 		"--output", "json",
 	}
 
-	j, _ := json.MarshalIndent(kc, "", " ")
-	fmt.Println(string(j))
-
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
 	}
@@ -162,7 +159,9 @@ func (kc KeyConfig) IsInKeyring(
 		return false, err
 	}
 
-	fmt.Println(out.String())
+	if strings.Contains(out.String(), "No records were found in keyring") {
+		return false, nil
+	}
 
 	err = json.Unmarshal(out.Bytes(), &ki)
 	if err != nil {
