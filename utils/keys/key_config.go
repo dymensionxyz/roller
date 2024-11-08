@@ -163,6 +163,9 @@ func (kc KeyConfig) IsInKeyring(
 	}
 
 	fmt.Println(out.String())
+	if strings.Contains(out.String(), "No records were found in keyring") {
+		return false, nil
+	}
 
 	err = json.Unmarshal(out.Bytes(), &ki)
 	if err != nil {
