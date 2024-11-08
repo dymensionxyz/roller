@@ -1,9 +1,7 @@
 package relayer
 
 import (
-	"fmt"
 	"os"
-	"reflect"
 
 	"github.com/pterm/pterm"
 	"gopkg.in/yaml.v3"
@@ -32,15 +30,12 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 	pterm.Info.Println("navigating to paths and checking for hub-rollapp")
 	// Navigate to paths and check for hub-rollapp
 
-	if !reflect.DeepEqual(config, Config{}) {
-		fmt.Println("want:", consts.DefaultRelayerPath)
-		fmt.Println("have:", config.Paths.HubRollapp)
-
-		y, _ := yaml.Marshal(config.Paths)
-		fmt.Println("paths", string(y))
+	if config.Paths == nil || config.Paths.HubRollapp == nil {
+		pterm.Error.Println("hub-rollapp not found in the YAML configuration.")
+		return false, nil
 	}
 
-	return false, nil
+	return true, nil
 }
 
 func VerifyPathSrcChain(relayerHome string, hd consts.HubData) (bool, error) {
