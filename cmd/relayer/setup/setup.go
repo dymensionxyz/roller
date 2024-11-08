@@ -124,8 +124,8 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
-				!ibcPathChains.DstChainOk || ibcPathChains == nil {
+			if ibcPathChains == nil || !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
+				!ibcPathChains.DstChainOk {
 				pterm.Warning.Println("relayer config verification failed...")
 				if ibcPathChains.DefaultPathOk {
 					pterm.Info.Printfln("removing path from config %s", consts.DefaultRelayerPath)
