@@ -124,33 +124,33 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if ibcPathChains == nil {
-				pterm.Error.Println("ibc path chains are nil")
-				return
-			}
+			if ibcPathChains != nil {
+				if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
+					!ibcPathChains.DstChainOk {
+					pterm.Warning.Println("relayer config verification failed...")
+					if ibcPathChains.DefaultPathOk {
+						pterm.Info.Printfln(
+							"removing path from config %s",
+							consts.DefaultRelayerPath,
+						)
+						err := relayer.DeletePath(*rollappChainData)
+						if err != nil {
+							pterm.Error.Printf("failed to delete relayer IBC path: %v\n", err)
+							return
+						}
+					}
 
-			if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
-				!ibcPathChains.DstChainOk {
-				pterm.Warning.Println("relayer config verification failed...")
-				if ibcPathChains.DefaultPathOk {
-					pterm.Info.Printfln("removing path from config %s", consts.DefaultRelayerPath)
-					err := relayer.DeletePath(*rollappChainData)
+					pterm.Info.Println("populating relayer config with correct values...")
+					err = relayerutils.InitializeRelayer(home, *rollappChainData)
 					if err != nil {
-						pterm.Error.Printf("failed to delete relayer IBC path: %v\n", err)
+						pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
 						return
 					}
-				}
 
-				pterm.Info.Println("populating relayer config with correct values...")
-				err = relayerutils.InitializeRelayer(home, *rollappChainData)
-				if err != nil {
-					pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
-					return
-				}
-
-				if err := relayer.CreatePath(*rollappChainData); err != nil {
-					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
-					return
+					if err := relayer.CreatePath(*rollappChainData); err != nil {
+						pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+						return
+					}
 				}
 			}
 
