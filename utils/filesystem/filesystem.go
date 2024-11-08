@@ -34,15 +34,16 @@ func DirNotEmpty(path string) (bool, error) {
 	return len(files) > 0, err
 }
 
-func CreateDirWithOptionalOverwrite(path string) error {
-	isRootExist, err := DirNotEmpty(path)
+func CreateRollerRootWithOptionalOverride(home string) error {
+	isRootExist, err := DirNotEmpty(home)
 	if err != nil {
 		return err
 	}
 
 	if isRootExist {
-		msg := fmt.Sprintf("Directory %s is not empty. Do you want to overwrite it?", path)
-		shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+		fmt.Printf("Directory %s is not empty.\n", home)
+
+		shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Do you want to overwrite %s?", home)).
 			WithDefaultValue(false).
 			Show()
 		if err != nil {
@@ -50,7 +51,7 @@ func CreateDirWithOptionalOverwrite(path string) error {
 		}
 
 		if shouldOverwrite {
-			err = os.RemoveAll(path)
+			err = os.RemoveAll(home)
 			if err != nil {
 				return err
 			}
@@ -60,7 +61,7 @@ func CreateDirWithOptionalOverwrite(path string) error {
 				return err
 			}
 
-			err = os.MkdirAll(path, 0o755)
+			err = os.MkdirAll(home, 0o755)
 			if err != nil {
 				return err
 			}
@@ -69,7 +70,7 @@ func CreateDirWithOptionalOverwrite(path string) error {
 			os.Exit(0)
 		}
 	} else {
-		err = os.MkdirAll(path, 0o755)
+		err = os.MkdirAll(home, 0o755)
 		if err != nil {
 			return err
 		}

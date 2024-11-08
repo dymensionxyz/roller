@@ -8,6 +8,7 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -20,6 +21,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/dymensionxyz/roller/version"
 )
@@ -59,10 +61,50 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = filesystem.CreateDirWithOptionalOverwrite(home)
+			isRootExist, err := filesystem.DirNotEmpty(home)
 			if err != nil {
-				pterm.Error.Printf("failed to create roller home directory (%s): %v\n", home, err)
+				pterm.Error.Printf(
+					"failed to check if roller home directory (%s) is empty: %v\n",
+					home,
+					err,
+				)
 				return
+			}
+
+			shouldContinue, err := sequencer.CheckExistingSequencer(home)
+			if err != nil {
+				pterm.Error.Printf("failed to check if sequencer is already registered: %v\n", err)
+				return
+			}
+
+			if shouldContinue.IsSequencerAlreadyRegistered || shouldContinue.IsSequencerProposer {
+				pterm.Warning.Println("conditions to continue not met")
+				yamlBytes, err := yaml.Marshal(shouldContinue)
+				if err != nil {
+					pterm.Error.Printf("failed to marshal sequencer address status: %v\n", err)
+					return
+				}
+
+				fmt.Println(string(yamlBytes))
+
+				pterm.Warning.Println("the existing hub_sequencer key is already registered")
+				pterm.Warning.Println("start your rollapp instead")
+				pterm.Warning.Println(
+					"if you are resetting the node, remove the roller directory and run the command again",
+				)
+				return
+			}
+
+			if isRootExist {
+				err = filesystem.CreateRollerRootWithOptionalOverride(home)
+				if err != nil {
+					pterm.Error.Printf(
+						"failed to create roller home directory (%s): %v\n",
+						home,
+						err,
+					)
+					return
+				}
 			}
 
 			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
