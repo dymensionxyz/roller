@@ -92,5 +92,6 @@ func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPat
 		}
 	}
 
+	pterm.Info.Println("ibc path validation passed")
 	return &ibcPathChains, nil
 }
