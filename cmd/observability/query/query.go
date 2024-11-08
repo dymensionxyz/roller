@@ -3,7 +3,6 @@ package query
 import (
 	"fmt"
 
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/utils/healthagent"
@@ -23,9 +22,10 @@ func Cmd() *cobra.Command {
 			for _, metric := range metrics {
 				value, err := healthagent.QueryPromMetric("localhost", "2112", metric)
 				if err != nil {
-					pterm.Error.Println(err)
+					fmt.Printf("%s: failed to query metric: %s\n", metric, err)
+				} else {
+					fmt.Printf("%s: %d\n", metric, value)
 				}
-				fmt.Printf("%s: %d\n", metric, value)
 			}
 		},
 	}
