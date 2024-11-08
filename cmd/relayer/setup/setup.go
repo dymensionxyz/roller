@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -123,6 +124,9 @@ func Cmd() *cobra.Command {
 					return
 				}
 			}
+
+			j, _ := json.MarshalIndent(ibcPathChains, "", "  ")
+			pterm.Info.Println(string(j))
 
 			if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
 				!ibcPathChains.DstChainOk {
