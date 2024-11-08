@@ -28,6 +28,8 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 		return false, err
 	}
 
+	fmt.Println("config", config["paths"].(map[interface{}]interface{}))
+
 	pterm.Info.Println("navigating to paths and checking for hub-rollapp")
 	// Navigate to paths and check for hub-rollapp
 	if paths, ok := config["paths"].(map[interface{}]interface{}); ok {
