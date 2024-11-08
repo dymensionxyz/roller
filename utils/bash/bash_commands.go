@@ -258,8 +258,11 @@ func ExecCommandWithInput(
 	if err := cmd.Start(); err != nil {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
+	//nolint:errcheck
 	defer stdin.Close()
+	//nolint:errcheck
 	defer stdout.Close()
+	//nolint:errcheck
 	defer stderr.Close()
 
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
@@ -317,7 +320,7 @@ func handlePrompts(stdin io.WriteCloser, promptResponses map[string]string) {
 
 	// Write all responses
 	for _, response := range promptResponses {
-		// nolint: errcheck
+		// nolint: errcheck, gosec
 		stdin.Write([]byte(response + "\n"))
 		// Small delay between responses
 		time.Sleep(100 * time.Millisecond)
@@ -335,6 +338,7 @@ func ExecuteCommandWithPrompts(
 	if err != nil {
 		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
 	}
+	//nolint:errcheck
 	defer stdin.Close()
 
 	// Immediately write all expected responses
@@ -387,6 +391,7 @@ func ExecuteCommandWithPromptHandler(
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		for _, response := range promptResponses {
+			//nolint:errcheck, gosec
 			stdin.Write([]byte(response + "\n"))
 			time.Sleep(100 * time.Millisecond)
 		}

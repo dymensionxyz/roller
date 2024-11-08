@@ -88,6 +88,7 @@ func createCustomHubDataFromFile() (*consts.HubData, error) {
 	if err != nil {
 		log.Fatalf("Failed to open JSON file: %s", err)
 	}
+	//nolint:errcheck
 	defer jsonFile.Close()
 
 	// Read file content into a byte slice
