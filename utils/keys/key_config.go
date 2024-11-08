@@ -159,7 +159,6 @@ func (kc KeyConfig) IsInKeyring(
 		return false, err
 	}
 
-	fmt.Println(out.String())
 	if strings.Contains(out.String(), "No records were found in keyring") {
 		return false, nil
 	}
