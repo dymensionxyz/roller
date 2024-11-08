@@ -51,10 +51,10 @@ func Cmd() *cobra.Command {
 					home,
 					consts.ConfigDirName.HubKeys,
 				), "--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
+				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
 			)
 
-			txOutput, err := bash.ExecCommandWithInput(c, "signatures")
+			txOutput, err := bash.ExecCommandWithInput(home, c, "signatures")
 			if err != nil {
 				pterm.Error.Println("failed to update bond: ", err)
 				return
@@ -66,7 +66,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = tx.MonitorTransaction(rollerData.HubData.RPC_URL, txHash)
+			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("failed to update bond: ", err)
 				return

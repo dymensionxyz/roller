@@ -76,14 +76,20 @@ func NewIbcConnenctionCanBeCreatedOnCurrentNode(home, raID string) (bool, error)
 
 func promptForRaAndHd() (string, *consts.HubData, error) {
 	var hd consts.HubData
+
 	raID := config.PromptRaID()
 	env := config.PromptEnvironment()
 
 	if env == "playground" {
 		hd = consts.Hubs[env]
 	} else {
-		hd = config.GenerateCustomHubData()
-		err := dependencies.InstallCustomDymdVersion()
+		chd, err := config.CreateCustomHubData()
+		hd = *chd
+		if err != nil {
+			return "", nil, err
+		}
+
+		err = dependencies.InstallCustomDymdVersion()
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
 			return "", nil, err
@@ -194,7 +200,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 
 	HubRlyBalance, err := keys.QueryBalance(
 		keys.ChainQueryConfig{
-			RPC:    hd.RPC_URL,
+			RPC:    hd.RpcUrl,
 			Denom:  consts.Denoms.Hub,
 			Binary: consts.Executables.Dymension,
 		}, HubRlyAddr,

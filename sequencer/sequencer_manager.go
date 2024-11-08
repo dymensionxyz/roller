@@ -40,12 +40,11 @@ func GetInstance(rlpCfg roller.RollappConfig) *Sequencer {
 	return instance
 }
 
-func (seq *Sequencer) GetStartCmd(logLevel string) *exec.Cmd {
+func (seq *Sequencer) GetStartCmd(logLevel string, keyringBackend consts.SupportedKeyringBackend) *exec.Cmd {
 	rollappConfigDir := filepath.Join(seq.RlpCfg.Home, consts.ConfigDirName.Rollapp)
 	args := []string{
 		"start",
 		"--home", rollappConfigDir,
-		"--log-file", filepath.Join(rollappConfigDir, "rollapp.log"),
 	}
 
 	debugArgs := []string{"--log_level", logLevel}

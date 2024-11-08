@@ -1,9 +1,10 @@
 package scale
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/utils/bash"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -22,7 +23,7 @@ a good number to start with is 30 (default when initializing the eibc client)
 
 			c := eibcutils.GetScaleCmd(count)
 
-			err := bash.ExecCmdFollow(c)
+			err := bash.ExecCmdFollow(c, nil)
 			if err != nil {
 				return
 			}

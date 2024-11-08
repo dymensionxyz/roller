@@ -22,7 +22,7 @@ func UpdateConfigWithDefaultValues(relayerHome string, rollerData roller.Rollapp
 		fmt.Sprintf(
 			"chains.%s.value.http-addr",
 			rollerData.HubData.ID,
-		): rollerData.HubData.API_URL,
+		): rollerData.HubData.ApiUrl,
 		fmt.Sprintf("chains.%s.value.is-dym-rollapp", rollerData.RollappID): true,
 		"extra-codecs": []string{
 			"ethermint",

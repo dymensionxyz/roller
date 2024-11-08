@@ -5,18 +5,21 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
-	sequencerKeys := GetSequencerKeysConfig()
+	sequencerKeys := GetSequencerKeysConfig(rollerData.KeyringBackend)
 	addresses := make([]KeyInfo, 0)
+
 	for _, key := range sequencerKeys {
 		var address *KeyInfo
 		var err error
-		address, err = CreateAddressBinary(key, rollerData.Home)
+		address, err = key.Create(rollerData.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -29,6 +32,17 @@ func createSequencersKeys(rollerData roller.RollappConfig) ([]KeyInfo, error) {
 		)
 	}
 	return addresses, nil
+}
+
+func CreateSequencerOsKeyringPswFile(home string) error {
+	raFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
+	return config.WritePasswordToFile(raFp)
+}
+
+func CreateDaOsKeyringPswFile(home string) error {
+	daFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.Da))
+
+	return config.WritePasswordToFile(daFp)
 }
 
 func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
@@ -56,7 +70,7 @@ func generateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, erro
 	for _, key := range sequencerKeys {
 		var address *KeyInfo
 		var err error
-		address, err = CreateAddressBinary(key, initConfig.Home)
+		address, err = key.Create(initConfig.Home)
 		if err != nil {
 			return nil, err
 		}
@@ -85,6 +99,7 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 			consts.KeysIds.HubSequencer,
 			consts.Executables.Dymension,
 			consts.SDK_ROLLAPP,
+			rollerData.KeyringBackend,
 			WithRecover(),
 		)
 		if err != nil {
@@ -106,14 +121,15 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 	return addr, nil
 }
 
-func GetSequencerKeysConfig() []KeyConfig {
+func GetSequencerKeysConfig(kb consts.SupportedKeyringBackend) []KeyConfig {
 	return []KeyConfig{
 		{
 			Dir:         consts.ConfigDirName.HubKeys,
 			ID:          consts.KeysIds.HubSequencer,
 			ChainBinary: consts.Executables.Dymension,
 			// Eventhough the hub can get evm signatures, we still use the native
-			Type: consts.SDK_ROLLAPP,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: kb,
 		},
 	}
 }
@@ -121,10 +137,11 @@ func GetSequencerKeysConfig() []KeyConfig {
 func GetMockSequencerKeyConfig(rollappConfig roller.RollappConfig) []KeyConfig {
 	return []KeyConfig{
 		{
-			Dir:         consts.ConfigDirName.Rollapp,
-			ID:          consts.KeysIds.RollappSequencer,
-			ChainBinary: rollappConfig.RollappBinary,
-			Type:        rollappConfig.RollappVMType,
+			Dir:            consts.ConfigDirName.Rollapp,
+			ID:             consts.KeysIds.RollappSequencer,
+			ChainBinary:    rollappConfig.RollappBinary,
+			Type:           rollappConfig.RollappVMType,
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
 		},
 	}
 }

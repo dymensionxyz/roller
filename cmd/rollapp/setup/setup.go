@@ -72,15 +72,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			hd, err := roller.LoadHubData(home)
-			if err != nil {
-				pterm.Error.Println("failed to load hub data from roller.toml")
-			}
-
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				localRollerConfig.RollappID,
-				hd,
+				localRollerConfig.HubData,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -94,7 +89,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			raResponse, err := rollapp.GetMetadataFromChain(localRollerConfig.RollappID, hd)
+			raResponse, err := rollapp.GetMetadataFromChain(
+				localRollerConfig.RollappID,
+				localRollerConfig.HubData,
+			)
 			if err != nil {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
@@ -173,12 +171,13 @@ RollApp's IRO time: %v`,
 
 				pterm.Info.Println("getting the existing sequencer address ")
 				hubSeqKC := keys.KeyConfig{
-					Dir:         consts.ConfigDirName.HubKeys,
-					ID:          consts.KeysIds.HubSequencer,
-					ChainBinary: consts.Executables.Dymension,
-					Type:        consts.SDK_ROLLAPP,
+					Dir:            consts.ConfigDirName.HubKeys,
+					ID:             consts.KeysIds.HubSequencer,
+					ChainBinary:    consts.Executables.Dymension,
+					Type:           consts.SDK_ROLLAPP,
+					KeyringBackend: localRollerConfig.KeyringBackend,
 				}
-				seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
+				seqAddrInfo, err := hubSeqKC.Info(rollappConfig.Home)
 				if err != nil {
 					pterm.Error.Println("failed to get address info: ", err)
 					return
@@ -193,7 +192,7 @@ RollApp's IRO time: %v`,
 
 				seq, err := sequencer.RegisteredRollappSequencersOnHub(
 					rollappConfig.RollappID,
-					hd,
+					rollappConfig.HubData,
 				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve registered sequencers: ", err)
@@ -205,7 +204,7 @@ RollApp's IRO time: %v`,
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(hd)
+					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(rollappConfig.HubData)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
@@ -249,7 +248,7 @@ RollApp's IRO time: %v`,
 					balance, err := keys.QueryBalance(
 						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
-							RPC:    rollappConfig.HubData.RPC_URL,
+							RPC:    rollappConfig.HubData.RpcUrl,
 							Binary: consts.Executables.Dymension,
 						}, seqAddrInfo.Address,
 					)
@@ -300,7 +299,7 @@ RollApp's IRO time: %v`,
 					balance, err = keys.QueryBalance(
 						keys.ChainQueryConfig{
 							Denom:  consts.Denoms.Hub,
-							RPC:    rollappConfig.HubData.RPC_URL,
+							RPC:    rollappConfig.HubData.RpcUrl,
 							Binary: consts.Executables.Dymension,
 						}, seqAddrInfo.Address,
 					)
@@ -357,7 +356,10 @@ RollApp's IRO time: %v`,
 
 			case "fullnode":
 				pterm.Info.Println("retrieving the latest available snapshot")
-				si, err := sequencer.GetLatestSnapshot(rollappConfig.RollappID, hd)
+				si, err := sequencer.GetLatestSnapshot(
+					rollappConfig.RollappID,
+					rollappConfig.HubData,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve latest snapshot")
 				}
@@ -378,7 +380,10 @@ RollApp's IRO time: %v`,
 
 				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
 				// defaults to syncing only from the DA
-				peers, err := sequencer.GetAllP2pPeers(rollappConfig.RollappID, hd)
+				peers, err := sequencer.GetAllP2pPeers(
+					rollappConfig.RollappID,
+					rollappConfig.HubData,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to retrieve p2p peers ")
 				}
@@ -482,7 +487,11 @@ RollApp's IRO time: %v`,
 			}
 
 			// DA
-			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
+			damanager := datalayer.NewDAManager(
+				rollappConfig.DA.Backend,
+				rollappConfig.Home,
+				rollappConfig.KeyringBackend,
+			)
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,
@@ -525,8 +534,8 @@ RollApp's IRO time: %v`,
 					"--index",
 					"1",
 					"--node",
-					hd.RPC_URL,
-					"--chain-id", hd.ID,
+					rollappConfig.HubData.RpcUrl,
+					"--chain-id", rollappConfig.HubData.ID,
 				)
 
 				out, err := bash.ExecCommandWithStdout(cmd)
@@ -756,7 +765,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 	defaultGasPrice, ok := github_com_cosmos_cosmos_sdk_types.NewIntFromString(
-		raCfg.HubData.GAS_PRICE,
+		raCfg.HubData.GasPrice,
 	)
 	if !ok {
 		return errors.New("failed to parse gas price")

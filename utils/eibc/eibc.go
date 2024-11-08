@@ -63,8 +63,8 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 		"--from", consts.KeysIds.Eibc,
 		"--home", filepath.Join(home, consts.ConfigDirName.Eibc),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-		"--keyring-backend", "test",
-		"--node", hd.RPC_URL, "--chain-id", hd.ID,
+		"--keyring-backend", string(consts.SupportedKeyringBackends.Test),
+		"--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd, nil
@@ -76,16 +76,17 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 func EnsureWhaleAccount() error {
 	home, _ := os.UserHomeDir()
 	kc := keys.KeyConfig{
-		Dir:         consts.ConfigDirName.Eibc,
-		ID:          consts.KeysIds.Eibc,
-		ChainBinary: consts.Executables.Dymension,
-		Type:        "",
+		Dir:            consts.ConfigDirName.Eibc,
+		ID:             consts.KeysIds.Eibc,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           "",
+		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
-	_, err := keys.GetAddressInfoBinary(kc, home)
+	_, err := kc.Info(home)
 	if err != nil {
 		pterm.Info.Println("whale account not found in the keyring, creating it now")
-		addressInfo, err := keys.CreateAddressBinary(kc, home)
+		addressInfo, err := kc.Create(home)
 		if err != nil {
 			return err
 		}

@@ -13,8 +13,10 @@ import (
 	"github.com/dymensionxyz/roller/version"
 )
 
+// GetRootDir returns the root directory for roller configuration (~/.roller)
 func GetRootDir() string {
-	return filepath.Join(os.Getenv("HOME"), ".roller")
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".roller")
 }
 
 func GetConfigPath(home string) string {
@@ -95,6 +97,7 @@ func GetMockRollappMetadata(
 	cfg := RollappConfig{
 		Home:                 home,
 		RollappID:            raID,
+		KeyringBackend:       "test",
 		GenesisHash:          "",
 		GenesisUrl:           "",
 		RollappBinary:        consts.Executables.RollappEVM,

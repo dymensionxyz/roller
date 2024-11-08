@@ -18,6 +18,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -41,8 +42,9 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	cmd := exec.Command(
-		consts.Executables.Dymension,
+	home := roller.GetRootDir()
+
+	args := []string{
 		"tx",
 		"sequencer",
 		"create-sequencer",
@@ -51,37 +53,55 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		desiredBond.String(),
 		seqMetadataPath,
 		"--from", consts.KeysIds.HubSequencer,
-		"--keyring-backend", "test",
+		"--keyring-backend", string(raCfg.KeyringBackend),
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--keyring-dir", filepath.Join(roller.GetRootDir(), consts.ConfigDirName.HubKeys),
-		"--node", raCfg.HubData.RPC_URL, "--chain-id", raCfg.HubData.ID,
-	)
+		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
+		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
+	}
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
 	if err != nil {
 		return err
 	}
 
-	txOutput, err := bash.ExecCommandWithInput(
-		cmd,
-		"signatures",
-		fmt.Sprintf(
+	pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
+	if err != nil {
+		return err
+	}
+	fp := filepath.Join(home, string(pswFileName))
+	psw, err := filesystem.ReadFromFile(fp)
+	if err != nil {
+		return err
+	}
+
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase":    psw,
+		"Re-enter keyring passphrase": psw,
+	}
+	manualPromptResponses := map[string]string{
+		"signatures": fmt.Sprintf(
 			"this transaction is going to register your sequencer with %s bond. do you want to continue?",
 			pterm.Yellow(pterm.Bold.Sprint(displayBond.String())),
 		),
+	}
+	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.Dymension,
+		args,
+		automaticPrompts,
+		manualPromptResponses,
 	)
 	if err != nil {
 		return err
 	}
 
-	txHash, err := bash.ExtractTxHash(txOutput)
+	txHash, err := bash.ExtractTxHash(txOutput.String())
 	if err != nil {
 		return err
 	}
 
-	err = tx.MonitorTransaction(raCfg.HubData.RPC_URL, txHash)
+	err = tx.MonitorTransaction(raCfg.HubData.RpcUrl, txHash)
 	if err != nil {
 		return err
 	}
@@ -126,13 +146,14 @@ func isValidSequencerMetadata(path string) (bool, error) {
 }
 
 func GetSequencerAccountAddress(cfg roller.RollappConfig) (string, error) {
-	seqAddr, err := keys.GetAddressBinary(
-		keys.KeyConfig{
-			ChainBinary: consts.Executables.Dymension,
-			ID:          consts.KeysIds.HubSequencer,
-			Dir:         consts.ConfigDirName.HubKeys,
-		}, cfg.Home,
-	)
+	kc := keys.KeyConfig{
+		ChainBinary:    consts.Executables.Dymension,
+		ID:             consts.KeysIds.HubSequencer,
+		Dir:            consts.ConfigDirName.HubKeys,
+		KeyringBackend: cfg.KeyringBackend,
+	}
+
+	seqAddr, err := kc.Address(cfg.Home)
 	if err != nil {
 		return "", err
 	}
@@ -198,7 +219,7 @@ func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, er
 	var qpr dymensionseqtypes.QueryParamsResponse
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		"q", "sequencer", "params", "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -338,7 +359,7 @@ func GetMetadata(
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencer", addr,
-		"--node", hd.RPC_URL, "-o", "json", "--chain-id", hd.ID,
+		"--node", hd.RpcUrl, "-o", "json", "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -358,7 +379,7 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "show-sequencers-by-rollapp",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 }
 
@@ -371,13 +392,13 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 }
 
 func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
-	seqAddr, err := keys.GetAddressBinary(
-		keys.KeyConfig{
-			ChainBinary: consts.Executables.Dymension,
-			ID:          consts.KeysIds.HubSequencer,
-			Dir:         consts.ConfigDirName.HubKeys,
-		}, cfg.Home,
-	)
+	kc := keys.KeyConfig{
+		ChainBinary:    consts.Executables.Dymension,
+		ID:             consts.KeysIds.HubSequencer,
+		Dir:            consts.ConfigDirName.HubKeys,
+		KeyringBackend: cfg.KeyringBackend,
+	}
+	seqAddr, err := kc.Address(cfg.Home)
 	if err != nil {
 		return "", err
 	}
@@ -395,7 +416,7 @@ func GetSequencerData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 		keys.ChainQueryConfig{
 			Binary: consts.Executables.Dymension,
 			Denom:  consts.Denoms.Hub,
-			RPC:    cfg.HubData.RPC_URL,
+			RPC:    cfg.HubData.RpcUrl,
 		}, seqAddr,
 	)
 	if err != nil {
@@ -418,7 +439,7 @@ func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins,
 		address,
 		"--output",
 		"json",
-		"--node", hd.RPC_URL,
+		"--node", hd.RpcUrl,
 		"--chain-id", hd.ID,
 	)
 

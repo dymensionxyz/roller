@@ -12,32 +12,6 @@ import (
 )
 
 // RollappConfig struct represents the information for creating roller.toml  config file
-type RollappConfig struct {
-	// new roller.toml
-	Home          string `toml:"home"`
-	RollerVersion string `toml:"roller_version"`
-
-	NodeType string `toml:"node_type"`
-
-	GenesisHash string `toml:"genesis_hash"`
-	GenesisUrl  string `toml:"genesis_url"`
-	RollappID   string `toml:"rollapp_id"`
-
-	Environment string `toml:"environment"`
-
-	RollappVMType        consts.VMType `toml:"rollapp_vm_type"`
-	RollappBinary        string        `toml:"rollapp_binary"`
-	RollappBinaryVersion string        `toml:"rollapp_binary_version"`
-	Bech32Prefix         string        `toml:"bech32_prefix"`
-	BaseDenom            string        `toml:"base_denom"`
-	Denom                string        `toml:"denom"`
-	Decimals             uint
-	MinGasPrices         string `toml:"minimum_gas_prices"`
-
-	HubData consts.HubData
-	DA      consts.DaData
-}
-
 func PrintTokenSupplyLine(rollappConfig RollappConfig) {
 	pterm.DefaultSection.WithIndentCharacter("💰").Printf(
 		"Total Token Supply: %s %s.",
@@ -78,6 +52,7 @@ func PopulateConfig(
 	hd consts.HubData,
 	daData consts.DaData,
 	vmType string,
+	kb consts.SupportedKeyringBackend,
 ) error {
 	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 
@@ -86,12 +61,14 @@ func PopulateConfig(
 		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
 		"rollapp_vm_type": vmType,
 		"home":            home,
+		"keyring_backend": string(kb),
 
+		"HubData.environment":     hd.Environment,
 		"HubData.id":              hd.ID,
-		"HubData.api_url":         hd.API_URL,
-		"HubData.rpc_url":         hd.RPC_URL,
-		"HubData.archive_rpc_url": hd.ARCHIVE_RPC_URL,
-		"HubData.gas_price":       hd.GAS_PRICE,
+		"HubData.api_url":         hd.ApiUrl,
+		"HubData.rpc_url":         hd.RpcUrl,
+		"HubData.archive_rpc_url": hd.ArchiveRpcUrl,
+		"HubData.gas_price":       hd.GasPrice,
 
 		"DA.backend":            string(daData.Backend),
 		"DA.id":                 string(daData.ID),

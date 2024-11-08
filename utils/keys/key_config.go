@@ -1,9 +1,11 @@
 package keys
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -22,12 +24,12 @@ type KeyConfigOption func(opt *keyConfigOptions) error
 // KeyConfig struct store information about a wallet
 // Dir refers to the keyringDir where the key is created
 type KeyConfig struct {
-	Dir string
-	// TODO: this is not descriptive, Name would be more expressive
-	ID            string
-	ChainBinary   string
-	Type          consts.VMType
-	ShouldRecover bool
+	Dir            string
+	ID             string
+	ChainBinary    string
+	Type           consts.VMType
+	KeyringBackend consts.SupportedKeyringBackend
+	ShouldRecover  bool
 }
 
 func WithRecover() KeyConfigOption {
@@ -40,6 +42,7 @@ func WithRecover() KeyConfigOption {
 func NewKeyConfig(
 	dir, id, cb string,
 	vmt consts.VMType,
+	kb consts.SupportedKeyringBackend,
 	opts ...KeyConfigOption,
 ) (*KeyConfig, error) {
 	var options keyConfigOptions
@@ -54,25 +57,30 @@ func NewKeyConfig(
 	shouldRecover := options.recover
 
 	return &KeyConfig{
-		Dir:           dir,
-		ID:            id,
-		ChainBinary:   cb,
-		Type:          vmt,
-		ShouldRecover: shouldRecover,
+		Dir:            dir,
+		ID:             id,
+		ChainBinary:    cb,
+		Type:           vmt,
+		KeyringBackend: kb,
+		ShouldRecover:  shouldRecover,
 	}, nil
 }
 
 func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
+	kp := filepath.Join(home, kc.Dir)
+	pterm.Info.Printfln("creating %s in %s", kc.ID, kp)
 	args := []string{
-		"keys", "add", kc.ID, "--keyring-backend", "test",
-		"--keyring-dir", filepath.Join(home, kc.Dir),
+		"keys", "add", kc.ID, "--keyring-backend", string(kc.KeyringBackend),
+		"--keyring-dir", kp, "--home", kp,
 		"--output", "json",
 	}
+
+	j, _ := json.MarshalIndent(kc, "", " ")
+	fmt.Println(string(j))
 
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
 	}
-	createKeyCommand := exec.Command(kc.ChainBinary, args...)
 
 	if kc.ShouldRecover {
 		err := bash.ExecCommandWithInteractions(kc.ChainBinary, args...)
@@ -80,18 +88,96 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 			return nil, err
 		}
 
-		ki, err := GetAddressInfoBinary(kc, home)
+		ki, err := kc.Info(home)
 		if err != nil {
 			return nil, err
 		}
 
 		return ki, nil
 	}
-	out, err := bash.ExecCommandWithStdout(createKeyCommand)
+
+	out, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return nil, err
 	}
+
 	return ParseAddressFromOutput(out)
+}
+
+func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
+	kp := filepath.Join(home, kc.Dir)
+	args := []string{
+		"keys",
+		"show",
+		kc.ID,
+		"--keyring-backend",
+		string(kc.KeyringBackend),
+		"--keyring-dir",
+		kp,
+		"--output",
+		"json",
+	}
+
+	output, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseAddressFromOutput(output)
+}
+
+func (kc KeyConfig) Address(home string) (string, error) {
+	kp := filepath.Join(home, kc.Dir)
+	args := []string{
+		"keys",
+		"show",
+		kc.ID,
+		"--address",
+		"--keyring-backend",
+		string(kc.KeyringBackend),
+		"--keyring-dir",
+		kp,
+	}
+
+	output, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(output.String()), nil
+}
+
+func (kc KeyConfig) IsInKeyring(
+	home string,
+) (bool, error) {
+	kp := filepath.Join(home, kc.Dir)
+	args := []string{
+		"keys", "list", "--output", "json",
+		"--keyring-backend", string(kc.KeyringBackend), "--keyring-dir", kp,
+	}
+
+	var ki []KeyInfo
+	out, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
+	if err != nil {
+		return false, err
+	}
+
+	fmt.Println(out.String())
+
+	err = json.Unmarshal(out.Bytes(), &ki)
+	if err != nil {
+		return false, err
+	}
+
+	if len(ki) == 0 {
+		return false, nil
+	}
+
+	return slices.ContainsFunc(
+		ki, func(i KeyInfo) bool {
+			return strings.EqualFold(i.Name, kc.ID)
+		},
+	), nil
 }
 
 // TODO: KeyInfo and AddressData seem redundant, should be moved into
@@ -120,8 +206,8 @@ type AddressData struct {
 }
 
 // TODO: refactor, user should approve rather then pipe to 'yes'
-func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
-	flags := getExportKeyFlags(keyringDir)
+func GetExportKeyCmdBinary(keyID, keyringDir, binary, keyringBackend string) *exec.Cmd {
+	flags := getExportKeyFlags(keyringDir, keyringBackend)
 	var commandStr string
 	if binary == consts.Executables.CelKey {
 		commandStr = fmt.Sprintf("%s export %s %s", binary, keyID, flags)
@@ -134,15 +220,16 @@ func GetExportKeyCmdBinary(keyID, keyringDir, binary string) *exec.Cmd {
 
 func GetExportPrivKeyCmd(kc KeyConfig) *exec.Cmd {
 	c := exec.Command(
-		kc.ChainBinary, "keys", "export", kc.ID, "--keyring-backend", "test",
+		kc.ChainBinary, "keys", "export", kc.ID, "--keyring-backend", string(kc.KeyringBackend),
 	)
 
 	return c
 }
 
-func getExportKeyFlags(keyringDir string) string {
+func getExportKeyFlags(keyringDir, keyringBackend string) string {
 	return fmt.Sprintf(
-		"--keyring-backend test --keyring-dir %s --unarmored-hex --unsafe",
+		"--keyring-backend %s --keyring-dir %s --unarmored-hex --unsafe",
+		keyringBackend,
 		keyringDir,
 	)
 }

@@ -57,13 +57,14 @@ func Cmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			hubSeqKC := keys.KeyConfig{
-				Dir:         consts.ConfigDirName.HubKeys,
-				ID:          consts.KeysIds.HubSequencer,
-				ChainBinary: consts.Executables.Dymension,
-				Type:        consts.SDK_ROLLAPP,
+				Dir:            consts.ConfigDirName.HubKeys,
+				ID:             consts.KeysIds.HubSequencer,
+				ChainBinary:    consts.Executables.Dymension,
+				Type:           consts.SDK_ROLLAPP,
+				KeyringBackend: rollerData.KeyringBackend,
 			}
 
-			seqAddrInfo, err := keys.GetAddressInfoBinary(hubSeqKC, rollappConfig.Home)
+			seqAddrInfo, err := hubSeqKC.Info(rollappConfig.Home)
 			if err != nil {
 				pterm.Error.Println("failed to get address info: ", err)
 				return

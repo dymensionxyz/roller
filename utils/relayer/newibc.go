@@ -37,10 +37,10 @@ func InitializeRelayer(home string, rollerData roller.RollappConfig) error {
 				GasPrices:     "2000000000",
 			}, relayer.ChainConfig{
 				ID:            rollerData.HubData.ID,
-				RPC:           rollerData.HubData.RPC_URL,
+				RPC:           rollerData.HubData.RpcUrl,
 				Denom:         consts.Denoms.Hub,
 				AddressPrefix: consts.AddressPrefixes.Hub,
-				GasPrices:     rollerData.HubData.GAS_PRICE,
+				GasPrices:     rollerData.HubData.GasPrice,
 			}, home,
 		)
 		if err != nil {

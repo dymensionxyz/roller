@@ -15,7 +15,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -159,7 +158,7 @@ func RemoveFileIfExists(filePath string) error {
 	_, err := os.Stat(filePath)
 	if err == nil {
 		c := exec.Command("sudo", "rm", "-rf", filePath)
-		_, err := bash.ExecCommandWithStdout(c)
+		err := c.Run()
 		if err != nil {
 			return fmt.Errorf("failed to remove file: %w", err)
 		}
@@ -208,7 +207,7 @@ func DoesFileExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 
 	if errors.Is(err, fs.ErrNotExist) {
-		pterm.Info.Println("existing roller configuration not found")
+		pterm.Info.Printfln("%s does not exist", path)
 		return false, nil
 	}
 
@@ -217,4 +216,39 @@ func DoesFileExist(path string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// ReadFromFile reads the contents of a file and returns it as a string
+func ReadFromFile(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+
+	// nolint:errcheck
+	defer f.Close()
+
+	b, err := io.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), err
+}
+
+func GetOsKeyringPswFileName(command string) (consts.OsKeyringPwdFileName, error) {
+	var pswFileName consts.OsKeyringPwdFileName
+	switch command {
+	case consts.Executables.Celestia:
+		pswFileName = consts.OsKeyringPwdFileNames.Da
+	case consts.Executables.CelKey:
+		pswFileName = consts.OsKeyringPwdFileNames.Da
+	case consts.Executables.RollappEVM:
+		pswFileName = consts.OsKeyringPwdFileNames.RollApp
+	case consts.Executables.Dymension:
+		pswFileName = consts.OsKeyringPwdFileNames.RollApp
+	default:
+		return "", fmt.Errorf("unsupported command: %s", command)
+	}
+	return pswFileName, nil
 }
