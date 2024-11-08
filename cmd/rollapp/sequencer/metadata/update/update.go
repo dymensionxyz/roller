@@ -48,8 +48,7 @@ func Cmd() *cobra.Command {
 				"sequencer-metadata.json",
 			)
 
-			updateSeqCmd := exec.Command(
-				consts.Executables.Dymension,
+			updateSeqArgs := []string{
 				"tx",
 				"sequencer",
 				"update-sequencer",
@@ -57,7 +56,7 @@ func Cmd() *cobra.Command {
 				"--from",
 				consts.KeysIds.HubSequencer,
 				"--keyring-backend",
-				"test",
+				string(rollerData.KeyringBackend),
 				"--fees",
 				fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 				"--gas-adjustment",
@@ -65,24 +64,65 @@ func Cmd() *cobra.Command {
 				"--keyring-dir",
 				filepath.Join(home, consts.ConfigDirName.HubKeys),
 				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
-			)
-
-			txOutput, err := bash.ExecCommandWithInput(home, updateSeqCmd, "signatures")
-			if err != nil {
-				pterm.Error.Println("failed to update sequencer metadata", err)
-				return
 			}
+			var txHash string
 
-			tob := bytes.NewBufferString(txOutput)
-			err = tx_utils.CheckTxYamlStdOut(*tob)
-			if err != nil {
-				pterm.Error.Println("failed to check raw_log", err)
-				return
-			}
+			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
+				if err != nil {
+					pterm.Error.Println("failed to get os keyring psw file name", err)
+					return
+				}
+				fp := filepath.Join(home, string(pswFileName))
+				psw, err := filesystem.ReadFromFile(fp)
+				if err != nil {
+					pterm.Error.Println("failed to read keyring passphrase file", err)
+					return
+				}
 
-			txHash, err := bash.ExtractTxHash(txOutput)
-			if err != nil {
-				return
+				automaticPrompts := map[string]string{
+					"Enter keyring passphrase":    psw,
+					"Re-enter keyring passphrase": psw,
+				}
+				manualPromptResponses := map[string]string{
+					"signatures": "this transaction is going to update the sequencer metadata. do you want to continue?",
+				}
+
+				txOutput, err := bash.ExecuteCommandWithPromptHandler(
+					consts.Executables.Dymension,
+					updateSeqArgs,
+					automaticPrompts,
+					manualPromptResponses,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update sequencer metadata", err)
+					return
+				}
+				tob := bytes.NewBufferString(txOutput.String())
+				err = tx_utils.CheckTxYamlStdOut(*tob)
+				if err != nil {
+					pterm.Error.Println("failed to check raw_log", err)
+					return
+				}
+
+				txHash, err = bash.ExtractTxHash(txOutput.String())
+				if err != nil {
+					pterm.Error.Println("failed to extract tx hash", err)
+					return
+				}
+			} else {
+				cmd := exec.Command(consts.Executables.Dymension, updateSeqArgs...)
+				txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+				if err != nil {
+					pterm.Error.Println("failed to update sequencer metadata", err)
+					return
+				}
+
+				txHash, err = bash.ExtractTxHash(txOutput)
+				if err != nil {
+					pterm.Error.Println("failed to extract tx hash", err)
+					return
+				}
 			}
 
 			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
