@@ -152,6 +152,18 @@ func Cmd() *cobra.Command {
 						return
 					}
 				}
+			} else {
+				pterm.Info.Println("populating relayer config with correct values...")
+				err = relayerutils.InitializeRelayer(home, *rollappChainData)
+				if err != nil {
+					pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
+					return
+				}
+
+				if err := relayer.CreatePath(*rollappChainData); err != nil {
+					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+					return
+				}
 			}
 
 			if err := relayerutils.UpdateConfigWithDefaultValues(relayerHome, *rollappChainData); err != nil {
