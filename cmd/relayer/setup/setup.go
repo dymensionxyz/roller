@@ -124,7 +124,12 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if ibcPathChains == nil || !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
+			if ibcPathChains == nil {
+				pterm.Error.Println("ibc path chains are nil")
+				return
+			}
+
+			if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
 				!ibcPathChains.DstChainOk {
 				pterm.Warning.Println("relayer config verification failed...")
 				if ibcPathChains.DefaultPathOk {
