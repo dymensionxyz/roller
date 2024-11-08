@@ -3,6 +3,7 @@ package relayer
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/pterm/pterm"
 	"gopkg.in/yaml.v3"
@@ -21,27 +22,21 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 	}
 
 	pterm.Info.Println("unmarshalling config file")
-	var config map[string]interface{}
+	var config Config
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		pterm.Error.Println("failed to unmarshal config file:", err)
 		return false, err
 	}
 
-	fmt.Println("config", config["paths"])
-
 	pterm.Info.Println("navigating to paths and checking for hub-rollapp")
 	// Navigate to paths and check for hub-rollapp
-	if paths, ok := config["paths"].(map[interface{}]interface{}); ok {
-		if _, exists := paths[consts.DefaultRelayerPath]; exists {
-			pterm.Success.Println("hub-rollapp exists in the YAML configuration.")
-			return true, nil
-		}
 
+	if !reflect.DeepEqual(config, Config{}) {
 		fmt.Println("want:", consts.DefaultRelayerPath)
-		fmt.Println("have:", paths[consts.DefaultRelayerPath])
+		fmt.Println("have:", config.Paths.HubRollapp)
 
-		y, _ := yaml.Marshal(paths)
+		y, _ := yaml.Marshal(config.Paths)
 		fmt.Println("paths", string(y))
 	}
 

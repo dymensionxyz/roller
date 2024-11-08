@@ -35,11 +35,19 @@ type Config struct {
 	Paths struct {
 		HubRollapp struct {
 			Dst struct {
-				ChainID string `yaml:"chain-id"`
+				ChainID      string `yaml:"chain-id"`
+				ClientID     string `yaml:"client-id"`
+				ConnectionID string `yaml:"connection-id"`
 			} `yaml:"dst"`
 			Src struct {
-				ChainID string `yaml:"chain-id"`
+				ChainID      string `yaml:"chain-id"`
+				ClientID     string `yaml:"client-id"`
+				ConnectionID string `yaml:"connection-id"`
 			} `yaml:"src"`
+			SrcChannelFilter struct {
+				ChannelList []string `yaml:"channel-list"`
+				Rule        string   `yaml:"rule"`
+			} `yaml:"src-channel-filter"`
 		} `yaml:"hub-rollapp"`
 	} `yaml:"paths"`
 }
