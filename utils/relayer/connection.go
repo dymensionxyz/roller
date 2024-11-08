@@ -11,6 +11,7 @@ import (
 )
 
 func VerifyDefaultPath(relayerHome string) (bool, error) {
+	pterm.Info.Println("verifying default path")
 	cfp := GetConfigFilePath(relayerHome)
 
 	data, err := os.ReadFile(cfp)
@@ -19,6 +20,7 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 		return false, err
 	}
 
+	pterm.Info.Println("unmarshalling config file")
 	var config map[string]interface{}
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
@@ -26,6 +28,7 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 		return false, err
 	}
 
+	pterm.Info.Println("navigating to paths and checking for hub-rollapp")
 	// Navigate to paths and check for hub-rollapp
 	if paths, ok := config["paths"].(map[interface{}]interface{}); ok {
 		if _, exists := paths[consts.DefaultRelayerPath]; exists {
