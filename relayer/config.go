@@ -35,6 +35,25 @@ func CreatePath(rlpCfg roller.RollappConfig) error {
 	return nil
 }
 
+func DeletePath(rlpCfg roller.RollappConfig) error {
+	relayerHome := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Relayer)
+	pterm.Info.Printf("removing ibc path from %s to %s\n", rlpCfg.HubData.ID, rlpCfg.RollappID)
+
+	newPathCmd := exec.Command(
+		consts.Executables.Relayer,
+		"paths",
+		"delete",
+		consts.DefaultRelayerPath,
+		"--home",
+		relayerHome,
+	)
+	if err := newPathCmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type ChainConfig struct {
 	ID            string
 	RPC           string
