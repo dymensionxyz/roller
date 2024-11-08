@@ -75,9 +75,6 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 		"--output", "json",
 	}
 
-	j, _ := json.MarshalIndent(kc, "", " ")
-	fmt.Println(string(j))
-
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
 	}
