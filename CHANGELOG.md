@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.8.0-alpha-rc03](https://github.com/dymensionxyz/roller/compare/v1.7.2-alpha-rc03...v1.8.0-alpha-rc03) (2024-11-08)
+
+
+### Features
+
+* add `roller observability query` command to retrieve key metrics ([#1102](https://github.com/dymensionxyz/roller/issues/1102)) ([46aef1d](https://github.com/dymensionxyz/roller/commit/46aef1dd6f4ebc1642e542a295afd9ea8421c5dc))
+* add sequencer address checks upon init ([#1100](https://github.com/dymensionxyz/roller/issues/1100)) ([0d6693a](https://github.com/dymensionxyz/roller/commit/0d6693ab9afadc93acbf876f3b5d2715f6104c90))
+* support os keyring ([#1098](https://github.com/dymensionxyz/roller/issues/1098)) ([2208758](https://github.com/dymensionxyz/roller/commit/22087588f09b5a2c4a9bae59b26c64e0c590ce95))
+
+
+### Bug Fixes
+
+* apply os keyring patches ([#1101](https://github.com/dymensionxyz/roller/issues/1101)) ([ea3d83b](https://github.com/dymensionxyz/roller/commit/ea3d83b4222e9f6cf7aa62d9ddb057ff8727c416))
+* improve relayer path creation ([#1103](https://github.com/dymensionxyz/roller/issues/1103)) ([3b8799f](https://github.com/dymensionxyz/roller/commit/3b8799f99741b6f2afeef0ee0cb8fa8de692fb27))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
