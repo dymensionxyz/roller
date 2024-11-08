@@ -50,7 +50,6 @@ func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPat
 
 	relayerConfigPath := GetConfigFilePath(relayerHome)
 
-	pterm.Info.Println("checking configuration")
 	// 2. config file exists
 	relayerConfigExists, err := filesystem.DoesFileExist(relayerConfigPath)
 	if err != nil {
