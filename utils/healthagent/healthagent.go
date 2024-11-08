@@ -159,5 +159,5 @@ func QueryPromMetric(host, promMetricPort, metric string) (int, error) {
 		return 0, fmt.Errorf("error reading metrics response: %v", err)
 	}
 
-	return 0, fmt.Errorf("metric not found")
+	return 0, fmt.Errorf("metric not found: %s", metric)
 }

@@ -16,7 +16,7 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			metrics := []string{
 				"dymint_mempool_size",
-				"rollapp_pending_submissions_skew_num_batches",
+				"rollapp_pending_submissions_skew_batches",
 				"rollapp_hub_height",
 				"rollapp_consecutive_failed_da_submissions",
 			}
@@ -24,7 +24,6 @@ func Cmd() *cobra.Command {
 				value, err := healthagent.QueryPromMetric("localhost", "2112", metric)
 				if err != nil {
 					pterm.Error.Println(err)
-					return
 				}
 				fmt.Printf("%s: %d\n", metric, value)
 			}
