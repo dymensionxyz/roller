@@ -117,12 +117,6 @@ func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 		"show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
 		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
 	}
-	cmd := exec.Command(
-		consts.Executables.CelKey, args...,
-	)
-
-	fmt.Println("cmd:", cmd.String())
-
 	output, err := keys.RunCmdBasedOnKeyringBackend(
 		c.Root,
 		consts.Executables.CelKey,
@@ -158,11 +152,6 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--keyring.backend", string(c.KeyringBackend),
 	}
-	initLightNodeCmd := exec.Command(
-		consts.Executables.Celestia, args...,
-	)
-	fmt.Println("initLightNodeCmd:", initLightNodeCmd.String())
-	// err := initLightNodeCmd.Run()
 
 	var out *bytes.Buffer
 	out, err = keys.RunCmdBasedOnKeyringBackend(
@@ -190,7 +179,6 @@ func extractMnemonic(output string) string {
 		if mnemonicLineFound {
 			// Extract only the 24 words from the line
 			words := strings.Fields(line)
-			fmt.Println("words:", words)
 			if len(words) == 24 {
 				mnemonicLines = append(mnemonicLines, strings.Join(words, " "))
 			}

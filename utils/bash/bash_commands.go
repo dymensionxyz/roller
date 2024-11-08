@@ -364,8 +364,6 @@ func ExecuteCommandWithPromptHandler(
 	manualPrompts map[string]string,
 ) (*bytes.Buffer, error) {
 	cmd := exec.Command(command, args...)
-	fmt.Println("cmd: ", cmd.String())
-	fmt.Println("Debug - Automatic prompts:", promptResponses)
 
 	// Create pipes
 	stdin, err := cmd.StdinPipe()
