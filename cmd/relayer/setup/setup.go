@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -98,10 +99,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			var isRelayerIbcPathValid bool
+			var ibcPathChains *relayerutils.IbcPathChains
 
 			if isRelayerDirPresent {
-				isRelayerIbcPathValid, err = relayerutils.ValidateIbcPathChains(
+				ibcPathChains, err = relayerutils.ValidateIbcPathChains(
 					relayerHome,
 					raID,
 					*hd,
@@ -122,7 +123,10 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if !isRelayerIbcPathValid {
+			j, _ := json.MarshalIndent(ibcPathChains, "", "  ")
+			fmt.Println(string(j))
+
+			if ibcPathChains == nil {
 				pterm.Warning.Println("relayer config verification failed...")
 				pterm.Info.Println("populating relayer config with correct values...")
 				err = relayerutils.InitializeRelayer(home, *rollappChainData)
