@@ -87,11 +87,9 @@ func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPat
 				return &ibcPathChains, err
 			}
 			ibcPathChains.DstChainOk = dstChainOk
+		} else {
+			pterm.Error.Println("default path not found in relayer config")
 		}
-	}
-
-	if !relayerConfigExists || !ibcPathChains.SrcChainOk || !ibcPathChains.DstChainOk {
-		return &ibcPathChains, nil
 	}
 
 	return &ibcPathChains, nil
