@@ -77,7 +77,12 @@ func createCustomHubDataFromFile() (*consts.HubData, error) {
   "rpcUrl": "<hub-rpc-endpoint>",
   "restUrl": "<hub-rest-endpoint>",
 }`)
-	path, _ := pterm.DefaultInteractiveTextInput.Show()
+	path, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("").Show()
+	for len(path) == 0 {
+		path, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a path to a json file that has the following structure",
+		).Show()
+	}
 	ep, err := filesystem.ExpandHomePath(path)
 	if err != nil {
 		return nil, err
