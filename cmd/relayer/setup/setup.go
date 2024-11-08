@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -125,11 +124,8 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			j, _ := json.MarshalIndent(ibcPathChains, "", "  ")
-			pterm.Info.Println(string(j))
-
 			if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
-				!ibcPathChains.DstChainOk {
+				!ibcPathChains.DstChainOk || ibcPathChains == nil {
 				pterm.Warning.Println("relayer config verification failed...")
 				if ibcPathChains.DefaultPathOk {
 					pterm.Info.Printfln("removing path from config %s", consts.DefaultRelayerPath)
