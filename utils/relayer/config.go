@@ -37,25 +37,29 @@ func UpdateConfigWithDefaultValues(relayerHome string, rollerData roller.Rollapp
 	return nil
 }
 
-func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (bool, error) {
-	var srcChainOk bool
-	var dstChainOk bool
-	var defaultPathOk bool
-	var relayerConfigExists bool
+type IbcPathChains struct {
+	SrcChainOk          bool
+	DstChainOk          bool
+	DefaultPathOk       bool
+	RelayerConfigExists bool
+}
+
+func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPathChains, error) {
 	var err error
+	ibcPathChains := IbcPathChains{}
 
 	relayerConfigPath := GetConfigFilePath(relayerHome)
 
-	pterm.Info.Println("checking configuration")
 	// 2. config file exists
-	relayerConfigExists, err = filesystem.DoesFileExist(relayerConfigPath)
+	relayerConfigExists, err := filesystem.DoesFileExist(relayerConfigPath)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
+	ibcPathChains.RelayerConfigExists = relayerConfigExists
 
 	if relayerConfigExists {
 		// 2.1. path exist
-		defaultPathOk, err = VerifyDefaultPath(relayerHome)
+		defaultPathOk, err := VerifyDefaultPath(relayerHome)
 		if err != nil {
 			pterm.Error.Printf(
 				"failed to verify relayer path %s: %v\n",
@@ -63,28 +67,30 @@ func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (bool, e
 				err,
 			)
 		}
+		ibcPathChains.DefaultPathOk = defaultPathOk
 
 		if defaultPathOk {
 			// 2.2. isHubChainPresent
-			srcChainOk, err = VerifyPathSrcChain(relayerHome, hd)
+			srcChainOk, err := VerifyPathSrcChain(relayerHome, hd)
 			if err != nil {
 				pterm.Error.Printf(
 					"failed to verify source chain in relayer path: %v\n",
 					err,
 				)
 			}
+			ibcPathChains.SrcChainOk = srcChainOk
 
 			// 2.3. isRollappChainPresent
-			dstChainOk, err = VerifyPathDstChain(relayerHome, raID)
+			dstChainOk, err := VerifyPathDstChain(relayerHome, raID)
 			if err != nil {
-				return false, err
+				return &ibcPathChains, err
 			}
+			ibcPathChains.DstChainOk = dstChainOk
+		} else {
+			pterm.Error.Println("default path not found in relayer config")
 		}
 	}
 
-	if !relayerConfigExists || !srcChainOk || !dstChainOk {
-		return false, nil
-	}
-
-	return true, nil
+	pterm.Info.Println("ibc path validation passed")
+	return &ibcPathChains, nil
 }

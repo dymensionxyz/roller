@@ -212,6 +212,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		)
 		rollerData, err := roller.LoadConfig(home)
 		if err != nil {
+			pterm.Error.Printf("failed to load roller config: %v\n", err)
 			return nil, err
 		}
 		if rollerData.KeyringBackend == "" {

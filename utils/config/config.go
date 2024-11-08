@@ -75,7 +75,7 @@ func createCustomHubDataFromFile() (*consts.HubData, error) {
 {
   "id": "<hub-id>",
   "rpcUrl": "<hub-rpc-endpoint>",
-  "restUrl": "<hub-rest-endpoint>",
+  "apiUrl": "<hub-rest-endpoint>",
 }`)
 	path, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("").Show()
 	for len(path) == 0 {

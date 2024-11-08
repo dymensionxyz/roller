@@ -62,6 +62,7 @@ func Cmd() *cobra.Command {
 
 			if !ok {
 				pterm.Error.Printf("%s rollapp not registered on %s", raID, hd.ID)
+				return
 			}
 
 			raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, *hd)
@@ -89,6 +90,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("rollapp data validation error: ", err)
 				return
 			}
+			pterm.Info.Println("rollapp chain data validation passed")
 
 			// things to check:
 			// 1. relayer folder exists
@@ -98,10 +100,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			var isRelayerIbcPathValid bool
+			var ibcPathChains *relayerutils.IbcPathChains
 
 			if isRelayerDirPresent {
-				isRelayerIbcPathValid, err = relayerutils.ValidateIbcPathChains(
+				ibcPathChains, err = relayerutils.ValidateIbcPathChains(
 					relayerHome,
 					raID,
 					*hd,
@@ -122,8 +124,35 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if !isRelayerIbcPathValid {
-				pterm.Warning.Println("relayer config verification failed...")
+			if ibcPathChains != nil {
+				if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
+					!ibcPathChains.DstChainOk {
+					pterm.Warning.Println("relayer config verification failed...")
+					if ibcPathChains.DefaultPathOk {
+						pterm.Info.Printfln(
+							"removing path from config %s",
+							consts.DefaultRelayerPath,
+						)
+						err := relayer.DeletePath(*rollappChainData)
+						if err != nil {
+							pterm.Error.Printf("failed to delete relayer IBC path: %v\n", err)
+							return
+						}
+					}
+
+					pterm.Info.Println("populating relayer config with correct values...")
+					err = relayerutils.InitializeRelayer(home, *rollappChainData)
+					if err != nil {
+						pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
+						return
+					}
+
+					if err := relayer.CreatePath(*rollappChainData); err != nil {
+						pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+						return
+					}
+				}
+			} else {
 				pterm.Info.Println("populating relayer config with correct values...")
 				err = relayerutils.InitializeRelayer(home, *rollappChainData)
 				if err != nil {
