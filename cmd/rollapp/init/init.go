@@ -99,16 +99,16 @@ func Cmd() *cobra.Command {
 					)
 					return
 				}
+			}
 
-				err = filesystem.CreateRollerRootWithOptionalOverride(home)
-				if err != nil {
-					pterm.Error.Printf(
-						"failed to create roller home directory (%s): %v\n",
-						home,
-						err,
-					)
-					return
-				}
+			err = filesystem.CreateRollerRootWithOptionalOverride(home)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to create roller home directory (%s): %v\n",
+					home,
+					err,
+				)
+				return
 			}
 
 			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
