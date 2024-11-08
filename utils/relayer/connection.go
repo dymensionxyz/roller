@@ -1,6 +1,7 @@
 package relayer
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -22,6 +23,9 @@ func VerifyDefaultPath(relayerHome string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	j, _ := json.MarshalIndent(config, "", "  ")
+	fmt.Println(string(j))
 
 	// Navigate to paths and check for hub-rollapp
 	if paths, ok := config["paths"].(map[interface{}]interface{}); ok {
