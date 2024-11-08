@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/observability/export"
+	"github.com/dymensionxyz/roller/cmd/observability/query"
 )
 
 func Cmd() *cobra.Command {
@@ -15,6 +16,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(export.Cmd())
+	cmd.AddCommand(query.Cmd())
 
 	return cmd
 }

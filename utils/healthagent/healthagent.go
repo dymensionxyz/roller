@@ -32,7 +32,11 @@ func Start(home string, l *log.Logger) {
 		isDaNodeHealthy, _ := IsEndpointHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
 
-		submissions, err := QueryFailedDaSubmissions(localEndpoint, defaultRaMetricPort)
+		submissions, err := QueryPromMetric(
+			localEndpoint,
+			defaultRaMetricPort,
+			"rollapp_consecutive_failed_da_submissions",
+		)
 		if err != nil {
 			l.Println(err)
 		}
@@ -125,7 +129,7 @@ func IsEndpointHealthy(url string) (bool, any) {
 	return true, response.Result.Error
 }
 
-func QueryFailedDaSubmissions(host, promMetricPort string) (int, error) {
+func QueryPromMetric(host, promMetricPort, metric string) (int, error) {
 	endpoint := fmt.Sprintf("http://%s:%s/metrics", host, promMetricPort)
 	// nolint: gosec
 	resp, err := http.Get(endpoint)
@@ -138,7 +142,7 @@ func QueryFailedDaSubmissions(host, promMetricPort string) (int, error) {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "rollapp_consecutive_failed_da_submissions") {
+		if strings.HasPrefix(line, metric) {
 			parts := strings.Fields(line)
 			if len(parts) != 2 {
 				return 0, fmt.Errorf("unexpected format for metric line: %s", line)
