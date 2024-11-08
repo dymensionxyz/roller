@@ -71,31 +71,35 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			shouldContinue, err := sequencer.CheckExistingSequencer(home)
-			if err != nil {
-				pterm.Error.Printf("failed to check if sequencer is already registered: %v\n", err)
-				return
-			}
-
-			if shouldContinue.IsSequencerAlreadyRegistered || shouldContinue.IsSequencerProposer {
-				pterm.Warning.Println("conditions to continue not met")
-				yamlBytes, err := yaml.Marshal(shouldContinue)
+			if isRootExist {
+				shouldContinue, err := sequencer.CheckExistingSequencer(home)
 				if err != nil {
-					pterm.Error.Printf("failed to marshal sequencer address status: %v\n", err)
+					pterm.Error.Printf(
+						"failed to check if sequencer is already registered: %v\n",
+						err,
+					)
 					return
 				}
 
-				fmt.Println(string(yamlBytes))
+				if shouldContinue.IsSequencerAlreadyRegistered ||
+					shouldContinue.IsSequencerProposer {
+					pterm.Warning.Println("conditions to continue not met")
+					yamlBytes, err := yaml.Marshal(shouldContinue)
+					if err != nil {
+						pterm.Error.Printf("failed to marshal sequencer address status: %v\n", err)
+						return
+					}
 
-				pterm.Warning.Println("the existing hub_sequencer key is already registered")
-				pterm.Warning.Println("start your rollapp instead")
-				pterm.Warning.Println(
-					"if you are resetting the node, remove the roller directory and run the command again",
-				)
-				return
-			}
+					fmt.Println(string(yamlBytes))
 
-			if isRootExist {
+					pterm.Warning.Println("the existing hub_sequencer key is already registered")
+					pterm.Warning.Println("start your rollapp instead")
+					pterm.Warning.Println(
+						"if you are resetting the node, remove the roller directory and run the command again",
+					)
+					return
+				}
+
 				err = filesystem.CreateRollerRootWithOptionalOverride(home)
 				if err != nil {
 					pterm.Error.Printf(
