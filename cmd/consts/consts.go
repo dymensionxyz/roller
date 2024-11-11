@@ -31,13 +31,13 @@ var Executables = struct {
 	CelestiaApp string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
-	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
-	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
+	RollappEVM:  fmt.Sprintf("%s/rollappd", InternalBinsDir),
+	Dymension:   fmt.Sprintf("%s/dymd", InternalBinsDir),
 	Celestia:    fmt.Sprintf("%s/celestia", InternalBinsDir),
 	CelKey:      fmt.Sprintf("%s/cel-key", InternalBinsDir),
 	Relayer:     fmt.Sprintf("%s/rly", InternalBinsDir),
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
-	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
+	Eibc:        fmt.Sprintf("%s/eibc-client", InternalBinsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
 }
 

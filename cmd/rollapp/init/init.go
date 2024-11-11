@@ -127,8 +127,6 @@ func Cmd() *cobra.Command {
 					Show()
 			}
 
-			// TODO: move to consts
-			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
 				dymdBinaryOptions := types.Dependency{
 					DependencyName:  "dymension",
@@ -255,6 +253,15 @@ func Cmd() *cobra.Command {
 			elapsed := time.Since(start)
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
+			defer func() {
+				pterm.Info.Printf(
+					"roller installs binaries into %s\nif you want to use them system wide, please add %s to your path\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprint(consts.InternalBinsDir),
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprint(consts.InternalBinsDir),
+				)
+			}()
 
 			// if roller has not been initialized or it was reset
 			// set the versions to the current version
