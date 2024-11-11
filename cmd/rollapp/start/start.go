@@ -71,6 +71,8 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
+			fmt.Println("*** rollapp config....** ", rollappConfig)
+
 			fmt.Println("rollapp config hub data id.....", rollappConfig.HubData.ID)
 
 			if rollappConfig.HubData.ID != consts.MockHubID {
@@ -92,6 +94,8 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd(logLevel)
+
+			fmt.Println("start commandd......", startRollappCmd)
 
 			fmt.Println(startRollappCmd.String())
 
@@ -211,30 +215,34 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
-		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		fmt.Println("sequencer addressesss.......", seqAddrData)
+		// daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
+		daManager := datalayer.NewDAManager(consts.Avail, rlpCfg.Home)
+		// fmt.Println("da manager.....", daManager, rlpCfg, rlpCfg.Home)
+		availAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		fmt.Println("avail address:: and error", availAddrData, errCel)
 		if err != nil {
 			return
 		}
 
-		if err != nil {
-			return
-		}
+		// if err != nil {
+		// 	return
+		// }
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
-		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
+		fmt.Println("Sequencer Address:", seqAddrData[0].Address, seqAddrData[0].Balance.String())
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 		}
 
 		if errCel != nil {
-			pterm.Error.Println("failed to retrieve DA address")
+			pterm.Error.Println("failed to retrieve DA address") // here check
 			return
 		}
 
-		fmt.Println("Da Address:", celAddrData[0].Address)
+		// fmt.Println("Da Address:", availAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
-			fmt.Println("Da Balance:", celAddrData[0].Balance.String())
+			fmt.Println("Da Balance:", availAddrData[0].Balance.String())
 		}
 	}
 }

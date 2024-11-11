@@ -382,6 +382,8 @@ func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
 		return "", err
 	}
 
+	seqAddr = "dym1zrdckk92x54zrm67w2nz83wrqxrmtuxvg5mqvc" // TODO : fix me
+
 	return seqAddr, nil
 }
 

@@ -19,8 +19,9 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
-	requiredAVL               = 1
+	// DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
+	DefaultRPCEndpoint = "ws://127.0.0.1:9944"
+	requiredAVL        = 1
 )
 
 type Avail struct {
@@ -67,6 +68,7 @@ func NewAvail(root string) *Avail {
 
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
+	fmt.Println("avail config inside............", availConfig)
 	return &availConfig
 }
 
@@ -75,8 +77,11 @@ func (a *Avail) InitializeLightNodeConfig() (string, error) {
 }
 
 func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
+	fmt.Println("get addre3sss.......", a.AccAddress)
+	addr := "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 	key := keys.KeyInfo{
-		Address: a.AccAddress,
+		// Address: a.AccAddress,
+		Address: addr,
 	}
 	// return a.AccAddress, nil
 	return &key, nil
@@ -123,6 +128,8 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 		return res, err
 	}
 
+	fmt.Println("get bal err......", err, a.Mnemonic, keyringNetworkID)
+
 	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
 	if err != nil {
 		return res, err
@@ -132,14 +139,21 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 		return res, err
 	}
 
+	fmt.Println("key and err.........", key, err)
+	keeee, err := a.client.RPC.State.GetKeysLatest(key)
+	fmt.Println("keys check and eerrr......", keeee, err)
+
 	var accountInfo availtypes.AccountInfo
 	ok, err := a.client.RPC.State.GetStorageLatest(key, &accountInfo)
+	fmt.Println("ok and err......", ok, err)
 	if err != nil {
 		return res, err
 	}
 	if !ok {
 		return res, fmt.Errorf("account %s not found", keyringPair.Address)
 	}
+
+	fmt.Println("account infooo.......", accountInfo)
 
 	return accountInfo.Data.Free, nil
 }
@@ -148,14 +162,16 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error) {
+func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error) {
+	a.AccAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
 	}
 	return []keys.AccountData{
 		{
-			Address: a.AccAddress,
+			// Address: a.AccAddress,
+			Address: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
 			Balance: keys.Balance{
 				Denom:  consts.Denoms.Avail,
 				Amount: balance.Int,

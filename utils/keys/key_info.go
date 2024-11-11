@@ -99,6 +99,7 @@ func GetAddressBinary(keyConfig KeyConfig, home string) (string, error) {
 		"--keyring-dir",
 		filepath.Join(home, keyConfig.Dir),
 	)
+	fmt.Println("keys config......", showKeyCommand)
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {

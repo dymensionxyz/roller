@@ -83,6 +83,8 @@ func runInit(
 		return err
 	}
 
+	fmt.Println("RA RESPP.....", raResp)
+
 	err = initconfig.InitializeRollappConfig(&initConfig, raResp)
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")

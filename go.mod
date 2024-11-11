@@ -231,6 +231,7 @@ require (
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
 	github.com/centrifuge/go-substrate-rpc-client/v4 => github.com/availproject/go-substrate-rpc-client/v4 v4.0.12-avail-1.4.0-rc1-5e286e3
+	github.com/dymensionxyz/dymint => /home/vitwit/go/src/github.com/dymensionxyz/dymint/
 
 	// use dymension forks
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050

@@ -96,7 +96,7 @@ func GetInitConfig(
 	cfg.HubData = hub
 
 	// cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
-	// cfg.RollappID = raID
+	cfg.RollappID = "rollappevm_1234-1"
 	// cfg.Denom = raBaseDenom
 
 	if cfg.RollappVMType == consts.EVM_ROLLAPP {

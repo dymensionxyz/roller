@@ -31,7 +31,7 @@ var Executables = struct {
 	CelestiaApp string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
-	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
+	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
 	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
 	Celestia:    fmt.Sprintf("%s/celestia", InternalBinsDir),
 	CelKey:      fmt.Sprintf("%s/cel-key", InternalBinsDir),
