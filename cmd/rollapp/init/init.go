@@ -8,16 +8,21 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config"
+	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/dymensionxyz/roller/version"
 )
 
@@ -33,6 +38,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
+
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
@@ -42,17 +48,69 @@ func Cmd() *cobra.Command {
 			}
 
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
+			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
 
 			// preflight checks
 			var hd consts.HubData
 			var env string
 			var raID string
 
-			err = filesystem.CreateDirWithOptionalOverwrite(home)
+			isRootExist, err := filesystem.DirNotEmpty(home)
 			if err != nil {
-				pterm.Error.Println("failed to create roller home directory: ", err)
+				pterm.Error.Printf(
+					"failed to check if roller home directory (%s) is empty: %v\n",
+					home,
+					err,
+				)
 				return
 			}
+
+			if isRootExist {
+				shouldContinue, err := sequencer.CheckExistingSequencer(home)
+				if err != nil {
+					pterm.Error.Printf(
+						"failed to check if sequencer is already registered: %v\n",
+						err,
+					)
+					return
+				}
+
+				if shouldContinue.IsSequencerAlreadyRegistered ||
+					shouldContinue.IsSequencerProposer {
+					pterm.Warning.Println("conditions to continue not met")
+					yamlBytes, err := yaml.Marshal(shouldContinue)
+					if err != nil {
+						pterm.Error.Printf("failed to marshal sequencer address status: %v\n", err)
+						return
+					}
+
+					fmt.Println(string(yamlBytes))
+
+					pterm.Warning.Println("the existing hub_sequencer key is already registered")
+					pterm.Warning.Println("start your rollapp instead")
+					pterm.Warning.Println(
+						"if you are resetting the node, remove the roller directory and run the command again",
+					)
+					return
+				}
+			}
+
+			err = servicemanager.StopSystemServices()
+			if err != nil {
+				pterm.Error.Println("failed to stop system services: ", err)
+				return
+			}
+
+			err = filesystem.CreateRollerRootWithOptionalOverride(home)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to create roller home directory (%s): %v\n",
+					home,
+					err,
+				)
+				return
+			}
+
 			isFirstInitialization, err := roller.CreateConfigFileIfNotPresent(home)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
@@ -110,13 +168,20 @@ func Cmd() *cobra.Command {
 			}
 
 			// env handling
+			kb := keys.KeyringBackendFromEnv(env)
 			switch env {
 			case "custom":
-				hd = config.CreateCustomHubData()
-				dymdDep := dependencies.CustomDymdDependency()
+				chd, err := config.CreateCustomHubData()
+				hd = *chd
 
-				err := dependencies.InstallBinaryFromRepo(dymdDep, dymdDep.DependencyName)
 				if err != nil {
+					pterm.Info.Println("failed to create custom hub data", err)
+					return
+				}
+
+				err = dependencies.InstallCustomDymdVersion()
+				if err != nil {
+					pterm.Info.Println("failed to install dymd", err)
 					return
 				}
 			case "mock":
@@ -128,16 +193,20 @@ func Cmd() *cobra.Command {
 					},
 				}
 
-				_, _, err = dependencies.InstallBinaries(true, raRespMock)
-				if err != nil {
-					pterm.Error.Println("failed to install binaries: ", err)
-					return
+				if !shouldSkipBinaryInstallation {
+					_, _, err = dependencies.InstallBinaries(true, raRespMock)
+					if err != nil {
+						pterm.Error.Println("failed to install binaries: ", err)
+						return
+					}
 				}
+
 				err := runInit(
 					cmd,
 					env,
 					consts.HubData{},
 					raRespMock,
+					kb,
 				)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
@@ -146,16 +215,19 @@ func Cmd() *cobra.Command {
 				return
 			default:
 				hd = consts.Hubs[env]
-				dymdDep := dependencies.DefaultDymdDependency()
-				err = dependencies.InstallBinaryFromRelease(dymdDep)
-				if err != nil {
-					pterm.Error.Println("failed to install dymd: ", err)
-					return
+
+				if shouldSkipBinaryInstallation {
+					dymdDep := dependencies.DefaultDymdDependency()
+					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					if err != nil {
+						pterm.Error.Println("failed to install dymd: ", err)
+						return
+					}
 				}
 			}
 
 			// default flow
-			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
+			isRollappRegistered, _ := rollapp.IsRegistered(raID, hd)
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
 				return
@@ -192,6 +264,7 @@ func Cmd() *cobra.Command {
 				fieldsToUpdate := map[string]any{
 					"roller_version":         version.BuildVersion,
 					"rollapp_binary_version": builtDeps["rollapp"].Release,
+					"keyring_backend":        string(kb),
 				}
 				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
 				if err != nil {
@@ -216,10 +289,19 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, *raResponse)
+			err = runInit(cmd, env, hd, *raResponse, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
+			}
+
+			if kb == consts.SupportedKeyringBackends.OS {
+				pterm.Info.Println("creating startup scripts for OS keyring backend")
+				err := scripts.CreateRollappStartup(home)
+				if err != nil {
+					pterm.Error.Println("failed to generate startup scripts:", err)
+					return
+				}
 			}
 
 			defer func() {
@@ -235,6 +317,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
+	cmd.Flags().Bool("skip-binary-installation", false, "skips the binary installation")
 
 	return cmd
 }

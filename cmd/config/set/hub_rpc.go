@@ -8,7 +8,7 @@ import (
 )
 
 func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
-	rlpCfg.HubData.RPC_URL = value
+	rlpCfg.HubData.RpcUrl = value
 	if err := roller.WriteConfig(rlpCfg); err != nil {
 		return err
 	}

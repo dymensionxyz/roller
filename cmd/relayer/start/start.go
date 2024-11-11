@@ -75,7 +75,12 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 					return
 				}
 
-				hd = config.CreateCustomHubData()
+				chd, err := config.CreateCustomHubData()
+				if err != nil {
+					pterm.Error.Println("failed to create custom hub data:", err)
+					return
+				}
+				hd = *chd
 			}
 
 			raResponse, err := rollapp.GetMetadataFromChain(raChainID, hd)

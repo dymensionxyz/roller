@@ -48,12 +48,11 @@ func Cmd() *cobra.Command {
 				return err
 			}
 
-			sequencerAddr, err := keys.GetAddressBinary(
-				keys.KeyConfig{
-					ID:  consts.KeysIds.HubSequencer,
-					Dir: tempDir,
-				}, tempDir,
-			)
+			kc := keys.KeyConfig{
+				ID:  consts.KeysIds.HubSequencer,
+				Dir: tempDir,
+			}
+			sequencerAddr, err := kc.Address(tempDir)
 			if err != nil {
 				return err
 			}
@@ -63,7 +62,7 @@ func Cmd() *cobra.Command {
 				keys.ChainQueryConfig{
 					Binary: consts.Executables.Dymension,
 					Denom:  consts.Denoms.Hub,
-					RPC:    mainnetHub.RPC_URL,
+					RPC:    mainnetHub.RpcUrl,
 				}, sequencerAddr,
 			)
 			if err != nil {
@@ -91,7 +90,7 @@ func Cmd() *cobra.Command {
 				args[1],
 				rewardsAmountStr,
 				"--node",
-				mainnetHub.RPC_URL,
+				mainnetHub.RpcUrl,
 				"--chain-id",
 				mainnetHub.ID,
 				"--fees",

@@ -163,7 +163,7 @@ func Cmd() *cobra.Command {
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			updates := map[string]interface{}{
-				"node_address":              hd.RPC_URL,
+				"node_address":              hd.RpcUrl,
 				"whale.account_name":        consts.KeysIds.Eibc,
 				"order_polling.interval":    "25s",
 				"order_polling.indexer_url": "http://44.206.211.230:3000/",

@@ -215,7 +215,7 @@ func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
 		"--chain-id",
 		hd.ID,
 		"--node",
-		hd.RPC_URL,
+		hd.RpcUrl,
 		"-o",
 		"json",
 		"--limit",

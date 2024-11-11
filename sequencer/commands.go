@@ -15,8 +15,8 @@ func (seq *Sequencer) GetSendCmd(destAddress string) *exec.Cmd {
 		"tx", "bank", "send",
 		consts.KeysIds.RollappSequencer, destAddress, "1"+seq.RlpCfg.Denom,
 		"--home", rollappConfigDir,
-		"--broadcast-mode", "block",
-		"--keyring-backend", "test",
+		"--broadcast-mode", "sync",
+		"--keyring-backend", string(seq.RlpCfg.KeyringBackend),
 		"--yes",
 	)
 	return cmd

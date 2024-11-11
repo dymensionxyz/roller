@@ -103,28 +103,28 @@ func RunCmdAsync(
 	}
 }
 
-func ExecCommandWithStdout(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdout(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return &stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
-	return stdout, nil
+	return &stdout, nil
 }
 
-func ExecCommandWithStdErr(cmd *exec.Cmd) (bytes.Buffer, error) {
+func ExecCommandWithStdErr(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stdout
 	err := cmd.Run()
 	if err != nil {
-		return stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
+		return &stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
-	return stderr, nil
+	return &stderr, nil
 }
 
 func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
@@ -138,12 +138,17 @@ func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecCmdFollow(cmd *exec.Cmd) error {
+func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
 	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
@@ -158,6 +163,8 @@ func ExecCmdFollow(cmd *exec.Cmd) error {
 
 	// Channel to capture any errors from stdout or stderr
 	errChan := make(chan error, 2)
+
+	go handlePrompts(stdin, promptResponses)
 
 	go func() {
 		defer wg.Done()
@@ -223,7 +230,12 @@ func ExecCommandWithInteractions(cmdName string, args ...string) error {
 }
 
 // TODO: add options: withcustomprompttext
-func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (string, error) {
+func ExecCommandWithInput(
+	home string,
+	cmd *exec.Cmd,
+	text string,
+	promptText ...string,
+) (string, error) {
 	var pt string
 	if len(promptText) == 0 {
 		pt = "do you want to continue?"
@@ -246,6 +258,12 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (str
 	if err := cmd.Start(); err != nil {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
+	//nolint:errcheck
+	defer stdin.Close()
+	//nolint:errcheck
+	defer stdout.Close()
+	//nolint:errcheck
+	defer stderr.Close()
 
 	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
 	var output strings.Builder
@@ -253,6 +271,7 @@ func ExecCommandWithInput(cmd *exec.Cmd, text string, promptText ...string) (str
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
+		// nocheck: errcheck
 		output.WriteString(line + "\n")
 
 		if strings.Contains(line, text) {
@@ -293,4 +312,130 @@ func ExtractTxHash(output string) (string, error) {
 	}
 
 	return "", fmt.Errorf("txhash not found in output")
+}
+
+func handlePrompts(stdin io.WriteCloser, promptResponses map[string]string) {
+	// Add a small delay to ensure the command has started
+	time.Sleep(100 * time.Millisecond)
+
+	// Write all responses
+	for _, response := range promptResponses {
+		// nolint: errcheck, gosec
+		stdin.Write([]byte(response + "\n"))
+		// Small delay between responses
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func ExecuteCommandWithPrompts(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+	//nolint:errcheck
+	defer stdin.Close()
+
+	// Immediately write all expected responses
+	go handlePrompts(stdin, promptResponses)
+
+	// Capture output
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("command execution failed: %v\nOutput: %s", err, string(output))
+	}
+
+	return bytes.NewBuffer(output), nil
+}
+
+// ExecuteCommandWithPromptHandler executes a command that can handle both automatic prompt responses
+// and manual interventions. For prompts that require manual intervention, provide the prompt text
+// in manualPrompts. For automatic responses, provide the prompt-response pairs in promptResponses.
+// TODO: refactor to handle the confirmation rather than adding -y to the args
+func ExecuteCommandWithPromptHandler(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+	manualPrompts map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stderr pipe: %v", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("error starting command: %v", err)
+	}
+
+	// Handle automatic prompts
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		for _, response := range promptResponses {
+			//nolint:errcheck, gosec
+			stdin.Write([]byte(response + "\n"))
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
+	// Capture output
+	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
+	var output strings.Builder
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		fmt.Println(line)
+		output.WriteString(line + "\n")
+
+		// Check for manual prompts
+		for promptText, question := range manualPrompts {
+			if strings.Contains(line, promptText) {
+				shouldContinue, err := pterm.DefaultInteractiveConfirm.
+					WithDefaultText(question).
+					WithDefaultValue(false).
+					Show()
+				if err != nil {
+					return nil, err
+				}
+
+				if !shouldContinue {
+					return nil, errors.New("cancelled by user")
+				}
+
+				args = append(args, "-y")
+				out, err := ExecuteCommandWithPrompts(command, args, promptResponses)
+				if err != nil {
+					return nil, err
+				}
+				return out, nil
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading output: %v", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("command finished with error: %w", err)
+	}
+
+	return bytes.NewBuffer([]byte(output.String())), nil
 }

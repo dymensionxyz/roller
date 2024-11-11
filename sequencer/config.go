@@ -41,10 +41,11 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 	dymintCfg.Set("batch_submit_max_time", "100s")
 	dymintCfg.Set("empty_blocks_max_time", "3600s")
 	dymintCfg.Set("rollapp_id", rlpCfg.RollappID)
-	dymintCfg.Set("settlement_node_address", rlpCfg.HubData.RPC_URL)
+	dymintCfg.Set("settlement_node_address", rlpCfg.HubData.RpcUrl)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
 	dymintCfg.Set("keyring_home_dir", hubKeysDir)
-	dymintCfg.Set("gas_prices", rlpCfg.HubData.GAS_PRICE+consts.Denoms.Hub)
+	dymintCfg.Set("keyring_backend", string(rlpCfg.KeyringBackend))
+	dymintCfg.Set("gas_prices", rlpCfg.HubData.GasPrice+consts.Denoms.Hub)
 	dymintCfg.Set("instrumentation.prometheus", true)
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
 	dymintCfg.Set("batch_submit_max_time", "1h0m0s")
@@ -70,7 +71,7 @@ func UpdateDymintDAConfig(rlpCfg roller.RollappConfig) error {
 }
 
 func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) error {
-	damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home)
+	damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend)
 	dymintCfg.Set("da_layer", "mock")
 	// daConfig := damanager.GetSequencerDAConfig()
 	// dymintCfg.Set("da_config", daConfig)

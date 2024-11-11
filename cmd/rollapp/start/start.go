@@ -1,14 +1,12 @@
 package start
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -19,7 +17,6 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
@@ -32,10 +29,8 @@ import (
 // var OneDaySequencePrice = big.NewInt(1)
 
 var (
-	RollappDirPath string
-	LogPath        string
-	DaLcEndpoint   string
-	DaLogPath      string
+	DaLcEndpoint string
+	DaLogPath    string
 )
 
 func Cmd() *cobra.Command {
@@ -44,10 +39,9 @@ func Cmd() *cobra.Command {
 		Short: "Start the RollApp node interactively",
 		Long: `Start the RollApp node interactively.
 
-Consider using 'services' if you want to run a 'systemd' service instead.
+Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac) service instead.
 `,
 		Run: func(cmd *cobra.Command, args []string) {
-			showSequencerBalance, _ := cmd.Flags().GetBool("show-sequencer-balance")
 			logLevel, _ := cmd.Flags().GetString("log-level")
 			logLevels := []string{"debug", "info", "warn", "error", "fatal"}
 			if !slices.Contains(logLevels, logLevel) {
@@ -91,54 +85,49 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)
-			startRollappCmd := seq.GetStartCmd(logLevel)
+			startRollappCmd := seq.GetStartCmd(logLevel, rollappConfig.KeyringBackend)
 
 			fmt.Println(startRollappCmd.String())
 
-			LogPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
-			RollappDirPath = filepath.Join(rollappConfig.Home, consts.ConfigDirName.Rollapp)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
 			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
-
-			nodeID, err := dymint.GetNodeID(home)
-			if err != nil {
-				fmt.Println("failed to retrieve dymint node id:", err)
-				return
-			}
 
 			if rollappConfig.HubData.ID != "mock" {
 				go healthagent.Start(home, rollerLogger)
 			}
 
-			go bash.RunCmdAsync(
-				ctx,
-				startRollappCmd,
-				func() {
-					PrintOutput(
-						rollappConfig,
-						strconv.Itoa(startRollappCmd.Process.Pid),
-						showSequencerBalance,
-						true,
-						true,
-						true,
-						nodeID,
-					)
-					err := createPidFile(RollappDirPath, startRollappCmd)
-					if err != nil {
-						pterm.Warning.Println("failed to create pid file")
-					}
-				},
-				parseError,
-				logging.WithLogging(logging.GetSequencerLogPath(rollappConfig)),
-			)
+			// nolint: errcheck
+			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
+				pswFileName, err := filesystem.GetOsKeyringPswFileName(
+					consts.Executables.RollappEVM,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to get os keyring password file name: ", err)
+					return
+				}
+
+				fp := filepath.Join(home, string(pswFileName))
+				psw, err := filesystem.ReadFromFile(fp)
+				if err != nil {
+					pterm.Error.Println("failed to read os keyring password file: ", err)
+					return
+				}
+
+				pr := map[string]string{
+					"Enter keyring passphrase":    psw,
+					"Re-enter keyring passphrase": psw,
+				}
+
+				go bash.ExecCmdFollow(
+					startRollappCmd,
+					pr,
+				)
+			} else {
+				go bash.ExecCmdFollow(startRollappCmd, nil)
+			}
 
 			select {}
 		},
 	}
-	cmd.Flags().Bool("show-sequencer-balance", false, "initialize the rollapp with mock backend")
 	cmd.Flags().String("log-level", "debug", "pass the log level to the rollapp")
 
 	return cmd
@@ -178,7 +167,11 @@ func PrintOutput(
 	pterm.Println()
 	fmt.Printf(
 		"💈 RollApp ID: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-			Sprintf(rlpCfg.RollappID),
+			Sprint(rlpCfg.RollappID),
+	)
+	fmt.Printf(
+		"💈 Keyring Backend: %s\n", pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+			Sprint(rlpCfg.KeyringBackend),
 	)
 
 	fmt.Printf(
@@ -211,7 +204,7 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
+		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home, rlpCfg.KeyringBackend)
 		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return
