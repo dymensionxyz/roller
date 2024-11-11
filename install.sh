@@ -21,6 +21,8 @@ else
   TGZ_URL="https://github.com/dymensionxyz/roller/releases/download/$ROLLER_RELEASE_TAG/roller_${OS}_${ARCH}.tar.gz"
 fi
 ROLLER_BIN_PATH="/usr/local/bin/roller"
+# Ensure /usr/local/bin exists
+sudo mkdir -p "/usr/local/bin"
 if [ -f "$ROLLER_BIN_PATH" ] || [ -f "$ROLLAPP_EVM_PATH" ] || [ -f "$DYMD_BIN_PATH" ] || [ -d "$INTERNAL_DIR" ]; then
     sudo rm -f "$ROLLER_BIN_PATH"
 fi
