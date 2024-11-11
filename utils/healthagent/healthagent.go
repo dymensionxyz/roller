@@ -21,9 +21,9 @@ func Start(home string, l *log.Logger) {
 		defaultRaMetricPort := "2112"
 		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "8000")
 
-		isDaNodeHealthy, _ := IsEndpointHealthy(localDaRpcEndpoint)
+		isDaNodeHealthy, _ := IsAvailNodeHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
-		fmt.Println("is node healthyyyyyyy........", healthy, localDaRpcEndpoint)
+		fmt.Println("is node healthyyyyyyy check check........", healthy, localDaRpcEndpoint)
 
 		submissions, err := QueryFailedDaSubmissions(localEndpoint, defaultRaMetricPort)
 		if err != nil {
@@ -82,6 +82,53 @@ func Start(home string, l *log.Logger) {
 		healthy = true
 		time.Sleep(15 * time.Second)
 	}
+}
+
+func IsAvailNodeHealthy(url string) (bool, any) {
+	statusURL := fmt.Sprintf(url+"%s", "/v1/status")
+	// fmt.Println("status url hereee.......", statusURL)
+	resp, err := http.Get(statusURL)
+	// fmt.Println("resp, err..", resp, err)
+	if err != nil {
+		msg := fmt.Sprintf("Error making request: %v\n", err)
+		return false, msg
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		msg := fmt.Sprintf("Error reading response body: %v\n", err)
+		return false, msg
+	}
+	// nolint:errcheck,gosec
+	resp.Body.Close()
+
+	// nolint:errcheck,gosec
+	resp.Body.Close()
+
+	var response availStatus
+	if json.Valid(body) {
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			msg := fmt.Sprintf("Error unmarshaling JSON: %v\n", err)
+			return false, msg
+		}
+	} else {
+		return false, "invalid json"
+	}
+
+	fmt.Println("avail node health status....", response)
+
+	if response.BlockNumber != 0 {
+		return true, "not healthy"
+	}
+
+	return true, "not healthy"
+
+}
+
+type availStatus struct {
+	BlockNumber int `json:"block_number"`
+	AppID       int `json:"app_id"`
 }
 
 func IsEndpointHealthy(url string) (bool, any) {
