@@ -43,6 +43,7 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 func NewAvail(root string) *Avail {
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
+	fmt.Println("here avail configgg check checkkk.........", availConfig)
 	if err != nil {
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 		if err != nil {
@@ -53,6 +54,9 @@ func NewAvail(root string) *Avail {
 		if err != nil {
 			panic(err)
 		}
+
+		availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
+		availConfig.RpcEndpoint = "ws://127.0.0.1:9944" // ws://127.0.0.1:9944
 
 		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {

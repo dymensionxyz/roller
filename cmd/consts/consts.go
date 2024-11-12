@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	binsDir            = "/usr/local/bin"
+	binsDir            = "/usr/local/bin" // TODO : fix me
 	DefaultTokenSupply = "1000000000000000000000000000"
 	DefaultFee         = 2000000000000000000 // 2
 	DefaultTxFee       = 10000000000000000   // 0.01
@@ -59,7 +59,7 @@ var KeysIds = struct {
 	RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
 	RollappRelayer:                "relayer-rollapp-key",
 	HubRelayer:                    "relayer-hub-key",
-	Celestia:                      "my_celes_key",
+	Celestia:                      "", //my_celes_key
 	Eibc:                          "whale",
 }
 

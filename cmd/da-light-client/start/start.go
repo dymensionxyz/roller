@@ -74,6 +74,8 @@ func Cmd() *cobra.Command {
 				)
 			}
 
+			fmt.Println("** start dalc command update***", startDALCCmd)
+
 			LogFilePath = logging.GetDALogFilePath(rollerData.Home)
 			LCEndpoint = damanager.GetLightNodeEndpoint()
 			ctx, cancel := context.WithCancel(context.Background())
@@ -97,7 +99,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", "mocha-4-consensus.mesa.newmetric.xyz", "The DA rpc endpoint to connect to.")
+		StringP(rpcEndpointFlag, "", "http://localhost:8000", "The DA rpc endpoint to connect to.") //TODO : fix me
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

@@ -72,10 +72,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			fmt.Println("local roller config.......", localRollerConfig)
+
 			hd, err := roller.LoadHubData(home)
 			if err != nil {
 				pterm.Error.Println("failed to load hub data from roller.toml")
 			}
+
+			fmt.Println("load hub dataa.......", hd)
 
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
@@ -99,6 +103,8 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
+
+			fmt.Println("ra response heree........", raResponse)
 
 			if raResponse.Rollapp.PreLaunchTime != "" {
 				timeLayout := time.RFC3339Nano
@@ -340,6 +346,7 @@ RollApp's IRO time: %v`,
 						pterm.Error.Println("failed to register sequencer: ", err)
 						return
 					}
+					pterm.Info.Printfln("22222222222............")
 					pterm.Info.Printf(
 						"%s ( %s ) is registered as a sequencer for %s\n",
 						seqAddrInfo.Name,
@@ -347,6 +354,7 @@ RollApp's IRO time: %v`,
 						rollappConfig.RollappID,
 					)
 				} else {
+					pterm.Info.Printfln("111111111111............")
 					pterm.Info.Printf(
 						"%s ( %s ) is registered as a sequencer for %s\n",
 						seqAddrInfo.Name,
@@ -480,6 +488,8 @@ RollApp's IRO time: %v`,
 					}
 				}
 			}
+
+			fmt.Println("here da backenddddd...........", rollappConfig.DA.Backend)
 
 			// DA
 			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
@@ -624,9 +634,15 @@ RollApp's IRO time: %v`,
 			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			appConfigPath := sequencer.GetAppConfigFilePath(home)
 
+			fmt.Println("da config manager.......", daConfig, damanager)
+
 			switch nodeType {
 			case "sequencer":
+				fmt.Println("da config manager.......", daConfig, damanager)
+
 				pterm.Info.Println("checking DA account balance")
+				damanager = datalayer.NewDAManager(consts.Avail, home)
+				fmt.Println("below da manager.....", damanager)
 				insufficientBalances, err := damanager.CheckDABalance()
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
