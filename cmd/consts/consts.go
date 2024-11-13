@@ -61,7 +61,7 @@ var KeysIds = struct {
 	RollappRelayer:                "relayer-rollapp-key",
 	HubRelayer:                    "relayer-hub-key",
 	Celestia:                      "my_celes_key",
-	Eibc:                          "eibc-client-operator",
+	Eibc:                          "whale",
 	Da:                            "da_key",
 }
 
