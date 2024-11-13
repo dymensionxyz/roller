@@ -280,7 +280,7 @@ func createGroupIfNotPresent(ki *keys.KeyInfo, hd consts.HubData, eibcHome strin
 		membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
 		cGrpCmd := eibcutils.GetCreateGroupPolicyCmd(
 			eibcHome,
-			"some",
+			"eibc-operator",
 			membersDefinitionFilePath,
 			hd,
 		)
@@ -311,7 +311,7 @@ func createPolicyIfNotPresent(hd consts.HubData, eibcHome string) error {
 		policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
 		cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
 			eibcHome,
-			"some",
+			"eibc-operator",
 			policyDefinitionFilePath,
 			hd,
 		)
