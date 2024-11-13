@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -800,8 +800,6 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	var rest string
 	var evmRpc string
 
-	// todo: clean up
-
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
@@ -811,7 +809,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			rpc = "https://" + rpc
 		}
 
-		isValid := isValidURL(rpc)
+		isValid := config.IsValidURL(rpc)
 
 		// Validate the URL
 		if !isValid {
@@ -831,7 +829,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			rest = "https://" + rest
 		}
 
-		isValid := isValidURL(rest)
+		isValid := config.IsValidURL(rest)
 
 		// Validate the URL
 		if !isValid {
@@ -851,7 +849,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			evmRpc = "https://" + evmRpc
 		}
 
-		isValid := isValidURL(evmRpc)
+		isValid := config.IsValidURL(evmRpc)
 
 		// Validate the URL
 		if !isValid {
@@ -898,12 +896,6 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		return err
 	}
 	return nil
-}
-
-func isValidURL(url string) bool {
-	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$`
-	re := regexp.MustCompile(regex)
-	return re.MatchString(url)
 }
 
 func WriteStructToJSONFile(data *dymensionseqtypes.SequencerMetadata, filePath string) error {

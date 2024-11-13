@@ -1,11 +1,14 @@
 package init
 
 import (
+	"embed"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -13,12 +16,19 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/templates"
 )
+
+//go:embed templates/*.tmpl
+var embeddedTemplates embed.FS
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -46,6 +56,8 @@ func Cmd() *cobra.Command {
 			}
 
 			var hd consts.HubData
+			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil {
 				pterm.Warning.Println("no roller config found")
@@ -63,7 +75,6 @@ func Cmd() *cobra.Command {
 				hd = rollerConfig.HubData
 			}
 
-			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
 			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
@@ -108,7 +119,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = eibcutils.EnsureWhaleAccount()
+			ki, err := eibcutils.EnsureWhaleAccount()
 			if err != nil {
 				pterm.Error.Printf("failed to create whale account: %v\n", err)
 				return
@@ -154,57 +165,174 @@ func Cmd() *cobra.Command {
 			}
 
 			if !runForExisting {
-				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID").
-					Show()
+				for {
+					raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID to fulfill eibc orders for").
+						Show()
+
+					_, err := rollapp.ValidateChainID(raID)
+					if err != nil {
+						pterm.Error.Printf("'%s' is not a valid RollApp ID: %v\n", raID, err)
+						continue
+					} else {
+						break
+					}
+				}
 			}
 
-			raFeePercentage, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Please provide the fee percentage for the RollApp").
-				Show()
+			var fNodes []string
+			var rpc string
+			for {
+				// Prompt the user for the RPC URL
+				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"dymint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+				).Show()
+				if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
+					rpc = "https://" + rpc
+				}
+
+				isValid := config.IsValidURL(rpc)
+
+				if !isValid {
+					pterm.Error.Println("Invalid URL. Please try again.")
+				} else {
+					fNodes = append(fNodes, rpc)
+					break
+				}
+			}
 
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			updates := map[string]interface{}{
-				"node_address":              hd.RpcUrl,
-				"whale.account_name":        consts.KeysIds.Eibc,
-				"order_polling.interval":    "25s",
-				"order_polling.indexer_url": "http://44.206.211.230:3000/",
-				"order_polling.enabled":     true,
-			}
-
-			err = eibcutils.AddRollappToEibc(raFeePercentage, raID, eibcHome)
+			err = eibcutils.AddRollappToEibc(raID, eibcHome, fNodes)
 			if err != nil {
 				pterm.Error.Println("failed to add the rollapp to eibc config: ", err)
 				return
 			}
 
-			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+			err = updateEibcConfig(eibcConfigPath, hd)
 			if err != nil {
 				pterm.Error.Println("failed to update config", err)
 				return
 			}
 
-			err = eibcutils.CreateMongoDbContainer()
+			grp, err := eibcutils.GetGroups(ki.Address, hd)
 			if err != nil {
-				pterm.Error.Println("failed to create mongodb container:", err)
+				pterm.Error.Println("failed to get groups: ", err)
 				return
 			}
-			pterm.Info.Println("created eibc mongodb container")
 
-			pterm.Info.Println("eibc config updated successfully")
-			pterm.Info.Printf(
-				"eibc client initialized successfully at %s\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf(eibcHome),
-			)
-
-			defer func() {
-				pterm.Info.Println("next steps:")
-				pterm.Info.Printf(
-					"run %s to start the eibc client in interactive mode\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("roller eibc start"),
+			if grp == nil || len(grp.Groups) == 0 {
+				err = createMembersFile(eibcHome, ki)
+				if err != nil {
+					pterm.Error.Println("failed to create members file: ", err)
+					return
+				}
+				membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
+				cGrpCmd := eibcutils.GetCreateGroupPolicyCmd(
+					eibcHome,
+					"some",
+					membersDefinitionFilePath,
+					hd,
 				)
-			}()
+
+				out, err := bash.ExecCommandWithStdout(cGrpCmd)
+				if err != nil {
+					pterm.Error.Println("failed to create group: ", err)
+					return
+				}
+
+				fmt.Println(out.String())
+			}
+
+			pol, err := eibcutils.GetPolicies(hd)
+
+			if pol == nil || len(pol.GroupPolicies) == 0 {
+				err = createPolicyFile(eibcHome)
+				if err != nil {
+					pterm.Error.Println("failed to create members file: ", err)
+					return
+				}
+				policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
+				cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
+					eibcHome,
+					"some",
+					policyDefinitionFilePath,
+					hd,
+				)
+
+				out, err := bash.ExecCommandWithStdout(cPolicyCmd)
+				if err != nil {
+					pterm.Error.Println("failed to create policy: ", err)
+					return
+				}
+
+				fmt.Println(out.String())
+			}
+
+			if err == nil {
+				defer func() {
+					pterm.Info.Println("next steps:")
+					pterm.Info.Printf(
+						"run %s to start the eibc client in interactive mode\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("roller eibc start"),
+					)
+				}()
+			}
 		},
 	}
 	return cmd
+}
+
+func createMembersFile(eibcHome string, ki *keys.KeyInfo) error {
+	tmplSrc := filepath.Join("templates", "members.json.tmpl")
+	tmplDst := filepath.Join(eibcHome, "init", "members.json")
+
+	err := templates.WriteToFile(
+		tmplSrc,
+		tmplDst,
+		*ki,
+		embeddedTemplates,
+	)
+	if err != nil {
+		pterm.Error.Printfln(
+			"failed to write %s template to file %s: %v",
+			tmplSrc,
+			tmplDst,
+			err,
+		)
+		return err
+	}
+	return nil
+}
+
+func createPolicyFile(eibcHome string) error {
+	tmplSrc := filepath.Join("templates", "policy.json.tmpl")
+	tmplDst := filepath.Join(eibcHome, "init", "policy.json")
+
+	t, err := embeddedTemplates.ReadFile(tmplSrc)
+	if err != nil {
+		pterm.Error.Printfln("failed to parse template: %v", err)
+		return err
+	}
+
+	err = os.WriteFile(tmplDst, t, 0o644)
+	if err != nil {
+		pterm.Error.Printfln("failed to export template")
+		return err
+	}
+
+	return nil
+}
+
+func updateEibcConfig(eibcConfigPath string, hd consts.HubData) error {
+	updates := map[string]interface{}{
+		"node_address":              hd.RpcUrl,
+		"order_polling.indexer_url": consts.DefaultIndexer,
+	}
+	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+	if err != nil {
+		pterm.Error.Println("failed to update config", err)
+		return err
+	}
+
+	return nil
 }
