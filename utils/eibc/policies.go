@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func GetPolicies(hd consts.HubData) (*GetGroupPoliciesResponse, error) {
-	cmd := GetPoliciesCmd(hd)
+func GetPolicies(home string, hd consts.HubData) (*GetGroupPoliciesResponse, error) {
+	cmd := GetPoliciesCmd(home, hd)
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func GetPolicies(hd consts.HubData) (*GetGroupPoliciesResponse, error) {
 	return &outResp, nil
 }
 
-func GetPoliciesCmd(hd consts.HubData) *exec.Cmd {
+func GetPoliciesCmd(home string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q",
@@ -43,6 +43,8 @@ func GetPoliciesCmd(hd consts.HubData) *exec.Cmd {
 		hd.RpcUrl,
 		"--chain-id",
 		hd.ID,
+		"--home",
+		home,
 	)
 
 	return cmd

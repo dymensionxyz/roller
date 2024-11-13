@@ -74,13 +74,7 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 // and distributes funds across a set of wallets that fulfill the eibc orders
 func EnsureWhaleAccount() (*keys.KeyInfo, error) {
 	home, _ := os.UserHomeDir()
-	kc := keys.KeyConfig{
-		Dir:            consts.ConfigDirName.Eibc,
-		ID:             consts.KeysIds.Eibc,
-		ChainBinary:    consts.Executables.Dymension,
-		Type:           "",
-		KeyringBackend: consts.SupportedKeyringBackends.Test,
-	}
+	kc := GetKeyConfig()
 
 	ki, err := kc.Info(home)
 	if err != nil {

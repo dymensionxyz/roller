@@ -3,6 +3,7 @@ package init
 import (
 	"embed"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -83,6 +84,31 @@ func Cmd() *cobra.Command {
 
 			if isEibcClientInitialized {
 				pterm.Warning.Println("eibc client already initialized")
+
+				kc := eibcutils.GetKeyConfig()
+				pterm.Info.Printfln("checking for existing %s address", kc.ID)
+				ok, err := kc.IsInKeyring(home)
+				if err != nil {
+					pterm.Error.Println("failed to get eibc key info: ", err)
+					return
+				}
+
+				if ok {
+					pterm.Info.Println("eibc key already present in the keyring")
+					pterm.Info.Println("checking for existing policies")
+					pol, err := eibcutils.GetPolicies(eibcHome, hd)
+					if err != nil {
+						pterm.Error.Println("failed to get policies: ", err)
+						return
+					}
+
+					if pol != nil && len(pol.GroupPolicies) > 0 {
+						pterm.Info.Printfln("policies already present for %s", kc.ID)
+						fmt.Println(pol.GroupPolicies[0].Address)
+						return
+					}
+				}
+
 				msg := fmt.Sprintf(
 					"Directory %s is not empty. Do you want to overwrite it?",
 					eibcHome,
@@ -213,58 +239,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			grp, err := eibcutils.GetGroups(ki.Address, hd)
+			err = createGroupIfNotPresent(ki, hd, eibcHome)
 			if err != nil {
-				pterm.Error.Println("failed to get groups: ", err)
 				return
 			}
 
-			if grp == nil || len(grp.Groups) == 0 {
-				err = createMembersFile(eibcHome, ki)
-				if err != nil {
-					pterm.Error.Println("failed to create members file: ", err)
-					return
-				}
-				membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
-				cGrpCmd := eibcutils.GetCreateGroupPolicyCmd(
-					eibcHome,
-					"some",
-					membersDefinitionFilePath,
-					hd,
-				)
-
-				out, err := bash.ExecCommandWithStdout(cGrpCmd)
-				if err != nil {
-					pterm.Error.Println("failed to create group: ", err)
-					return
-				}
-
-				fmt.Println(out.String())
-			}
-
-			pol, err := eibcutils.GetPolicies(hd)
-
-			if pol == nil || len(pol.GroupPolicies) == 0 {
-				err = createPolicyFile(eibcHome)
-				if err != nil {
-					pterm.Error.Println("failed to create members file: ", err)
-					return
-				}
-				policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
-				cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
-					eibcHome,
-					"some",
-					policyDefinitionFilePath,
-					hd,
-				)
-
-				out, err := bash.ExecCommandWithStdout(cPolicyCmd)
-				if err != nil {
-					pterm.Error.Println("failed to create policy: ", err)
-					return
-				}
-
-				fmt.Println(out.String())
+			err = createPolicyIfNotPresent(hd, eibcHome)
+			if err != nil {
+				return
 			}
 
 			if err == nil {
@@ -280,6 +262,79 @@ func Cmd() *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func createGroupIfNotPresent(ki *keys.KeyInfo, hd consts.HubData, eibcHome string) error {
+	grp, err := eibcutils.GetGroups(ki.Address, hd)
+	if err != nil {
+		pterm.Error.Println("failed to get groups: ", err)
+		return nil
+	}
+
+	if grp == nil || len(grp.Groups) == 0 {
+		err = createMembersFile(eibcHome, ki)
+		if err != nil {
+			pterm.Error.Println("failed to create members file: ", err)
+			return nil
+		}
+		membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
+		cGrpCmd := eibcutils.GetCreateGroupPolicyCmd(
+			eibcHome,
+			"some",
+			membersDefinitionFilePath,
+			hd,
+		)
+
+		out, err := bash.ExecCommandWithStdout(cGrpCmd)
+		if err != nil {
+			pterm.Error.Println("failed to create group: ", err)
+			return nil
+		}
+
+		fmt.Println(out.String())
+	}
+	return err
+}
+
+func createPolicyIfNotPresent(hd consts.HubData, eibcHome string) error {
+	pol, err := eibcutils.GetPolicies(eibcHome, hd)
+	if err != nil {
+		return err
+	}
+
+	if pol == nil || len(pol.GroupPolicies) == 0 {
+		err = createPolicyFile(eibcHome)
+		if err != nil {
+			pterm.Error.Println("failed to create members file: ", err)
+			return nil
+		}
+		policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
+		cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
+			eibcHome,
+			"some",
+			policyDefinitionFilePath,
+			hd,
+		)
+
+		out, err := bash.ExecCommandWithStdout(cPolicyCmd)
+		if err != nil {
+			pterm.Error.Println("failed to create policy: ", err)
+			return nil
+		}
+
+		fmt.Println(out.String())
+		return err
+	}
+
+	j, err := json.MarshalIndent(pol, "", "  ")
+	if err != nil {
+		pterm.Error.Println("failed to marshal policy: ", err)
+		return nil
+	}
+
+	fmt.Println(string(j))
+
+	return err
 }
 
 func createMembersFile(eibcHome string, ki *keys.KeyInfo) error {
