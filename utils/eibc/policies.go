@@ -15,12 +15,6 @@ func GetPolicies(home string, hd consts.HubData) (*GetGroupPoliciesResponse, err
 		return nil, err
 	}
 
-	// nolint:errcheck
-	err = cmd.Wait()
-	if err != nil {
-		return nil, err
-	}
-
 	var outResp GetGroupPoliciesResponse
 	err = json.Unmarshal(out.Bytes(), &outResp)
 	if err != nil {
