@@ -104,7 +104,6 @@ func RunCmdAsync(
 }
 
 func ExecCommandWithStdout(cmd *exec.Cmd) (*bytes.Buffer, error) {
-	fmt.Println(cmd.String())
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 	cmd.Stderr = &stderr
