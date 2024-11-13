@@ -47,14 +47,15 @@ var MockHubData = HubData{
 
 var PlaygroundHubData = HubData{
 	// API_URL: "https://api-dymension-playground-2.mzonder.com:443",
-	API_URL: "http://localhost:1318",
-	ID:      PlaygroundHubID,
 	// RPC_URL:         "https://rpc-dymension-playground-2.mzonder.com:443",
+	// DA_NETWORK:      string(CelestiaTestnet),
+
+	API_URL:         "http://localhost:1318",
+	ID:              PlaygroundHubID,
 	RPC_URL:         "http://localhost:36657",
 	ARCHIVE_RPC_URL: "http://localhost:36657",
 	GAS_PRICE:       "2000000000",
-	// DA_NETWORK:      string(CelestiaTestnet),
-	DA_NETWORK: string(AvailTestnet),
+	DA_NETWORK:      string(AvailTestnet),
 }
 
 // TODO(#112): The available hub networks should be read from YAML file

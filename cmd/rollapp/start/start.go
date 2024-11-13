@@ -75,7 +75,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			fmt.Println("rollapp config hub data id.....", rollappConfig.HubData.ID)
 
-			if rollappConfig.HubData.ID != consts.MockHubID {
+			if rollappConfig.HubData.ID != consts.MockHubID { //TODO : enable it if required
 				// raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 				// if err != nil {
 				// 	pterm.Error.Println("failed to check rollapp version equality: ", err)
@@ -216,28 +216,24 @@ func PrintOutput(
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
 		fmt.Println("sequencer addressesss.......", seqAddrData)
+		if err != nil {
+			return
+		}
 		// daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home)
 		daManager := datalayer.NewDAManager(consts.Avail, rlpCfg.Home)
 		// fmt.Println("da manager.....", daManager, rlpCfg, rlpCfg.Home)
 		availAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		fmt.Println("avail address:: and error", availAddrData, errCel)
-		if err != nil {
+		if errCel != nil {
+			pterm.Error.Println("failed to retrieve DA address") // here check
 			return
 		}
 
-		// if err != nil {
-		// 	return
-		// }
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
 		fmt.Println("Sequencer Address:", seqAddrData[0].Address, seqAddrData[0].Balance.String())
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
-		}
-
-		if errCel != nil {
-			pterm.Error.Println("failed to retrieve DA address") // here check
-			return
 		}
 
 		// fmt.Println("Da Address:", availAddrData[0].Address)

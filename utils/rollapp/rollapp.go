@@ -195,10 +195,16 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	var DA consts.DaData
 
+	fmt.Println("hd id here......", hd.DA_NETWORK)
+
 	switch hd.ID {
 	case consts.MockHubID:
-	default:
+		// No specific action needed for MockHubID
+	case string(consts.Celestia):
 		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+	// case string(consts.Avail):
+	default:
+		DA = consts.DaNetworks[string(consts.AvailTestnet)]
 	}
 
 	cfg = roller.RollappConfig{

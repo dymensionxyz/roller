@@ -20,8 +20,9 @@ const (
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
 	// DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
-	DefaultRPCEndpoint = "ws://127.0.0.1:9944"
+	DefaultRPCEndpoint = "ws://127.0.0.1:9944" // change the avail rpc if it's different
 	requiredAVL        = 1
+	AppID              = 1
 )
 
 type Avail struct {
@@ -29,6 +30,7 @@ type Avail struct {
 	Mnemonic    string
 	AccAddress  string
 	RpcEndpoint string
+	AppID       int
 
 	client *gsrpc.SubstrateAPI
 }
@@ -56,7 +58,7 @@ func NewAvail(root string) *Avail {
 		}
 
 		availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
-		availConfig.RpcEndpoint = "ws://127.0.0.1:9944" // ws://127.0.0.1:9944
+		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
 
 		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {
@@ -72,6 +74,7 @@ func NewAvail(root string) *Avail {
 
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
+	availConfig.AppID = AppID // Change this if required
 	fmt.Println("avail config inside............", availConfig)
 	return &availConfig
 }
@@ -81,11 +84,9 @@ func (a *Avail) InitializeLightNodeConfig() (string, error) {
 }
 
 func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
-	fmt.Println("get addre3sss.......", a.AccAddress)
-	addr := "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+	fmt.Println("get addressss.......", a.AccAddress)
 	key := keys.KeyInfo{
-		// Address: a.AccAddress,
-		Address: addr,
+		Address: a.AccAddress,
 	}
 	// return a.AccAddress, nil
 	return &key, nil
@@ -111,7 +112,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 				CurrentBalance:  balance.Int,
 				RequiredBalance: required,
 				Denom:           consts.Denoms.Avail,
-				Network:         "avail",
+				Network:         string(consts.Avail),
 			},
 		}, nil
 	}
@@ -167,15 +168,14 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 }
 
 func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error) {
-	a.AccAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+	fmt.Println("da account data address........", a.AccAddress)
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
 	}
 	return []keys.AccountData{
 		{
-			// Address: a.AccAddress,
-			Address: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+			Address: a.AccAddress,
 			Balance: keys.Balance{
 				Denom:  consts.Denoms.Avail,
 				Amount: balance.Int,
@@ -186,9 +186,10 @@ func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error)
 
 func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`,
+		`{"seed": "%s", "api_url": "%s", "app_id": %d, "tip":0}`,
 		a.Mnemonic,
 		a.RpcEndpoint,
+		a.AppID,
 	)
 }
 

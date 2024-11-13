@@ -41,8 +41,6 @@ func loadConfigFromTOML(path string) (Avail, error) {
 		return config, err
 	}
 
-	config.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice" // TODO : fix me
-
 	fmt.Println("config path and config.......", path, config)
 
 	return config, nil

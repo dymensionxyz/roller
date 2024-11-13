@@ -46,7 +46,7 @@ func RestartSystemdServices(services []string, home string) error {
 		errorhandling.PrettifyErrorIfExists(err)
 		fmt.Println("rollapp config.......", rollappConfig)
 
-		// if rollappConfig.HubData.ID != consts.MockHubID {
+		// if rollappConfig.HubData.ID != consts.MockHubID { // TODO : enable this if required
 		// 	raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 		// 	if err != nil {
 		// 		pterm.Error.Println("failed to check rollapp version equality: ", err)

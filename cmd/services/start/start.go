@@ -32,7 +32,7 @@ func RollappCmd() *cobra.Command {
 			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			if rollappConfig.HubData.ID != consts.MockHubID {
+			if rollappConfig.HubData.ID != consts.MockHubID { // TODO : enable this if required
 				fmt.Println("here rollapp upgradee........")
 				// 	raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 				// 	if err != nil {

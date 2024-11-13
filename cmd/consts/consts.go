@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	binsDir            = "/usr/local/bin" // TODO : fix me
+	binsDir            = "/usr/local/bin" // TODO : change me if binaries path was different
 	DefaultTokenSupply = "1000000000000000000000000000"
 	DefaultFee         = 2000000000000000000 // 2
 	DefaultTxFee       = 10000000000000000   // 0.01
@@ -31,7 +31,7 @@ var Executables = struct {
 	CelestiaApp string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
-	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir),
+	RollappEVM:  fmt.Sprintf("%s/rollapp-evm", binsDir), // changed rollappd to rollapp-evm binary
 	Dymension:   fmt.Sprintf("%s/dymd", binsDir),
 	Celestia:    fmt.Sprintf("%s/celestia", InternalBinsDir),
 	CelKey:      fmt.Sprintf("%s/cel-key", InternalBinsDir),
@@ -59,7 +59,7 @@ var KeysIds = struct {
 	RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
 	RollappRelayer:                "relayer-rollapp-key",
 	HubRelayer:                    "relayer-hub-key",
-	Celestia:                      "", //my_celes_key
+	Celestia:                      "", // my_celes_key
 	Eibc:                          "whale",
 }
 

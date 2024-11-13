@@ -80,6 +80,7 @@ func Cmd() *cobra.Command {
 			}
 
 			fmt.Println("load hub dataa.......", hd)
+			fmt.Println("here local rollapp config id....", localRollerConfig.RollappID)
 
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
@@ -87,6 +88,8 @@ func Cmd() *cobra.Command {
 				hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			fmt.Println("below rollappConfig............", rollappConfig)
 
 			if rollappConfig.HubData.ID == "mock" {
 				pterm.Error.Println("setup is not required for mock backend")
@@ -489,8 +492,6 @@ RollApp's IRO time: %v`,
 				}
 			}
 
-			fmt.Println("here da backenddddd...........", rollappConfig.DA.Backend)
-
 			// DA
 			damanager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home)
 			daHome := filepath.Join(
@@ -641,8 +642,7 @@ RollApp's IRO time: %v`,
 				fmt.Println("da config manager.......", daConfig, damanager)
 
 				pterm.Info.Println("checking DA account balance")
-				damanager = datalayer.NewDAManager(consts.Avail, home)
-				fmt.Println("below da manager.....", damanager)
+				// damanager = datalayer.NewDAManager(consts.Avail, home) // TODO : if facing error then uncomment this line
 				insufficientBalances, err := damanager.CheckDABalance()
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
@@ -714,23 +714,22 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			// daNamespace := damanager.DataLayer.GetNamespaceID()
-			// if daNamespace == "" {
-			// 	pterm.Error.Println("failed to retrieve da namespace id")
-			// 	return
-			// }
+			if rollappConfig.DA.Backend == consts.Celestia {
+				// daNamespace := damanager.DataLayer.GetNamespaceID()
+				// if daNamespace == "" {
+				// 	pterm.Error.Println("failed to retrieve da namespace id")
+				// 	return
+				// }
+			}
 
 			pterm.Info.Println("updating dymint configuration")
-			_ = tomlconfig.UpdateFieldInFile(
-				dymintConfigPath,
-				"da_layer",
-				string(rollappConfig.DA.Backend),
-			)
-			_ = tomlconfig.UpdateFieldInFile(
-				dymintConfigPath,
-				"namespace_id",
-				1,
-			)
+
+			// fmt.Println("error while writing da layer....", err)
+			// _ = tomlconfig.UpdateFieldInFile(
+			// 	dymintConfigPath,
+			// 	"namespace_id",
+			// 	1, // TODO: change it to daNamespace if da is celestia
+			// )
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",
@@ -739,7 +738,22 @@ RollApp's IRO time: %v`,
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"max_proof_time",
-				"1m",
+				"10s",
+			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"max_idle_time",
+				"20s",
+			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"batch_submit_time",
+				"30s",
+			)
+			err = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"da_layer",
+				string(rollappConfig.DA.Backend),
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")

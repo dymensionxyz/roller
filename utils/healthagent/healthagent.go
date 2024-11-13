@@ -26,7 +26,7 @@ func Start(home string, l *log.Logger) {
 		var healthy bool
 		localEndpoint := "localhost"
 		defaultRaMetricPort := "2112"
-		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "8000")
+		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "8000") // Change the endpoint if it's different than local rpc
 
 		isDaNodeHealthy, _ := IsAvailNodeHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
@@ -127,7 +127,7 @@ func IsAvailNodeHealthy(url string) (bool, any) {
 		return true, "not healthy"
 	}
 
-	return true, "not healthy"
+	return true, "healthy"
 
 }
 

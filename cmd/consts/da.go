@@ -31,6 +31,7 @@ const (
 	CelestiaTestnet DaNetwork = "mocha-4"
 	CelestiaMainnet DaNetwork = "celestia"
 	AvailTestnet    DaNetwork = "avail"
+	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -77,6 +78,15 @@ var DaNetworks = map[string]DaData{
 		Backend:          Avail,
 		ApiUrl:           "http://localhost:8000",
 		ID:               AvailTestnet,
+		RpcUrl:           "ws://127.0.0.1:9944",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(AvailMainnet): {
+		Backend:          Avail,
+		ApiUrl:           "http://localhost:8000",
+		ID:               AvailMainnet,
 		RpcUrl:           "ws://127.0.0.1:9944",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
