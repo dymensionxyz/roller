@@ -56,8 +56,7 @@ func NewAvail(root string) *Avail {
 			panic(err)
 		}
 
-		availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
-		// availConfig.Mnemonic
+		// availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
 		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
 		availConfig.AppID = AppID
 

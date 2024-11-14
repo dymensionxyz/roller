@@ -6,7 +6,8 @@ var MainnetHubData = HubData{
 	RPC_URL:         "https://dymension-mainnet-tendermint.public.blastapi.io",
 	ARCHIVE_RPC_URL: "https://dymension-mainnet-tendermint.public.blastapi.io",
 	GAS_PRICE:       "20000000000",
-	DA_NETWORK:      string(CelestiaMainnet),
+	// DA_NETWORK:      string(CelestiaMainnet),
+	DA_NETWORK: string(AvailMainnet),
 }
 
 var TestnetHubData = HubData{
@@ -15,7 +16,8 @@ var TestnetHubData = HubData{
 	RPC_URL:         "https://rpc-blumbus.mzonder.com",
 	ARCHIVE_RPC_URL: "https://rpc-blumbus-archive.mzonder.com",
 	GAS_PRICE:       "20000000000",
-	DA_NETWORK:      string(CelestiaTestnet),
+	// DA_NETWORK:      string(CelestiaTestnet),
+	DA_NETWORK: string(AvailTestnet),
 }
 
 var DevnetHubData = HubData{
@@ -24,7 +26,8 @@ var DevnetHubData = HubData{
 	RPC_URL:         "http://52.58.111.62:36657",
 	ARCHIVE_RPC_URL: "http://52.58.111.62:36657",
 	GAS_PRICE:       "100000000",
-	DA_NETWORK:      string(CelestiaTestnet),
+	// DA_NETWORK:      string(CelestiaTestnet),
+	DA_NETWORK: string(AvailTestnet),
 }
 
 var LocalHubData = HubData{

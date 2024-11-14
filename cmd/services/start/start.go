@@ -33,7 +33,6 @@ func RollappCmd() *cobra.Command {
 			errorhandling.PrettifyErrorIfExists(err)
 
 			if rollappConfig.HubData.ID != consts.MockHubID { // TODO : enable this if required
-				fmt.Println("here rollapp upgradee........")
 				// 	raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 				// 	if err != nil {
 				// 		pterm.Error.Println("failed to check rollapp version equality: ", err)

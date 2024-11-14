@@ -63,7 +63,7 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	case "playground":
 		if daBackend == string(consts.Celestia) {
 			daNetwork = string(consts.CelestiaTestnet)
-		} else if daBackend == string(consts.AvailTestnet) {
+		} else if daBackend == string(consts.Avail) {
 			daNetwork = string(consts.AvailTestnet)
 		} else {
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
