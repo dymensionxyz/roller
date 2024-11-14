@@ -236,7 +236,7 @@ func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 	}
 	return &keys.AccountData{
 		Address: celAddress.Address,
-		Balance: balance,
+		Balance: *balance,
 	}, nil
 }
 
@@ -276,11 +276,11 @@ func (c *Celestia) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	}
 
 	var insufficientBalances []keys.NotFundedAddressData
-	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
+	if accData.Balance.Amount.BigInt().Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(
 			insufficientBalances, keys.NotFundedAddressData{
 				Address:         accData.Address,
-				CurrentBalance:  accData.Balance.Amount,
+				CurrentBalance:  accData.Balance.Amount.BigInt(),
 				RequiredBalance: lcMinBalance,
 				KeyName:         c.GetKeyName(),
 				Denom:           consts.Denoms.Celestia,

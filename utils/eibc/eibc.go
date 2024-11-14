@@ -3,7 +3,6 @@ package eibc
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,28 +72,25 @@ func GetFulfillOrderCmd(orderId, fee string, hd consts.HubData) (*exec.Cmd, erro
 // EnsureWhaleAccount function makes sure that eibc whale account is present in
 // the keyring. In eibc client, whale account is the wallet that acts as the bank
 // and distributes funds across a set of wallets that fulfill the eibc orders
-func EnsureWhaleAccount() error {
+func EnsureWhaleAccount() (*keys.KeyInfo, error) {
 	home, _ := os.UserHomeDir()
-	kc := keys.KeyConfig{
-		Dir:            consts.ConfigDirName.Eibc,
-		ID:             consts.KeysIds.Eibc,
-		ChainBinary:    consts.Executables.Dymension,
-		Type:           "",
-		KeyringBackend: consts.SupportedKeyringBackends.Test,
-	}
+	kc := GetKeyConfig()
 
-	_, err := kc.Info(home)
+	ki, err := kc.Info(home)
 	if err != nil {
-		pterm.Info.Println("whale account not found in the keyring, creating it now")
+		pterm.Info.Printfln(
+			"%s account not found in the keyring, creating it now",
+			consts.KeysIds.Eibc,
+		)
 		addressInfo, err := kc.Create(home)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		addressInfo.Print(keys.WithName(), keys.WithMnemonic())
+		return addressInfo, nil
 	}
 
-	return nil
+	return ki, nil
 }
 
 // createMongoDbContainer function creates a mongodb container using docker
@@ -127,19 +123,14 @@ func CreateMongoDbContainer() error {
 	return err
 }
 
-func AddRollappToEibc(value, rollAppID, eibcHome string) error {
+func AddRollappToEibc(raID, eibcHome string, fullnodes []string) error {
 	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 
-	vf, _, err := big.ParseFloat(value, 10, 64, big.ToNearestEven)
-	valueFloat, _ := vf.Float32()
-	if err != nil {
-		return fmt.Errorf("failed to convert value to float: %v", err)
-	}
-
 	updates := map[string]interface{}{
-		fmt.Sprintf("fulfill_criteria.min_fee_percentage.chain.%s", rollAppID): valueFloat,
+		fmt.Sprintf("rollapps.%s.full_nodes", raID):        fullnodes,
+		fmt.Sprintf("rollapps.%s.min_confirmations", raID): "1",
 	}
-	err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 	if err != nil {
 		return fmt.Errorf("failed to update config: %v", err)
 	}

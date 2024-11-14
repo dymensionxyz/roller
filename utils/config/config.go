@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -143,4 +144,10 @@ func WritePasswordToFile(path string) error {
 	}
 
 	return nil
+}
+
+func IsValidURL(url string) bool {
+	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(url)
 }

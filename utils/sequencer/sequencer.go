@@ -465,7 +465,7 @@ func GetSequencerData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	return []keys.AccountData{
 		{
 			Address: seqAddr,
-			Balance: sequencerBalance,
+			Balance: *sequencerBalance,
 		},
 	}, nil
 }

@@ -45,7 +45,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 	var raBinCommit string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
-	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
 		// when the genesis file is big
@@ -78,126 +77,19 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	buildableDeps := map[string]types.Dependency{}
 
 	if !withMockDA {
-		buildableDeps["celestia"] = types.Dependency{
-			DependencyName:  "celestia",
-			RepositoryOwner: "celestiaorg",
-			RepositoryName:  "celestia-node",
-			RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
-			Release:         "v0.18.2-mocha",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "./build/celestia",
-					BinaryDestination: consts.Executables.Celestia,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-					),
-				},
-				{
-					Binary:            "./cel-key",
-					BinaryDestination: consts.Executables.CelKey,
-					BuildCommand: exec.Command(
-						"make",
-						"cel-key",
-					),
-				},
-			},
-		}
+		rbi := NewRollappBinaryInfo(
+			raResp.Rollapp.GenesisInfo.Bech32Prefix,
+			raResp.Rollapp.GenesisInfo.NativeDenom.Base,
+			raVmType,
+		)
 
-		if raVmType == "evm" {
-			buildableDeps["rollapp"] = types.Dependency{
-				DependencyName:  "rollapp",
-				RepositoryOwner: "dymensionxyz",
-				RepositoryName:  "rollapp-evm",
-				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
-				Release:         raBinCommit,
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "./build/rollapp-evm",
-						BinaryDestination: consts.Executables.RollappEVM,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
-						),
-					},
-				},
-				PersistFiles: []types.PersistFile{},
-			}
-		} else if raVmType == "wasm" {
-			buildableDeps["rollapp"] = types.Dependency{
-				DependencyName:  "rollapp",
-				RepositoryOwner: "dymensionxyz",
-				RepositoryName:  "rollapp-wasm",
-				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm.git",
-				Release:         raBinCommit,
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "./build/rollapp-wasm",
-						BinaryDestination: consts.Executables.RollappEVM,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
-						),
-					},
-				},
-			}
-		} else {
-			return nil, nil, fmt.Errorf("RollApp VM '%s' type is not supported", raVmType)
-		}
+		buildableDeps = DefaultRollappBuildableDependencies(rbi)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}
 
 	if !withMockDA {
-		necessaryDeps := map[string]types.Dependency{
-			"celestia-app": {
-				DependencyName: "celestia-app",
-				RepositoryUrl:  "https://github.com/celestiaorg/celestia-app",
-				Release:        "v2.1.2",
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "celestia-appd",
-						BinaryDestination: consts.Executables.CelestiaApp,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-						),
-					},
-				},
-			},
-			"eibc-client": {
-				DependencyName:  "eibc-client",
-				RepositoryOwner: "artemijspavlovs",
-				RepositoryName:  "eibc-client",
-				RepositoryUrl:   "https://github.com/artemijspavlovs/eibc-client",
-				Release:         "v1.1.4-roller",
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "eibc-client",
-						BinaryDestination: consts.Executables.Eibc,
-					},
-				},
-			},
-			"rly": {
-				DependencyName:  "go-relayer",
-				RepositoryOwner: "artemijspavlovs",
-				RepositoryName:  "go-relayer",
-				RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
-				Release:         "v0.4.0-v2.5.2-relayer-pg-roller",
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "rly",
-						BinaryDestination: consts.Executables.Relayer,
-					},
-				},
-			},
-		}
-
-		for s, dependency := range necessaryDeps {
-			goreleaserDeps[s] = dependency
-		}
+		goreleaserDeps = DefaultRollappPrebuiltDependencies()
 	}
 
 	if withMockDA {
