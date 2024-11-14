@@ -82,7 +82,6 @@ func MonitorTransaction(wsURL, txHash string) error {
 
 				return fmt.Errorf("transaction failed with code %d: %v", txEvent.Result.Code, txEvent.Result.Log)
 			}
-
 		case <-time.After(5 * time.Minute):
 			return fmt.Errorf("timeout waiting for transaction")
 

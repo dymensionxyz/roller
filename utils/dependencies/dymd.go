@@ -77,12 +77,6 @@ func InstallCustomDymdVersion() error {
 	).Show()
 	dep := customDymdDependency(dymdCommit)
 
-	for len(dymdCommit) < 6 {
-		dymdCommit, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
-		).Show()
-	}
-
 	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
 	if err != nil {
 		return err

@@ -129,12 +129,12 @@ func getRelayerInsufficientBalances(
 	// consts.Denoms.Hub is used here because as of @202409 we no longer require rollapp
 	// relayer account funding to establish IBC connection.
 	for _, acc := range accData {
-		if acc.Balance.Amount.Cmp(oneDayRelayPrice.BigInt()) < 0 {
+		if acc.Balance.Amount.IsNegative() {
 			insufficientBalances = append(
 				insufficientBalances, keys.NotFundedAddressData{
 					KeyName:         consts.KeysIds.HubRelayer,
 					Address:         acc.Address,
-					CurrentBalance:  acc.Balance.Amount,
+					CurrentBalance:  acc.Balance.Amount.BigInt(),
 					RequiredBalance: oneDayRelayPrice.BigInt(),
 					Denom:           consts.Denoms.Hub,
 					Network:         hd.ID,
@@ -188,7 +188,7 @@ func getRolRlyAccData(home string, raData roller.RollappConfig) (*keys.AccountDa
 
 	return &keys.AccountData{
 		Address: RollappRlyAddr,
-		Balance: RollappRlyBalance,
+		Balance: *RollappRlyBalance,
 	}, nil
 }
 
@@ -211,7 +211,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 
 	return &keys.AccountData{
 		Address: HubRlyAddr,
-		Balance: HubRlyBalance,
+		Balance: *HubRlyBalance,
 	}, nil
 }
 
