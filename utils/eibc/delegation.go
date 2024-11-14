@@ -1,8 +1,8 @@
 package eibc
 
 import (
+	"fmt"
 	"os/exec"
-	"strconv"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
@@ -22,7 +22,7 @@ func GetCreateGroupDelegationCmd(
 		metadata,
 		membersDefinitionFilePath,
 		"--fees",
-		strconv.Itoa(consts.DefaultTxFee),
+		fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"-y",
 		"--home",
 		eibcHome,
@@ -31,12 +31,11 @@ func GetCreateGroupDelegationCmd(
 		"--chain-id",
 		hd.ID,
 	)
-
 	return cmd
 }
 
 func GetCreateGroupPolicyCmd(
-	eibcHome, metadata, policyDefinitionFilePath string,
+	eibcHome, metadata, policyDefinitionFilePath, groupID string,
 	hd consts.HubData,
 ) *exec.Cmd {
 	cmd := exec.Command(
@@ -45,11 +44,11 @@ func GetCreateGroupPolicyCmd(
 		"group",
 		"create-group-policy",
 		consts.KeysIds.Eibc,
-		"1",
+		groupID,
 		metadata,
 		policyDefinitionFilePath,
 		"--fees",
-		strconv.Itoa(consts.DefaultTxFee),
+		fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"-y",
 		"--home",
 		eibcHome,

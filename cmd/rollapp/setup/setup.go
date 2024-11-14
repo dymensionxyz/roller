@@ -258,11 +258,9 @@ RollApp's IRO time: %v`,
 					}
 
 					// TODO: use NotFundedAddressData instead
-					var necessaryBalance big.Int
-					necessaryBalance.Add(
-						desiredBond.Amount.BigInt(),
-						cosmossdkmath.NewInt(consts.DefaultTxFee).BigInt(),
-					)
+					var necessaryBalance cosmossdkmath.Int
+					necessaryBalance.Add(desiredBond.Amount)
+					necessaryBalance.Add(cosmossdkmath.NewInt(consts.DefaultTxFee))
 
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",
@@ -271,11 +269,7 @@ RollApp's IRO time: %v`,
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
-					isAddrFunded := balance.Amount.Cmp(&necessaryBalance) == 1 ||
-						balance.Amount.Cmp(
-							&necessaryBalance,
-						) == 0
-
+					isAddrFunded := balance.Amount.GTE(necessaryBalance)
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")
@@ -315,11 +309,7 @@ RollApp's IRO time: %v`,
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
-					isAddrFunded = balance.Amount.Cmp(&necessaryBalance) == 1 ||
-						balance.Amount.Cmp(
-							&necessaryBalance,
-						) == 0
-
+					isAddrFunded = balance.Amount.GTE(necessaryBalance)
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
 							Println("Please fund the addresses below to register and run the sequencer.")

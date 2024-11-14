@@ -87,7 +87,6 @@ func EnsureWhaleAccount() (*keys.KeyInfo, error) {
 			return nil, err
 		}
 
-		addressInfo.Print(keys.WithName(), keys.WithMnemonic())
 		return addressInfo, nil
 	}
 

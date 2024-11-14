@@ -9,8 +9,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func GetGroups(admin string, hd consts.HubData) (*GroupsResponse, error) {
-	cmd := GetGroupsCmd(admin, hd)
+func GetGroups(home, admin string, hd consts.HubData) (*GroupsResponse, error) {
+	cmd := GetGroupsCmd(home, admin, hd)
+
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
@@ -26,7 +27,7 @@ func GetGroups(admin string, hd consts.HubData) (*GroupsResponse, error) {
 }
 
 // dymd q group groups-by-admin dym1tqgc0zdr85t2l3a4lgppcduk7rsnfdtrvafct0 -o json
-func GetGroupsCmd(addr string, hd consts.HubData) *exec.Cmd {
+func GetGroupsCmd(home, addr string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q",
@@ -39,6 +40,8 @@ func GetGroupsCmd(addr string, hd consts.HubData) *exec.Cmd {
 		hd.RpcUrl,
 		"--chain-id",
 		hd.ID,
+		"--home",
+		home,
 	)
 
 	return cmd
