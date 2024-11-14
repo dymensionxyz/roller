@@ -382,8 +382,6 @@ func GetHubSequencerAddress(cfg roller.RollappConfig) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("hub sequencer addresss........", seqAddr)
-
 	return seqAddr, nil
 }
 

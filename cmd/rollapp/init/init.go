@@ -156,7 +156,6 @@ func Cmd() *cobra.Command {
 
 			// default flow
 			isRollappRegistered, _ := rollapp.IsRollappRegistered(raID, hd)
-			fmt.Println("*****roll app idd here...*****", raID, hd)
 			if !isRollappRegistered {
 				pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
 				return

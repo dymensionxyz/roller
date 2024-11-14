@@ -20,8 +20,6 @@ func setDA(rlpCfg roller.RollappConfig, value string) error {
 		return nil
 	}
 
-	fmt.Println("supported dasss.......", value, roller.SupportedDas)
-
 	if !roller.IsValidDAType(value) {
 		return fmt.Errorf("invalid DA type. Supported types are: %v", roller.SupportedDas)
 	}

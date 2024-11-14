@@ -1,7 +1,6 @@
 package avail
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -36,12 +35,9 @@ func loadConfigFromTOML(path string) (Avail, error) {
 		return config, err
 	}
 	err = toml.Unmarshal(tomlBytes, &config)
-	fmt.Println("unmarshelling error here.......", err)
 	if err != nil {
 		return config, err
 	}
-
-	fmt.Println("config path and config.......", path, config)
 
 	return config, nil
 }

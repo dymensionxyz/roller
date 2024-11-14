@@ -30,7 +30,6 @@ func Start(home string, l *log.Logger) {
 
 		isDaNodeHealthy, _ := IsAvailNodeHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
-		fmt.Println("is node healthyyyyyyy check check........", healthy, localDaRpcEndpoint)
 
 		submissions, err := QueryFailedDaSubmissions(localEndpoint, defaultRaMetricPort)
 		if err != nil {
@@ -81,7 +80,6 @@ func Start(home string, l *log.Logger) {
 			}
 
 			err = restart.RestartSystemdServices(servicesToRestart, home)
-			fmt.Println("da service start....", servicesToRestart)
 			if err != nil {
 				pterm.Error.Println("failed to restart services")
 			}
@@ -94,9 +92,7 @@ func Start(home string, l *log.Logger) {
 
 func IsAvailNodeHealthy(url string) (bool, any) {
 	statusURL := fmt.Sprintf(url+"%s", "/v1/status")
-	// fmt.Println("status url hereee.......", statusURL)
 	resp, err := http.Get(statusURL)
-	// fmt.Println("resp, err..", resp, err)
 	if err != nil {
 		msg := fmt.Sprintf("Error making request: %v\n", err)
 		return false, msg

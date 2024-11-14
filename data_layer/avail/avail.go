@@ -19,7 +19,7 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	// DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
+	// DefaultRPCEndpoint     = "wss://goldberg.avail.tools/ws"
 	DefaultRPCEndpoint = "ws://127.0.0.1:9944" // change the avail rpc if it's different
 	requiredAVL        = 1
 	AppID              = 1
@@ -45,7 +45,6 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 func NewAvail(root string) *Avail {
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
-	fmt.Println("here avail configgg check checkkk.........", availConfig)
 	if err != nil {
 		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 		if err != nil {
@@ -58,7 +57,9 @@ func NewAvail(root string) *Avail {
 		}
 
 		availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
+		// availConfig.Mnemonic
 		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
+		availConfig.AppID = AppID
 
 		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {
@@ -75,7 +76,6 @@ func NewAvail(root string) *Avail {
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
 	availConfig.AppID = AppID // Change this if required
-	fmt.Println("avail config inside............", availConfig)
 	return &availConfig
 }
 
@@ -84,7 +84,6 @@ func (a *Avail) InitializeLightNodeConfig() (string, error) {
 }
 
 func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
-	fmt.Println("get addressss.......", a.AccAddress)
 	key := keys.KeyInfo{
 		Address: a.AccAddress,
 	}
@@ -133,8 +132,6 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 		return res, err
 	}
 
-	fmt.Println("get bal err......", err, a.Mnemonic, keyringNetworkID)
-
 	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
 	if err != nil {
 		return res, err
@@ -144,21 +141,14 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 		return res, err
 	}
 
-	fmt.Println("key and err.........", key, err)
-	keeee, err := a.client.RPC.State.GetKeysLatest(key)
-	fmt.Println("keys check and eerrr......", keeee, err)
-
 	var accountInfo availtypes.AccountInfo
 	ok, err := a.client.RPC.State.GetStorageLatest(key, &accountInfo)
-	fmt.Println("ok and err......", ok, err)
 	if err != nil {
 		return res, err
 	}
 	if !ok {
 		return res, fmt.Errorf("account %s not found", keyringPair.Address)
 	}
-
-	fmt.Println("account infooo.......", accountInfo)
 
 	return accountInfo.Data.Free, nil
 }
@@ -168,7 +158,6 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 }
 
 func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error) {
-	fmt.Println("da account data address........", a.AccAddress)
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err

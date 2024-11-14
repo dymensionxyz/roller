@@ -71,10 +71,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			fmt.Println("*** rollapp config....** ", rollappConfig)
-
-			fmt.Println("rollapp config hub data id.....", rollappConfig.HubData.ID)
-
 			if rollappConfig.HubData.ID != consts.MockHubID { //TODO : enable it if required
 				// raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 				// if err != nil {
@@ -94,8 +90,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd(logLevel)
-
-			fmt.Println("start commandd......", startRollappCmd)
 
 			fmt.Println(startRollappCmd.String())
 
@@ -215,7 +209,6 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		fmt.Println("sequencer addressesss.......", seqAddrData)
 		if err != nil {
 			return
 		}
