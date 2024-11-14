@@ -195,8 +195,6 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	var DA consts.DaData
 
-	fmt.Println("hd id here......", hd.DA_NETWORK)
-
 	switch hd.ID {
 	case consts.MockHubID:
 		// No specific action needed for MockHubID
