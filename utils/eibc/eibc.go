@@ -128,7 +128,8 @@ func AddRollappToEibc(raID, eibcHome string, fullnodes []string) error {
 	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 
 	updates := map[string]interface{}{
-		fmt.Sprintf("rollapps.%s.full_nodes", raID): fullnodes,
+		fmt.Sprintf("rollapps.%s.full_nodes", raID):        fullnodes,
+		fmt.Sprintf("rollapps.%s.min_confirmations", raID): "1",
 	}
 	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 	if err != nil {

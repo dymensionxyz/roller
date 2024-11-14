@@ -108,6 +108,7 @@ func Cmd() *cobra.Command {
 						return
 					}
 				}
+				pterm.Info.Printfln("safe to override %s", eibcHome)
 
 				msg := fmt.Sprintf(
 					"Directory %s is not empty. Do you want to overwrite it?",
