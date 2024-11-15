@@ -95,7 +95,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			err = servicemanager.StopSystemServices()
+			err = servicemanager.StopSystemServices(consts.RollappSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to stop system services: ", err)
 				return

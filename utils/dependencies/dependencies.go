@@ -79,7 +79,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	if !withMockDA {
 		rbi := NewRollappBinaryInfo(
 			raResp.Rollapp.GenesisInfo.Bech32Prefix,
-			raResp.Rollapp.GenesisInfo.NativeDenom.Base,
+			raBinCommit,
 			raVmType,
 		)
 
@@ -270,6 +270,10 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	goOs := goOsCaser.String(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.DependencyName == "celestia-app" {
+		goArch = "x86_64"
+	}
+
+	if goArch == "amd64" && dep.DependencyName == "celestia-node" {
 		goArch = "x86_64"
 	}
 
