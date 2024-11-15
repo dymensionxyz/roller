@@ -27,31 +27,7 @@ func NewRollappBinaryInfo(bech32Prefix, commit, vmType string) RollappBinaryInfo
 func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string]types.Dependency {
 	deps := map[string]types.Dependency{}
 
-	deps["celestia"] = types.Dependency{
-		DependencyName:  "celestia",
-		RepositoryOwner: "celestiaorg",
-		RepositoryName:  "celestia-node",
-		RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
-		Release:         "v0.18.2-mocha",
-		Binaries: []types.BinaryPathPair{
-			{
-				Binary:            "./build/celestia",
-				BinaryDestination: consts.Executables.Celestia,
-				BuildCommand: exec.Command(
-					"make",
-					"build",
-				),
-			},
-			{
-				Binary:            "./cel-key",
-				BinaryDestination: consts.Executables.CelKey,
-				BuildCommand: exec.Command(
-					"make",
-					"cel-key",
-				),
-			},
-		},
-	}
+	deps["celestia"] = DefaultCelestiaNodeDependency()
 
 	switch raBinInfo.VMType {
 	case "evm":
