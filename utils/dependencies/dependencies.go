@@ -45,7 +45,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 	var raBinCommit string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
-	raBech32Prefix := raResp.Rollapp.GenesisInfo.Bech32Prefix
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
 		// when the genesis file is big
@@ -84,48 +83,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			raVmType,
 		)
 
-		if raVmType == "evm" {
-			buildableDeps["rollapp"] = types.Dependency{
-				DependencyName:  "rollapp",
-				RepositoryOwner: "dymensionxyz",
-				RepositoryName:  "rollapp-evm",
-				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
-				Release:         raBinCommit,
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "./build/rollapp-evm",
-						BinaryDestination: consts.Executables.RollappEVM,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
-						),
-					},
-				},
-				PersistFiles: []types.PersistFile{},
-			}
-		} else if raVmType == "wasm" {
-			buildableDeps["rollapp"] = types.Dependency{
-				DependencyName:  "rollapp",
-				RepositoryOwner: "dymensionxyz",
-				RepositoryName:  "rollapp-wasm",
-				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm.git",
-				Release:         raBinCommit,
-				Binaries: []types.BinaryPathPair{
-					{
-						Binary:            "./build/rollapp-wasm",
-						BinaryDestination: consts.Executables.RollappEVM,
-						BuildCommand: exec.Command(
-							"make",
-							"build",
-							fmt.Sprintf("BECH32_PREFIX=%s", raBech32Prefix),
-						),
-					},
-				},
-			}
-		} else {
-			return nil, nil, fmt.Errorf("RollApp VM '%s' type is not supported", raVmType)
-		}
+		buildableDeps = DefaultRollappBuildableDependencies(rbi)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}
