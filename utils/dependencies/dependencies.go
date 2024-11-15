@@ -78,31 +78,11 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	buildableDeps := map[string]types.Dependency{}
 
 	if !withMockDA {
-		buildableDeps["celestia"] = types.Dependency{
-			DependencyName:  "celestia",
-			RepositoryOwner: "celestiaorg",
-			RepositoryName:  "celestia-node",
-			RepositoryUrl:   "https://github.com/celestiaorg/celestia-node.git",
-			Release:         "v0.18.2-mocha",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "./build/celestia",
-					BinaryDestination: consts.Executables.Celestia,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-					),
-				},
-				{
-					Binary:            "./cel-key",
-					BinaryDestination: consts.Executables.CelKey,
-					BuildCommand: exec.Command(
-						"make",
-						"cel-key",
-					),
-				},
-			},
-		}
+		rbi := NewRollappBinaryInfo(
+			raResp.Rollapp.GenesisInfo.Bech32Prefix,
+			raBinCommit,
+			raVmType,
+		)
 
 		if raVmType == "evm" {
 			buildableDeps["rollapp"] = types.Dependency{
@@ -378,6 +358,10 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	goOs := goOsCaser.String(runtime.GOOS)
 	goArch := strings.ToLower(runtime.GOARCH)
 	if goArch == "amd64" && dep.DependencyName == "celestia-app" {
+		goArch = "x86_64"
+	}
+
+	if goArch == "amd64" && dep.DependencyName == "celestia-node" {
 		goArch = "x86_64"
 	}
 
