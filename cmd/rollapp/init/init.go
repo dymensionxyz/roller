@@ -176,7 +176,7 @@ func Cmd() *cobra.Command {
 				hd = consts.HubData{
 					Environment:   env,
 					ApiUrl:        chd.ApiUrl,
-					ID:            consts.PlaygroundHubName,
+					ID:            chd.ID,
 					RpcUrl:        chd.RpcUrl,
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
