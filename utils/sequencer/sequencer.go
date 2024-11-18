@@ -44,6 +44,17 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 
 	home := roller.GetRootDir()
 
+	customRewardAddress, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+		"would you like to use a custom reward address (leave empty to use the sequencer address)",
+	).Show()
+	customRewardAddress = strings.TrimSpace(customRewardAddress)
+
+	// TODO: improve ux
+	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+		"provide a comma separated list of addresses that you want to enable relay IBC packets (example: addr1,addr2)",
+	).Show()
+	relayerAddresses = strings.TrimSpace(relayerAddresses)
+
 	args := []string{
 		"tx",
 		"sequencer",
@@ -59,6 +70,15 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
+	}
+	if customRewardAddress != "" {
+		cArgs := []string{"--reward-address", customRewardAddress}
+		args = append(args, cArgs...)
+	}
+
+	if relayerAddresses != "" {
+		cArgs := []string{"--whitelisted-relayers", relayerAddresses}
+		args = append(args, cArgs...)
 	}
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
