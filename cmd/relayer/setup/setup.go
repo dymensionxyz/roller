@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -169,7 +170,7 @@ func Cmd() *cobra.Command {
 			rbi := dependencies.NewRollappBinaryInfo(
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
 				raBinCommit,
-				raResp.Rollapp.VmType,
+				strings.ToLower(raResp.Rollapp.VmType),
 			)
 			j, _ := json.Marshal(rbi)
 			pterm.Info.Printfln("rollapp binary info:\n%s", string(j))
