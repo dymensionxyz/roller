@@ -67,14 +67,34 @@ func Cmd() *cobra.Command {
 				pterm.Warning.Println("no roller config found")
 				pterm.Info.Println("initializing for environment")
 
-				envs := []string{"playground"}
+				envs := []string{"playground", "custom"}
 				env, _ := pterm.DefaultInteractiveSelect.
 					WithDefaultText(
 						"select the environment you want to initialize eibc client for",
 					).
 					WithOptions(envs).
 					Show()
-				hd = consts.Hubs[env]
+
+				if env == "custom" {
+					var rollerConfig roller.RollappConfig
+					hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
+						Show()
+					hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
+						Show()
+
+					rollerConfig.HubData.ID = hdid
+					rollerConfig.HubData.RpcUrl = hdrpc
+
+					hd = rollerConfig.HubData
+
+					err := roller.WriteConfig(rollerConfig)
+					if err != nil {
+						pterm.Error.Println("failed to write roller config", err)
+						return
+					}
+				} else {
+					hd = consts.Hubs[env]
+				}
 			} else {
 				hd = rollerConfig.HubData
 			}
@@ -276,15 +296,19 @@ func Cmd() *cobra.Command {
 				}
 				rollerRaID := rollerData.RollappID
 				rollerHubData := rollerData.HubData
-				msg := fmt.Sprintf(
-					"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
-					rollerRaID,
-				)
-				rlyFromRoller, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
-				if rlyFromRoller {
-					raID = rollerRaID
-					hd = rollerHubData
-					runForExisting = true
+
+				var rlyFromRoller bool
+				if rollerRaID != "" {
+					msg := fmt.Sprintf(
+						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
+						rollerRaID,
+					)
+					rlyFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+					if rlyFromRoller {
+						raID = rollerRaID
+						hd = rollerHubData
+						runForExisting = true
+					}
 				}
 
 				if !rlyFromRoller {
@@ -312,7 +336,7 @@ func Cmd() *cobra.Command {
 			for {
 				// Prompt the user for the RPC URL
 				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"dymint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+					"dymint rpc endpoint that you trust (example: rpc.rollapp.dym.xyz)",
 				).Show()
 				if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 					rpc = "https://" + rpc
