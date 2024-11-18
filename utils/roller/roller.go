@@ -63,12 +63,18 @@ func LoadConfig(root string) (RollappConfig, error) {
 }
 
 func WriteConfig(rlpCfg RollappConfig) error {
+	if rlpCfg.Home == "" {
+		home, _ := os.UserHomeDir()
+		rlpCfg.Home = filepath.Join(home, ".roller")
+	}
+
 	tomlBytes, err := naoinatoml.Marshal(rlpCfg)
 	if err != nil {
 		return err
 	}
-	// nolint:gofumpt
-	return os.WriteFile(filepath.Join(rlpCfg.Home, consts.RollerConfigFileName), tomlBytes, 0o644)
+	configPath := filepath.Join(rlpCfg.Home, consts.RollerConfigFileName)
+	// nolint:gofumpt,errcheck
+	return os.WriteFile(configPath, tomlBytes, 0o644)
 }
 
 func LoadHubData(root string) (consts.HubData, error) {
