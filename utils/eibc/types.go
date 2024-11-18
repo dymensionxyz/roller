@@ -7,19 +7,18 @@ import (
 )
 
 type Config struct {
-	HomeDir      string             `yaml:"home_dir"`
-	NodeAddress  string             `yaml:"node_address"`
-	DBPath       string             `yaml:"db_path"`
-	Gas          GasConfig          `yaml:"gas"`
-	OrderPolling OrderPollingConfig `yaml:"order_polling"`
+	Fulfillers fulfillerConfig `yaml:"fulfillers"`
+	Gas        GasConfig       `yaml:"gas"`
 
-	Whale           whaleConfig     `yaml:"whale"`
-	Bots            botConfig       `yaml:"bots"`
-	FulfillCriteria fulfillCriteria `yaml:"fulfill_criteria"`
+	LogLevel    string `yaml:"log_level"`
+	NodeAddress string `yaml:"node_address"`
 
-	LogLevel    string      `yaml:"log_level"`
-	SlackConfig slackConfig `yaml:"slack"`
-	SkipRefund  bool        `yaml:"skip_refund"`
+	OperatorConfig operatorConfig           `yaml:"operator"`
+	OrderPolling   OrderPollingConfig       `yaml:"order_polling"`
+	Rollapps       map[string]RollappConfig `yaml:"rollapps"`
+
+	SlackConfig slackConfig      `yaml:"slack"`
+	Validation  validationConfig `yaml:"validation"`
 }
 
 type OrderPollingConfig struct {
@@ -28,25 +27,34 @@ type OrderPollingConfig struct {
 	Enabled    bool          `yaml:"enabled"`
 }
 
-type GasConfig struct {
-	Prices            string `yaml:"prices"`
-	Fees              string `yaml:"fees"`
-	MinimumGasBalance string `yaml:"minimum_gas_balance"`
+type RollappConfig struct {
+	FullNodes        []string `yaml:"full_nodes"`
+	MinConfirmations string   `yaml:"min_confirmations"`
 }
 
-type botConfig struct {
-	NumberOfBots   int                          `yaml:"number_of_bots"`
+type GasConfig struct {
+	Prices string `yaml:"prices"`
+}
+
+type fulfillerConfig struct {
+	Scale          int                          `yaml:"scale"`
 	KeyringBackend cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
 	KeyringDir     string                       `yaml:"keyring_dir"`
-	TopUpFactor    int                          `yaml:"top_up_factor"`
 	MaxOrdersPerTx int                          `yaml:"max_orders_per_tx"`
+	PolicyAddress  string                       `yaml:"policy_address"`
 }
 
-type whaleConfig struct {
-	AccountName              string                       `yaml:"account_name"`
-	KeyringBackend           cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
-	KeyringDir               string                       `yaml:"keyring_dir"`
-	AllowedBalanceThresholds map[string]string            `yaml:"allowed_balance_thresholds"`
+type operatorConfig struct {
+	AccountName    string                       `yaml:"account_name"`
+	GroupID        string                       `yaml:"group_id"`
+	KeyringBackend cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
+	KeyringDir     string                       `yaml:"keyring_dir"`
+	MinFeeShare    float32                      `yaml:"min_fee_share"`
+}
+
+type validationConfig struct {
+	FallbackLevel      string `yaml:"fallback_level"`
+	ValidationWaitTime string `yaml:"validation_wait_time"`
 }
 
 type fulfillCriteria struct {
@@ -66,13 +74,5 @@ type slackConfig struct {
 }
 
 func (e *Config) RemoveChain(chainId string) {
-	delete(e.FulfillCriteria.MinFeePercentage.Chain, chainId)
-}
-
-func (e *Config) RemoveAllowedBalanceThreshold(denom string) {
-	delete(e.Whale.AllowedBalanceThresholds, denom)
-}
-
-func (e *Config) RemoveDenom(denom string) {
-	delete(e.FulfillCriteria.MinFeePercentage.Asset, denom)
+	delete(e.Rollapps, chainId)
 }

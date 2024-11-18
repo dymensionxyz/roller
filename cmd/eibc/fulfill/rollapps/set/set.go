@@ -3,6 +3,7 @@ package set
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ import (
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set <rollapp-id> <fee-percentage>",
+		Use:   "set <rollapp-id> <comma-separated-full-nodes>",
 		Short: "Commands to manage the whitelist of RollApps to fulfill eibc orders for",
 		Long: `Commands to manage the whitelist of RollApps to fulfill eibc orders for
 
@@ -45,8 +46,15 @@ instance.
 			}
 
 			rollAppID := args[0]
+			fullNodes := args[1]
+			if len(fullNodes) == 0 {
+				pterm.Error.Println("please provide at least one full node")
+				return
+			}
 
-			err = eibc.AddRollappToEibc(rollAppID, eibcHome, []string{"mock"})
+			fNodes := strings.Split(fullNodes, ",")
+
+			err = eibc.AddRollappToEibc(rollAppID, eibcHome, fNodes)
 			if err != nil {
 				return
 			}
