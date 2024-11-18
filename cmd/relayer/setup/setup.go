@@ -124,7 +124,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printfln("failed to initialize firebase app: %v", err)
 				return
 			}
-			raBinCommit := strconv.Itoa(as.RollappParams.Params.DrsVersion)
+			drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
 
 			client, err := app.Firestore(ctx)
 			if err != nil {
@@ -136,7 +136,7 @@ func Cmd() *cobra.Command {
 			// Fetch DRS version information using the nested collection path
 			// Path format: versions/{version}/revisions/{revision}
 			drsDoc := client.Collection("versions").
-				Doc(raBinCommit).
+				Doc(drsVersion).
 				Collection("revisions").
 				OrderBy("timestamp", firestore.Desc).
 				Limit(1).
@@ -144,17 +144,17 @@ func Cmd() *cobra.Command {
 
 			doc, err := drsDoc.Next()
 			if err == iterator.Done {
-				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
 				return
 			}
 			if err != nil {
-				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
 				return
 			}
 
 			var drsInfo dependencies.DrsVersionInfo
 			if err := doc.DataTo(&drsInfo); err != nil {
-				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
 				return
 			}
 
@@ -169,7 +169,7 @@ func Cmd() *cobra.Command {
 
 			rbi := dependencies.NewRollappBinaryInfo(
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
-				raBinCommit,
+				drsInfo.Commit,
 				strings.ToLower(raResp.Rollapp.VmType),
 			)
 			j, _ := json.Marshal(rbi)
