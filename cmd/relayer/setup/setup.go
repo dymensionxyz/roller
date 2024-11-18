@@ -1,20 +1,28 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"strconv"
 
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -91,6 +99,83 @@ func Cmd() *cobra.Command {
 				return
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
+
+			raResp, err := rollapp.GetMetadataFromChain(raID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+				return
+			}
+			err = genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
+			if err != nil {
+				pterm.Error.Println("failed to download genesis file: ", err)
+				return
+			}
+			as, err := genesis.GetGenesisAppState(home)
+			if err != nil {
+				pterm.Error.Println("failed to get genesis app state: ", err)
+				return
+			}
+			ctx := context.Background()
+			conf := &firebase.Config{ProjectID: "drs-metadata"}
+			app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
+			if err != nil {
+				pterm.Error.Printfln("failed to initialize firebase app: %v", err)
+				return
+			}
+			raBinCommit := strconv.Itoa(as.RollappParams.Params.DrsVersion)
+
+			client, err := app.Firestore(ctx)
+			if err != nil {
+				pterm.Error.Printfln("failed to create firestore client: %v", err)
+				return
+			}
+			defer client.Close()
+
+			// Fetch DRS version information using the nested collection path
+			// Path format: versions/{version}/revisions/{revision}
+			drsDoc := client.Collection("versions").
+				Doc(raBinCommit).
+				Collection("revisions").
+				OrderBy("timestamp", firestore.Desc).
+				Limit(1).
+				Documents(ctx)
+
+			doc, err := drsDoc.Next()
+			if err == iterator.Done {
+				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				return
+			}
+			if err != nil {
+				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				return
+			}
+
+			var drsInfo dependencies.DrsVersionInfo
+			if err := doc.DataTo(&drsInfo); err != nil {
+				pterm.Error.Printfln("DRS version not found for %s", raBinCommit)
+				return
+			}
+
+			dep := dependencies.DefaultRelayerPrebuiltDependencies()
+			for _, v := range dep {
+				err := dependencies.InstallBinaryFromRelease(v)
+				if err != nil {
+					pterm.Error.Printfln("failed to install binary: %s", err)
+					return
+				}
+			}
+
+			rbi := dependencies.NewRollappBinaryInfo(
+				raResp.Rollapp.GenesisInfo.Bech32Prefix,
+				raBinCommit,
+				raResp.Rollapp.VmType,
+			)
+			raDep := dependencies.DefaultRollappDependency(rbi)
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			if err != nil {
+				pterm.Error.Printfln("failed to install binary: %s", err)
+				return
+			}
 
 			// things to check:
 			// 1. relayer folder exists

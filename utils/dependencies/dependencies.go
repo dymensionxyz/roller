@@ -77,6 +77,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		raBinCommit = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
 
+		// TODO: extract to helper
 		// Initialize Firestore client
 		ctx := context.Background()
 		conf := &firebase.Config{ProjectID: "drs-metadata"}

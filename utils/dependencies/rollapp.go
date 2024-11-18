@@ -28,10 +28,17 @@ func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string
 	deps := map[string]types.Dependency{}
 
 	deps["celestia"] = DefaultCelestiaNodeDependency()
+	deps["rollapp"] = DefaultRollappDependency(raBinInfo)
+
+	return deps
+}
+
+func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
+	var dep types.Dependency
 
 	switch raBinInfo.VMType {
 	case "evm":
-		deps["rollapp"] = types.Dependency{
+		dep = types.Dependency{
 			DependencyName:  "rollapp",
 			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "rollapp-evm",
@@ -50,7 +57,7 @@ func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string
 			},
 		}
 	case "wasm":
-		deps["rollapp"] = types.Dependency{
+		dep = types.Dependency{
 			DependencyName:  "dymd",
 			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "dymd",
@@ -71,7 +78,7 @@ func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string
 		pterm.Warning.Println("unsupported VM type")
 	}
 
-	return deps
+	return dep
 }
 
 func DefaultRollappPrebuiltDependencies() map[string]types.Dependency {
