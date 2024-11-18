@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill"
-	"github.com/dymensionxyz/roller/cmd/eibc/funds"
 	eibcinit "github.com/dymensionxyz/roller/cmd/eibc/init"
 	"github.com/dymensionxyz/roller/cmd/eibc/scale"
 	"github.com/dymensionxyz/roller/cmd/eibc/start"
@@ -24,7 +23,6 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(eibcinit.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(scale.Cmd())
-	cmd.AddCommand(funds.Cmd())
 	cmd.AddCommand(fulfill.Cmd())
 
 	sl := []string{"eibc"}

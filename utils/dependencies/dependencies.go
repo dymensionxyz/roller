@@ -93,7 +93,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	}
 
 	if withMockDA {
-		// @20240913 libwasm is necessary on the host VM to be able to run the rollapp binary
+		// @20240913 libwasm is necessary on the host VM to be able to run the prebuilt rollapp binary
 		var outputPath string
 		var libName string
 		libVersion := "v1.2.3"
