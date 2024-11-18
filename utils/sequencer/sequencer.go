@@ -1,7 +1,5 @@
 package sequencer
 
-// TODO: most of the functions here should be a part of sequencer_manager
-
 import (
 	"encoding/json"
 	"fmt"
@@ -27,13 +25,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
-func getCreateSequencerCmd(
-	raCfg roller.RollappConfig,
-	desiredBond cosmossdktypes.Coin,
-) (*exec.Cmd, error) {
+func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
 	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	seqMetadataPath := filepath.Join(
@@ -42,30 +37,14 @@ func getCreateSequencerCmd(
 		"init",
 		"sequencer-metadata.json",
 	)
-
 	_, err = isValidSequencerMetadata(seqMetadataPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	customRewardAddress, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"would you like to use a custom reward address (leave empty to use the sequencer address)",
-	).Show()
-	customRewardAddress = strings.TrimSpace(customRewardAddress)
-
-	// TODO: improve ux
-	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide a comma separated list of addresses that you want to enable relay IBC packets (example: addr1,addr2)",
-	).Show()
-	relayerAddresses = strings.TrimSpace(relayerAddresses)
-
-	cmd := exec.Command(
-		consts.Executables.Dymension,
-
-	home := raCfg.Home
+	home := roller.GetRootDir()
 
 	args := []string{
-
 		"tx",
 		"sequencer",
 		"create-sequencer",
@@ -80,25 +59,6 @@ func getCreateSequencerCmd(
 		"--gas-adjustment", "1.3",
 		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
-	}
-
-	if customRewardAddress != "" {
-		args := []string{"--reward-address", customRewardAddress}
-		cmd.Args = append(cmd.Args, args...)
-	}
-
-	if relayerAddresses != "" {
-		args := []string{"--whitelisted-relayers", relayerAddresses}
-		cmd.Args = append(cmd.Args, args...)
-	}
-
-	return cmd, err
-}
-
-func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
-	cmd, err := getCreateSequencerCmd(raCfg, desiredBond)
-	if err != nil {
-		return err
 	}
 
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
