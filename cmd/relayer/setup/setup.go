@@ -2,7 +2,6 @@ package setup
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -172,8 +171,6 @@ func Cmd() *cobra.Command {
 				drsInfo.Commit,
 				strings.ToLower(raResp.Rollapp.VmType),
 			)
-			j, _ := json.Marshal(rbi)
-			pterm.Info.Printfln("rollapp binary info:\n%s", string(j))
 
 			raDep := dependencies.DefaultRollappDependency(rbi)
 			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
