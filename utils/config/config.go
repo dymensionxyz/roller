@@ -13,7 +13,6 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
@@ -24,13 +23,21 @@ const (
 	specialChar = "!@#$%^&*()_-+={}[/?]"
 )
 
-func CreateCustomHubData() (*consts.HubData, error) {
+type CustomHubData struct {
+	ID            string `json:"id"`
+	RpcUrl        string `json:"rpcUrl"`
+	ApiUrl        string `json:"apiUrl"`
+	GasPrice      string `json:"gasPrice"`
+	DymensionHash string `json:"commit"`
+}
+
+func CreateCustomHubData() (*CustomHubData, error) {
 	opts := []string{"from-file", "manual"}
 	opt, _ := pterm.DefaultInteractiveSelect.WithDefaultText(
 		"select how you want to provide the hub data",
 	).WithOptions(opts).Show()
 
-	var hd consts.HubData
+	var hd CustomHubData
 
 	switch opt {
 	case "from-file":
@@ -42,7 +49,7 @@ func CreateCustomHubData() (*consts.HubData, error) {
 	return &hd, nil
 }
 
-func createCustomHubDataManually() consts.HubData {
+func createCustomHubDataManually() CustomHubData {
 	id, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").Show()
 	rpcUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"provide hub rpc endpoint (including port, example: http://dym.dev:26657)",
@@ -52,31 +59,33 @@ func createCustomHubDataManually() consts.HubData {
 	).Show()
 	gasPrice, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide gas price").
 		WithDefaultValue("2000000000").Show()
+	commit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("dymension binary commit to build").
+		Show()
 
 	id = strings.TrimSpace(id)
 	rpcUrl = strings.TrimSpace(rpcUrl)
 	restUrl = strings.TrimSpace(restUrl)
 	gasPrice = strings.TrimSpace(gasPrice)
+	commit = strings.TrimSpace(commit)
 
-	hd := consts.HubData{
-		Environment:   "custom",
-		ApiUrl:        restUrl,
+	hd := CustomHubData{
 		ID:            id,
 		RpcUrl:        rpcUrl,
-		ArchiveRpcUrl: rpcUrl,
-		GasPrice:      gasPrice,
-		DaNetwork:     consts.CelestiaTestnet,
+		ApiUrl:        restUrl,
+		DymensionHash: commit,
 	}
 	return hd
 }
 
-func createCustomHubDataFromFile() (*consts.HubData, error) {
+func createCustomHubDataFromFile() (*CustomHubData, error) {
 	pterm.Info.Printf("provide a path to a json file that has the following structure")
 	fmt.Println(`
 {
   "id": "<hub-id>",
   "rpcUrl": "<hub-rpc-endpoint>",
   "apiUrl": "<hub-rest-endpoint>",
+  "gasPrice": "<gas-price>",
+  "commit": "<dymension-commit-to-build>"
 }`)
 	path, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("").Show()
 	for len(path) == 0 {
@@ -104,15 +113,11 @@ func createCustomHubDataFromFile() (*consts.HubData, error) {
 	}
 
 	// Unmarshal the byte slice into the Config struct
-	var hd consts.HubData
+	var hd CustomHubData
 	err = json.Unmarshal(byteValue, &hd)
 	if err != nil {
 		log.Fatalf("Failed to unmarshal JSON: %s", err)
 	}
-	hd.DaNetwork = consts.CelestiaTestnet
-	hd.GasPrice = "2000000000"
-	hd.ArchiveRpcUrl = hd.RpcUrl
-	hd.Environment = "custom"
 
 	return &hd, nil
 }
