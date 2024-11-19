@@ -87,6 +87,13 @@ func Cmd() *cobra.Command {
 
 					hd = rollerConfig.HubData
 
+					rollerCfgDir := roller.GetRootDir()
+					err = os.MkdirAll(rollerCfgDir, 0o755)
+					if err != nil {
+						pterm.Error.Println("failed to create roller config dir", err)
+						return
+					}
+
 					err := roller.WriteConfig(rollerConfig)
 					if err != nil {
 						pterm.Error.Println("failed to write roller config", err)
