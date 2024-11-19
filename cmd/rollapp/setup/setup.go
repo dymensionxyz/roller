@@ -726,7 +726,7 @@ RollApp's IRO time: %v`,
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"max_proof_time",
-				"1m",
+				"5s",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")

@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
-	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
@@ -126,16 +126,9 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 			return err
 		}
 
-		if want < time.Minute*1 {
-			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", want.String())
-			if err != nil {
-				return err
-			}
-		} else {
-			err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", "1m")
-			if err != nil {
-				return err
-			}
+		err = tomlconfig.UpdateFieldInFile(dymintPath, "max_proof_time", "5s")
+		if err != nil {
+			return err
 		}
 
 		if runtime.GOOS == "linux" {
