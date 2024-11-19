@@ -15,6 +15,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/logging"
 )
 
+// TODO: the relayer whitelisted address has to be the rollapp's relayer address
+// not the hub
+
 // CreateIBCChannel Creates an IBC channel between the hub and the client,
 // and return the source channel ID.
 func (r *Relayer) CreateIBCChannel(

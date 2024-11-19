@@ -289,7 +289,8 @@ func Cmd() *cobra.Command {
 				}
 			} else {
 				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-				rollerData, err = roller.LoadConfig(home)
+
+				rollerData, err = roller.LoadConfig(roller.GetRootDir())
 				if err != nil {
 					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 					return
