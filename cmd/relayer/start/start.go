@@ -80,7 +80,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				}
 				hd = consts.HubData{
 					ApiUrl:        chd.ApiUrl,
-					ID:            consts.PlaygroundHubName,
+					ID:            chd.ID,
 					RpcUrl:        chd.RpcUrl,
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
