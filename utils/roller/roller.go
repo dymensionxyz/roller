@@ -1,6 +1,7 @@
 package roller
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,10 +51,13 @@ func CreateConfigFileIfNotPresent(home string) (bool, error) {
 // TODO: should be called from root command
 func LoadConfig(root string) (RollappConfig, error) {
 	var rc RollappConfig
-	tomlBytes, err := os.ReadFile(filepath.Join(root, consts.RollerConfigFileName))
+	p := filepath.Join(root, consts.RollerConfigFileName)
+	fmt.Println(p)
+	tomlBytes, err := os.ReadFile(p)
 	if err != nil {
 		return rc, err
 	}
+
 	err = naoinatoml.Unmarshal(tomlBytes, &rc)
 	if err != nil {
 		return rc, err
