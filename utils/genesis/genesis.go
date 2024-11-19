@@ -36,8 +36,8 @@ type Bank struct {
 
 type RollappParams struct {
 	Params struct {
-		Da      string `json:"da"`
-		Version string `json:"version"`
+		Da         string `json:"da"`
+		DrsVersion int    `json:"drs_version"`
 	} `json:"params"`
 }
 

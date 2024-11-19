@@ -23,8 +23,6 @@ import (
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-// TODO: Test relaying on 35-C and update the prices
-
 const (
 	flagOverride = "override"
 )
@@ -80,7 +78,15 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 					pterm.Error.Println("failed to create custom hub data:", err)
 					return
 				}
-				hd = *chd
+				hd = consts.HubData{
+					ApiUrl:        chd.ApiUrl,
+					ID:            chd.ID,
+					RpcUrl:        chd.RpcUrl,
+					ArchiveRpcUrl: chd.RpcUrl,
+					GasPrice:      chd.GasPrice,
+					DaNetwork:     consts.CelestiaTestnet,
+				}
+
 			}
 
 			raResponse, err := rollapp.GetMetadataFromChain(raChainID, hd)

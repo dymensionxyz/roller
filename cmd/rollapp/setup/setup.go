@@ -257,10 +257,14 @@ RollApp's IRO time: %v`,
 						return
 					}
 
-					// TODO: use NotFundedAddressData instead
-					var necessaryBalance cosmossdkmath.Int
-					necessaryBalance.Add(desiredBond.Amount)
-					necessaryBalance.Add(cosmossdkmath.NewInt(consts.DefaultTxFee))
+					fmt.Println(desiredBond)
+
+					// Initialize necessaryBalance with the desiredBond amount
+					necessaryBalance := desiredBond.Amount
+					// Add the default transaction fee
+					necessaryBalance = necessaryBalance.Add(
+						cosmossdkmath.NewInt(consts.DefaultTxFee),
+					)
 
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",

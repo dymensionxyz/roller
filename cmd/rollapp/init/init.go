@@ -172,14 +172,23 @@ func Cmd() *cobra.Command {
 			switch env {
 			case "custom":
 				chd, err := config.CreateCustomHubData()
-				hd = *chd
+
+				hd = consts.HubData{
+					Environment:   env,
+					ApiUrl:        chd.ApiUrl,
+					ID:            chd.ID,
+					RpcUrl:        chd.RpcUrl,
+					ArchiveRpcUrl: chd.RpcUrl,
+					GasPrice:      chd.GasPrice,
+					DaNetwork:     consts.CelestiaTestnet,
+				}
 
 				if err != nil {
 					pterm.Info.Println("failed to create custom hub data", err)
 					return
 				}
 
-				err = dependencies.InstallCustomDymdVersion()
+				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 				if err != nil {
 					pterm.Info.Println("failed to install dymd", err)
 					return

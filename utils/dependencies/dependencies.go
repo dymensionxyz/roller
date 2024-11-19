@@ -1,6 +1,7 @@
 package dependencies
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -9,12 +10,17 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/schollz/progressbar/v3"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
@@ -23,6 +29,11 @@ import (
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
+
+// DrsVersionInfo represents the structure of DRS version information in Firestore
+type DrsVersionInfo struct {
+	Commit string `firestore:"commit"`
+}
 
 func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	map[string]types.Dependency,
@@ -62,8 +73,49 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		if err != nil {
 			return nil, nil, err
 		}
-		raBinCommit = as.RollappParams.Params.Version
+
+		raBinCommit = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
+
+		// TODO: extract to helper
+		// Initialize Firestore client
+		ctx := context.Background()
+		conf := &firebase.Config{ProjectID: "drs-metadata"}
+		app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to initialize firebase app: %v", err)
+		}
+
+		client, err := app.Firestore(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create firestore client: %v", err)
+		}
+		defer client.Close()
+
+		// Fetch DRS version information using the nested collection path
+		// Path format: versions/{version}/revisions/{revision}
+		drsDoc := client.Collection("versions").
+			Doc(raBinCommit).
+			Collection("revisions").
+			OrderBy("timestamp", firestore.Desc).
+			Limit(1).
+			Documents(ctx)
+
+		doc, err := drsDoc.Next()
+		if err == iterator.Done {
+			return nil, nil, err
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+
+		var drsInfo DrsVersionInfo
+		if err := doc.DataTo(&drsInfo); err != nil {
+			return nil, nil, fmt.Errorf("failed to parse DRS version info: %v", err)
+		}
+
+		pterm.Info.Printf("Found DRS commit hash: %s\n", drsInfo.Commit)
+		raBinCommit = drsInfo.Commit
 	}
 
 	defer func() {

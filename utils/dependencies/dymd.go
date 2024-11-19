@@ -71,10 +71,7 @@ func ExtractCommitFromBinaryVersion(binary string) (string, error) {
 	}
 }
 
-func InstallCustomDymdVersion() error {
-	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
-	).Show()
+func InstallCustomDymdVersion(dymdCommit string) error {
 	dep := customDymdDependency(dymdCommit)
 
 	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)

@@ -84,12 +84,21 @@ func promptForRaAndHd() (string, *consts.HubData, error) {
 		hd = consts.Hubs[env]
 	} else {
 		chd, err := config.CreateCustomHubData()
-		hd = *chd
+
+		hd = consts.HubData{
+			Environment:   env,
+			ID:            chd.ID,
+			ApiUrl:        chd.ApiUrl,
+			RpcUrl:        chd.RpcUrl,
+			ArchiveRpcUrl: chd.RpcUrl,
+			GasPrice:      "2000000000",
+			DaNetwork:     consts.CelestiaTestnet,
+		}
 		if err != nil {
 			return "", nil, err
 		}
 
-		err = dependencies.InstallCustomDymdVersion()
+		err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
 			return "", nil, err
