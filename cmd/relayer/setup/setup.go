@@ -258,7 +258,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -355,6 +355,39 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
 				return
+			}
+
+			// add whitelisted relayers
+			seqAddr, err := sequencerutils.GetSequencerAccountAddress(*rollappChainData)
+			if err != nil {
+				pterm.Error.Printf("failed to get sequencer address: %v\n", err)
+				return
+			}
+
+			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
+				relKeys[consts.KeysIds.RollappRelayer].Address,
+				seqAddr,
+				*hd,
+			)
+			if err != nil {
+				pterm.Error.Printf("failed to check if relayer key is whitelisted: %v\n", err)
+				return
+			}
+
+			if !isRlyKeyWhitelisted {
+				pterm.Warning.Println(
+					"relayer key is not whitelisted, updating whitelisted relayers",
+				)
+
+				err := sequencerutils.UpdateWhitelistedRelayers(
+					home,
+					relKeys[consts.KeysIds.RollappRelayer].Address,
+					*hd,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update whitelisted relayers:", err)
+					return
+				}
 			}
 
 			pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")

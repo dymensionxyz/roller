@@ -345,7 +345,7 @@ func RegisteredRollappSequencers(
 	raID string,
 ) (*Sequencers, error) {
 	var seq Sequencers
-	cmd := getShowSequencerCmd(raID)
+	cmd := getShowSequencersCmd(raID)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -393,7 +393,7 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	)
 }
 
-func getShowSequencerCmd(raID string) *exec.Cmd {
+func getShowSequencersCmd(raID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "sequencers", "sequencers",
@@ -474,6 +474,44 @@ func GetAppConfigFilePath(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "app.toml")
 }
 
+func GetWhitelistedRelayers(address string, hd consts.HubData) ([]string, error) {
+	seqResp, err := showSequencer(address, hd)
+	if err != nil {
+		return nil, err
+	}
+
+	return seqResp.Sequencer.WhitelistedRelayers, nil
+}
+
+func getShowSequencerCmd(addr string, hd consts.HubData) *exec.Cmd {
+	return exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencer",
+		addr,
+		"--output",
+		"json",
+		"--node", hd.RpcUrl,
+		"--chain-id", hd.ID,
+	)
+}
+
+func showSequencer(addr string, hd consts.HubData) (*ShowSequencerResponse, error) {
+	c := getShowSequencerCmd(addr, hd)
+
+	var GetSequencerResponse ShowSequencerResponse
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &GetSequencerResponse, nil
+}
+
 func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error) {
 	rollerData, err := roller.LoadConfig(home)
 	if err != nil {
@@ -536,4 +574,42 @@ func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error
 		IsSequencerKeyPresent:        false,
 		IsSequencerProposer:          false,
 	}, nil
+}
+
+func UpdateWhitelistedRelayers(
+	home, raRelayerAddress string,
+	hd consts.HubData,
+) error {
+	rollerHomeDir := roller.GetConfigPath(home)
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"tx",
+		"sequencer",
+		"update-whitelisted-relayers",
+		raRelayerAddress,
+		"--from", consts.KeysIds.HubSequencer,
+		"--home", filepath.Join(rollerHomeDir, consts.ConfigDirName.HubKeys),
+		"--keyring-backend", "test",
+		"--chain-id", hd.ID,
+		"--node", hd.RpcUrl,
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
+	)
+
+	txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput)
+	if err != nil {
+		return err
+	}
+
+	err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

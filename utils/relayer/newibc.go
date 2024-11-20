@@ -55,17 +55,19 @@ func InitializeRelayer(home string, rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func EnsureKeysArePresentAndFunded(rollerData roller.RollappConfig) error {
-	err := keys.GenerateRelayerKeys(rollerData)
+func EnsureKeysArePresentAndFunded(
+	rollerData roller.RollappConfig,
+) (map[string]keys.KeyInfo, error) {
+	ck, err := keys.GenerateRelayerKeys(rollerData)
 	if err != nil {
 		pterm.Error.Printf("failed to create relayer keys: %v\n", err)
-		return err
+		return nil, err
 	}
 
 	err = keys.GetRelayerKeysToFund(rollerData)
 	if err != nil {
 		pterm.Error.Printf("failed to retrieve relayer keys to fund: %v\n", err)
-		return err
+		return nil, err
 	}
 
 	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
@@ -73,13 +75,13 @@ func EnsureKeysArePresentAndFunded(rollerData roller.RollappConfig) error {
 			"press 'y' when the wallets are funded",
 		).Show()
 	if !proceed {
-		return fmt.Errorf("cancelled by user")
+		return nil, fmt.Errorf("cancelled by user")
 	}
 
 	err = VerifyRelayerBalances(rollerData.HubData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return ck, nil
 }
