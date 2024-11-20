@@ -294,9 +294,10 @@ func Cmd() *cobra.Command {
 
 			var runForExisting bool
 			var raID string
-			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			rollerConfigFilePath := filepath.Join(roller.GetRootDir(), consts.RollerConfigFileName)
 			var rollerData roller.RollappConfig
 
+			fmt.Println(rollerConfigFilePath)
 			_, err = os.Stat(rollerConfigFilePath)
 			if err != nil {
 				if errors.Is(err, fs.ErrNotExist) {
