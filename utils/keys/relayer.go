@@ -156,9 +156,11 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 				}
 				createdRlyKeys[consts.KeysIds.RollappRelayer] = *key
 			} else {
-				ki, err := v.Info(rollerData.Home)
+				ki, err := GetRelayerAddressInfo(
+					v,
+					rollerData.RollappID,
+				)
 				if err != nil {
-					pterm.Error.Printf("failed to get key info: %v\n", err)
 					return nil, err
 				}
 				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
@@ -179,9 +181,11 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 				}
 				createdRlyKeys[consts.KeysIds.HubRelayer] = *key
 			} else {
-				ki, err := v.Info(rollerData.Home)
+				ki, err := GetRelayerAddressInfo(
+					v,
+					rollerData.HubData.ID,
+				)
 				if err != nil {
-					pterm.Error.Printf("failed to get key info: %v\n", err)
 					return nil, err
 				}
 				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
