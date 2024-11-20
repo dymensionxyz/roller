@@ -43,8 +43,8 @@ func RollappCmd() *cobra.Command {
 				}
 
 				err = migrations.RequireRollappMigrateIfNeeded(
-					raUpgrade.CurrentVersionCommit,
-					rollappConfig.RollappBinaryVersion,
+					raUpgrade.CurrentVersionCommit[:6],
+					rollappConfig.RollappBinaryVersion[:6],
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
