@@ -3,6 +3,7 @@ package relayer
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 
 	"github.com/pterm/pterm"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetRollappToRunFor(home string) (string, *consts.HubData, error) {
@@ -230,4 +232,13 @@ func GetHomeDir(home string) string {
 
 func GetConfigFilePath(relayerHome string) string {
 	return filepath.Join(relayerHome, "config", "config.yaml")
+}
+
+func IsRelayerRollappKeyWhitelisted(seqAddr, relAddr string, hd consts.HubData) (bool, error) {
+	relayers, err := sequencerutils.GetWhitelistedRelayersOnHub(seqAddr, hd)
+	if err != nil {
+		return false, err
+	}
+
+	return slices.Contains(relayers, relAddr), nil
 }

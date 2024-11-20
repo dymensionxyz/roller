@@ -1,7 +1,6 @@
 package roller
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,7 +51,6 @@ func CreateConfigFileIfNotPresent(home string) (bool, error) {
 func LoadConfig(root string) (RollappConfig, error) {
 	var rc RollappConfig
 	p := filepath.Join(root, consts.RollerConfigFileName)
-	fmt.Println(p)
 	tomlBytes, err := os.ReadFile(p)
 	if err != nil {
 		return rc, err

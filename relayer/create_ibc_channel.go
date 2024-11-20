@@ -56,7 +56,6 @@ func (r *Relayer) CreateIBCChannel(
 	// we ran create channel with override, as it not recovarable anyway
 	createChannelCmd := r.getCreateChannelCmd(true)
 
-	fmt.Println("createChannelCmd", createChannelCmd.String())
 	// TODO: switch to spinned
 	pterm.Info.Println("💈 Creating channel (this may take a while)...")
 	if err := r.WriteRelayerStatus(status); err != nil {

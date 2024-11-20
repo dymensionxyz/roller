@@ -50,11 +50,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	customRewardAddress = strings.TrimSpace(customRewardAddress)
 
 	// TODO: improve ux
-	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide a comma separated list of addresses that you want to enable relay IBC packets (example: addr1,addr2)",
-	).Show()
-	relayerAddresses = strings.TrimSpace(relayerAddresses)
-
 	args := []string{
 		"tx",
 		"sequencer",
@@ -73,11 +68,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	}
 	if customRewardAddress != "" {
 		cArgs := []string{"--reward-address", customRewardAddress}
-		args = append(args, cArgs...)
-	}
-
-	if relayerAddresses != "" {
-		cArgs := []string{"--whitelisted-relayers", relayerAddresses}
 		args = append(args, cArgs...)
 	}
 
@@ -355,7 +345,7 @@ func RegisteredRollappSequencers(
 	raID string,
 ) (*Sequencers, error) {
 	var seq Sequencers
-	cmd := getShowSequencerCmd(raID)
+	cmd := getShowSequencersCmd(raID)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -403,7 +393,7 @@ func getShowSequencerByRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	)
 }
 
-func getShowSequencerCmd(raID string) *exec.Cmd {
+func getShowSequencersCmd(raID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "sequencers", "sequencers",
@@ -484,6 +474,43 @@ func GetAppConfigFilePath(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "app.toml")
 }
 
+func GetWhitelistedRelayersOnHub(address string, hd consts.HubData) ([]string, error) {
+	seqResp, err := showSequencer(address, hd)
+	if err != nil {
+		return nil, err
+	}
+
+	return seqResp.Sequencer.WhitelistedRelayers, nil
+}
+
+func getShowSequencerCmd(addr string, hd consts.HubData) *exec.Cmd {
+	return exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"show-sequencer",
+		addr,
+		"--output",
+		"json",
+		"--node", hd.RpcUrl,
+		"--chain-id", hd.ID,
+	)
+}
+
+func showSequencer(addr string, hd consts.HubData) (*ShowSequencerResponse, error) {
+	c := getShowSequencerCmd(addr, hd)
+	var GetSequencerResponse ShowSequencerResponse
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(out.Bytes(), &GetSequencerResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &GetSequencerResponse, nil
+}
+
 func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error) {
 	rollerData, err := roller.LoadConfig(home)
 	if err != nil {
@@ -546,4 +573,94 @@ func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error
 		IsSequencerKeyPresent:        false,
 		IsSequencerProposer:          false,
 	}, nil
+}
+
+func UpdateWhitelistedRelayers(
+	home, raRelayerAddress string,
+	hd consts.HubData,
+) error {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"tx",
+		"sequencer",
+		"update-whitelisted-relayers",
+		raRelayerAddress,
+		"--from", consts.KeysIds.HubSequencer,
+		"--home", filepath.Join(home, consts.ConfigDirName.HubKeys),
+		"--keyring-backend", "test",
+		"--chain-id", hd.ID,
+		"--node", hd.RpcUrl,
+		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
+	)
+
+	txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput)
+	if err != nil {
+		return err
+	}
+
+	err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetSequencerOperatorAddress(home string) (string, error) {
+	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.HubKeys)
+	getOperatorAddrCommand := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"show",
+		consts.KeysIds.HubSequencer,
+		"-a",
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+		"--bech",
+		"val",
+	)
+
+	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		fmt.Println("val addr failed")
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+	return a, nil
+}
+
+type RaWhitelisterRelayersResponse struct {
+	Relayers []string `json:"relayers"`
+}
+
+func GetWhitelistedRelayersOnRa(raOpAddr string) ([]string, error) {
+	cmd := exec.Command(
+		"rollappd",
+		"q",
+		"sequencers",
+		"whitelisted-relayers",
+		raOpAddr,
+		"--output",
+		"json",
+	)
+
+	o, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var response RaWhitelisterRelayersResponse
+	if err := json.Unmarshal(o.Bytes(), &response); err != nil {
+		return nil, err
+	}
+
+	return response.Relayers, nil
 }

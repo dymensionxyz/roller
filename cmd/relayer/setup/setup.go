@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -258,7 +260,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -355,6 +357,70 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
 				return
+			}
+
+			// add whitelisted relayers
+			seqAddr, err := sequencerutils.GetSequencerAccountAddress(*rollappChainData)
+			if err != nil {
+				pterm.Error.Printf("failed to get sequencer address: %v\n", err)
+				return
+			}
+
+			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
+				seqAddr,
+				relKeys[consts.KeysIds.RollappRelayer].Address,
+				*hd,
+			)
+			if err != nil {
+				pterm.Error.Printf("failed to check if relayer key is whitelisted: %v\n", err)
+				return
+			}
+
+			if !isRlyKeyWhitelisted {
+				pterm.Warning.Printfln(
+					"relayer key (%s) is not whitelisted, updating whitelisted relayers",
+					relKeys[consts.KeysIds.RollappRelayer].Address,
+				)
+
+				err := sequencerutils.UpdateWhitelistedRelayers(
+					home,
+					relKeys[consts.KeysIds.RollappRelayer].Address,
+					*hd,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update whitelisted relayers:", err)
+					return
+				}
+			}
+
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			if err != nil {
+				pterm.Error.Println("failed to get RollApp's operator address:", err)
+				return
+			}
+
+			wrSpinner, _ := pterm.DefaultSpinner.Start(
+				"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
+			)
+			for {
+				r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
+				if err != nil {
+					pterm.Error.Println("failed to get whitelisted relayers:", err)
+					return
+				}
+
+				if len(r) == 0 &&
+					slices.Contains(r, relKeys[consts.KeysIds.RollappRelayer].Address) {
+					wrSpinner.UpdateText(
+						"waiting for the whitelisted relayer to propagate to RollApp...",
+					)
+					time.Sleep(time.Second * 5)
+					continue
+				} else {
+					// nolint: errcheck
+					wrSpinner.Success("relayer whitelisted and propagated to rollapp")
+					break
+				}
 			}
 
 			pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")

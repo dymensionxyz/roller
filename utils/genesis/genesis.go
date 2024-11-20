@@ -229,35 +229,6 @@ func UpdateGenesisParams(home string, raCfg *roller.RollappConfig) error {
 	return jsonconfig.UpdateJSONParams(genesisFilePath, params)
 }
 
-// func getGenesisOperatorAddress(home string) (string, error) {
-// 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-// 	getOperatorAddrCommand := exec.Command(
-// 		consts.Executables.RollappEVM,
-// 		"keys",
-// 		"show",
-// 		consts.KeysIds.RollappSequencer,
-// 		"-a",
-// 		"--keyring-backend",
-// 		"test",
-// 		"--home",
-// 		rollappConfigDirPath,
-// 		"--bech",
-// 		"val",
-// 	)
-//
-// 	fmt.Println(getOperatorAddrCommand.String())
-//
-// 	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
-// 	if err != nil {
-// 		fmt.Println("val addr failed")
-// 		return "", err
-// 	}
-//
-// 	a := strings.TrimSpace(addr.String())
-// 	fmt.Println(a)
-// 	return a, nil
-// }
-
 func getDefaultGenesisParams(
 	raCfg *roller.RollappConfig,
 ) []config.PathValue {

@@ -17,8 +17,12 @@ func UpdateConfigWithDefaultValues(relayerHome string, rollerData roller.Rollapp
 	relayerConfigPath := filepath.Join(relayerHome, "config", "config.yaml")
 	updates := map[string]interface{}{
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 1.5,
-		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID):  1.3,
-		fmt.Sprintf("chains.%s.value.is-dym-hub", rollerData.HubData.ID):     true,
+		fmt.Sprintf("chains.%s.value.gas-prices", rollerData.HubData.ID): fmt.Sprintf(
+			"20000000000%s",
+			consts.Denoms.Hub,
+		),
+		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID): 1.3,
+		fmt.Sprintf("chains.%s.value.is-dym-hub", rollerData.HubData.ID):    true,
 		fmt.Sprintf(
 			"chains.%s.value.http-addr",
 			rollerData.HubData.ID,

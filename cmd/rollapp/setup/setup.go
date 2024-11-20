@@ -257,8 +257,6 @@ RollApp's IRO time: %v`,
 						return
 					}
 
-					fmt.Println(desiredBond)
-
 					// Initialize necessaryBalance with the desiredBond amount
 					necessaryBalance := desiredBond.Amount
 					// Add the default transaction fee
@@ -727,6 +725,11 @@ RollApp's IRO time: %v`,
 				dymintConfigPath,
 				"max_proof_time",
 				"5s",
+			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"settlement_gas_prices",
+				"100000000000adym",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
