@@ -257,8 +257,6 @@ RollApp's IRO time: %v`,
 						return
 					}
 
-					fmt.Println(desiredBond)
-
 					// Initialize necessaryBalance with the desiredBond amount
 					necessaryBalance := desiredBond.Amount
 					// Add the default transaction fee
