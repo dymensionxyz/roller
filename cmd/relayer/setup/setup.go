@@ -417,7 +417,7 @@ func Cmd() *cobra.Command {
 					continue
 				} else {
 					// nolint: errcheck
-					wrSpinner.Stop()
+					wrSpinner.Success("relayer whitelisted and propagated to rollapp")
 					break
 				}
 			}
