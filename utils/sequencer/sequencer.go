@@ -499,8 +499,6 @@ func getShowSequencerCmd(addr string, hd consts.HubData) *exec.Cmd {
 
 func showSequencer(addr string, hd consts.HubData) (*ShowSequencerResponse, error) {
 	c := getShowSequencerCmd(addr, hd)
-
-	fmt.Println(c.String())
 	var GetSequencerResponse ShowSequencerResponse
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
@@ -629,8 +627,6 @@ func GetSequencerOperatorAddress(home string) (string, error) {
 		"val",
 	)
 
-	fmt.Println(getOperatorAddrCommand.String())
-
 	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
 	if err != nil {
 		fmt.Println("val addr failed")
@@ -638,7 +634,6 @@ func GetSequencerOperatorAddress(home string) (string, error) {
 	}
 
 	a := strings.TrimSpace(addr.String())
-	fmt.Println(a)
 	return a, nil
 }
 

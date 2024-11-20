@@ -2,7 +2,6 @@ package setup
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"slices"
@@ -366,9 +365,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("failed to get sequencer address: %v\n", err)
 				return
 			}
-
-			j, _ := json.MarshalIndent(relKeys, "", "  ")
-			pterm.Info.Printfln("info: \n%s", string(j))
 
 			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
 				seqAddr,
