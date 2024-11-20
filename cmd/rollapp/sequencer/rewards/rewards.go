@@ -87,13 +87,14 @@ func Cmd() *cobra.Command {
 			var address string
 			bech32Prefix = raResponse.Rollapp.GenesisInfo.Bech32Prefix
 			kc := keys.KeyConfig{
-				Dir:         consts.ConfigDirName.RollappSequencerKeys,
-				ID:          consts.KeysIds.RollappSequencerReward,
-				ChainBinary: consts.Executables.RollappEVM,
-				Type:        consts.EVM_ROLLAPP,
+				Dir:            consts.ConfigDirName.RollappSequencerKeys,
+				ID:             consts.KeysIds.RollappSequencerReward,
+				ChainBinary:    consts.Executables.RollappEVM,
+				Type:           consts.EVM_ROLLAPP,
+				KeyringBackend: rollerCfg.KeyringBackend,
 			}
 
-			isKeyInKeyring, err := keys.IsAddressWithNameInKeyring(kc, home)
+			isKeyInKeyring, err := kc.IsInKeyring(home)
 			if err != nil {
 				pterm.Error.Printf("failed to check for %s: %v", kc.ID, err)
 				return
@@ -108,7 +109,7 @@ func Cmd() *cobra.Command {
 			}
 
 			if isKeyInKeyring {
-				address, err = keys.GetAddressBinary(kc, home)
+				address, err = kc.Address(home)
 				if err != nil {
 					pterm.Error.Println("failed to get address", err)
 				}
@@ -122,7 +123,7 @@ func Cmd() *cobra.Command {
 				if address == "" {
 					if !isKeyInKeyring {
 						pterm.Info.Println("existing reward wallet not found, creating new")
-						ki, err := keys.CreateAddressBinary(kc, home)
+						ki, err := kc.Create(home)
 						if err != nil {
 							pterm.Error.Println("failed to create wallet", err)
 							return
@@ -172,10 +173,7 @@ func Cmd() *cobra.Command {
 				)
 				fmt.Println(createSeqCmd.String())
 
-				createSeqOut, err := bash.ExecCommandWithInput(
-					createSeqCmd,
-					"signatures",
-				)
+				createSeqOut, err := bash.ExecCommandWithInput(home, createSeqCmd, "signatures")
 				if err != nil {
 					pterm.Error.Println("failed to create sequencer: ", err)
 					return
@@ -198,14 +196,15 @@ func Cmd() *cobra.Command {
 					address, "--keyring-backend", "test", "--node", "http://localhost:26657",
 					"--chain-id", rollerCfg.RollappID,
 					"--from", "rollapp",
-					"--gas-prices", "100000000000aRUN",
+					"--gas-prices",
+					fmt.Sprintf("100000000000a%s", raResponse.Rollapp.GenesisInfo.NativeDenom.Base),
 					"--keyring-backend", "test",
 					"--keyring-dir", filepath.Join(home, consts.ConfigDirName.RollappSequencerKeys),
 				)
 
 				fmt.Println(updSeqCmd.String())
 
-				uTxOutput, err := bash.ExecCommandWithInput(updSeqCmd, "signatures")
+				uTxOutput, err := bash.ExecCommandWithInput(home, updSeqCmd, "signatures")
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
 					return

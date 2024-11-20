@@ -111,7 +111,7 @@ func (r *Relayer) queryChannelsHubCmd(hd consts.HubData) *exec.Cmd {
 	args = append(
 		args,
 		"--node",
-		hd.RPC_URL,
+		hd.RpcUrl,
 		"--chain-id",
 		hd.ID,
 		"-o",

@@ -76,14 +76,20 @@ func NewIbcConnenctionCanBeCreatedOnCurrentNode(home, raID string) (bool, error)
 
 func promptForRaAndHd() (string, *consts.HubData, error) {
 	var hd consts.HubData
+
 	raID := config.PromptRaID()
 	env := config.PromptEnvironment()
 
 	if env == "playground" {
 		hd = consts.Hubs[env]
 	} else {
-		hd = config.GenerateCustomHubData()
-		err := dependencies.InstallCustomDymdVersion()
+		chd, err := config.CreateCustomHubData()
+		hd = *chd
+		if err != nil {
+			return "", nil, err
+		}
+
+		err = dependencies.InstallCustomDymdVersion()
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
 			return "", nil, err
@@ -123,12 +129,12 @@ func getRelayerInsufficientBalances(
 	// consts.Denoms.Hub is used here because as of @202409 we no longer require rollapp
 	// relayer account funding to establish IBC connection.
 	for _, acc := range accData {
-		if acc.Balance.Amount.Cmp(oneDayRelayPrice.BigInt()) < 0 {
+		if acc.Balance.Amount.IsNegative() {
 			insufficientBalances = append(
 				insufficientBalances, keys.NotFundedAddressData{
 					KeyName:         consts.KeysIds.HubRelayer,
 					Address:         acc.Address,
-					CurrentBalance:  acc.Balance.Amount,
+					CurrentBalance:  acc.Balance.Amount.BigInt(),
 					RequiredBalance: oneDayRelayPrice.BigInt(),
 					Denom:           consts.Denoms.Hub,
 					Network:         hd.ID,
@@ -182,7 +188,7 @@ func getRolRlyAccData(home string, raData roller.RollappConfig) (*keys.AccountDa
 
 	return &keys.AccountData{
 		Address: RollappRlyAddr,
-		Balance: RollappRlyBalance,
+		Balance: *RollappRlyBalance,
 	}, nil
 }
 
@@ -194,7 +200,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 
 	HubRlyBalance, err := keys.QueryBalance(
 		keys.ChainQueryConfig{
-			RPC:    hd.RPC_URL,
+			RPC:    hd.RpcUrl,
 			Denom:  consts.Denoms.Hub,
 			Binary: consts.Executables.Dymension,
 		}, HubRlyAddr,
@@ -205,7 +211,7 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 
 	return &keys.AccountData{
 		Address: HubRlyAddr,
-		Balance: HubRlyBalance,
+		Balance: *HubRlyBalance,
 	}, nil
 }
 

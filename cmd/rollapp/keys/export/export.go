@@ -25,7 +25,7 @@ func Cmd() *cobra.Command {
 
 			var kcs []keys.KeyConfig
 			if rollerData.HubData.ID != "mock" {
-				kcs = keys.GetSequencerKeysConfig()
+				kcs = keys.GetSequencerKeysConfig(rollerData.KeyringBackend)
 			} else {
 				kcs = keys.GetMockSequencerKeyConfig(rollerData)
 			}

@@ -1,6 +1,7 @@
 package increase
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -11,7 +12,9 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
@@ -44,29 +47,85 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			c := exec.Command(
-				consts.Executables.Dymension, "tx",
-				"sequencer", "increase-bond", amount, "--keyring-backend",
-				"test", "--from", consts.KeysIds.HubSequencer, "--keyring-dir", filepath.Join(
-					home,
-					consts.ConfigDirName.HubKeys,
-				), "--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-				"--node", rollerData.HubData.RPC_URL, "--chain-id", rollerData.HubData.ID,
-			)
+			bondArgs := []string{
+				"tx",
+				"sequencer",
+				"increase-bond",
+				amount,
+				"--keyring-backend",
+				string(rollerData.KeyringBackend),
+				"--from",
+				consts.KeysIds.HubSequencer,
+				"--keyring-dir",
+				filepath.Join(home, consts.ConfigDirName.HubKeys),
+				"--fees",
+				fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
+				"--node",
+				rollerData.HubData.RpcUrl,
+				"--chain-id",
+				rollerData.HubData.ID,
+			}
+			var txHash string
 
-			txOutput, err := bash.ExecCommandWithInput(c, "signatures")
-			if err != nil {
-				pterm.Error.Println("failed to update bond: ", err)
-				return
+			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
+				if err != nil {
+					pterm.Error.Println("failed to get os keyring psw file name", err)
+					return
+				}
+				fp := filepath.Join(home, string(pswFileName))
+				psw, err := filesystem.ReadFromFile(fp)
+				if err != nil {
+					pterm.Error.Println("failed to read keyring passphrase file", err)
+					return
+				}
+
+				automaticPrompts := map[string]string{
+					"Enter keyring passphrase":    psw,
+					"Re-enter keyring passphrase": psw,
+				}
+				manualPromptResponses := map[string]string{
+					"signatures": "this transaction is going to update the sequencer metadata. do you want to continue?",
+				}
+
+				txOutput, err := bash.ExecuteCommandWithPromptHandler(
+					consts.Executables.Dymension,
+					bondArgs,
+					automaticPrompts,
+					manualPromptResponses,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update sequencer metadata", err)
+					return
+				}
+				tob := bytes.NewBufferString(txOutput.String())
+				err = tx_utils.CheckTxYamlStdOut(*tob)
+				if err != nil {
+					pterm.Error.Println("failed to check raw_log", err)
+					return
+				}
+
+				txHash, err = bash.ExtractTxHash(txOutput.String())
+				if err != nil {
+					pterm.Error.Println("failed to extract tx hash", err)
+					return
+				}
+			} else {
+				cmd := exec.Command(consts.Executables.Dymension, bondArgs...)
+				txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+				if err != nil {
+					pterm.Error.Println("failed to update sequencer metadata", err)
+					return
+				}
+
+				txHash, err = bash.ExtractTxHash(txOutput)
+				if err != nil {
+					pterm.Error.Println("failed to extract tx hash", err)
+					return
+				}
 			}
 
-			txHash, err := bash.ExtractTxHash(txOutput)
-			if err != nil {
-				pterm.Error.Println("failed to update bond: ", err)
-				return
-			}
-
-			err = tx.MonitorTransaction(rollerData.HubData.RPC_URL, txHash)
+			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("failed to update bond: ", err)
 				return

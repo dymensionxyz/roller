@@ -9,9 +9,12 @@ import (
 	"strings"
 
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
@@ -75,7 +78,7 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 }
 
 // TODO: most of rollapp utility functions should be tied to an entity
-func IsRollappRegistered(raID string, hd consts.HubData) (bool, error) {
+func IsRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
 	_, err := bashutils.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -96,7 +99,7 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		"show",
 		raID,
 		"-o", "json",
-		"--node", hd.RPC_URL,
+		"--node", hd.RpcUrl,
 		"--chain-id", hd.ID,
 	)
 
@@ -107,7 +110,7 @@ func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "rollapp", "show",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd
@@ -121,7 +124,7 @@ func GetCurrentProposerCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "sequencer", "proposer",
-		raID, "-o", "json", "--node", hd.RPC_URL, "--chain-id", hd.ID,
+		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	return cmd
@@ -155,7 +158,8 @@ func GetRollappSequencerAddress(home string) (string, error) {
 		ChainBinary: consts.Executables.RollappEVM,
 		Type:        consts.EVM_ROLLAPP,
 	}
-	addr, err := keys.GetAddressBinary(seqKeyConfig, home)
+
+	addr, err := seqKeyConfig.Address(home)
 	if err != nil {
 		return "", err
 	}
@@ -163,11 +167,14 @@ func GetRollappSequencerAddress(home string) (string, error) {
 	return addr, nil
 }
 
-func GetMetadataFromChain(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
+func GetMetadataFromChain(
+	raID string,
+	hd consts.HubData,
+) (*ShowRollappResponse, error) {
 	var raResponse ShowRollappResponse
 	getRollappCmd := GetRollappCmd(raID, hd)
 
-	out, err := bashutils.ExecCommandWithStdout(getRollappCmd)
+	out, err := bash.ExecCommandWithStdout(getRollappCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +199,34 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	}
 
 	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
+	var kb consts.SupportedKeyringBackend
+
+	rollerConfigExists, err := filesystem.DoesFileExist(roller.GetConfigPath(home))
+	if err != nil {
+		return nil, err
+	}
+
+	if rollerConfigExists {
+		pterm.Info.Println(
+			"existing roller configuration found, retrieving keyring backend from it",
+		)
+		rollerData, err := roller.LoadConfig(home)
+		if err != nil {
+			pterm.Error.Printf("failed to load roller config: %v\n", err)
+			return nil, err
+		}
+		if rollerData.KeyringBackend == "" {
+			pterm.Info.Println(
+				"keyring backend not set in roller config, retrieving it from environment",
+			)
+			kb = keys.KeyringBackendFromEnv(hd.Environment)
+		} else {
+			kb = rollerData.KeyringBackend
+		}
+	} else {
+		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
+		kb = keys.KeyringBackendFromEnv(hd.Environment)
+	}
 
 	var DA consts.DaData
 
@@ -207,6 +242,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	cfg = roller.RollappConfig{
 		Home:                 home,
+		KeyringBackend:       kb,
 		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
 		RollappID:            raResponse.Rollapp.RollappId,

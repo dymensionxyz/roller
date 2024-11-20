@@ -2,7 +2,6 @@ package upgrades
 
 import (
 	"github.com/dymensionxyz/roller/utils/config"
-	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -14,7 +13,7 @@ var WasmRollappUpgradeModules = []Version{
 		Modules: []UpgradeModule{
 			{
 				Name:           "dymint",
-				ConfigFilePath: sequencer.GetDymintFilePath(roller.GetRootDir()),
+				ConfigFilePath: sequencer.GetDymintFilePath("~/.roller"),
 				Values: VersionValues{
 					NewValues: []config.PathValue{
 						{

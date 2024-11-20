@@ -5,9 +5,11 @@ import (
 	"math/big"
 	"os/exec"
 
+	cosmossdkmath "cosmossdk.io/math"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	bip39 "github.com/cosmos/go-bip39"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -164,9 +166,9 @@ func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error)
 	return []keys.AccountData{
 		{
 			Address: a.AccAddress,
-			Balance: keys.Balance{
+			Balance: cosmossdktypes.Coin{
 				Denom:  consts.Denoms.Avail,
-				Amount: balance.Int,
+				Amount: cosmossdkmath.NewIntFromBigInt(balance.Int),
 			},
 		},
 	}, nil

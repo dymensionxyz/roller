@@ -37,6 +37,7 @@ func Cmd() *cobra.Command {
 				keyID,
 				filepath.Join(home, consts.ConfigDirName.HubKeys),
 				consts.Executables.Dymension,
+				string(rlpCfg.KeyringBackend),
 			)
 
 			out, err := bash.ExecCommandWithStdout(exportKeyCmd)

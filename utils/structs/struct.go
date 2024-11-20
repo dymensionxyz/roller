@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	cosmossdkmath "cosmossdk.io/math"
+
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -57,6 +60,18 @@ func ExportStructToFile(data sequencerutils.Metadata, filename string) error {
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return fmt.Errorf("error marshaling to JSON: %v", err)
+	}
+
+	dir := filepath.Dir(filename)
+	ok, err := filesystem.DoesFileExist(dir)
+	if !ok {
+		err := os.MkdirAll(dir, 0o755)
+		if err != nil {
+			return err
+		}
+	}
+	if err != nil {
+		return err
 	}
 
 	// Write to file

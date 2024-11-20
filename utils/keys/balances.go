@@ -8,14 +8,13 @@ import (
 	"math/big"
 	"os"
 	"os/exec"
-	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func PrintInsufficientBalancesIfAny(
@@ -80,7 +79,7 @@ type ChainQueryConfig struct {
 	Binary string
 }
 
-func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error) {
+func QueryBalance(chainConfig ChainQueryConfig, address string) (*cosmossdktypes.Coin, error) {
 	cmd := exec.Command(
 		chainConfig.Binary,
 		"query",
@@ -94,94 +93,45 @@ func QueryBalance(chainConfig ChainQueryConfig, address string) (Balance, error)
 	)
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return Balance{}, err
+		return nil, err
 	}
-	return ParseBalanceFromResponse(out, chainConfig.Denom)
+	return ParseBalanceFromResponse(*out, chainConfig.Denom)
 }
 
-func ParseBalance(balResp BalanceResp) (*big.Int, error) {
-	amount := new(big.Int)
-	_, ok := amount.SetString(balResp.Amount, 10)
-	if !ok {
-		return nil, errors.New("unable to convert balance amount to big.Int")
-	}
-	return amount, nil
-}
-
-func ParseBalanceFromResponse(out bytes.Buffer, denom string) (Balance, error) {
-	var balanceResp BalanceResponse
+func ParseBalanceFromResponse(out bytes.Buffer, denom string) (*cosmossdktypes.Coin, error) {
+	var balanceResp BalancesResp
 	err := json.Unmarshal(out.Bytes(), &balanceResp)
 	if err != nil {
-		return Balance{}, err
+		return nil, err
 	}
 
-	balance := Balance{
+	balance := cosmossdktypes.Coin{
 		Denom:  denom,
-		Amount: big.NewInt(0),
+		Amount: cosmossdkmath.NewInt(0),
 	}
+
+	if len(balanceResp.Balances) == 0 {
+		return &balance, nil
+	}
+
 	for _, resbalance := range balanceResp.Balances {
 		if resbalance.Denom != denom {
 			continue
 		}
-		amount, err := ParseBalance(resbalance)
-		if err != nil {
-			return Balance{}, err
-		}
-		balance.Amount = amount
+
+		balance = resbalance
 	}
-	return balance, nil
-}
 
-type Balance struct {
-	Denom  string   `json:"denom"`
-	Amount *big.Int `json:"amount"`
-}
-
-func (b *Balance) String() string {
-	return b.Amount.String() + b.Denom
-}
-
-func formatBalance(balance *big.Int, decimals uint) string {
-	divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
-	quotient := new(big.Int).Div(balance, divisor)
-	remainder := new(big.Int).Mod(balance, divisor)
-	remainderStr := fmt.Sprintf("%0*s", decimals, remainder.String())
-	const decimalPrecision = 6
-	if len(remainderStr) > decimalPrecision {
-		remainderStr = remainderStr[:decimalPrecision]
-	}
-	remainderStr = strings.TrimRight(remainderStr, "0")
-	if remainderStr != "" {
-		return fmt.Sprintf("%s.%s", quotient.String(), remainderStr)
-	}
-	return quotient.String()
-}
-
-func (b *Balance) BiggerDenomStr(cfg roller.RollappConfig) string {
-	biggerDenom := b.Denom[1:]
-	decimalsMap := map[string]uint{
-		consts.Denoms.Hub:      18,
-		consts.Denoms.Celestia: 6,
-		consts.Denoms.Avail:    18,
-		cfg.Denom:              cfg.Decimals,
-	}
-	decimals := decimalsMap[b.Denom]
-	formattedBalance := formatBalance(b.Amount, decimals)
-	return formattedBalance + strings.ToUpper(biggerDenom)
-}
-
-type BalanceResp struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
-}
-
-type BalanceResponse struct {
-	Balances []BalanceResp `json:"balances"`
+	return &balance, nil
 }
 
 type AccountData struct {
 	Address string
-	Balance Balance
+	Balance cosmossdktypes.Coin
+}
+
+type BalancesResp struct {
+	Balances []cosmossdktypes.Coin `json:"balances"`
 }
 
 // func GetSequencerInsufficientAddrs(

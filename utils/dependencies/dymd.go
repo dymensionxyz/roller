@@ -1,19 +1,20 @@
 package dependencies
 
 import (
+	"errors"
+	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
-func CustomDymdDependency() types.Dependency {
-	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide dymensionxyz/dymension commit to build (example: 2cd612aaa6c21b473dbbb7dca9fd03b5aaae6583)",
-	).Show()
+func customDymdDependency(dymdCommit string) types.Dependency {
 	dymdCommit = strings.TrimSpace(dymdCommit)
 
 	return types.Dependency{
@@ -36,12 +37,58 @@ func CustomDymdDependency() types.Dependency {
 	}
 }
 
-func InstallCustomDymdVersion() error {
-	dep := CustomDymdDependency()
+func ExtractCommitFromBinaryVersion(binary string) (string, error) {
+	_, err := os.Stat(binary)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
 
-	err := InstallBinaryFromRepo(dep, dep.DependencyName)
+	cmd := exec.Command(binary, "version", "--long")
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	lns := strings.Split(out.String(), "\n")
+	var cl string
+	for _, l := range lns {
+		if strings.Contains(l, "commit") {
+			cl = l
+			break
+		}
+	}
+
+	re := regexp.MustCompile(`commit: ([a-f0-9]+)`)
+	match := re.FindStringSubmatch(cl)
+	if len(match) > 1 {
+		return match[1], nil
+	} else {
+		return "", errors.New("commit not found in the version output")
+	}
+}
+
+func InstallCustomDymdVersion() error {
+	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+		"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
+	).Show()
+	dep := customDymdDependency(dymdCommit)
+
+	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
 	if err != nil {
 		return err
+	}
+
+	if commit == "" || commit[:6] != dep.Release[:6] {
+		err := InstallBinaryFromRepo(dep, dep.DependencyName)
+		if err != nil {
+			return err
+		}
+	} else {
+		pterm.Info.Println("dymd versions match, skipping installation")
 	}
 
 	return nil

@@ -51,6 +51,7 @@ var KeysIds = struct {
 	HubRelayer                    string
 	Celestia                      string
 	Eibc                          string
+	Da                            string
 }{
 	HubSequencer:                  "hub_sequencer",
 	HubGenesis:                    "hub_genesis",
@@ -61,6 +62,7 @@ var KeysIds = struct {
 	HubRelayer:                    "relayer-hub-key",
 	Celestia:                      "", // my_celes_key
 	Eibc:                          "whale",
+	Da:                            "da_key",
 }
 
 var AddressPrefixes = struct {

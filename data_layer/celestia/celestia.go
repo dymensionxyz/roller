@@ -13,10 +13,11 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -29,11 +30,13 @@ type Celestia struct {
 	metricsEndpoint string
 	RPCPort         string
 	NamespaceID     string
+	KeyringBackend  consts.SupportedKeyringBackend
 }
 
-func NewCelestia(home string) *Celestia {
+func NewCelestia(home string, kb consts.SupportedKeyringBackend) *Celestia {
 	return &Celestia{
-		Root: home,
+		Root:           home,
+		KeyringBackend: kb,
 	}
 }
 
@@ -109,14 +112,21 @@ func (c *Celestia) GetLightNodeEndpoint() string {
 // FIXME: should be loaded once and cached
 func (c *Celestia) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	daKeysDir := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, consts.KeysDirName)
-	cmd := exec.Command(
-		consts.Executables.CelKey, "show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
-		daKeysDir, "--keyring-backend", "test", "--output", "json",
+
+	args := []string{
+		"show", c.GetKeyName(), "--node.type", "light", "--keyring-dir",
+		daKeysDir, "--keyring-backend", string(c.KeyringBackend), "--output", "json",
+	}
+	output, err := keys.RunCmdBasedOnKeyringBackend(
+		c.Root,
+		consts.Executables.CelKey,
+		args,
+		c.KeyringBackend,
 	)
-	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
 	}
+
 	address, err := keys.ParseAddressFromOutput(output)
 	return address, err
 }
@@ -127,14 +137,29 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 		return "", err
 	}
 
-	initLightNodeCmd := exec.Command(
-		consts.Executables.Celestia, "light", "init",
+	if c.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		pterm.Info.Println("creating keyring passphrase file")
+		err := keys.CreateDaOsKeyringPswFile(c.Root)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	args := []string{
+		"light", "init",
 		"--p2p.network",
 		string(raCfg.DA.ID),
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
+		"--keyring.backend", string(c.KeyringBackend),
+	}
+
+	var out *bytes.Buffer
+	out, err = keys.RunCmdBasedOnKeyringBackend(
+		c.Root,
+		consts.Executables.Celestia,
+		args,
+		c.KeyringBackend,
 	)
-	// err := initLightNodeCmd.Run()
-	out, err := bash.ExecCommandWithStdout(initLightNodeCmd)
 	if err != nil {
 		return "", err
 	}
@@ -152,8 +177,11 @@ func extractMnemonic(output string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if mnemonicLineFound {
-			// Collect all subsequent lines as part of the mnemonic
-			mnemonicLines = append(mnemonicLines, line)
+			// Extract only the 24 words from the line
+			words := strings.Fields(line)
+			if len(words) == 24 {
+				mnemonicLines = append(mnemonicLines, strings.Join(words, " "))
+			}
 		}
 		if strings.HasPrefix(line, "MNEMONIC") {
 			mnemonicLineFound = true
@@ -208,7 +236,7 @@ func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 	}
 	return &keys.AccountData{
 		Address: celAddress.Address,
-		Balance: balance,
+		Balance: *balance,
 	}, nil
 }
 
@@ -232,6 +260,7 @@ func (c *Celestia) GetExportKeyCmd() *exec.Cmd {
 		c.GetKeyName(),
 		filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "keys"),
 		consts.Executables.CelKey,
+		string(c.KeyringBackend),
 	)
 }
 
@@ -247,11 +276,11 @@ func (c *Celestia) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	}
 
 	var insufficientBalances []keys.NotFundedAddressData
-	if accData.Balance.Amount.Cmp(lcMinBalance) < 0 {
+	if accData.Balance.Amount.BigInt().Cmp(lcMinBalance) < 0 {
 		insufficientBalances = append(
 			insufficientBalances, keys.NotFundedAddressData{
 				Address:         accData.Address,
-				CurrentBalance:  accData.Balance.Amount,
+				CurrentBalance:  accData.Balance.Amount.BigInt(),
 				RequiredBalance: lcMinBalance,
 				KeyName:         c.GetKeyName(),
 				Denom:           consts.Denoms.Celestia,

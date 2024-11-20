@@ -36,12 +36,12 @@ type DAManager struct {
 	DataLayer
 }
 
-func NewDAManager(datype consts.DAType, home string) *DAManager {
+func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringBackend) *DAManager {
 	var dalayer DataLayer
 
 	switch datype {
 	case consts.Celestia:
-		dalayer = celestia.NewCelestia(home)
+		dalayer = celestia.NewCelestia(home, kb)
 	case consts.Avail:
 		dalayer = avail.NewAvail(home)
 	case consts.Local:

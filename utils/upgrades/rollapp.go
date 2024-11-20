@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/binaries"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/migrations"
-	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 func NewRollappUpgrade(vmType string) (*RollappUpgrade, error) {
@@ -62,7 +62,7 @@ func (ra RollappUpgrade) VersionCommit() (string, error) {
 
 	var commit string
 
-	commit, _ = rollapp.ExtractCommitFromBinary()
+	commit, _ = dependencies.ExtractCommitFromBinaryVersion(consts.Executables.RollappEVM)
 	if commit == "" {
 		version, err := ra.Version()
 		if err != nil {

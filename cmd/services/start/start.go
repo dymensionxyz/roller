@@ -3,16 +3,17 @@ package start
 import (
 	"fmt"
 	"runtime"
+	"slices"
 	"strings"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -20,6 +21,7 @@ func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
@@ -49,14 +51,30 @@ func RollappCmd() *cobra.Command {
 				// 	}
 			}
 
+			var servicesToStart []string
+			if len(args) != 0 {
+				if !slices.Contains(consts.RollappSystemdServices, args[0]) {
+					pterm.Error.Printf(
+						"invalid service name %s. Available services: %v\n",
+						args[0],
+						consts.RollappSystemdServices,
+					)
+					return
+				}
+
+				servicesToStart = []string{args[0]}
+			} else {
+				servicesToStart = consts.RollappSystemdServices
+			}
+
 			if runtime.GOOS == "darwin" {
-				err := startLaunchctlServices(consts.RollappSystemdServices)
+				err := startLaunchctlServices(servicesToStart)
 				if err != nil {
 					pterm.Error.Println("failed to start launchd services:", err)
 					return
 				}
 			} else if runtime.GOOS == "linux" {
-				err := startSystemdServices(consts.RollappSystemdServices)
+				err := startSystemdServices(servicesToStart)
 				if err != nil {
 					pterm.Error.Println("failed to start systemd services:", err)
 					return
@@ -76,11 +94,13 @@ func RollappCmd() *cobra.Command {
 					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 						Sprintf("roller relayer setup"),
 				)
-				pterm.Info.Printf(
-					"run %s to view the logs  of the rollapp\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("roller rollapp services logs"),
-				)
+				if runtime.GOOS == "linux" {
+					pterm.Info.Printf(
+						"run %s to view the logs  of the rollapp\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("journalctl -fu <service>"),
+					)
+				}
 			}()
 		},
 	}
@@ -118,11 +138,13 @@ func RelayerCmd() *cobra.Command {
 					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 						Sprintf("roller eibc init"),
 				)
-				pterm.Info.Printf(
-					"run %s to view the current status of the relayer\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("roller relayer services logs"),
-				)
+				if runtime.GOOS == "linux" {
+					pterm.Info.Printf(
+						"run %s to view the logs of the relayer\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("journalctl -fu <service>"),
+					)
+				}
 			}()
 		},
 	}

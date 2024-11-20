@@ -85,3 +85,9 @@ type SnapshotInfo struct {
 	// sha-256 checksum value for the snapshot file
 	Checksum string `protobuf:"bytes,3,opt,name=checksum,proto3"                      json:"checksum,omitempty"`
 }
+
+type CheckExistingSequencerResponse struct {
+	IsSequencerAlreadyRegistered bool
+	IsSequencerKeyPresent        bool
+	IsSequencerProposer          bool
+}

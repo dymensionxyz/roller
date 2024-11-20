@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/eibc/start"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
-	logservices "github.com/dymensionxyz/roller/cmd/services/logs"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
 	stopservices "github.com/dymensionxyz/roller/cmd/services/stop"
@@ -35,7 +34,7 @@ func Cmd() *cobra.Command {
 			startservices.EibcCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
-			logservices.EibcCmd(),
+			// logservices.EibcCmd(),
 		),
 	)
 

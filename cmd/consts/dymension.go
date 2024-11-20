@@ -1,71 +1,66 @@
 package consts
 
+const DefaultIndexer = "http://44.206.211.230:3000/"
+
 var MainnetHubData = HubData{
-	API_URL:         "https://dymension-mainnet-rest.public.blastapi.io",
-	ID:              MainnetHubID,
-	RPC_URL:         "https://dymension-mainnet-tendermint.public.blastapi.io",
-	ARCHIVE_RPC_URL: "https://dymension-mainnet-tendermint.public.blastapi.io",
-	GAS_PRICE:       "20000000000",
-	// DA_NETWORK:      string(CelestiaMainnet),
-	DA_NETWORK: string(AvailMainnet),
+	Environment:   "mainnet",
+	ApiUrl:        "https://dymension-mainnet-rest.public.blastapi.io",
+	ID:            MainnetHubID,
+	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io",
+	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io",
+	GasPrice:      "20000000000",
+	// DaNetwork:      string(CelestiaMainnet),
+	DaNetwork: AvailMainnet,
 }
 
 var TestnetHubData = HubData{
-	API_URL:         "https://api-blumbus.mzonder.com",
-	ID:              TestnetHubID,
-	RPC_URL:         "https://rpc-blumbus.mzonder.com",
-	ARCHIVE_RPC_URL: "https://rpc-blumbus-archive.mzonder.com",
-	GAS_PRICE:       "20000000000",
-	// DA_NETWORK:      string(CelestiaTestnet),
-	DA_NETWORK: string(AvailTestnet),
-}
-
-var DevnetHubData = HubData{
-	API_URL:         "http://52.58.111.62:1318",
-	ID:              DevnetHubID,
-	RPC_URL:         "http://52.58.111.62:36657",
-	ARCHIVE_RPC_URL: "http://52.58.111.62:36657",
-	GAS_PRICE:       "100000000",
-	// DA_NETWORK:      string(CelestiaTestnet),
-	DA_NETWORK: string(AvailTestnet),
+	Environment:   "blumbus",
+	ApiUrl:        "https://api-blumbus.mzonder.com",
+	ID:            TestnetHubID,
+	RpcUrl:        "https://rpc-blumbus.mzonder.com",
+	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com",
+	GasPrice:      "20000000000",
+	DaNetwork:     AvailTestnet,
+	// DaNetwork:      string(CelestiaTestnet),
 }
 
 var LocalHubData = HubData{
-	API_URL:         "http://localhost:1318",
-	ID:              LocalHubID,
-	RPC_URL:         "http://localhost:36657",
-	ARCHIVE_RPC_URL: "http://localhost:36657",
-	GAS_PRICE:       "100000000",
-	DA_NETWORK:      string(MockDA),
+	Environment:   "local",
+	ApiUrl:        "http://localhost:1318",
+	ID:            LocalHubID,
+	RpcUrl:        "http://localhost:36657",
+	ArchiveRpcUrl: "http://localhost:36657",
+	GasPrice:      "100000000",
+	DaNetwork:     MockDA,
 }
 
 var MockHubData = HubData{
-	API_URL:         "",
-	ID:              MockHubID,
-	RPC_URL:         "",
-	ARCHIVE_RPC_URL: "",
-	GAS_PRICE:       "",
-	DA_NETWORK:      string(MockDA),
+	Environment:   "mock",
+	ApiUrl:        "",
+	ID:            MockHubID,
+	RpcUrl:        "",
+	ArchiveRpcUrl: "",
+	GasPrice:      "",
+	DaNetwork:     MockDA,
 }
 
 var PlaygroundHubData = HubData{
-	// API_URL: "https://api-dymension-playground-2.mzonder.com:443",
-	// RPC_URL:         "https://rpc-dymension-playground-2.mzonder.com:443",
-	// DA_NETWORK:      string(CelestiaTestnet),
-
-	API_URL:         "http://localhost:1318",
-	ID:              PlaygroundHubID,
-	RPC_URL:         "http://localhost:36657",
-	ARCHIVE_RPC_URL: "http://localhost:36657",
-	GAS_PRICE:       "2000000000",
-	DA_NETWORK:      string(AvailTestnet),
+	Environment: "playground",
+	// ApiUrl:        "https://api-dymension-playground-2.mzonder.com:443",
+	ApiUrl: "http://localhost:1318",
+	ID:     PlaygroundHubID,
+	// RpcUrl:        "https://rpc-dymension-playground-2.mzonder.com:443",
+	// ArchiveRpcUrl: "https://rpc-dymension-playground-2.mzonder.com:443",
+	RpcUrl:        "http://localhost:36657",
+	ArchiveRpcUrl: "http://localhost:36657",
+	GasPrice:      "2000000000",
+	DaNetwork:     AvailTestnet,
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
 var Hubs = map[string]HubData{
 	MockHubName:       MockHubData,
 	LocalHubName:      LocalHubData,
-	DevnetHubName:     DevnetHubData,
 	TestnetHubName:    TestnetHubData,
 	PlaygroundHubName: PlaygroundHubData,
 	MainnetHubName:    MainnetHubData,
@@ -74,16 +69,15 @@ var Hubs = map[string]HubData{
 const (
 	MockHubName       = "mock"
 	LocalHubName      = "local"
-	DevnetHubName     = "devnet"
 	TestnetHubName    = "testnet"
 	PlaygroundHubName = "playground"
 	MainnetHubName    = "mainnet"
 )
 
 const (
-	MockHubID       = "mock"
-	LocalHubID      = "dymension_100-1"
-	DevnetHubID     = "dymension_100-1"
+	MockHubID  = "mock"
+	LocalHubID = "dymension_100-1"
+	// PlaygroundHubID = "dymension_2019-1"
 	PlaygroundHubID = "dymension_100-1"
 	TestnetHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"

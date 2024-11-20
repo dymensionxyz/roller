@@ -1,9 +1,9 @@
 package start
 
 import (
-	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -13,8 +13,8 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
-	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -22,10 +22,6 @@ const (
 	rpcEndpointFlag     = "rpc-endpoint"
 	metricsEndpointFlag = "metrics-endpoint"
 )
-
-var LCEndpoint = ""
-
-var LogFilePath = ""
 
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
@@ -46,8 +42,11 @@ func Cmd() *cobra.Command {
 					errors.New("metrics endpoint can only be set for celestia"),
 				)
 			}
-			damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
-			fmt.Println("da manager here....", damanager)
+			damanager := datalayer.NewDAManager(
+				rollerData.DA.Backend,
+				rollerData.Home,
+				rollerData.KeyringBackend,
+			)
 
 			if rollerData.NodeType == "sequencer" {
 				pterm.Info.Println("checking for da address balance")
@@ -74,21 +73,32 @@ func Cmd() *cobra.Command {
 				)
 			}
 
-			fmt.Println("** start dalc command update***", startDALCCmd)
-
-			LogFilePath = logging.GetDALogFilePath(rollerData.Home)
-			LCEndpoint = damanager.GetLightNodeEndpoint()
-			ctx, cancel := context.WithCancel(context.Background())
-
 			fmt.Println(startDALCCmd.String())
-			defer cancel()
-			go bash.RunCmdAsync(
-				ctx,
-				startDALCCmd,
-				printOutput,
-				parseError,
-				logging.WithLogging(LogFilePath),
-			)
+			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Celestia)
+				if err != nil {
+					pterm.Error.Println("failed to get os keyring password file name: ", err)
+					return
+				}
+
+				fp := filepath.Join(home, string(pswFileName))
+				psw, err := filesystem.ReadFromFile(fp)
+				if err != nil {
+					pterm.Error.Println("failed to read os keyring password file: ", err)
+					return
+				}
+
+				pr := map[string]string{
+					"Enter keyring passphrase":    psw,
+					"Re-enter keyring passphrase": psw,
+				}
+
+				// nolint: errcheck
+				go bash.ExecCmdFollow(startDALCCmd, pr)
+			} else {
+				// nolint: errcheck
+				go bash.ExecCmdFollow(startDALCCmd, nil)
+			}
 			select {}
 		},
 	}
@@ -102,14 +112,4 @@ func addFlags(cmd *cobra.Command) {
 		StringP(rpcEndpointFlag, "", "http://localhost:8000", "The DA rpc endpoint to connect to.") // TODO : change the DA rpc if required
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
-}
-
-func printOutput() {
-	fmt.Println("💈 The data availability light node is running on your local machine!")
-	fmt.Printf("💈 Light node endpoint: %s\n", LCEndpoint)
-	fmt.Printf("💈 Log file path: %s\n", LogFilePath)
-}
-
-func parseError(errMsg string) string {
-	return errMsg
 }

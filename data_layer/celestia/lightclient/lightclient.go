@@ -24,16 +24,19 @@ import (
 // KeyInfo of the created celestia address
 func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, error) {
 	if env != "mock" {
-		daSpinner, _ := pterm.DefaultSpinner.Start("initializing da light client")
+		pterm.Info.Println("initializing da light client")
 		hd := rollerData.HubData
 		raID := rollerData.RollappID
+		kb := rollerData.KeyringBackend
 
-		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home)
+		pterm.Info.Println("initializing da light node configuration")
+		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return nil, err
 		}
 
+		pterm.Info.Println("checking for registered sequencers")
 		sequencers, err := sequencer.RegisteredRollappSequencersOnHub(
 			rollerData.RollappID,
 			rollerData.HubData,
@@ -42,6 +45,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			return nil, err
 		}
 
+		pterm.Info.Println("retrieving latest block")
 		latestHeight, latestBlockIdHash, err := celestia.GetLatestBlock(rollerData)
 		if err != nil {
 			return nil, err
@@ -51,6 +55,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			return nil, err
 		}
 
+		pterm.Info.Println("updating da light client configuration")
 		celestiaConfigFilePath := filepath.Join(
 			rollerData.Home,
 			consts.ConfigDirName.DALightNode,
@@ -71,7 +76,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 				return nil, err
 			}
 		} else {
-			daSpinner.UpdateText("checking for state update ")
+			pterm.Info.Println("checking for state update")
 			cmd := exec.Command(
 				consts.Executables.Dymension,
 				"q",
@@ -81,11 +86,12 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 				"--index",
 				"1",
 				"--node",
-				hd.RPC_URL,
+				hd.RpcUrl,
 				"--chain-id",
 				hd.ID,
 			)
 
+			pterm.Info.Println("checking for state update")
 			out, err := bash.ExecCommandWithStdout(cmd)
 			if err != nil {
 				if strings.Contains(out.String(), "NotFound") {
@@ -101,7 +107,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 					return nil, err
 				}
 			} else {
-				daSpinner.UpdateText("state update found, extracting da height")
+				pterm.Info.Println("state update found, extracting da height")
 
 				var result RollappStateResponse
 				if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
@@ -138,9 +144,9 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 					return nil, err
 				}
 			}
-
 		}
 
+		pterm.Info.Println("retrieving da address")
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return nil, err
@@ -152,7 +158,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 				Address:  daAddress.Address,
 				Mnemonic: mnemonic,
 			}
-			daSpinner.Success("successfully initialized da light client")
+			pterm.Success.Println("successfully initialized da light client")
 			return ki, nil
 		}
 	}

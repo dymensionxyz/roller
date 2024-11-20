@@ -349,7 +349,7 @@ func GetAddGenesisAccountCmd(addr, amount string, raCfg *roller.RollappConfig) *
 		"--home",
 		fmt.Sprintf("%s/%s", home, consts.ConfigDirName.Rollapp),
 		"--keyring-backend",
-		"test",
+		string(raCfg.KeyringBackend),
 	)
 
 	return cmd

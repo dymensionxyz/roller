@@ -1,16 +1,16 @@
 package relayer
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/dymensionxyz/roller/cmd/relayer/setup"
 	"github.com/dymensionxyz/roller/cmd/relayer/start"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
-	logservices "github.com/dymensionxyz/roller/cmd/services/logs"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
 	startservices "github.com/dymensionxyz/roller/cmd/services/start"
 	stopservices "github.com/dymensionxyz/roller/cmd/services/stop"
-	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
@@ -30,7 +30,7 @@ func Cmd() *cobra.Command {
 			startservices.RelayerCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
-			logservices.RelayerCmd(),
+			// logservices.RelayerCmd(),
 		),
 	)
 

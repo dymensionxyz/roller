@@ -11,7 +11,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
 )
@@ -158,7 +158,7 @@ func GetCommitFromTag(owner, repo, tag string) (string, error) {
 
 	if resp.StatusCode == http.StatusNotFound {
 		pterm.Warning.Println("tag not found, extracting commit from build flags ", tag)
-		commit, err := rollapp.ExtractCommitFromBinary()
+		commit, err := dependencies.ExtractCommitFromBinaryVersion(consts.Executables.RollappEVM)
 		if err != nil {
 			return "", err
 		}
@@ -191,7 +191,7 @@ func GetCommitTimestampByTag(owner, repo, tag string) (time.Time, error) {
 
 	if resp.StatusCode == http.StatusNotFound {
 		pterm.Warning.Println("tag not found, extracting commit from build flags ", tag)
-		commit, err := rollapp.ExtractCommitFromBinary()
+		commit, err := dependencies.ExtractCommitFromBinaryVersion(consts.Executables.RollappEVM)
 		if err != nil {
 			return time.Time{}, err
 		}

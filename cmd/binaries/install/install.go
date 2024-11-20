@@ -98,7 +98,7 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String("node", consts.PlaygroundHubData.RPC_URL, "hub rpc endpoint")
+	cmd.Flags().String("node", consts.PlaygroundHubData.RpcUrl, "hub rpc endpoint")
 	cmd.Flags().String("chain-id", consts.PlaygroundHubData.ID, "hub chain id")
 
 	return cmd

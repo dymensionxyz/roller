@@ -45,9 +45,8 @@ instance.
 			}
 
 			rollAppID := args[0]
-			value := args[1]
 
-			err = eibc.AddRollappToEibc(value, rollAppID, eibcHome)
+			err = eibc.AddRollappToEibc(rollAppID, eibcHome, []string{"mock"})
 			if err != nil {
 				return
 			}
