@@ -402,10 +402,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			wrSpinner, _ := pterm.DefaultSpinner.Start(
+				"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
+			)
 			for {
-				wrSpinner, _ := pterm.DefaultSpinner.Start(
-					"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
-				)
 				r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
 				if err != nil {
 					pterm.Error.Println("failed to get whitelisted relayers:", err)
@@ -413,6 +413,9 @@ func Cmd() *cobra.Command {
 				}
 
 				if len(r) == 0 {
+					wrSpinner.UpdateText(
+						"waiting for the whitelisted relayer to propagate to RollApp...",
+					)
 					time.Sleep(time.Second * 5)
 					continue
 				} else {
