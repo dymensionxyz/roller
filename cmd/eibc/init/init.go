@@ -321,7 +321,8 @@ func Cmd() *cobra.Command {
 				if rollerRaID != "" {
 					msg := fmt.Sprintf(
 						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
-						rollerRaID,
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprint(rollerRaID),
 					)
 					rlyFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
 					if rlyFromRoller {
