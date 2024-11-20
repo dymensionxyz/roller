@@ -726,6 +726,11 @@ RollApp's IRO time: %v`,
 				"max_proof_time",
 				"5s",
 			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"settlement_gas_prices",
+				"100000000000adym",
+			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
 			_ = tomlconfig.UpdateFieldInFile(
