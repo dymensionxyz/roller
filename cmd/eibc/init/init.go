@@ -153,6 +153,7 @@ func Cmd() *cobra.Command {
 							pterm.Info.Printfln("policies already present for %s", kc.ID)
 
 							printPolicyAddress(pol.GroupPolicies[0].Address)
+
 							updates := map[string]interface{}{
 								"fulfillers.policy_address": pol.GroupPolicies[0].Address,
 								"operator.group_id":         groupID,
@@ -227,7 +228,6 @@ func Cmd() *cobra.Command {
 						pterm.Error.Printf("failed to create whale account: %v\n", err)
 						return
 					}
-
 				}
 			} else {
 				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
@@ -254,29 +254,41 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			cqc := keys.ChainQueryConfig{
-				Binary: consts.Executables.Dymension,
-				Denom:  consts.Denoms.Hub,
-				RPC:    hd.RpcUrl,
-			}
-			balance, err := keys.QueryBalance(cqc, ki.Address)
-			if err != nil {
-				pterm.Error.Println("failed to get balance: ", err)
-				return
-			}
+			pterm.Info.Println(
+				"you are about to run the eibc client for the following Dymension network:",
+			)
+			fmt.Println("network ID:",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprint(hd.ID),
+			)
 
-			if !balance.Amount.IsPositive() {
-				pterm.Info.Println(
-					"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
-				)
-				ki.Print(keys.WithName(), keys.WithMnemonic())
-				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-					WithDefaultText(
-						"press 'y' when the wallets are funded",
-					).Show()
-				if !proceed {
-					pterm.Error.Println("cancelled by user")
+			for {
+				cqc := keys.ChainQueryConfig{
+					Binary: consts.Executables.Dymension,
+					Denom:  consts.Denoms.Hub,
+					RPC:    hd.RpcUrl,
+				}
+				balance, err := keys.QueryBalance(cqc, ki.Address)
+				if err != nil {
+					pterm.Error.Println("failed to get balance: ", err)
 					return
+				}
+
+				if !balance.Amount.IsPositive() {
+					pterm.Info.Println(
+						"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
+					)
+					ki.Print(keys.WithName(), keys.WithMnemonic())
+					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+						WithDefaultText(
+							"press 'y' when the wallets are funded",
+						).Show()
+					if !proceed {
+						pterm.Error.Println("cancelled by user")
+						return
+					}
+				} else {
+					break
 				}
 			}
 
@@ -572,6 +584,10 @@ func updateEibcConfig(eibcConfigPath string, hd consts.HubData) error {
 		"node_address":              hd.RpcUrl,
 		"order_polling.indexer_url": consts.DefaultIndexer,
 		"operator.account_name":     consts.KeysIds.Eibc,
+		"gas.fees":                  "4000000000000000adym",
+		"rollapps.example_1234-1":   nil,
+		"validation.interval":       "5m0s",
+		"validation.wait_time":      "61m0s",
 	}
 	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 	if err != nil {
