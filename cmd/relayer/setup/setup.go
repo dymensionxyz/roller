@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -412,7 +413,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				if len(r) == 0 {
+				if len(r) == 0 &&
+					slices.Contains(r, relKeys[consts.KeysIds.RollappRelayer].Address) {
 					wrSpinner.UpdateText(
 						"waiting for the whitelisted relayer to propagate to RollApp...",
 					)
