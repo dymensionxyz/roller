@@ -294,7 +294,7 @@ func Cmd() *cobra.Command {
 
 			var runForExisting bool
 			var raID string
-			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			rollerConfigFilePath := filepath.Join(roller.GetRootDir(), consts.RollerConfigFileName)
 			var rollerData roller.RollappConfig
 
 			_, err = os.Stat(rollerConfigFilePath)
@@ -321,7 +321,8 @@ func Cmd() *cobra.Command {
 				if rollerRaID != "" {
 					msg := fmt.Sprintf(
 						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
-						rollerRaID,
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprint(rollerRaID),
 					)
 					rlyFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
 					if rlyFromRoller {
