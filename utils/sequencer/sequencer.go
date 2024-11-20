@@ -581,8 +581,6 @@ func UpdateWhitelistedRelayers(
 	home, raRelayerAddress string,
 	hd consts.HubData,
 ) error {
-	rollerHomeDir := roller.GetConfigPath(home)
-
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"tx",
@@ -590,7 +588,7 @@ func UpdateWhitelistedRelayers(
 		"update-whitelisted-relayers",
 		raRelayerAddress,
 		"--from", consts.KeysIds.HubSequencer,
-		"--home", filepath.Join(rollerHomeDir, consts.ConfigDirName.HubKeys),
+		"--home", filepath.Join(home, consts.ConfigDirName.HubKeys),
 		"--keyring-backend", "test",
 		"--chain-id", hd.ID,
 		"--node", hd.RpcUrl,
