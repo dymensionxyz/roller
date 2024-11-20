@@ -365,7 +365,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			j, _ := json.Marshal(relKeys[consts.KeysIds.RollappRelayer])
+			j, _ := json.MarshalIndent(relKeys, "", "  ")
 			pterm.Info.Printfln("info: \n%s", string(j))
 			return
 
