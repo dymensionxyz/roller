@@ -14,26 +14,26 @@ type Config struct {
 	NodeAddress string `yaml:"node_address"`
 
 	OperatorConfig operatorConfig           `yaml:"operator"`
-	OrderPolling   OrderPollingConfig       `yaml:"order_polling"`
-	Rollapps       map[string]RollappConfig `yaml:"rollapps"`
+	OrderPolling   orderPollingConfig       `yaml:"order_polling"`
+	Rollapps       map[string]rollappConfig `yaml:"rollapps"`
 
 	SlackConfig slackConfig      `yaml:"slack"`
 	Validation  validationConfig `yaml:"validation"`
 }
 
-type OrderPollingConfig struct {
+type orderPollingConfig struct {
 	IndexerURL string        `yaml:"indexer_url"`
 	Interval   time.Duration `yaml:"interval"`
 	Enabled    bool          `yaml:"enabled"`
 }
 
-type RollappConfig struct {
+type rollappConfig struct {
 	FullNodes        []string `yaml:"full_nodes"`
 	MinConfirmations string   `yaml:"min_confirmations"`
 }
 
 type GasConfig struct {
-	Prices string `yaml:"prices"`
+	Fees string `yaml:"fees"`
 }
 
 type fulfillerConfig struct {
@@ -53,12 +53,9 @@ type operatorConfig struct {
 }
 
 type validationConfig struct {
-	FallbackLevel      string `yaml:"fallback_level"`
-	ValidationWaitTime string `yaml:"validation_wait_time"`
-}
-
-type fulfillCriteria struct {
-	MinFeePercentage minFeePercentage `yaml:"min_fee_percentage"`
+	FallbackLevel string `yaml:"fallback_level"`
+	WaitTime      string `yaml:"wait_time"`
+	Interval      string `yaml:"wait_time"`
 }
 
 type minFeePercentage struct {
