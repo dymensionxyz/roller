@@ -2,6 +2,7 @@ package keys
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -76,6 +77,8 @@ func RunCmdBasedOnKeyringBackend(
 		var err error
 
 		cmd := exec.Command(command, args...)
+
+		fmt.Println(cmd.String())
 		out, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return nil, err
