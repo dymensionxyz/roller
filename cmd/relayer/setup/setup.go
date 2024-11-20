@@ -367,7 +367,6 @@ func Cmd() *cobra.Command {
 
 			j, _ := json.MarshalIndent(relKeys, "", "  ")
 			pterm.Info.Printfln("info: \n%s", string(j))
-			return
 
 			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
 				relKeys[consts.KeysIds.RollappRelayer].Address,
