@@ -369,8 +369,8 @@ func Cmd() *cobra.Command {
 			pterm.Info.Printfln("info: \n%s", string(j))
 
 			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
-				relKeys[consts.KeysIds.RollappRelayer].Address,
 				seqAddr,
+				relKeys[consts.KeysIds.RollappRelayer].Address,
 				*hd,
 			)
 			if err != nil {

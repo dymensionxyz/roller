@@ -500,6 +500,7 @@ func getShowSequencerCmd(addr string, hd consts.HubData) *exec.Cmd {
 func showSequencer(addr string, hd consts.HubData) (*ShowSequencerResponse, error) {
 	c := getShowSequencerCmd(addr, hd)
 
+	fmt.Println(c.String())
 	var GetSequencerResponse ShowSequencerResponse
 	out, err := bash.ExecCommandWithStdout(c)
 	if err != nil {
