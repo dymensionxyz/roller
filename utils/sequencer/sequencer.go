@@ -50,11 +50,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	customRewardAddress = strings.TrimSpace(customRewardAddress)
 
 	// TODO: improve ux
-	relayerAddresses, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide a comma separated list of addresses that you want to enable relay IBC packets (example: addr1,addr2)",
-	).Show()
-	relayerAddresses = strings.TrimSpace(relayerAddresses)
-
 	args := []string{
 		"tx",
 		"sequencer",
@@ -73,11 +68,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	}
 	if customRewardAddress != "" {
 		cArgs := []string{"--reward-address", customRewardAddress}
-		args = append(args, cArgs...)
-	}
-
-	if relayerAddresses != "" {
-		cArgs := []string{"--whitelisted-relayers", relayerAddresses}
 		args = append(args, cArgs...)
 	}
 
