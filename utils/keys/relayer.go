@@ -188,7 +188,7 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 				if err != nil {
 					return nil, err
 				}
-				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+				createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
 			}
 		default:
 			return nil, fmt.Errorf("invalid key name: %s", v.ID)
