@@ -619,7 +619,7 @@ func GetSequencerOperatorAddress(home string) (string, error) {
 		consts.Executables.RollappEVM,
 		"keys",
 		"show",
-		consts.KeysIds.RollappSequencer,
+		consts.KeysIds.HubSequencer,
 		"-a",
 		"--keyring-backend",
 		"test",

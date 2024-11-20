@@ -398,11 +398,14 @@ func Cmd() *cobra.Command {
 
 			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
 			if err != nil {
-				pterm.Error.Println("failed to get genesis operator address:", err)
+				pterm.Error.Println("failed to get RollApp's operator address:", err)
 				return
 			}
 
 			for {
+				wrSpinner, _ := pterm.DefaultSpinner.Start(
+					"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
+				)
 				r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
 				if err != nil {
 					pterm.Error.Println("failed to get whitelisted relayers:", err)
@@ -413,6 +416,8 @@ func Cmd() *cobra.Command {
 					time.Sleep(time.Second * 5)
 					continue
 				} else {
+					// nolint: errcheck
+					wrSpinner.Stop()
 					break
 				}
 			}
