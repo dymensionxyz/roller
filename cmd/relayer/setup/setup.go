@@ -379,8 +379,9 @@ func Cmd() *cobra.Command {
 			}
 
 			if !isRlyKeyWhitelisted {
-				pterm.Warning.Println(
-					"relayer key is not whitelisted, updating whitelisted relayers",
+				pterm.Warning.Printfln(
+					"relayer key (%s) is not whitelisted, updating whitelisted relayers",
+					relKeys[consts.KeysIds.RollappRelayer].Address,
 				)
 
 				err := sequencerutils.UpdateWhitelistedRelayers(
