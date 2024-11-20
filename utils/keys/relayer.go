@@ -155,6 +155,13 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 					pterm.Error.Printf("failed to add key: %v\n", err)
 				}
 				createdRlyKeys[consts.KeysIds.RollappRelayer] = *key
+			} else {
+				ki, err := v.Info(rollerData.Home)
+				if err != nil {
+					pterm.Error.Printf("failed to get key info: %v\n", err)
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
 			}
 		case consts.KeysIds.HubRelayer:
 			chainId := rollerData.HubData.ID
@@ -171,6 +178,13 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 					pterm.Error.Printf("failed to add key: %v\n", err)
 				}
 				createdRlyKeys[consts.KeysIds.HubRelayer] = *key
+			} else {
+				ki, err := v.Info(rollerData.Home)
+				if err != nil {
+					pterm.Error.Printf("failed to get key info: %v\n", err)
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
 			}
 		default:
 			return nil, fmt.Errorf("invalid key name: %s", v.ID)
