@@ -474,7 +474,7 @@ func GetAppConfigFilePath(root string) string {
 	return filepath.Join(root, consts.ConfigDirName.Rollapp, "config", "app.toml")
 }
 
-func GetWhitelistedRelayers(address string, hd consts.HubData) ([]string, error) {
+func GetWhitelistedRelayersOnHub(address string, hd consts.HubData) ([]string, error) {
 	seqResp, err := showSequencer(address, hd)
 	if err != nil {
 		return nil, err
@@ -611,4 +611,61 @@ func UpdateWhitelistedRelayers(
 	}
 
 	return nil
+}
+
+func GetSequencerOperatorAddress(home string) (string, error) {
+	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.HubKeys)
+	getOperatorAddrCommand := exec.Command(
+		consts.Executables.RollappEVM,
+		"keys",
+		"show",
+		consts.KeysIds.RollappSequencer,
+		"-a",
+		"--keyring-backend",
+		"test",
+		"--home",
+		rollappConfigDirPath,
+		"--bech",
+		"val",
+	)
+
+	fmt.Println(getOperatorAddrCommand.String())
+
+	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+	if err != nil {
+		fmt.Println("val addr failed")
+		return "", err
+	}
+
+	a := strings.TrimSpace(addr.String())
+	fmt.Println(a)
+	return a, nil
+}
+
+type RaWhitelisterRelayersResponse struct {
+	Relayers []string `json:"relayers"`
+}
+
+func GetWhitelistedRelayersOnRa(raOpAddr string) ([]string, error) {
+	cmd := exec.Command(
+		"rollappd",
+		"q",
+		"sequencers",
+		"whitelisted-relayers",
+		raOpAddr,
+		"--output",
+		"json",
+	)
+
+	o, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var response RaWhitelisterRelayersResponse
+	if err := json.Unmarshal(o.Bytes(), &response); err != nil {
+		return nil, err
+	}
+
+	return response.Relayers, nil
 }

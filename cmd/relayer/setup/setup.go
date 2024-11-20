@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -392,6 +393,27 @@ func Cmd() *cobra.Command {
 				if err != nil {
 					pterm.Error.Println("failed to update whitelisted relayers:", err)
 					return
+				}
+			}
+
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			if err != nil {
+				pterm.Error.Println("failed to get genesis operator address:", err)
+				return
+			}
+
+			for {
+				r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
+				if err != nil {
+					pterm.Error.Println("failed to get whitelisted relayers:", err)
+					return
+				}
+
+				if len(r) == 0 {
+					time.Sleep(time.Second * 5)
+					continue
+				} else {
+					break
 				}
 			}
 

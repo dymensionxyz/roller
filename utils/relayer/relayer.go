@@ -235,7 +235,7 @@ func GetConfigFilePath(relayerHome string) string {
 }
 
 func IsRelayerRollappKeyWhitelisted(seqAddr, relAddr string, hd consts.HubData) (bool, error) {
-	relayers, err := sequencerutils.GetWhitelistedRelayers(seqAddr, hd)
+	relayers, err := sequencerutils.GetWhitelistedRelayersOnHub(seqAddr, hd)
 	if err != nil {
 		return false, err
 	}
