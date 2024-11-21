@@ -222,6 +222,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 	if dep.Release != "main" {
 		// Checkout a specific version (e.g., a tag or branch)
+		fmt.Println("dependency name....... dep.release.......", dep.DependencyName, dep.Release)
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
 		if err := exec.Command("git", "checkout", dep.Release).Run(); err != nil {
 			spinner.Fail(

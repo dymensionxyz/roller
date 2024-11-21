@@ -57,10 +57,11 @@ func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string
 	case "evm":
 		deps["rollapp"] = types.Dependency{
 			DependencyName:  "rollapp",
-			RepositoryOwner: "dymensionxyz",
+			RepositoryOwner: "vitwit",
 			RepositoryName:  "rollapp-evm",
-			RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
-			Release:         raBinInfo.Commit,
+			RepositoryUrl:   "https://github.com/vitwit/rollapp-evm.git",
+			// Release:         raBinInfo.Commit,
+			Release: "main",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-evm",
