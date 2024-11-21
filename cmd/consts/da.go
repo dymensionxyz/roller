@@ -80,8 +80,10 @@ var DaNetworks = map[string]DaData{
 		ID:               AvailTestnet,
 		RpcUrl:           "ws://127.0.0.1:9944",
 		CurrentStateNode: "",
-		StateNodes:       []string{},
-		GasPrice:         "",
+		StateNodes:       []string{
+			// "http://localhost:8000",
+		},
+		GasPrice: "",
 	},
 	string(AvailMainnet): {
 		Backend:          Avail,

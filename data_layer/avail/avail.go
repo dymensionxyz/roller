@@ -158,11 +158,13 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (a *Avail) GetDAAccData(_ roller.RollappConfig) ([]keys.AccountData, error) {
+func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
+	fmt.Println("here avail details........", cfg)
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("avail balance hereee.....", balance)
 	return []keys.AccountData{
 		{
 			Address: a.AccAddress,

@@ -59,6 +59,8 @@ func Start(home string, l *log.Logger) {
 				nodeIndex = 0
 			}
 
+			fmt.Println("ROLLER DATA.......", rollerData.DA.StateNodes)
+
 			pterm.Warning.Printf(
 				"detected problems with DA, hotswapping node to %s\n",
 				rollerData.DA.StateNodes[nodeIndex],
