@@ -1,7 +1,6 @@
 package keys
 
 import (
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -51,7 +50,6 @@ func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([
 	var err error
 
 	if env == "mock" {
-		fmt.Println("generating mock sequencer keys")
 		k, err = generateMockSequencerKeys(rollerData)
 		if err != nil {
 			return nil, err
