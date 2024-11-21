@@ -55,7 +55,7 @@ type operatorConfig struct {
 type validationConfig struct {
 	FallbackLevel string `yaml:"fallback_level"`
 	WaitTime      string `yaml:"wait_time"`
-	Interval      string `yaml:"wait_time"`
+	Interval      string `yaml:"interval"`
 }
 
 type minFeePercentage struct {
