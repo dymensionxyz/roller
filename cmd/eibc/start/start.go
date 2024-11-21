@@ -40,7 +40,7 @@ func Cmd() *cobra.Command {
 			c := eibcutils.GetStartCmd()
 			err = bash.ExecCmdFollow(c, nil)
 			if err != nil {
-				pterm.Error.Println("failed to create mongodb container:", err)
+				pterm.Error.Println("failed to start the eibc client:", err)
 				return
 			}
 		},

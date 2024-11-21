@@ -20,8 +20,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 // var OneDaySequencePrice = big.NewInt(1)
@@ -65,21 +67,22 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				return
 			}
 
-			if rollappConfig.HubData.ID != consts.MockHubID { //TODO : enable it if required
-				// raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
-				// if err != nil {
-				// 	pterm.Error.Println("failed to check rollapp version equality: ", err)
-				// }
+			if rollappConfig.HubData.ID != consts.MockHubID {
+				raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+				if err != nil {
+					pterm.Error.Println("failed to check rollapp version equality: ", err)
+				}
 
-				// err = migrations.RequireRollappMigrateIfNeeded(
-				// 	raUpgrade.CurrentVersionCommit,
-				// 	rollappConfig.RollappBinaryVersion,
-				// 	string(rollappConfig.RollappVMType),
-				// ) existing roller configuration found, retrieving keyring backend from it
-				// if err != nil {
-				// 	pterm.Error.Println(err)
-				// 	return
-				// }
+				err = migrations.RequireRollappMigrateIfNeeded(
+					raUpgrade.CurrentVersionCommit[:6],
+					// rollappConfig.RollappBinaryVersion[:6],
+					"main",
+					string(rollappConfig.RollappVMType),
+				)
+				if err != nil {
+					pterm.Info.Println(err)
+					// return // TODO: enable it after handling proper versions in rollapp-evm fork
+				}
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)

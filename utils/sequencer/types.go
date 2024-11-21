@@ -37,6 +37,8 @@ type Info struct {
 	UnbondingHeight string `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3"                        json:"unbonding_height,omitempty"`
 	// unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
 	UnbondTime time.Time `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime"                          json:"unbond_time"`
+	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
+	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3"                json:"whitelisted_relayers,omitempty"`
 }
 
 type Metadata struct {

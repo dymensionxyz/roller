@@ -28,7 +28,7 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 
 	hubKeysDir := filepath.Join(rlpCfg.Home, consts.ConfigDirName.HubKeys)
 	dymintCfg.Set("max_idle_time", "1h0m0s")
-	dymintCfg.Set("max_proof_time", "10s")
+	dymintCfg.Set("max_proof_time", "5s")
 
 	if rlpCfg.HubData.ID == consts.MockHubID {
 		dymintCfg.Set("settlement_layer", "mock")

@@ -74,6 +74,7 @@ func generateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, erro
 		if err != nil {
 			return nil, err
 		}
+
 		addresses = append(
 			addresses, KeyInfo{
 				Address:  address.Address,

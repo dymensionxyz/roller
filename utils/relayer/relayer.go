@@ -3,6 +3,7 @@ package relayer
 import (
 	"fmt"
 	"path/filepath"
+	"slices"
 
 	"github.com/pterm/pterm"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func GetRollappToRunFor(home string) (string, *consts.HubData, error) {
@@ -84,12 +86,21 @@ func promptForRaAndHd() (string, *consts.HubData, error) {
 		hd = consts.Hubs[env]
 	} else {
 		chd, err := config.CreateCustomHubData()
-		hd = *chd
+
+		hd = consts.HubData{
+			Environment:   env,
+			ID:            chd.ID,
+			ApiUrl:        chd.ApiUrl,
+			RpcUrl:        chd.RpcUrl,
+			ArchiveRpcUrl: chd.RpcUrl,
+			GasPrice:      "2000000000",
+			DaNetwork:     consts.CelestiaTestnet,
+		}
 		if err != nil {
 			return "", nil, err
 		}
 
-		err = dependencies.InstallCustomDymdVersion()
+		err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
 			return "", nil, err
@@ -221,4 +232,13 @@ func GetHomeDir(home string) string {
 
 func GetConfigFilePath(relayerHome string) string {
 	return filepath.Join(relayerHome, "config", "config.yaml")
+}
+
+func IsRelayerRollappKeyWhitelisted(seqAddr, relAddr string, hd consts.HubData) (bool, error) {
+	relayers, err := sequencerutils.GetWhitelistedRelayersOnHub(seqAddr, hd)
+	if err != nil {
+		return false, err
+	}
+
+	return slices.Contains(relayers, relAddr), nil
 }

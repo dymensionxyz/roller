@@ -27,6 +27,6 @@ type RollappConfig struct {
 	Decimals             uint
 	MinGasPrices         string `toml:"minimum_gas_prices"`
 
-	HubData consts.HubData
-	DA      consts.DaData
+	HubData consts.HubData `toml:"HubData"`
+	DA      consts.DaData  `toml:"DA"`
 }

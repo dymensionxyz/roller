@@ -76,6 +76,7 @@ func RunCmdBasedOnKeyringBackend(
 		var err error
 
 		cmd := exec.Command(command, args...)
+
 		out, err = bash.ExecCommandWithStdout(cmd)
 		if err != nil {
 			return nil, err

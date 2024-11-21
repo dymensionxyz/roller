@@ -67,14 +67,41 @@ func Cmd() *cobra.Command {
 				pterm.Warning.Println("no roller config found")
 				pterm.Info.Println("initializing for environment")
 
-				envs := []string{"playground"}
+				envs := []string{"playground", "custom"}
 				env, _ := pterm.DefaultInteractiveSelect.
 					WithDefaultText(
 						"select the environment you want to initialize eibc client for",
 					).
 					WithOptions(envs).
 					Show()
-				hd = consts.Hubs[env]
+
+				if env == "custom" {
+					var rollerConfig roller.RollappConfig
+					hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
+						Show()
+					hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
+						Show()
+
+					rollerConfig.HubData.ID = hdid
+					rollerConfig.HubData.RpcUrl = hdrpc
+
+					hd = rollerConfig.HubData
+
+					rollerCfgDir := roller.GetRootDir()
+					err = os.MkdirAll(rollerCfgDir, 0o755)
+					if err != nil {
+						pterm.Error.Println("failed to create roller config dir", err)
+						return
+					}
+
+					err := roller.WriteConfig(rollerConfig)
+					if err != nil {
+						pterm.Error.Println("failed to write roller config", err)
+						return
+					}
+				} else {
+					hd = consts.Hubs[env]
+				}
 			} else {
 				hd = rollerConfig.HubData
 			}
@@ -126,6 +153,7 @@ func Cmd() *cobra.Command {
 							pterm.Info.Printfln("policies already present for %s", kc.ID)
 
 							printPolicyAddress(pol.GroupPolicies[0].Address)
+
 							updates := map[string]interface{}{
 								"fulfillers.policy_address": pol.GroupPolicies[0].Address,
 								"operator.group_id":         groupID,
@@ -200,7 +228,6 @@ func Cmd() *cobra.Command {
 						pterm.Error.Printf("failed to create whale account: %v\n", err)
 						return
 					}
-
 				}
 			} else {
 				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
@@ -227,35 +254,47 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			cqc := keys.ChainQueryConfig{
-				Binary: consts.Executables.Dymension,
-				Denom:  consts.Denoms.Hub,
-				RPC:    hd.RpcUrl,
-			}
-			balance, err := keys.QueryBalance(cqc, ki.Address)
-			if err != nil {
-				pterm.Error.Println("failed to get balance: ", err)
-				return
-			}
+			pterm.Info.Println(
+				"you are about to run the eibc client for the following Dymension network:",
+			)
+			fmt.Println("network ID:",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprint(hd.ID),
+			)
 
-			if !balance.Amount.IsPositive() {
-				pterm.Info.Println(
-					"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
-				)
-				ki.Print(keys.WithName(), keys.WithMnemonic())
-				proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-					WithDefaultText(
-						"press 'y' when the wallets are funded",
-					).Show()
-				if !proceed {
-					pterm.Error.Println("cancelled by user")
+			for {
+				cqc := keys.ChainQueryConfig{
+					Binary: consts.Executables.Dymension,
+					Denom:  consts.Denoms.Hub,
+					RPC:    hd.RpcUrl,
+				}
+				balance, err := keys.QueryBalance(cqc, ki.Address)
+				if err != nil {
+					pterm.Error.Println("failed to get balance: ", err)
 					return
+				}
+
+				if !balance.Amount.IsPositive() {
+					pterm.Info.Println(
+						"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
+					)
+					ki.Print(keys.WithName(), keys.WithMnemonic())
+					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+						WithDefaultText(
+							"press 'y' when the wallets are funded",
+						).Show()
+					if !proceed {
+						pterm.Error.Println("cancelled by user")
+						return
+					}
+				} else {
+					break
 				}
 			}
 
 			var runForExisting bool
 			var raID string
-			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
+			rollerConfigFilePath := filepath.Join(roller.GetRootDir(), consts.RollerConfigFileName)
 			var rollerData roller.RollappConfig
 
 			_, err = os.Stat(rollerConfigFilePath)
@@ -269,22 +308,28 @@ func Cmd() *cobra.Command {
 				}
 			} else {
 				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-				rollerData, err = roller.LoadConfig(home)
+
+				rollerData, err = roller.LoadConfig(roller.GetRootDir())
 				if err != nil {
 					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
 					return
 				}
 				rollerRaID := rollerData.RollappID
 				rollerHubData := rollerData.HubData
-				msg := fmt.Sprintf(
-					"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
-					rollerRaID,
-				)
-				rlyFromRoller, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
-				if rlyFromRoller {
-					raID = rollerRaID
-					hd = rollerHubData
-					runForExisting = true
+
+				var rlyFromRoller bool
+				if rollerRaID != "" {
+					msg := fmt.Sprintf(
+						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprint(rollerRaID),
+					)
+					rlyFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+					if rlyFromRoller {
+						raID = rollerRaID
+						hd = rollerHubData
+						runForExisting = true
+					}
 				}
 
 				if !rlyFromRoller {
@@ -312,7 +357,7 @@ func Cmd() *cobra.Command {
 			for {
 				// Prompt the user for the RPC URL
 				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"dymint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+					"dymint rpc endpoint that you trust (example: rpc.rollapp.dym.xyz)",
 				).Show()
 				if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 					rpc = "https://" + rpc
@@ -540,6 +585,10 @@ func updateEibcConfig(eibcConfigPath string, hd consts.HubData) error {
 		"node_address":              hd.RpcUrl,
 		"order_polling.indexer_url": consts.DefaultIndexer,
 		"operator.account_name":     consts.KeysIds.Eibc,
+		"gas.fees":                  "4000000000000000adym",
+		"rollapps.example_1234-1":   nil,
+		"validation.interval":       "5m0s",
+		"validation.wait_time":      "61m0s",
 	}
 	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 	if err != nil {

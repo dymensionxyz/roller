@@ -1,20 +1,31 @@
 package setup
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"slices"
+	"strconv"
+	"strings"
+	"time"
 
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -91,6 +102,84 @@ func Cmd() *cobra.Command {
 				return
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
+
+			raResp, err := rollapp.GetMetadataFromChain(raID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+				return
+			}
+			err = genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
+			if err != nil {
+				pterm.Error.Println("failed to download genesis file: ", err)
+				return
+			}
+			as, err := genesis.GetGenesisAppState(home)
+			if err != nil {
+				pterm.Error.Println("failed to get genesis app state: ", err)
+				return
+			}
+			ctx := context.Background()
+			conf := &firebase.Config{ProjectID: "drs-metadata"}
+			app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
+			if err != nil {
+				pterm.Error.Printfln("failed to initialize firebase app: %v", err)
+				return
+			}
+			drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
+
+			client, err := app.Firestore(ctx)
+			if err != nil {
+				pterm.Error.Printfln("failed to create firestore client: %v", err)
+				return
+			}
+			defer client.Close()
+
+			// Fetch DRS version information using the nested collection path
+			// Path format: versions/{version}/revisions/{revision}
+			drsDoc := client.Collection("versions").
+				Doc(drsVersion).
+				Collection("revisions").
+				OrderBy("timestamp", firestore.Desc).
+				Limit(1).
+				Documents(ctx)
+
+			doc, err := drsDoc.Next()
+			if err == iterator.Done {
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
+				return
+			}
+			if err != nil {
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
+				return
+			}
+
+			var drsInfo dependencies.DrsVersionInfo
+			if err := doc.DataTo(&drsInfo); err != nil {
+				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
+				return
+			}
+
+			dep := dependencies.DefaultRelayerPrebuiltDependencies()
+			for _, v := range dep {
+				err := dependencies.InstallBinaryFromRelease(v)
+				if err != nil {
+					pterm.Error.Printfln("failed to install binary: %s", err)
+					return
+				}
+			}
+
+			rbi := dependencies.NewRollappBinaryInfo(
+				raResp.Rollapp.GenesisInfo.Bech32Prefix,
+				drsInfo.Commit,
+				strings.ToLower(raResp.Rollapp.VmType),
+			)
+
+			raDep := dependencies.DefaultRollappDependency(rbi)
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			if err != nil {
+				pterm.Error.Printfln("failed to install binary: %s", err)
+				return
+			}
 
 			// things to check:
 			// 1. relayer folder exists
@@ -171,7 +260,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -270,6 +359,70 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
 				return
+			}
+
+			// add whitelisted relayers
+			seqAddr, err := sequencerutils.GetSequencerAccountAddress(*rollappChainData)
+			if err != nil {
+				pterm.Error.Printf("failed to get sequencer address: %v\n", err)
+				return
+			}
+
+			isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
+				seqAddr,
+				relKeys[consts.KeysIds.RollappRelayer].Address,
+				*hd,
+			)
+			if err != nil {
+				pterm.Error.Printf("failed to check if relayer key is whitelisted: %v\n", err)
+				return
+			}
+
+			if !isRlyKeyWhitelisted {
+				pterm.Warning.Printfln(
+					"relayer key (%s) is not whitelisted, updating whitelisted relayers",
+					relKeys[consts.KeysIds.RollappRelayer].Address,
+				)
+
+				err := sequencerutils.UpdateWhitelistedRelayers(
+					home,
+					relKeys[consts.KeysIds.RollappRelayer].Address,
+					*hd,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update whitelisted relayers:", err)
+					return
+				}
+			}
+
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			if err != nil {
+				pterm.Error.Println("failed to get RollApp's operator address:", err)
+				return
+			}
+
+			wrSpinner, _ := pterm.DefaultSpinner.Start(
+				"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
+			)
+			for {
+				r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
+				if err != nil {
+					pterm.Error.Println("failed to get whitelisted relayers:", err)
+					return
+				}
+
+				if len(r) == 0 &&
+					slices.Contains(r, relKeys[consts.KeysIds.RollappRelayer].Address) {
+					wrSpinner.UpdateText(
+						"waiting for the whitelisted relayer to propagate to RollApp...",
+					)
+					time.Sleep(time.Second * 5)
+					continue
+				} else {
+					// nolint: errcheck
+					wrSpinner.Success("relayer whitelisted and propagated to rollapp")
+					break
+				}
 			}
 
 			pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")

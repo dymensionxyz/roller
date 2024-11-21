@@ -257,11 +257,12 @@ RollApp's IRO time: %v`,
 						return
 					}
 
-					// TODO: use NotFundedAddressData instead
-					var necessaryBalance cosmossdkmath.Int
-					necessaryBalance = cosmossdkmath.NewInt(0)
-					necessaryBalance.Add(desiredBond.Amount)
-					necessaryBalance.Add(cosmossdkmath.NewInt(consts.DefaultTxFee))
+					// Initialize necessaryBalance with the desiredBond amount
+					necessaryBalance := desiredBond.Amount
+					// Add the default transaction fee
+					necessaryBalance = necessaryBalance.Add(
+						cosmossdkmath.NewInt(consts.DefaultTxFee),
+					)
 
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",
@@ -739,6 +740,16 @@ RollApp's IRO time: %v`,
 				dymintConfigPath,
 				"da_layer",
 				string(rollappConfig.DA.Backend),
+			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"max_proof_time",
+				"5s",
+			)
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"settlement_gas_prices",
+				"1000000000000adym",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")

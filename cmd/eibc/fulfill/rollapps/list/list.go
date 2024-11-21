@@ -52,8 +52,11 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			for chain, percentage := range config.FulfillCriteria.MinFeePercentage.Chain {
-				fmt.Printf("%s: %.6f\n", chain, percentage)
+			for k, v := range config.Rollapps {
+				fmt.Printf("%s requires %s validation(s):\n", k, v.MinConfirmations)
+				for _, v := range v.FullNodes {
+					fmt.Printf("\t%s\n", v)
+				}
 			}
 		},
 	}

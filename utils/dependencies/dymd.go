@@ -71,10 +71,7 @@ func ExtractCommitFromBinaryVersion(binary string) (string, error) {
 	}
 }
 
-func InstallCustomDymdVersion() error {
-	dymdCommit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide dymensionxyz/dymension commit to build (example: 2cd612) (min length 6 symbols)",
-	).Show()
+func InstallCustomDymdVersion(dymdCommit string) error {
 	dep := customDymdDependency(dymdCommit)
 
 	commit, err := ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
@@ -100,7 +97,7 @@ func DefaultDymdDependency() types.Dependency {
 		RepositoryOwner: "dymensionxyz",
 		RepositoryName:  "dymension",
 		RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-		Release:         "v3.1.0-pg10",
+		Release:         "v3.1.0-mig01",
 		Binaries: []types.BinaryPathPair{
 			{
 				Binary:            "dymd",

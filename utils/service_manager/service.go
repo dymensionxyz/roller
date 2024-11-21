@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -121,6 +122,33 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 	}()
 }
 
+func Start(services []string) error {
+	pterm.Info.Println("starting existing system services, if any...")
+	switch runtime.GOOS {
+	case "linux":
+		for _, svc := range services {
+			err := StartSystemdService(svc)
+			if err != nil {
+				return fmt.Errorf("failed to start %s systemd service: %v", svc, err)
+			}
+		}
+	case "darwin":
+		for _, svc := range services {
+			err := StartLaunchctlService(svc)
+			if err != nil {
+				return fmt.Errorf("failed to start %s systemd service: %v", svc, err)
+			}
+		}
+	default:
+		pterm.Error.Printf("unsupported platform: %s", runtime.GOOS)
+	}
+	pterm.Success.Printf(
+		"💈 Services %s started successfully.\n",
+		strings.Join(services, ", "),
+	)
+	return nil
+}
+
 func StartSystemdService(serviceName string) error {
 	cmd := exec.Command("sudo", "systemctl", "start", serviceName)
 
@@ -221,11 +249,11 @@ func StopLaunchdService(serviceName string) error {
 	return nil
 }
 
-func StopSystemServices() error {
+func StopSystemServices(services []string) error {
 	pterm.Info.Println("stopping existing system services, if any...")
 	switch runtime.GOOS {
 	case "linux":
-		for _, svc := range consts.RollappSystemdServices {
+		for _, svc := range services {
 			err := StopSystemdService(svc)
 			if err != nil {
 				pterm.Error.Println("failed to stop systemd service: ", err)
