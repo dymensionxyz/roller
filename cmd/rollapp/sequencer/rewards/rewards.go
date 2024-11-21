@@ -184,7 +184,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = tx.MonitorTransaction("http://localhost:26657", txHash)
+				// err = tx.MonitorTransaction("http://localhost:26657", txHash)
+				err = tx.MonitorTransaction(consts.DefaultRollappRPC, txHash)
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
 					return
@@ -193,7 +194,7 @@ func Cmd() *cobra.Command {
 				updSeqCmd := exec.Command(
 					consts.Executables.RollappEVM,
 					"tx", "sequencer", "update-sequencer",
-					address, "--keyring-backend", "test", "--node", "http://localhost:26657",
+					address, "--keyring-backend", "test", "--node", consts.DefaultRollappRPC,
 					"--chain-id", rollerCfg.RollappID,
 					"--from", "rollapp",
 					"--gas-prices",
@@ -216,7 +217,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
+				// err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
+				err = tx.MonitorTransaction(consts.DefaultRollappRPC, uTxHash)
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
 					return

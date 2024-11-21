@@ -263,7 +263,9 @@ func Cmd() *cobra.Command {
 			pterm.Info.Println("let's create that IBC connection, shall we?")
 			seq := sequencer.GetInstance(*rollappChainData)
 
-			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
+			health := fmt.Sprintf(consts.DefaultRollappRPC+"%s", "/health")
+			// dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
+			dymintutils.WaitForHealthyRollApp(health)
 			err = relayer.WaitForValidRollappHeight(seq)
 			if err != nil {
 				pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)

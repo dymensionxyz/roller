@@ -39,7 +39,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			ok, msg := healthagent.IsEndpointHealthy("http://localhost:36657/health") //TODO : change this node url if required
+			// ok, msg := healthagent.IsEndpointHealthy("http://localhost:36657/health") //TODO : change this node url if required
+			health := fmt.Sprintf(consts.PlaygroundHubData.RpcUrl+"%s", "/health")
+			ok, msg := healthagent.IsEndpointHealthy(health)
 			if !ok {
 				// TODO: use options pattern, this is ugly af
 				start.PrintOutput(rollerConfig, string(pid), true, false, true, false, nodeID)

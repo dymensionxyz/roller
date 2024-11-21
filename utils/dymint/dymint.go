@@ -174,7 +174,9 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 					", only linux and darwin are supported",
 			)
 		}
-		WaitForHealthyRollApp("http://localhost:26657/health")
+		// WaitForHealthyRollApp("http://localhost:26657/health")
+		health := fmt.Sprintf(consts.DefaultRollappRPC+"%s", "/health")
+		WaitForHealthyRollApp(health)
 	}
 
 	return nil

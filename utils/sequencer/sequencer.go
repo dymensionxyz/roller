@@ -387,7 +387,7 @@ func getShowSequencerCmd(raID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "sequencers", "sequencers",
-		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
+		"-o", "json", "--node", consts.DefaultRollappRPC, "--chain-id", raID,
 	)
 }
 
