@@ -2,7 +2,6 @@ package rollapp
 
 import (
 	"errors"
-	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -82,7 +81,6 @@ func ExtractDrsVersionFromBinary() (string, error) {
 		if strings.Contains(line, "-ldflags") {
 			// Print the line containing "-ldflags"
 			ldflags = line
-			fmt.Println(ldflags)
 			break
 		}
 	}
