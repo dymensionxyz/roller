@@ -2,6 +2,7 @@ package rollapp
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -57,7 +58,7 @@ func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
 }
 
 func ExtractDrsVersionFromBinary() (string, error) {
-	pterm.Info.Println("extracting bech 32 prefix")
+	pterm.Info.Println("extracting drs version")
 	c := exec.Command(
 		"go",
 		"version",
@@ -71,7 +72,7 @@ func ExtractDrsVersionFromBinary() (string, error) {
 	}
 
 	lines := strings.Split(out.String(), "\n")
-	pattern := `github\.com/dymensionxyz/dymint/app\.DRSVersion=(\w+)`
+	pattern := `github\.com/dymensionxyz/dymint/version\.DrsVersion=(\w+)`
 
 	re := regexp.MustCompile(pattern)
 	var ldflags string
@@ -81,6 +82,7 @@ func ExtractDrsVersionFromBinary() (string, error) {
 		if strings.Contains(line, "-ldflags") {
 			// Print the line containing "-ldflags"
 			ldflags = line
+			fmt.Println(ldflags)
 			break
 		}
 	}
