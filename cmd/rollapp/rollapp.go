@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/rollapp/config"
+	"github.com/dymensionxyz/roller/cmd/rollapp/drs"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
 	"github.com/dymensionxyz/roller/cmd/rollapp/migrate"
@@ -32,6 +33,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(sequencer.Cmd())
 	cmd.AddCommand(keys.Cmd())
 	cmd.AddCommand(migrate.Cmd())
+	cmd.AddCommand(drs.Cmd())
 
 	sl := []string{"rollapp", "da-light-client"}
 	cmd.AddCommand(

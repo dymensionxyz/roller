@@ -49,7 +49,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	).Show()
 	customRewardAddress = strings.TrimSpace(customRewardAddress)
 
-	// TODO: improve ux
 	args := []string{
 		"tx",
 		"sequencer",

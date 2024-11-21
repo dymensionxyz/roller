@@ -122,7 +122,7 @@ func (s *ServiceConfig) RunServiceWithRestart(name string, options ...bash.Comma
 	}()
 }
 
-func Start(services []string) error {
+func StartSystemServices(services []string) error {
 	pterm.Info.Println("starting existing system services, if any...")
 	switch runtime.GOOS {
 	case "linux":
