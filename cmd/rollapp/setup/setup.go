@@ -259,6 +259,7 @@ RollApp's IRO time: %v`,
 
 					// TODO: use NotFundedAddressData instead
 					var necessaryBalance cosmossdkmath.Int
+					necessaryBalance = cosmossdkmath.NewInt(0)
 					necessaryBalance.Add(desiredBond.Amount)
 					necessaryBalance.Add(cosmossdkmath.NewInt(consts.DefaultTxFee))
 
