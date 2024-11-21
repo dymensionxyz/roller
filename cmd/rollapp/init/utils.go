@@ -59,6 +59,13 @@ func runInit(
 		return err
 	}
 
+	if env == "mock" {
+		err = genesisutils.InitializeRollappGenesis(ic)
+		if err != nil {
+			return err
+		}
+	}
+
 	addresses = append(addresses, sequencerKeys...)
 
 	/* ------------------------------ Initialize Local Hub ---------------------------- */
@@ -115,13 +122,6 @@ func initRollapp(
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")
 		return err
-	}
-
-	if env == "mock" {
-		err = genesisutils.InitializeRollappGenesis(initConfig)
-		if err != nil {
-			return err
-		}
 	}
 
 	as, err := genesisutils.GetGenesisAppState(home)
