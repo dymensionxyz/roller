@@ -1,7 +1,6 @@
 package dependencies
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,27 +12,19 @@ import (
 	"strconv"
 	"strings"
 
-	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/schollz/progressbar/v3"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
-
-// DrsVersionInfo represents the structure of DRS version information in Firestore
-type DrsVersionInfo struct {
-	Commit string `firestore:"commit"`
-}
 
 func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	map[string]types.Dependency,
@@ -54,7 +45,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	// nolint: errcheck
 	defer os.RemoveAll(genesisTmpDir)
 
-	var raBinCommit string
+	var drsVersion string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
@@ -74,48 +65,13 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			return nil, nil, err
 		}
 
-		raBinCommit = strconv.Itoa(as.RollappParams.Params.DrsVersion)
-		pterm.Info.Println("RollApp binary version from the genesis file : ", raBinCommit)
-
-		// TODO: extract to helper
-		// Initialize Firestore client
-		ctx := context.Background()
-		conf := &firebase.Config{ProjectID: "drs-metadata"}
-		app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to initialize firebase app: %v", err)
-		}
-
-		client, err := app.Firestore(ctx)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create firestore client: %v", err)
-		}
-		defer client.Close()
-
-		// Fetch DRS version information using the nested collection path
-		// Path format: versions/{version}/revisions/{revision}
-		drsDoc := client.Collection("versions").
-			Doc(raBinCommit).
-			Collection("revisions").
-			OrderBy("timestamp", firestore.Desc).
-			Limit(1).
-			Documents(ctx)
-
-		doc, err := drsDoc.Next()
-		if err == iterator.Done {
-			return nil, nil, err
-		}
+		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
+		pterm.Info.Println("RollApp binary version from the genesis file : ", drsVersion)
+		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		var drsInfo DrsVersionInfo
-		if err := doc.DataTo(&drsInfo); err != nil {
-			return nil, nil, fmt.Errorf("failed to parse DRS version info: %v", err)
-		}
-
-		pterm.Info.Printf("Found DRS commit hash: %s\n", drsInfo.Commit)
-		raBinCommit = drsInfo.Commit
+		drsVersion = drsInfo.Commit
 	}
 
 	defer func() {
@@ -131,7 +87,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	if !withMockDA {
 		rbi := NewRollappBinaryInfo(
 			raResp.Rollapp.GenesisInfo.Bech32Prefix,
-			raBinCommit,
+			drsVersion,
 			raVmType,
 		)
 

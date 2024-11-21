@@ -35,7 +35,7 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("stopping existing system services, if any...")
-			err = servicemanager.Start([]string{"da-light-client"})
+			err = servicemanager.StartSystemServices([]string{"da-light-client"})
 			if err != nil {
 				pterm.Error.Println("failed to stop system services: ", err)
 				return
