@@ -9,8 +9,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -140,24 +142,48 @@ func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[string]string) {
+func ExecCmdFollow(
+	doneChan chan<- error,
+	ctx context.Context,
+	cmd *exec.Cmd,
+	promptResponses map[string]string,
+) error {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return
+		return err
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return
+		return err
 	}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		return
+		return err
 	}
 
 	if err := cmd.Start(); err != nil {
-		return
+		return err
 	}
+
+	// handle signals
+	go func() {
+		for {
+			select {
+			case sig := <-sigChan:
+				pterm.Info.Println("received signal: ", sig)
+				if cmd.Process != nil {
+					_ = cmd.Process.Signal(sig)
+					doneChan <- fmt.Errorf("received signal: %s", sig)
+				}
+			case <-ctx.Done():
+				_ = cmd.Process.Signal(syscall.SIGTERM)
+			}
+		}
+	}()
 
 	// Use a WaitGroup to wait for both stdout and stderr to be processed
 	var wg sync.WaitGroup
@@ -204,7 +230,7 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 
 	err = cmd.Wait()
 	if err != nil {
-		return
+		return err
 	}
 
 	wg.Wait()
@@ -213,9 +239,11 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 	// Check for any scanning errors
 	for err := range errChan {
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
 func ExecCommandWithInteractions(cmdName string, args ...string) error {

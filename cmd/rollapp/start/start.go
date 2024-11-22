@@ -96,6 +96,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				go healthagent.Start(home, rollerLogger)
 			}
 
+			done := make(chan error, 1)
 			// nolint: errcheck
 			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(
@@ -118,22 +119,44 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 					"Re-enter keyring passphrase": psw,
 				}
 
-				ctx, cancel := context.WithCancel(context.Background())
+				ctx, cancel := context.WithCancel(cmd.Context())
 				defer cancel()
-				go bash.ExecCmdFollow(
-					ctx,
-					startRollappCmd,
-					pr,
-				)
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startRollappCmd,
+						pr,
+					)
+
+					done <- err
+				}()
 			} else {
-				ctx, cancel := context.WithCancel(context.Background())
+				ctx, cancel := context.WithCancel(cmd.Context())
 				defer cancel()
 
-				bash.ExecCmdFollow(
-					ctx,
-					startRollappCmd,
-					nil, // No need for printOutput since we configured output above
-				)
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startRollappCmd,
+						nil, // No need for printOutput since we configured output above
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("rollapp's process returned an error: ", err)
+						return
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
+
 			}
 
 			select {}

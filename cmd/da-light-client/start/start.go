@@ -75,6 +75,7 @@ func Cmd() *cobra.Command {
 			}
 
 			fmt.Println(startDALCCmd.String())
+			done := make(chan error, 1)
 			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Celestia)
 				if err != nil {
@@ -97,12 +98,52 @@ func Cmd() *cobra.Command {
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()
 				// nolint: errcheck
-				go bash.ExecCmdFollow(ctx, startDALCCmd, pr)
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startDALCCmd,
+						pr, // No need for printOutput since we configured output above
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("rollapp's process returned an error: ", err)
+						return
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
 			} else {
-				ctx, cancel := context.WithCancel(context.Background())
+				ctx, cancel := context.WithCancel(cmd.Context())
 				defer cancel()
-				// nolint: errcheck
-				go bash.ExecCmdFollow(ctx, startDALCCmd, nil)
+
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startDALCCmd,
+						nil,
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("rollapp's process returned an error: ", err)
+						return
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
 			}
 			select {}
 		},
