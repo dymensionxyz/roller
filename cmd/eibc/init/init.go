@@ -64,7 +64,8 @@ func Cmd() *cobra.Command {
 			var ki *keys.KeyInfo
 
 			rollerConfig, err := roller.LoadConfig(rollerHome)
-			if err != nil || rollerConfig.HubData.ID == consts.MockHubID {
+			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
+				rollerConfig.HubData.ID == "" {
 				pterm.Warning.Println("no roller config found")
 				pterm.Info.Println("initializing for environment")
 
