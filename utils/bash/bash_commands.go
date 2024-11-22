@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -161,9 +162,9 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 	go func() {
 		<-ctx.Done()
 		if cmd.Process != nil {
-			err = cmd.Process.Kill()
+			err = cmd.Process.Signal(syscall.SIGTERM)
 			if err != nil {
-				pterm.Error.Println("failed to kill parent process")
+				pterm.Error.Println("failed to terminate parent process")
 				return
 			}
 		}
