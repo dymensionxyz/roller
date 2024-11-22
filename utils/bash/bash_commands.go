@@ -64,13 +64,11 @@ func RunCmdAsync(
 	for _, option := range options {
 		option(cmd)
 	}
+
 	if parseError == nil {
 		parseError = func(errMsg string) string {
 			return errMsg
 		}
-	}
-	if printOutput == nil {
-		printOutput = func() {}
 	}
 
 	var stderr bytes.Buffer
@@ -78,6 +76,7 @@ func RunCmdAsync(
 	if cmd.Stderr != nil {
 		mw = io.MultiWriter(&stderr, cmd.Stderr)
 	}
+
 	cmd.Stderr = mw
 	err := cmd.Start()
 	if err != nil {
@@ -141,23 +140,23 @@ func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[string]string) error {
+func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[string]string) {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return err
+		return
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		return
 	}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		return err
+		return
 	}
 
 	if err := cmd.Start(); err != nil {
-		return err
+		return
 	}
 
 	// Use a WaitGroup to wait for both stdout and stderr to be processed
@@ -186,6 +185,7 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
+
 		if err := scanner.Err(); err != nil {
 			errChan <- err
 		}
@@ -204,7 +204,7 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 
 	err = cmd.Wait()
 	if err != nil {
-		return err
+		return
 	}
 
 	wg.Wait()
@@ -213,11 +213,9 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 	// Check for any scanning errors
 	for err := range errChan {
 		if err != nil {
-			return err
+			return
 		}
 	}
-
-	return nil
 }
 
 func ExecCommandWithInteractions(cmdName string, args ...string) error {

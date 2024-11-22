@@ -129,7 +129,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()
 
-				go bash.ExecCmdFollow(
+				bash.ExecCmdFollow(
 					ctx,
 					startRollappCmd,
 					nil, // No need for printOutput since we configured output above

@@ -41,7 +41,8 @@ func Cmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			c := eibcutils.GetStartCmd()
-			err = bash.ExecCmdFollow(ctx, c, nil)
+
+			bash.ExecCmdFollow(ctx, c, nil)
 			if err != nil {
 				pterm.Error.Println("failed to start the eibc client:", err)
 				return
