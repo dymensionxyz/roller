@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DefaultEibcClientVersion = "v1.0.0-alpha-rc01"
+	DefaultEibcClientVersion = "v1.0.0-alpha-rc02"
 )
 
 func DefaultEibcClientPrebuiltDependencies() map[string]types.Dependency {
