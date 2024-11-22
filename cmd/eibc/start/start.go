@@ -58,7 +58,7 @@ func Cmd() *cobra.Command {
 			select {
 			case err := <-done:
 				if err != nil {
-					pterm.Error.Println("rollapp's process returned an error: ", err)
+					pterm.Error.Println("eibc client process returned an error: ", err)
 					return
 				}
 			case <-ctx.Done():

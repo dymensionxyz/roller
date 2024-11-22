@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
@@ -112,8 +113,8 @@ func Cmd() *cobra.Command {
 				select {
 				case err := <-done:
 					if err != nil {
-						pterm.Error.Println("rollapp's process returned an error: ", err)
-						return
+						pterm.Error.Println("da process returned an error: ", err)
+						os.Exit(1)
 					}
 				case <-ctx.Done():
 					pterm.Error.Println("context cancelled, terminating command")
@@ -137,8 +138,8 @@ func Cmd() *cobra.Command {
 				select {
 				case err := <-done:
 					if err != nil {
-						pterm.Error.Println("rollapp's process returned an error: ", err)
-						return
+						pterm.Error.Println("da process returned an error: ", err)
+						os.Exit(1)
 					}
 				case <-ctx.Done():
 					pterm.Error.Println("context cancelled, terminating command")

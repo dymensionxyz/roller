@@ -150,7 +150,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				case err := <-done:
 					if err != nil {
 						pterm.Error.Println("rollapp's process returned an error: ", err)
-						return
+						os.Exit(1)
 					}
 				case <-ctx.Done():
 					pterm.Error.Println("context cancelled, terminating command")
