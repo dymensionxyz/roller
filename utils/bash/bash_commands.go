@@ -157,6 +157,18 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 		return err
 	}
 
+	// Use the passed-in context to handle process cleanup
+	go func() {
+		<-ctx.Done()
+		if cmd.Process != nil {
+			err = cmd.Process.Kill()
+			if err != nil {
+				pterm.Error.Println("failed to kill parent process")
+				return
+			}
+		}
+	}()
+
 	// Use a WaitGroup to wait for both stdout and stderr to be processed
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -185,16 +197,6 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 		}
 		if err := scanner.Err(); err != nil {
 			errChan <- err
-		}
-	}()
-
-	go func() {
-		<-ctx.Done()
-		if cmd.Process != nil {
-			err := cmd.Process.Kill()
-			if err != nil {
-				return
-			}
 		}
 	}()
 
