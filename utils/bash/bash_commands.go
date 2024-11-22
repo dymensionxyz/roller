@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -158,18 +157,6 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 		return err
 	}
 
-	// Use the passed-in context to handle process cleanup
-	go func() {
-		<-ctx.Done()
-		if cmd.Process != nil {
-			err = cmd.Process.Signal(syscall.SIGTERM)
-			if err != nil {
-				pterm.Error.Println("failed to terminate parent process")
-				return
-			}
-		}
-	}()
-
 	// Use a WaitGroup to wait for both stdout and stderr to be processed
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -201,18 +188,22 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 		}
 	}()
 
-	// Wait for both stdout and stderr goroutines to finish
 	go func() {
-		wg.Wait()
-		close(errChan)
+		<-ctx.Done()
+		if cmd.Process != nil {
+			_ = cmd.Process.Kill()
+		}
 	}()
 
-	// Wait for the command to finish
-	if err := cmd.Wait(); err != nil {
+	err = cmd.Wait()
+	if err != nil {
 		return err
 	}
 
-	// Check if there were any errors in the goroutines
+	wg.Wait()
+	close(errChan)
+
+	// Check for any scanning errors
 	for err := range errChan {
 		if err != nil {
 			return err
