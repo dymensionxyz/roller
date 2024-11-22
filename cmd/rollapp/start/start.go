@@ -142,7 +142,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				go bash.RunCmdAsync(
 					ctx,
 					startRollappCmd,
-					func() {}, // Empty printOutput since we configured output above
+					nil, // No need for printOutput since we configured output above
 					parseError,
 					nil,
 				)
@@ -268,7 +268,7 @@ func createPidFile(path string, cmd *exec.Cmd) error {
 		fmt.Println("Error creating file:", err)
 		return err
 	}
-	// nolint errcheck
+	// nolint: errcheck
 	defer file.Close()
 
 	pid := cmd.Process.Pid

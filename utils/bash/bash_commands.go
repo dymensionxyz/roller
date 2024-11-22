@@ -69,6 +69,9 @@ func RunCmdAsync(
 			return errMsg
 		}
 	}
+	if printOutput == nil {
+		printOutput = func() {}
+	}
 
 	var stderr bytes.Buffer
 	mw := io.MultiWriter(&stderr)
