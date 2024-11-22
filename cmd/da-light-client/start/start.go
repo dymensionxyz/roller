@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -93,11 +94,15 @@ func Cmd() *cobra.Command {
 					"Re-enter keyring passphrase": psw,
 				}
 
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
 				// nolint: errcheck
-				go bash.ExecCmdFollow(startDALCCmd, pr)
+				go bash.ExecCmdFollow(ctx, startDALCCmd, pr)
 			} else {
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
 				// nolint: errcheck
-				go bash.ExecCmdFollow(startDALCCmd, nil)
+				go bash.ExecCmdFollow(ctx, startDALCCmd, nil)
 			}
 			select {}
 		},

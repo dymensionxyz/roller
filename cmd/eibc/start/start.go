@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -37,8 +38,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 			c := eibcutils.GetStartCmd()
-			err = bash.ExecCmdFollow(c, nil)
+			err = bash.ExecCmdFollow(ctx, c, nil)
 			if err != nil {
 				pterm.Error.Println("failed to start the eibc client:", err)
 				return

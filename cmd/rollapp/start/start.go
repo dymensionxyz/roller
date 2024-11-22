@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -74,8 +75,8 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				}
 
 				err = migrations.RequireRollappMigrateIfNeeded(
-					raUpgrade.CurrentVersionCommit[:6],
-					rollappConfig.RollappBinaryVersion[:6],
+					raUpgrade.CurrentVersionCommit,
+					rollappConfig.RollappBinaryVersion,
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
@@ -117,12 +118,17 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 					"Re-enter keyring passphrase": psw,
 				}
 
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
 				go bash.ExecCmdFollow(
+					ctx,
 					startRollappCmd,
 					pr,
 				)
 			} else {
-				go bash.ExecCmdFollow(startRollappCmd, nil)
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				go bash.ExecCmdFollow(ctx, startRollappCmd, nil)
 			}
 
 			select {}

@@ -1,6 +1,7 @@
 package scale
 
 import (
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -23,8 +24,9 @@ a good number to start with is 30 (default when initializing the eibc client)
 
 			c := eibcutils.GetScaleCmd(count)
 
-			err := bash.ExecCmdFollow(c, nil)
+			_, err := bash.ExecCommandWithStdout(c)
 			if err != nil {
+				pterm.Error.Println("failed to scale the number of fulfillers: ", err)
 				return
 			}
 		},

@@ -138,7 +138,7 @@ func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
+func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[string]string) error {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -185,6 +185,16 @@ func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
 		}
 		if err := scanner.Err(); err != nil {
 			errChan <- err
+		}
+	}()
+
+	go func() {
+		<-ctx.Done()
+		if cmd.Process != nil {
+			err := cmd.Process.Kill()
+			if err != nil {
+				return
+			}
 		}
 	}()
 
