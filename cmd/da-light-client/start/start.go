@@ -1,8 +1,10 @@
 package start
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
@@ -74,6 +76,7 @@ func Cmd() *cobra.Command {
 			}
 
 			fmt.Println(startDALCCmd.String())
+			done := make(chan error, 1)
 			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Celestia)
 				if err != nil {
@@ -93,11 +96,55 @@ func Cmd() *cobra.Command {
 					"Re-enter keyring passphrase": psw,
 				}
 
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
 				// nolint: errcheck
-				go bash.ExecCmdFollow(startDALCCmd, pr)
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startDALCCmd,
+						pr, // No need for printOutput since we configured output above
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("da process returned an error: ", err)
+						os.Exit(1)
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
 			} else {
-				// nolint: errcheck
-				go bash.ExecCmdFollow(startDALCCmd, nil)
+				ctx, cancel := context.WithCancel(cmd.Context())
+				defer cancel()
+
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startDALCCmd,
+						nil,
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("da process returned an error: ", err)
+						os.Exit(1)
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
 			}
 			select {}
 		},
