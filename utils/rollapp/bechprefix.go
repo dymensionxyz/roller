@@ -71,7 +71,7 @@ func ExtractDrsVersionFromBinary() (string, error) {
 	}
 
 	lines := strings.Split(out.String(), "\n")
-	pattern := `github\.com/dymensionxyz/dymint/version\.DrsVersion=(\w+)`
+	pattern := `github\.com/dymensionxyz/dymint/version\.DRS=$(\w+)`
 
 	re := regexp.MustCompile(pattern)
 	var ldflags string
