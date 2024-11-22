@@ -194,7 +194,11 @@ func ExecCmdFollow(ctx context.Context, cmd *exec.Cmd, promptResponses map[strin
 	go func() {
 		<-ctx.Done()
 		if cmd.Process != nil {
-			_ = cmd.Process.Kill()
+			pterm.Info.Println("killing process: ", cmd.Process.Pid)
+			err = cmd.Process.Kill()
+			if err != nil {
+				pterm.Error.Println("failed to kill process: ", err)
+			}
 		}
 	}()
 
