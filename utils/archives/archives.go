@@ -56,7 +56,7 @@ func ExtractTarGz(path string, data io.ReadCloser, dep dependencytypes.Dependenc
 
 	for _, bin := range dep.Binaries {
 		err := MoveBinaryIntoPlaceAndMakeExecutable(
-			path,
+			filepath.Join(path, bin.Binary),
 			bin.BinaryDestination,
 		)
 		if err != nil {
