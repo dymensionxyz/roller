@@ -3,7 +3,6 @@ package start
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -130,21 +129,10 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()
 
-				// Set up stdout and stderr writers before running the command
-				startRollappCmd.Stdout = io.MultiWriter(os.Stdout, rollerLogger.Writer())
-				startRollappCmd.Stderr = io.MultiWriter(os.Stderr, rollerLogger.Writer())
-
-				// Define error parser
-				parseError := func(errMsg string) string {
-					return fmt.Sprintf("RollApp node error: %s", errMsg)
-				}
-
-				go bash.RunCmdAsync(
+				go bash.ExecCmdFollow(
 					ctx,
 					startRollappCmd,
 					nil, // No need for printOutput since we configured output above
-					parseError,
-					nil,
 				)
 			}
 
