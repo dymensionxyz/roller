@@ -131,6 +131,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 			return err
 		}
 
+		spin, _ := pterm.DefaultSpinner.Start("restarting rollapp")
 		if runtime.GOOS == "linux" {
 			err := servicemanager.RestartSystemdService("rollapp")
 			if err != nil {
@@ -147,7 +148,7 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 					", only linux and darwin are supported",
 			)
 		}
-
+		spin.Success("restart successful")
 	} else {
 		pterm.Info.Println("block time settings already up to date")
 		pterm.Info.Println("restarting rollapp process to ensure correct block time is applied")
