@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path"
@@ -85,10 +86,9 @@ func GetRelayerKeysConfig(rollappConfig roller.RollappConfig) map[string]KeyConf
 }
 
 func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
-	relayerAddresses := make([]KeyInfo, 0)
 	relayerKeys := GetRelayerKeysConfig(rollappConfig)
 
-	relayerHubAddress, err := GetRelayerAddressInfo(
+	rhki, err := GetRelayerAddressInfo(
 		relayerKeys[consts.KeysIds.HubRelayer],
 		rollappConfig.HubData.ID,
 	)
@@ -96,15 +96,32 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 		return err
 	}
 
-	relayerAddresses = append(
-		relayerAddresses, *relayerHubAddress,
-	)
+	for {
+		cqc := ChainQueryConfig{
+			Binary: consts.Executables.Dymension,
+			Denom:  consts.Denoms.Hub,
+			RPC:    rollappConfig.HubData.RpcUrl,
+		}
+		balance, err := QueryBalance(cqc, rhki.Address)
+		if err != nil {
+			return err
+		}
 
-	pterm.Info.Println(
-		"please fund the hub relayer key with at least 20 dym tokens: ",
-	)
-	for _, k := range relayerAddresses {
-		k.Print(WithName())
+		if !balance.Amount.IsPositive() {
+			pterm.Info.Println(
+				"please fund the addresses below to operate the relayer.",
+			)
+			rhki.Print(WithName())
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
+			if !proceed {
+				return errors.New("cancelled by user")
+			}
+		} else {
+			break
+		}
 	}
 
 	return nil
