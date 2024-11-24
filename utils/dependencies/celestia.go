@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultCelestiaNodeVersion = "v0.20.0-mocha"
+	DefaultCelestiaNodeVersion = "v0.20.2-mocha"
 	DefaultCelestiaAppVersion  = "v2.3.1"
 )
 
