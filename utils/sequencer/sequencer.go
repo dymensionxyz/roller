@@ -575,29 +575,45 @@ func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error
 }
 
 func UpdateWhitelistedRelayers(
-	home, raRelayerAddress string,
+	home, raRelayerAddress, kb string,
 	hd consts.HubData,
 ) error {
-	cmd := exec.Command(
-		consts.Executables.Dymension,
+	args := []string{
 		"tx",
 		"sequencer",
 		"update-whitelisted-relayers",
 		raRelayerAddress,
 		"--from", consts.KeysIds.HubSequencer,
 		"--home", filepath.Join(home, consts.ConfigDirName.HubKeys),
-		"--keyring-backend", "test",
+		"--keyring-backend", kb,
 		"--chain-id", hd.ID,
 		"--node", hd.RpcUrl,
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-	)
+	}
 
-	txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+	psw, err := filesystem.ReadOsKeyringPswFile(home, consts.Executables.Dymension)
 	if err != nil {
 		return err
 	}
 
-	txHash, err := bash.ExtractTxHash(txOutput)
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase": psw,
+	}
+	manualPromptResponses := map[string]string{
+		"signatures": "this transaction is going to update the whitelisted relayers. do you want to continue?",
+	}
+
+	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.Dymension,
+		args,
+		automaticPrompts,
+		manualPromptResponses,
+	)
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput.String())
 	if err != nil {
 		return err
 	}
@@ -610,23 +626,35 @@ func UpdateWhitelistedRelayers(
 	return nil
 }
 
-func GetSequencerOperatorAddress(home string) (string, error) {
+func GetSequencerOperatorAddress(home string, kb string) (string, error) {
 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.HubKeys)
-	getOperatorAddrCommand := exec.Command(
-		consts.Executables.RollappEVM,
+	args := []string{
 		"keys",
 		"show",
 		consts.KeysIds.HubSequencer,
 		"-a",
 		"--keyring-backend",
-		"test",
+		kb,
 		"--home",
 		rollappConfigDirPath,
 		"--bech",
 		"val",
-	)
+	}
+	psw, err := filesystem.ReadOsKeyringPswFile(home, consts.Executables.Dymension)
+	if err != nil {
+		return "", err
+	}
 
-	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase": psw,
+	}
+
+	addr, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.RollappEVM,
+		args,
+		automaticPrompts,
+		nil,
+	)
 	if err != nil {
 		fmt.Println("val addr failed")
 		return "", err

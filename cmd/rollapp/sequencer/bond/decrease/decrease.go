@@ -71,15 +71,9 @@ func Cmd() *cobra.Command {
 			var txHash string
 
 			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
-				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
+				psw, err := filesystem.ReadOsKeyringPswFile(home, consts.Executables.Dymension)
 				if err != nil {
-					pterm.Error.Println("failed to get os keyring psw file name", err)
-					return
-				}
-				fp := filepath.Join(home, string(pswFileName))
-				psw, err := filesystem.ReadFromFile(fp)
-				if err != nil {
-					pterm.Error.Println("failed to read keyring passphrase file", err)
+					pterm.Error.Println("failed to read os keyring password file", err)
 					return
 				}
 

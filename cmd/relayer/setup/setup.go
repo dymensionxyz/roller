@@ -46,7 +46,7 @@ func Cmd() *cobra.Command {
 			relayerHome := relayerutils.GetHomeDir(home)
 			relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
 
-			raID, hd, err := relayerutils.GetRollappToRunFor(home)
+			raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
 			if err != nil {
 				pterm.Error.Println("failed to determine what RollApp to run for:", err)
 				return
@@ -365,6 +365,7 @@ func Cmd() *cobra.Command {
 				err := sequencerutils.UpdateWhitelistedRelayers(
 					home,
 					relKeys[consts.KeysIds.RollappRelayer].Address,
+					kb,
 					*hd,
 				)
 				if err != nil {
@@ -373,7 +374,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home, kb)
 			if err != nil {
 				pterm.Error.Println("failed to get RollApp's operator address:", err)
 				return

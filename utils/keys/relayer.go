@@ -27,7 +27,6 @@ func GetRelayerAddressInfo(keyConfig KeyConfig, chainId string) (*KeyInfo, error
 		"--output",
 		"json",
 	)
-	fmt.Println(showKeyCommand.String())
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {
@@ -111,85 +110,29 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 	return nil
 }
 
-func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
-	addKeyCmd := getAddRlyKeyCmd(
-		kc,
-		chainID,
-	)
-
-	out, err := bash.ExecCommandWithStdout(addKeyCmd)
-	if err != nil {
-		return nil, err
-	}
-
-	ki, err := ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
-	}
-	ki.Name = kc.ID
-
-	return ki, nil
-}
-
 func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, error) {
 	pterm.Info.Println("creating relayer keys")
 	createdRlyKeys := map[string]KeyInfo{}
 	keys := GetRelayerKeysConfig(rollerData)
 
 	for k, v := range keys {
-		pterm.Info.Printf("checking %s in %s\n", k, v.Dir)
-
 		switch v.ID {
 		case consts.KeysIds.RollappRelayer:
 			chainId := rollerData.RollappID
-			isPresent, err := IsRlyAddressWithNameInKeyring(v, chainId)
+			ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
 			if err != nil {
-				pterm.Error.Printf("failed to check address: %v\n", err)
 				return nil, err
 			}
 
-			if !isPresent {
-				pterm.Info.Printf("creating %s in %s\n", k, v.Dir)
-				key, err := AddRlyKey(v, rollerData.RollappID)
-				if err != nil {
-					pterm.Error.Printf("failed to add key: %v\n", err)
-				}
-				createdRlyKeys[consts.KeysIds.RollappRelayer] = *key
-			} else {
-				ki, err := GetRelayerAddressInfo(
-					v,
-					rollerData.RollappID,
-				)
-				if err != nil {
-					return nil, err
-				}
-				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
-			}
+			createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
 		case consts.KeysIds.HubRelayer:
 			chainId := rollerData.HubData.ID
-			isPresent, err := IsRlyAddressWithNameInKeyring(v, chainId)
+			ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
 			if err != nil {
-				pterm.Error.Printf("failed to check address: %v\n", err)
 				return nil, err
 			}
 
-			if !isPresent {
-				pterm.Info.Printf("creating %s in %s\n", k, v.Dir)
-				key, err := AddRlyKey(v, rollerData.HubData.ID)
-				if err != nil {
-					pterm.Error.Printf("failed to add key: %v\n", err)
-				}
-				createdRlyKeys[consts.KeysIds.HubRelayer] = *key
-			} else {
-				ki, err := GetRelayerAddressInfo(
-					v,
-					rollerData.HubData.ID,
-				)
-				if err != nil {
-					return nil, err
-				}
-				createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
-			}
+			createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
 		default:
 			return nil, fmt.Errorf("invalid key name: %s", v.ID)
 		}
@@ -202,6 +145,38 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 	}
 
 	return createdRlyKeys, nil
+}
+
+func createRelayerKeyIfNotPresent(
+	keyName, chainID string,
+	kc KeyConfig,
+) (*KeyInfo, error) {
+	isPresent, err := IsRlyAddressWithNameInKeyring(kc, chainID)
+	var ki KeyInfo
+	if err != nil {
+		pterm.Error.Printf("failed to check address: %v\n", err)
+		return nil, err
+	}
+
+	if !isPresent {
+		key, err := AddRlyKey(kc, chainID)
+		if err != nil {
+			pterm.Error.Printf("failed to add key: %v\n", err)
+		}
+
+		ki = *key
+	} else {
+		key, err := GetRelayerAddressInfo(
+			kc,
+			chainID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		ki = *key
+	}
+	return &ki, nil
 }
 
 func getAddRlyKeyCmd(keyConfig KeyConfig, chainID string) *exec.Cmd {
@@ -220,4 +195,24 @@ func getAddRlyKeyCmd(keyConfig KeyConfig, chainID string) *exec.Cmd {
 		"--coin-type",
 		coinType,
 	)
+}
+
+func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
+	addKeyCmd := getAddRlyKeyCmd(
+		kc,
+		chainID,
+	)
+
+	out, err := bash.ExecCommandWithStdout(addKeyCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	ki, err := ParseAddressFromOutput(out)
+	if err != nil {
+		return nil, err
+	}
+	ki.Name = kc.ID
+
+	return ki, nil
 }
