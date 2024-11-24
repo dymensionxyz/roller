@@ -626,23 +626,35 @@ func UpdateWhitelistedRelayers(
 	return nil
 }
 
-func GetSequencerOperatorAddress(home string) (string, error) {
+func GetSequencerOperatorAddress(home string, kb string) (string, error) {
 	rollappConfigDirPath := filepath.Join(home, consts.ConfigDirName.HubKeys)
-	getOperatorAddrCommand := exec.Command(
-		consts.Executables.RollappEVM,
+	args := []string{
 		"keys",
 		"show",
 		consts.KeysIds.HubSequencer,
 		"-a",
 		"--keyring-backend",
-		"test",
+		kb,
 		"--home",
 		rollappConfigDirPath,
 		"--bech",
 		"val",
-	)
+	}
+	psw, err := filesystem.ReadOsKeyringPswFile(home, consts.Executables.Dymension)
+	if err != nil {
+		return "", err
+	}
 
-	addr, err := bash.ExecCommandWithStdout(getOperatorAddrCommand)
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase": psw,
+	}
+
+	addr, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.RollappEVM,
+		args,
+		automaticPrompts,
+		nil,
+	)
 	if err != nil {
 		fmt.Println("val addr failed")
 		return "", err

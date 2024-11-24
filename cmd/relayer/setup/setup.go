@@ -374,7 +374,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home, kb)
 			if err != nil {
 				pterm.Error.Println("failed to get RollApp's operator address:", err)
 				return
