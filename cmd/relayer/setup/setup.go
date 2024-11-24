@@ -154,6 +154,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+			err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
+			if err != nil {
+				pterm.Error.Printfln("failed to install binary: %s", err)
+				return
+			}
+
 			// things to check:
 			// 1. relayer folder exists
 			isRelayerDirPresent, err := filesystem.DirNotEmpty(relayerHome)
