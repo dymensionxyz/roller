@@ -27,7 +27,6 @@ func GetRelayerAddressInfo(keyConfig KeyConfig, chainId string) (*KeyInfo, error
 		"--output",
 		"json",
 	)
-	fmt.Println(showKeyCommand.String())
 
 	output, err := bash.ExecCommandWithStdout(showKeyCommand)
 	if err != nil {
