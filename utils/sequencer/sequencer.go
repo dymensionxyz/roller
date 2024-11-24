@@ -575,29 +575,45 @@ func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error
 }
 
 func UpdateWhitelistedRelayers(
-	home, raRelayerAddress string,
+	home, raRelayerAddress, kb string,
 	hd consts.HubData,
 ) error {
-	cmd := exec.Command(
-		consts.Executables.Dymension,
+	args := []string{
 		"tx",
 		"sequencer",
 		"update-whitelisted-relayers",
 		raRelayerAddress,
 		"--from", consts.KeysIds.HubSequencer,
 		"--home", filepath.Join(home, consts.ConfigDirName.HubKeys),
-		"--keyring-backend", "test",
+		"--keyring-backend", kb,
 		"--chain-id", hd.ID,
 		"--node", hd.RpcUrl,
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
-	)
+	}
 
-	txOutput, err := bash.ExecCommandWithInput(home, cmd, "signatures")
+	psw, err := filesystem.ReadOsKeyringPswFile(home, consts.Executables.Dymension)
 	if err != nil {
 		return err
 	}
 
-	txHash, err := bash.ExtractTxHash(txOutput)
+	automaticPrompts := map[string]string{
+		"Enter keyring passphrase": psw,
+	}
+	manualPromptResponses := map[string]string{
+		"signatures": "this transaction is going to update the whitelisted relayers. do you want to continue?",
+	}
+
+	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+		consts.Executables.Dymension,
+		args,
+		automaticPrompts,
+		manualPromptResponses,
+	)
+	if err != nil {
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(txOutput.String())
 	if err != nil {
 		return err
 	}

@@ -17,11 +17,17 @@ import (
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
-func GetRollappToRunFor(home string) (string, *consts.HubData, error) {
+// GetRollappToRunFor function retrieves the RollApp ID and Hub Data from the roller
+// configuration file if it is present and returns
+// the RollApp ID, Hub Data, keyring backend to use and error, if any.
+// when no roller configuration file is present, it prompts the user for the
+// necessary information and returns the RollApp ID, Hub Data, keyring backend to use
+// and error, if any.
+func GetRollappToRunFor(home string) (string, *consts.HubData, string, error) {
 	rollerConfigFilePath := roller.GetConfigPath(home)
 	rollerConfigExists, err := filesystem.DoesFileExist(rollerConfigFilePath)
 	if err != nil {
-		return "", nil, err
+		return "", nil, "", err
 	}
 
 	if rollerConfigExists {
@@ -31,7 +37,7 @@ func GetRollappToRunFor(home string) (string, *consts.HubData, error) {
 		rollerData, err := roller.LoadConfig(home)
 		if err != nil {
 			pterm.Error.Printf("failed to load rollapp config: %v\n", err)
-			return "", nil, err
+			return "", nil, "", err
 		}
 
 		msg := fmt.Sprintf(
@@ -46,7 +52,7 @@ func GetRollappToRunFor(home string) (string, *consts.HubData, error) {
 			raID := rollerData.RollappID
 			hd := rollerData.HubData
 
-			return raID, &hd, nil
+			return raID, &hd, string(rollerData.KeyringBackend), nil
 		}
 	}
 
@@ -76,7 +82,9 @@ func NewIbcConnenctionCanBeCreatedOnCurrentNode(home, raID string) (bool, error)
 	return true, nil
 }
 
-func promptForRaAndHd() (string, *consts.HubData, error) {
+// promptForRaAndHd function prompts the user for the RollApp ID and Hub Data
+// and returns the RollApp ID, Hub Data, keyring backend to use and error, if any
+func promptForRaAndHd() (string, *consts.HubData, string, error) {
 	var hd consts.HubData
 
 	raID := config.PromptRaID()
@@ -97,17 +105,17 @@ func promptForRaAndHd() (string, *consts.HubData, error) {
 			DaNetwork:     consts.CelestiaTestnet,
 		}
 		if err != nil {
-			return "", nil, err
+			return "", nil, "", err
 		}
 
 		err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 		if err != nil {
 			pterm.Error.Println("failed to install custom dymd version: ", err)
-			return "", nil, err
+			return "", nil, "", err
 		}
 	}
 
-	return raID, &hd, nil
+	return raID, &hd, "test", nil
 }
 
 func VerifyRelayerBalances(hd consts.HubData) error {
