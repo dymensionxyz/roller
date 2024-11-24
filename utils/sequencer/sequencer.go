@@ -575,7 +575,7 @@ func CheckExistingSequencer(home string) (*CheckExistingSequencerResponse, error
 }
 
 func UpdateWhitelistedRelayers(
-	home, raRelayerAddress string,
+	home, raRelayerAddress, kb string,
 	hd consts.HubData,
 ) error {
 	cmd := exec.Command(
@@ -586,7 +586,7 @@ func UpdateWhitelistedRelayers(
 		raRelayerAddress,
 		"--from", consts.KeysIds.HubSequencer,
 		"--home", filepath.Join(home, consts.ConfigDirName.HubKeys),
-		"--keyring-backend", "test",
+		"--keyring-backend", kb,
 		"--chain-id", hd.ID,
 		"--node", hd.RpcUrl,
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
