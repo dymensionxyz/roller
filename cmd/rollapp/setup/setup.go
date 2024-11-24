@@ -761,9 +761,18 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		Telegram: "",
 		X:        "",
 	}
-	defaultGasPrice, ok := github_com_cosmos_cosmos_sdk_types.NewIntFromString(
-		raCfg.HubData.GasPrice,
-	)
+
+	var defaultGasPrice cosmossdktypes.Int
+	var ok bool
+
+	if raCfg.HubData.GasPrice != "" {
+		defaultGasPrice, ok = github_com_cosmos_cosmos_sdk_types.NewIntFromString(
+			raCfg.HubData.GasPrice,
+		)
+	} else {
+		defaultGasPrice = cosmossdktypes.NewInt(2000000000)
+		ok = true
+	}
 	if !ok {
 		return errors.New("failed to parse gas price")
 	}
