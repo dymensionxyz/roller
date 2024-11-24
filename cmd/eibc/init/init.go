@@ -612,6 +612,7 @@ func updateEibcConfig(eibcConfigPath string, hd consts.HubData) error {
 	updates := map[string]interface{}{
 		"node_address":              hd.RpcUrl,
 		"order_polling.indexer_url": consts.DefaultIndexer,
+		"order_polling.enabled":     true,
 		"operator.account_name":     consts.KeysIds.Eibc,
 		"gas.fees":                  "4000000000000000adym",
 		// "rollapps.example_1234-1":   nil,
