@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultDymdCommit = "c80959d9027fae55444735386f21a9d9eeb61574"
+	DefaultDymdCommit = "v3.1.0-mig01"
 )
 
 func customDymdDependency(dymdCommit string) types.Dependency {

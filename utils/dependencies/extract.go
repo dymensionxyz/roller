@@ -2,7 +2,6 @@ package dependencies
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -24,7 +23,7 @@ const (
 func GetCurrentCommit(binary string) (string, error) {
 	switch binary {
 	case consts.Executables.Dymension:
-		return ExtractCommitFromBinaryVersion(consts.Executables.Dymension)
+		return GetVersion(consts.Executables.Dymension)
 	case consts.Executables.Celestia:
 		return ExtractCommitFromBuildFlags(consts.Executables.Celestia, celestiaCommitFlagPattern)
 	case consts.Executables.CelestiaApp:
@@ -135,7 +134,5 @@ func GetVersion(binary string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(out.String())
-
-	return out.String(), nil
+	return strings.TrimSpace(out.String()), nil
 }

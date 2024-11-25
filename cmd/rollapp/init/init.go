@@ -64,6 +64,13 @@ func Cmd() *cobra.Command {
 			}
 
 			if isRootExist {
+				dymdDep := dependencies.DefaultDymdDependency()
+				err = dependencies.InstallBinaryFromRelease(dymdDep, true)
+				if err != nil {
+					pterm.Error.Println("failed to install dymd: ", err)
+					return
+				}
+
 				shouldContinue, err := sequencer.CheckExistingSequencer(home)
 				if err != nil {
 					pterm.Error.Printf(
