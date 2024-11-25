@@ -24,6 +24,7 @@ import (
 
 func Start(home string, l *log.Logger) {
 	for {
+		time.Sleep(15 * time.Second)
 		var healthy bool
 		localEndpoint := "localhost"
 		defaultRaMetricPort := "2112"
@@ -91,7 +92,6 @@ func Start(home string, l *log.Logger) {
 		}
 
 		healthy = true
-		time.Sleep(15 * time.Second)
 	}
 }
 
