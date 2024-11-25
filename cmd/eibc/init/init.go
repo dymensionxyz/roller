@@ -12,6 +12,7 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -63,7 +64,8 @@ func Cmd() *cobra.Command {
 			var ki *keys.KeyInfo
 
 			rollerConfig, err := roller.LoadConfig(rollerHome)
-			if err != nil {
+			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
+				rollerConfig.HubData.ID == "" {
 				pterm.Warning.Println("no roller config found")
 				pterm.Info.Println("initializing for environment")
 
@@ -385,6 +387,32 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			cfgBytes, err := os.ReadFile(eibcConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to read eibc config file: ", err)
+				return
+			}
+
+			var cfg eibcutils.Config
+			err = yaml.Unmarshal(cfgBytes, &cfg)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal eibc config file: ", err)
+				return
+			}
+
+			cfg.RemoveChain("example_1234-1")
+			updatedData, err := yaml.Marshal(&cfg)
+			if err != nil {
+				pterm.Error.Println("failed to marshal eibc config file: ", err)
+				return
+			}
+
+			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
+			if err != nil {
+				pterm.Error.Println("failed to write eibc config file: ", err)
+				return
+			}
+
 			gID, err := createGroupIfNotPresent(ki, hd, eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to create group: ", err)
@@ -584,11 +612,12 @@ func updateEibcConfig(eibcConfigPath string, hd consts.HubData) error {
 	updates := map[string]interface{}{
 		"node_address":              hd.RpcUrl,
 		"order_polling.indexer_url": consts.DefaultIndexer,
+		"order_polling.enabled":     true,
 		"operator.account_name":     consts.KeysIds.Eibc,
 		"gas.fees":                  "4000000000000000adym",
-		"rollapps.example_1234-1":   nil,
-		"validation.interval":       "5m0s",
-		"validation.wait_time":      "61m0s",
+		// "rollapps.example_1234-1":   nil,
+		"validation.interval":  "5m0s",
+		"validation.wait_time": "61m0s",
 	}
 	err := yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 	if err != nil {

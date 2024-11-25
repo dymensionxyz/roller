@@ -314,3 +314,19 @@ func GetOsKeyringPswFileName(command string) (consts.OsKeyringPwdFileName, error
 	}
 	return pswFileName, nil
 }
+
+func ReadOsKeyringPswFile(home, command string) (string, error) {
+	pswFileName, err := GetOsKeyringPswFileName(command)
+	if err != nil {
+		pterm.Error.Println("failed to get os keyring psw file name", err)
+		return "", err
+	}
+	fp := filepath.Join(home, string(pswFileName))
+	psw, err := ReadFromFile(fp)
+	if err != nil {
+		pterm.Error.Println("failed to read keyring passphrase file", err)
+		return "", err
+	}
+
+	return psw, nil
+}

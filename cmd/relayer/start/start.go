@@ -57,36 +57,47 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				return
 			}
 
-			// src is Hub, dst is RollApp
-			raChainID := rlyConfig.Paths.HubRollapp.Dst.ChainID
-			hubChainID := rlyConfig.Paths.HubRollapp.Src.ChainID
+			var hd consts.HubData
+			var raChainID string
+			var hubChainID string
 
-			_, hd, found := roller.FindHubDataByID(consts.Hubs, hubChainID)
-			if !found {
-				pterm.Error.Println("Hub Data not found for ", hubChainID)
-				runCustomHub, _ := pterm.DefaultInteractiveConfirm.WithDefaultText("would you like to provide custom hub?").
-					WithDefaultValue(false).
-					Show()
+			rollerConfig, err := roller.LoadConfig(home)
+			if err != nil {
+				// src is Hub, dst is RollApp
+				raChainID = rlyConfig.Paths.HubRollapp.Dst.ChainID
+				hubChainID = rlyConfig.Paths.HubRollapp.Src.ChainID
 
-				if !runCustomHub {
-					pterm.Error.Println("cancelled by user")
-					return
+				var found bool
+				_, hd, found = roller.FindHubDataByID(consts.Hubs, hubChainID)
+				if !found {
+					pterm.Error.Println("Hub Data not found for ", hubChainID)
+					runCustomHub, _ := pterm.DefaultInteractiveConfirm.WithDefaultText("would you like to provide custom hub?").
+						WithDefaultValue(false).
+						Show()
+
+					if !runCustomHub {
+						pterm.Error.Println("cancelled by user")
+						return
+					}
+
+					chd, err := config.CreateCustomHubData()
+					if err != nil {
+						pterm.Error.Println("failed to create custom hub data:", err)
+						return
+					}
+					hd = consts.HubData{
+						ApiUrl:        chd.ApiUrl,
+						ID:            chd.ID,
+						RpcUrl:        chd.RpcUrl,
+						ArchiveRpcUrl: chd.RpcUrl,
+						GasPrice:      chd.GasPrice,
+						DaNetwork:     consts.CelestiaTestnet,
+					}
 				}
-
-				chd, err := config.CreateCustomHubData()
-				if err != nil {
-					pterm.Error.Println("failed to create custom hub data:", err)
-					return
-				}
-				hd = consts.HubData{
-					ApiUrl:        chd.ApiUrl,
-					ID:            chd.ID,
-					RpcUrl:        chd.RpcUrl,
-					ArchiveRpcUrl: chd.RpcUrl,
-					GasPrice:      chd.GasPrice,
-					DaNetwork:     consts.CelestiaTestnet,
-				}
-
+			} else {
+				hd = rollerConfig.HubData
+				raChainID = rlyConfig.Paths.HubRollapp.Dst.ChainID
+				hubChainID = rollerConfig.HubData.ID
 			}
 
 			raResponse, err := rollapp.GetMetadataFromChain(raChainID, hd)

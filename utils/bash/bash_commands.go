@@ -9,8 +9,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -64,6 +66,7 @@ func RunCmdAsync(
 	for _, option := range options {
 		option(cmd)
 	}
+
 	if parseError == nil {
 		parseError = func(errMsg string) string {
 			return errMsg
@@ -75,6 +78,7 @@ func RunCmdAsync(
 	if cmd.Stderr != nil {
 		mw = io.MultiWriter(&stderr, cmd.Stderr)
 	}
+
 	cmd.Stderr = mw
 	err := cmd.Start()
 	if err != nil {
@@ -138,7 +142,15 @@ func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
 	return nil
 }
 
-func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
+func ExecCmdFollow(
+	doneChan chan<- error,
+	ctx context.Context,
+	cmd *exec.Cmd,
+	promptResponses map[string]string,
+) error {
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -156,6 +168,22 @@ func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+
+	// handle signals
+	go func() {
+		for {
+			select {
+			case sig := <-sigChan:
+				pterm.Info.Println("received signal: ", sig)
+				if cmd.Process != nil {
+					_ = cmd.Process.Signal(sig)
+					doneChan <- fmt.Errorf("received signal: %s", sig)
+				}
+			case <-ctx.Done():
+				_ = cmd.Process.Signal(syscall.SIGTERM)
+			}
+		}
+	}()
 
 	// Use a WaitGroup to wait for both stdout and stderr to be processed
 	var wg sync.WaitGroup
@@ -183,23 +211,32 @@ func ExecCmdFollow(cmd *exec.Cmd, promptResponses map[string]string) error {
 		for scanner.Scan() {
 			fmt.Println(scanner.Text())
 		}
+
 		if err := scanner.Err(); err != nil {
 			errChan <- err
 		}
 	}()
 
-	// Wait for both stdout and stderr goroutines to finish
 	go func() {
-		wg.Wait()
-		close(errChan)
+		<-ctx.Done()
+		if cmd.Process != nil {
+			pterm.Info.Println("killing process: ", cmd.Process.Pid)
+			err = cmd.Process.Kill()
+			if err != nil {
+				pterm.Error.Println("failed to kill process: ", err)
+			}
+		}
 	}()
 
-	// Wait for the command to finish
-	if err := cmd.Wait(); err != nil {
+	err = cmd.Wait()
+	if err != nil {
 		return err
 	}
 
-	// Check if there were any errors in the goroutines
+	wg.Wait()
+	close(errChan)
+
+	// Check for any scanning errors
 	for err := range errChan {
 		if err != nil {
 			return err

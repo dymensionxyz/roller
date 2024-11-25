@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -37,10 +38,31 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			done := make(chan error, 1)
 			c := eibcutils.GetStartCmd()
-			err = bash.ExecCmdFollow(c, nil)
-			if err != nil {
-				pterm.Error.Println("failed to start the eibc client:", err)
+
+			ctx, cancel := context.WithCancel(cmd.Context())
+			defer cancel()
+
+			go func() {
+				err := bash.ExecCmdFollow(
+					done,
+					ctx,
+					c,
+					nil, // No need for printOutput since we configured output above
+				)
+
+				done <- err
+			}()
+
+			select {
+			case err := <-done:
+				if err != nil {
+					pterm.Error.Println("eibc client process returned an error: ", err)
+					return
+				}
+			case <-ctx.Done():
+				pterm.Error.Println("context cancelled, terminating command")
 				return
 			}
 		},

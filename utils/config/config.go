@@ -72,6 +72,7 @@ func createCustomHubDataManually() CustomHubData {
 		ID:            id,
 		RpcUrl:        rpcUrl,
 		ApiUrl:        restUrl,
+		GasPrice:      gasPrice,
 		DymensionHash: commit,
 	}
 	return hd
