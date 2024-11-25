@@ -13,7 +13,9 @@ import (
 
 // DrsVersionInfo represents the structure of DRS version information in Firestore
 type DrsVersionInfo struct {
-	Commit string `firestore:"commit"`
+	Commit     string `firestore:"commit"` // @20241125 legacy, was used when drs support was added only to evm
+	EvmCommit  string `firestore:"evm-commit"`
+	WasmCommit string `firestore:"wasm-commit"`
 }
 
 func GetLatestDrsVersionCommit(drsVersion string) (*DrsVersionInfo, error) {

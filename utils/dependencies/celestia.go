@@ -8,8 +8,11 @@ import (
 )
 
 const (
-	DefaultCelestiaNodeVersion = "v0.20.2-mocha"
-	DefaultCelestiaAppVersion  = "v2.3.1"
+	// 2dc9cce7b5dffc14fd4fe156d2aa9869318e0f68= "v0.20.2-mocha"
+	DefaultCelestiaNodeVersion = "2dc9cce7b5dffc14fd4fe156d2aa9869318e0f68"
+
+	// 5d6c695= "v3.0.0-mocha"
+	DefaultCelestiaAppVersion = "v3.0.0-mocha"
 )
 
 func DefaultCelestiaNodeDependency() types.Dependency {
@@ -34,6 +37,24 @@ func DefaultCelestiaNodeDependency() types.Dependency {
 				BuildCommand: exec.Command(
 					"make",
 					"cel-key",
+				),
+			},
+		},
+	}
+}
+
+func DefaultCelestiaAppPrebuiltDependency() types.Dependency {
+	return types.Dependency{
+		DependencyName: "celestia-app",
+		RepositoryUrl:  "https://github.com/celestiaorg/celestia-app",
+		Release:        DefaultCelestiaAppVersion,
+		Binaries: []types.BinaryPathPair{
+			{
+				Binary:            "celestia-appd",
+				BinaryDestination: consts.Executables.CelestiaApp,
+				BuildCommand: exec.Command(
+					"make",
+					"build",
 				),
 			},
 		},

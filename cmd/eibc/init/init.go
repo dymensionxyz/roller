@@ -234,7 +234,7 @@ func Cmd() *cobra.Command {
 			} else {
 				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
 				for _, v := range deps {
-					err := dependencies.InstallBinaryFromRelease(v)
+					err := dependencies.InstallBinaryFromRelease(v, true)
 					if err != nil {
 						pterm.Error.Printfln("failed to install binary: %s", err)
 						return
