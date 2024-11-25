@@ -44,10 +44,10 @@ var MockHubData = HubData{
 
 var PlaygroundHubData = HubData{
 	Environment:   "playground",
-	ApiUrl:        "https://api-dymension-playground-2.mzonder.com:443",
+	ApiUrl:        "https://api-dym-migration-test-2.mzonder.com:443",
 	ID:            PlaygroundHubID,
-	RpcUrl:        "https://rpc-dymension-playground-2.mzonder.com:443",
-	ArchiveRpcUrl: "https://rpc-dymension-playground-2.mzonder.com:443",
+	RpcUrl:        "https://rpc-dym-migration-test-2.mzonder.com:443",
+	ArchiveRpcUrl: "https://rpc-dym-migration-test-2.mzonder.com:443",
 	GasPrice:      "2000000000",
 	DaNetwork:     CelestiaTestnet,
 }
