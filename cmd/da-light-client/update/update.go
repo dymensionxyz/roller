@@ -28,6 +28,7 @@ func Cmd() *cobra.Command {
 			dep := dependencies.DefaultCelestiaNodeDependency()
 			err = dependencies.InstallBinaryFromRepo(
 				dep, dep.DependencyName,
+				true,
 			)
 			if err != nil {
 				pterm.Error.Println("failed to install binary: ", err)

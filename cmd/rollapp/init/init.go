@@ -130,7 +130,7 @@ func Cmd() *cobra.Command {
 			if !shouldUseMockBackend && env != "custom" {
 				dymdBinaryOptions := dependencies.DefaultDymdDependency()
 				pterm.Info.Println("installing dependencies")
-				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
+				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions, true)
 				if err != nil {
 					pterm.Error.Println("failed to install dymd: ", err)
 					return
@@ -209,7 +209,7 @@ func Cmd() *cobra.Command {
 
 				if shouldSkipBinaryInstallation {
 					dymdDep := dependencies.DefaultDymdDependency()
-					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					err = dependencies.InstallBinaryFromRelease(dymdDep, true)
 					if err != nil {
 						pterm.Error.Println("failed to install dymd: ", err)
 						return

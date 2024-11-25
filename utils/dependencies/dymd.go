@@ -46,7 +46,7 @@ func InstallCustomDymdVersion(dymdCommit string) error {
 	}
 
 	if commit == "" || commit[:6] != dep.Release[:6] {
-		err := InstallBinaryFromRepo(dep, dep.DependencyName)
+		err := InstallBinaryFromRepo(dep, dep.DependencyName, true)
 		if err != nil {
 			return err
 		}

@@ -139,14 +139,14 @@ func Cmd() *cobra.Command {
 			)
 
 			raDep := dependencies.DefaultRollappDependency(rbi)
-			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName, false)
 			if err != nil {
 				pterm.Error.Printfln("failed to install binary: %s", err)
 				return
 			}
 
 			rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
-			err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
+			err = dependencies.InstallBinaryFromRelease(rlyDep["rly"], true)
 			if err != nil {
 				pterm.Error.Printfln("failed to install binary: %s", err)
 				return

@@ -177,7 +177,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	}
 
 	for k, dep := range goreleaserDeps {
-		err := InstallBinaryFromRelease(dep)
+		err := InstallBinaryFromRelease(dep, true)
 		if err != nil {
 			errMsg := fmt.Sprintf("[release] failed to install binary %s from release: %v", k, err)
 			return nil, nil, errors.New(errMsg)
@@ -185,7 +185,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	}
 
 	for k, dep := range buildableDeps {
-		err := InstallBinaryFromRepo(dep, k)
+		err := InstallBinaryFromRepo(dep, k, true)
 		if err != nil {
 			errMsg := fmt.Sprintf("[build] failed to build binary %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
@@ -195,17 +195,17 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	return buildableDeps, goreleaserDeps, nil
 }
 
-func InstallBinaryFromRepo(dep types.Dependency, td string) error {
-	var remainingBinaries []types.BinaryPathPair
-	// Only keep binaries that need updating
-	remainingBinaries, err := checkBinaryVersions(dep)
-	if err != nil {
-		return err
-	}
+func InstallBinaryFromRepo(dep types.Dependency, td string, withCheck bool) error {
+	if withCheck {
+		remainingBinaries, err := checkBinaryVersions(dep)
+		if err != nil {
+			return err
+		}
 
-	dep.Binaries = remainingBinaries
-	if len(dep.Binaries) == 0 {
-		return nil
+		dep.Binaries = remainingBinaries
+		if len(dep.Binaries) == 0 {
+			return nil
+		}
 	}
 
 	spinner, _ := pterm.DefaultSpinner.Start(
@@ -329,6 +329,7 @@ func checkBinaryVersions(dep types.Dependency) ([]types.BinaryPathPair, error) {
 				want,
 				have,
 			)
+
 			if have != want {
 				remainingBinaries = append(remainingBinaries, binary)
 			}
@@ -337,15 +338,17 @@ func checkBinaryVersions(dep types.Dependency) ([]types.BinaryPathPair, error) {
 	return remainingBinaries, nil
 }
 
-func InstallBinaryFromRelease(dep types.Dependency) error {
-	remainingBinaries, err := checkBinaryVersions(dep)
-	if err != nil {
-		return err
-	}
+func InstallBinaryFromRelease(dep types.Dependency, withCheck bool) error {
+	if withCheck {
+		remainingBinaries, err := checkBinaryVersions(dep)
+		if err != nil {
+			return err
+		}
 
-	dep.Binaries = remainingBinaries
-	if len(dep.Binaries) == 0 {
-		return nil
+		dep.Binaries = remainingBinaries
+		if len(dep.Binaries) == 0 {
+			return nil
+		}
 	}
 
 	spinner, _ := pterm.DefaultSpinner.Start(

@@ -109,7 +109,7 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("starting update")
 			raDep.Binaries[0].BinaryDestination = tmpBinLocation
-			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName, true)
 			if err != nil {
 				pterm.Error.Println("failed to install rollapp binary: ", err)
 				return
