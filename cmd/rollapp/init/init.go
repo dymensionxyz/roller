@@ -2,7 +2,6 @@ package initrollapp
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
-	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -130,21 +128,7 @@ func Cmd() *cobra.Command {
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
-				dymdBinaryOptions := types.Dependency{
-					DependencyName:  "dymension",
-					RepositoryOwner: "dymensionxyz",
-					RepositoryName:  "dymension",
-					RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-					Release:         "v3.1.0-pg10",
-					Binaries: []types.BinaryPathPair{
-						{
-							Binary:            "dymd",
-							BinaryDestination: consts.Executables.Dymension,
-							BuildCommand:      exec.Command("make", "build"),
-						},
-					},
-					PersistFiles: []types.PersistFile{},
-				}
+				dymdBinaryOptions := dependencies.DefaultDymdDependency()
 				pterm.Info.Println("installing dependencies")
 				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
 				if err != nil {
@@ -202,12 +186,10 @@ func Cmd() *cobra.Command {
 					},
 				}
 
-				if !shouldSkipBinaryInstallation {
-					_, _, err = dependencies.InstallBinaries(true, raRespMock)
-					if err != nil {
-						pterm.Error.Println("failed to install binaries: ", err)
-						return
-					}
+				_, _, err = dependencies.InstallBinaries(true, raRespMock)
+				if err != nil {
+					pterm.Error.Println("failed to install binaries: ", err)
+					return
 				}
 
 				err := runInit(

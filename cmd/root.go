@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/binaries"
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
@@ -40,6 +41,7 @@ func init() {
 	rootCmd.AddCommand(eibc.Cmd())
 	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(version.Cmd())
+	rootCmd.AddCommand(binaries.Cmd())
 
 	initconfig.AddGlobalFlags(rootCmd)
 }

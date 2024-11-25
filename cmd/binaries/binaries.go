@@ -3,7 +3,7 @@ package binaries
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/binaries/install"
+	"github.com/dymensionxyz/roller/cmd/binaries/versions"
 )
 
 func Cmd() *cobra.Command {
@@ -12,7 +12,8 @@ func Cmd() *cobra.Command {
 		Short: "Commands to manage roller dependencies",
 	}
 
-	cmd.AddCommand(install.Cmd())
+	// cmd.AddCommand(install.Cmd())
+	cmd.AddCommand(versions.Cmd())
 
 	return cmd
 }

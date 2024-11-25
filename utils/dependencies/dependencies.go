@@ -46,6 +46,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	defer os.RemoveAll(genesisTmpDir)
 
 	var drsVersion string
+	var raCommit string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
@@ -71,7 +72,13 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		if err != nil {
 			return nil, nil, err
 		}
-		drsVersion = drsInfo.Commit
+
+		switch strings.ToLower(raResp.Rollapp.VmType) {
+		case "evm":
+			raCommit = drsInfo.EvmCommit
+		case "wasm":
+			raCommit = drsInfo.WasmCommit
+		}
 	}
 
 	defer func() {
@@ -87,7 +94,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	if !withMockDA {
 		rbi := NewRollappBinaryInfo(
 			raResp.Rollapp.GenesisInfo.Bech32Prefix,
-			drsVersion,
+			raCommit,
 			raVmType,
 		)
 
@@ -167,22 +174,20 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 				},
 			}
 		}
-
 	}
 
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("[release] failed to install binary %s from release: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
-
 	}
 
 	for k, dep := range buildableDeps {
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("[build] failed to build binary %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
 	}
@@ -191,6 +196,18 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
+	var remainingBinaries []types.BinaryPathPair
+	// Only keep binaries that need updating
+	remainingBinaries, err := checkBinaryVersions(dep)
+	if err != nil {
+		return err
+	}
+
+	dep.Binaries = remainingBinaries
+	if len(dep.Binaries) == 0 {
+		return nil
+	}
+
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
@@ -269,7 +286,68 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	return nil
 }
 
+func checkBinaryVersions(dep types.Dependency) ([]types.BinaryPathPair, error) {
+	var remainingBinaries []types.BinaryPathPair
+	for _, binary := range dep.Binaries {
+		_, err := os.Stat(binary.BinaryDestination)
+		if err != nil {
+			if os.IsNotExist(err) {
+				remainingBinaries = append(remainingBinaries, binary)
+			} else {
+				return nil, err
+			}
+		} else {
+			commit, err := GetCurrentCommit(binary.BinaryDestination)
+			if err != nil {
+				return nil, err
+			}
+
+			var want string
+			var have string
+
+			switch binary.BinaryDestination {
+			case consts.Executables.CelestiaApp:
+				want = strings.TrimPrefix(dep.Release, "v")
+				have = commit
+			case consts.Executables.Eibc:
+				want = dep.Release
+				have = fmt.Sprintf("v%s", commit)
+			case consts.Executables.Relayer:
+				want = dep.Release
+				have = commit
+			case consts.Executables.Dymension:
+				want = dep.Release
+				have = fmt.Sprintf("v%s", commit)
+			default:
+				want = dep.Release[:6]
+				have = commit[:6]
+			}
+
+			pterm.Info.Printfln(
+				"comparing installed versions for %s (want: %s / have: %s)",
+				binary.BinaryDestination,
+				want,
+				have,
+			)
+			if have != want {
+				remainingBinaries = append(remainingBinaries, binary)
+			}
+		}
+	}
+	return remainingBinaries, nil
+}
+
 func InstallBinaryFromRelease(dep types.Dependency) error {
+	remainingBinaries, err := checkBinaryVersions(dep)
+	if err != nil {
+		return err
+	}
+
+	dep.Binaries = remainingBinaries
+	if len(dep.Binaries) == 0 {
+		return nil
+	}
+
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
@@ -307,6 +385,8 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 	)
 
 	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
+	// nolint: errcheck
+	spinner.Stop()
 	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {
 		// nolint: errcheck,gosec
@@ -324,13 +404,11 @@ func DownloadRelease(
 	dep types.Dependency,
 	spinner *pterm.SpinnerPrinter,
 ) error {
-	// Create a new HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
 	}
 
-	// Send the request
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
@@ -338,19 +416,14 @@ func DownloadRelease(
 	// nolint: errcheck
 	defer resp.Body.Close()
 
-	// Create a progress bar
 	bar := progressbar.DefaultBytes(
 		resp.ContentLength,
 		"Downloading",
 	)
 
-	// Create a reader that will update the progress bar
 	reader := progressbar.NewReader(resp.Body, bar)
-
-	// Create a pointer to the reader
 	readerPtr := &reader
 
-	// Create a wrapper that implements io.ReadCloser
 	readCloserWrapper := struct {
 		io.Reader
 		io.Closer
@@ -361,7 +434,6 @@ func DownloadRelease(
 
 	// nolint: errcheck,gosec
 	spinner.Stop()
-	// Extract the tar.gz file with progress
 	err = archives.ExtractTarGz(destination, readCloserWrapper, dep)
 	if err != nil {
 		return err

@@ -1,17 +1,17 @@
 package dependencies
 
 import (
-	"errors"
-	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+)
+
+const (
+	DefaultDymdCommit = "c80959d9027fae55444735386f21a9d9eeb61574"
 )
 
 func customDymdDependency(dymdCommit string) types.Dependency {
@@ -34,40 +34,6 @@ func customDymdDependency(dymdCommit string) types.Dependency {
 			},
 		},
 		PersistFiles: []types.PersistFile{},
-	}
-}
-
-func ExtractCommitFromBinaryVersion(binary string) (string, error) {
-	_, err := os.Stat(binary)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", err
-	}
-
-	cmd := exec.Command(binary, "version", "--long")
-
-	out, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return "", err
-	}
-
-	lns := strings.Split(out.String(), "\n")
-	var cl string
-	for _, l := range lns {
-		if strings.Contains(l, "commit") {
-			cl = l
-			break
-		}
-	}
-
-	re := regexp.MustCompile(`commit: ([a-f0-9]+)`)
-	match := re.FindStringSubmatch(cl)
-	if len(match) > 1 {
-		return match[1], nil
-	} else {
-		return "", errors.New("commit not found in the version output")
 	}
 }
 
@@ -97,7 +63,7 @@ func DefaultDymdDependency() types.Dependency {
 		RepositoryOwner: "dymensionxyz",
 		RepositoryName:  "dymension",
 		RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-		Release:         "v3.1.0-mig01",
+		Release:         DefaultDymdCommit,
 		Binaries: []types.BinaryPathPair{
 			{
 				Binary:            "dymd",

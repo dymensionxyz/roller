@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"slices"
@@ -9,10 +8,8 @@ import (
 	"strings"
 	"time"
 
-	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"google.golang.org/api/option"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -107,43 +104,37 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
+
 			err = genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
 			if err != nil {
 				pterm.Error.Println("failed to download genesis file: ", err)
 				return
 			}
+
 			as, err := genesis.GetGenesisAppState(home)
 			if err != nil {
 				pterm.Error.Println("failed to get genesis app state: ", err)
 				return
 			}
-			ctx := context.Background()
-			conf := &firebase.Config{ProjectID: "drs-metadata"}
-			app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
-			if err != nil {
-				pterm.Error.Printfln("failed to initialize firebase app: %v", err)
-				return
-			}
+
 			drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
-
-			client, err := app.Firestore(ctx)
-			if err != nil {
-				pterm.Error.Printfln("failed to create firestore client: %v", err)
-				return
-			}
-			defer client.Close()
-
-			// Fetch DRS version information using the nested collection path
-			// Path format: versions/{version}/revisions/{revision}
 			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
 			if err != nil {
-				pterm.Error.Println("failed to retrieve latest DRS version: ", err)
+				pterm.Error.Println("failed to retrieve latest commit: ", err)
 				return
+			}
+
+			var raCommit string
+			switch strings.ToLower(raResp.Rollapp.VmType) {
+			case "evm":
+				raCommit = drsInfo.EvmCommit
+			case "wasm":
+				raCommit = drsInfo.WasmCommit
 			}
 
 			rbi := dependencies.NewRollappBinaryInfo(
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
-				drsInfo.Commit,
+				raCommit,
 				strings.ToLower(raResp.Rollapp.VmType),
 			)
 

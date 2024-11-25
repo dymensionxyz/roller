@@ -83,21 +83,7 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 
 func DefaultRollappPrebuiltDependencies() map[string]types.Dependency {
 	deps := map[string]types.Dependency{
-		"celestia-app": {
-			DependencyName: "celestia-app",
-			RepositoryUrl:  "https://github.com/celestiaorg/celestia-app",
-			Release:        "v2.1.2",
-			Binaries: []types.BinaryPathPair{
-				{
-					Binary:            "celestia-appd",
-					BinaryDestination: consts.Executables.CelestiaApp,
-					BuildCommand: exec.Command(
-						"make",
-						"build",
-					),
-				},
-			},
-		},
+		"celestia-app": DefaultCelestiaAppPrebuiltDependency(),
 	}
 
 	return deps
