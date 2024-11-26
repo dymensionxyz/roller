@@ -56,8 +56,17 @@ func (r *Relayer) LoadActiveChannel(
 		return "", "", nil
 	}
 
-	j, _ := json.Marshal(raChannelResponse)
-	fmt.Println(string(j))
+	for _, v := range raChannelResponse.Channels {
+		fmt.Println(v.State)
+	}
+
+	raChanIndex := slices.IndexFunc(
+		raChannelResponse.Channels, func(ibcChan Channel) bool {
+			return ibcChan.ConnectionHops[0] == activeRaConnectionID &&
+				ibcChan.State == "STATE_OPEN"
+		},
+	)
+	raChan := raChannelResponse.Channels[raChanIndex]
 
 	var hubChannelResponse QueryChannelsResponse
 	hubChannels, err := bash.ExecCommandWithStdout(r.queryChannelsHubCmd(hd))
@@ -73,14 +82,6 @@ func (r *Relayer) LoadActiveChannel(
 	if len(hubChannelResponse.Channels) == 0 {
 		return "", "", nil
 	}
-
-	raChanIndex := slices.IndexFunc(
-		raChannelResponse.Channels, func(ibcChan Channel) bool {
-			return ibcChan.ConnectionHops[0] == activeRaConnectionID &&
-				ibcChan.State == "STATE_OPEN"
-		},
-	)
-	raChan := raChannelResponse.Channels[raChanIndex]
 
 	hubChanIndex := slices.IndexFunc(
 		hubChannelResponse.Channels, func(ibcChan Channel) bool {
