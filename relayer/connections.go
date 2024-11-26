@@ -132,7 +132,7 @@ func (r *Relayer) GetActiveConnectionIDs(
 
 	hubConnection := hubIbcConnection.Connections[hubConnIndex]
 
-	return rollappIbcConnection.Connections[0].ID, hubConnection.ID, nil
+	return connectionInfo.ID, hubConnection.ID, nil
 }
 
 func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubData) (
