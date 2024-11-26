@@ -60,9 +60,38 @@ func (r *Relayer) LoadActiveChannel(
 			return ibcChan.State == "STATE_OPEN"
 		},
 	)
-
 	j, _ = json.MarshalIndent(gacResponse.Channels[raIbcChanIndex], "", "  ")
 	fmt.Printf("\topen channel: \n%s", string(j))
+	cmd := r.queryConnectionRollappCmd(raData)
+
+	// QUERY CONNECTIONS
+
+	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		r.logger.Printf(
+			"failed to find connection on the rollapp side for %s: %v",
+			r.RollappID,
+			err,
+		)
+		return "", "", err
+	}
+	var raIbcConnections ConnectionsQueryResult
+	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &raIbcConnections)
+	if err != nil {
+		return "", "", err
+	}
+
+	activeIbcConnectionID := gacResponse.Channels[raIbcChanIndex].ConnectionHops[0]
+	raIbcConnInx := slices.IndexFunc(
+		raIbcConnections.Connections, func(conn ConnectionInfo) bool {
+			return conn.ID == activeIbcConnectionID
+		},
+	)
+
+	raIbcConn := raIbcConnections.Connections[raIbcConnInx]
+	j, _ = json.Marshal(raIbcConn)
+	r.logger.Printf("\tRA IBC Connection:\n%s", string(j))
+	// END QUERY CONNECTIONS
 
 	return "", "", errors.New("debugging")
 

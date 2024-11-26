@@ -127,17 +127,6 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	}
 }
 
-func (r *Relayer) getCreateClientsCmd(override bool) *exec.Cmd {
-	args := []string{"tx", "clients"}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	args = append(args, "--log-level", "debug")
-	if override {
-		args = append(args, "--override")
-	}
-	cmd := exec.Command(consts.Executables.Relayer, args...)
-	return cmd
-}
-
 func (r *Relayer) getCreateConnectionCmd() *exec.Cmd {
 	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
 	args = append(args, r.getRelayerDefaultArgs()...)
