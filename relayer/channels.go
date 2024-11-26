@@ -57,7 +57,7 @@ func (r *Relayer) LoadActiveChannel(
 	}
 
 	for _, v := range raChannelResponse.Channels {
-		fmt.Println(v.State)
+		fmt.Printf("%s: %s\n", v.ChannelID, v.State)
 	}
 
 	raChanIndex := slices.IndexFunc(
