@@ -95,10 +95,17 @@ func (r *Relayer) GetActiveConnectionIDs(
 	}
 
 	// TODO: review, why return nil error?
-	if rollappIbcConnection.Connections[0].State != "STATE_OPEN" {
+	var connectionInfo *ConnectionInfo
+
+	for _, conn := range rollappIbcConnection.Connections {
+		if conn.State == "STATE_OPEN" {
+			connectionInfo = &conn
+		}
+	}
+	if connectionInfo == nil {
 		return "", "", nil
 	}
-	hubConnectionID := rollappIbcConnection.Connections[0].Counterparty.ConnectionID
+	hubConnectionID := connectionInfo.Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
 	var hubIbcConnection ConnectionsQueryResult
