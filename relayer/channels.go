@@ -22,6 +22,7 @@ func (r *Relayer) LoadActiveChannel(
 	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
 	defer spinner.Stop()
 
+	pterm.Info.Println("querying channels")
 	gacCmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"q",
@@ -65,10 +66,10 @@ func (r *Relayer) LoadActiveChannel(
 	cmd := r.queryConnectionRollappCmd(raData)
 
 	// QUERY CONNECTIONS
-
+	pterm.Info.Println("querying connections")
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
-		r.logger.Printf(
+		pterm.Error.Printfln(
 			"failed to find connection on the rollapp side for %s: %v",
 			r.RollappID,
 			err,
@@ -90,7 +91,7 @@ func (r *Relayer) LoadActiveChannel(
 
 	raIbcConn := raIbcConnections.Connections[raIbcConnInx]
 	j, _ = json.Marshal(raIbcConn)
-	r.logger.Printf("\tRA IBC Connection:\n%s", string(j))
+	fmt.Printf("\tRA IBC Connection:\n%s", string(j))
 	// END QUERY CONNECTIONS
 
 	return "", "", errors.New("debugging")
