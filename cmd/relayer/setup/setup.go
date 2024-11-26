@@ -1,7 +1,6 @@
 package setup
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"slices"
@@ -9,10 +8,8 @@ import (
 	"strings"
 	"time"
 
-	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"google.golang.org/api/option"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -102,69 +99,9 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			raResp, err := rollapp.GetMetadataFromChain(raID, *hd)
+			err = installRelayerDependencies(home, raID, *hd)
 			if err != nil {
-				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
-				return
-			}
-			err = genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
-			if err != nil {
-				pterm.Error.Println("failed to download genesis file: ", err)
-				return
-			}
-			as, err := genesis.GetGenesisAppState(home)
-			if err != nil {
-				pterm.Error.Println("failed to get genesis app state: ", err)
-				return
-			}
-			ctx := context.Background()
-			conf := &firebase.Config{ProjectID: "drs-metadata"}
-			app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
-			if err != nil {
-				pterm.Error.Printfln("failed to initialize firebase app: %v", err)
-				return
-			}
-			drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
-
-			client, err := app.Firestore(ctx)
-			if err != nil {
-				pterm.Error.Printfln("failed to create firestore client: %v", err)
-				return
-			}
-			defer client.Close()
-
-			// Fetch DRS version information using the nested collection path
-			// Path format: versions/{version}/revisions/{revision}
-			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve latest DRS version: ", err)
-				return
-			}
-
-			rbi := dependencies.NewRollappBinaryInfo(
-				raResp.Rollapp.GenesisInfo.Bech32Prefix,
-				drsInfo.Commit,
-				strings.ToLower(raResp.Rollapp.VmType),
-			)
-
-			raDep := dependencies.DefaultRollappDependency(rbi)
-			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
-			if err != nil {
-				pterm.Error.Printfln("failed to install binary: %s", err)
-				return
-			}
-
-			rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
-			err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
-			if err != nil {
-				pterm.Error.Printfln("failed to install binary: %s", err)
-				return
-			}
-
-			dymdDep := dependencies.DefaultDymdDependency()
-			err = dependencies.InstallBinaryFromRelease(dymdDep)
-			if err != nil {
-				pterm.Error.Printfln("failed to install binary: %s", err)
+				pterm.Error.Println("failed to install relayer dependencies: ", err)
 				return
 			}
 
@@ -500,4 +437,72 @@ func Cmd() *cobra.Command {
 	}
 
 	return relayerStartCmd
+}
+
+func getDrsVersionFromGenesis(
+	home string,
+	raResp *rollapputils.ShowRollappResponse,
+) (string, error) {
+	err := genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
+	if err != nil {
+		return "", err
+	}
+
+	as, err := genesis.GetGenesisAppState(home)
+	if err != nil {
+		pterm.Error.Println("failed to get genesis app state: ", err)
+		return "", err
+	}
+	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
+
+	return drsVersion, nil
+}
+
+func installRelayerDependencies(
+	home string,
+	raID string,
+	hd consts.HubData,
+) error {
+	raResp, err := rollapp.GetMetadataFromChain(raID, hd)
+	if err != nil {
+		return err
+	}
+
+	drsVersion, err := getDrsVersionFromGenesis(home, raResp)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return err
+	}
+
+	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
+		return err
+	}
+
+	rbi := dependencies.NewRollappBinaryInfo(
+		raResp.Rollapp.GenesisInfo.Bech32Prefix,
+		drsInfo.Commit,
+		strings.ToLower(raResp.Rollapp.VmType),
+	)
+
+	raDep := dependencies.DefaultRollappDependency(rbi)
+	err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+	if err != nil {
+		return err
+	}
+
+	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
+	if err != nil {
+		return err
+	}
+
+	dymdDep := dependencies.DefaultDymdDependency()
+	err = dependencies.InstallBinaryFromRelease(dymdDep)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
