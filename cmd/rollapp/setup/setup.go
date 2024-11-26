@@ -273,7 +273,7 @@ RollApp's IRO time: %v`,
 
 					nb := cosmossdktypes.Coin{
 						Denom:  consts.Denoms.Hub,
-						Amount: necessaryBalance,
+						Amount: necessaryBalance.Add(cosmossdkmath.NewInt(1)),
 					}
 					necBlnc, _ := sequencer.BaseDenomToDenom(nb, 18)
 
@@ -320,9 +320,11 @@ RollApp's IRO time: %v`,
 					}
 
 					pterm.Info.Printf(
-						"current balance: %s\nnecessary balance: %s\n",
+						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
 						balance.String(),
+						blnc.String(),
 						fmt.Sprintf("%s%s", necessaryBalance.String(), consts.Denoms.Hub),
+						necBlnc.String(),
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
