@@ -9,11 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -25,6 +23,7 @@ import (
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
@@ -47,7 +46,7 @@ func Cmd() *cobra.Command {
 			relayerHome := relayerutils.GetHomeDir(home)
 			relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
 
-			raID, hd, err := relayerutils.GetRollappToRunFor(home)
+			raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
 			if err != nil {
 				pterm.Error.Println("failed to determine what RollApp to run for:", err)
 				return
@@ -136,36 +135,10 @@ func Cmd() *cobra.Command {
 
 			// Fetch DRS version information using the nested collection path
 			// Path format: versions/{version}/revisions/{revision}
-			drsDoc := client.Collection("versions").
-				Doc(drsVersion).
-				Collection("revisions").
-				OrderBy("timestamp", firestore.Desc).
-				Limit(1).
-				Documents(ctx)
-
-			doc, err := drsDoc.Next()
-			if err == iterator.Done {
-				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
-				return
-			}
+			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
 			if err != nil {
-				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
+				pterm.Error.Println("failed to retrieve latest DRS version: ", err)
 				return
-			}
-
-			var drsInfo dependencies.DrsVersionInfo
-			if err := doc.DataTo(&drsInfo); err != nil {
-				pterm.Error.Printfln("DRS version not found for %s", drsVersion)
-				return
-			}
-
-			dep := dependencies.DefaultRelayerPrebuiltDependencies()
-			for _, v := range dep {
-				err := dependencies.InstallBinaryFromRelease(v)
-				if err != nil {
-					pterm.Error.Printfln("failed to install binary: %s", err)
-					return
-				}
 			}
 
 			rbi := dependencies.NewRollappBinaryInfo(
@@ -176,6 +149,13 @@ func Cmd() *cobra.Command {
 
 			raDep := dependencies.DefaultRollappDependency(rbi)
 			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			if err != nil {
+				pterm.Error.Printfln("failed to install binary: %s", err)
+				return
+			}
+
+			rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+			err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 			if err != nil {
 				pterm.Error.Printfln("failed to install binary: %s", err)
 				return
@@ -387,6 +367,7 @@ func Cmd() *cobra.Command {
 				err := sequencerutils.UpdateWhitelistedRelayers(
 					home,
 					relKeys[consts.KeysIds.RollappRelayer].Address,
+					kb,
 					*hd,
 				)
 				if err != nil {
@@ -395,7 +376,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home)
+			raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home, kb)
 			if err != nil {
 				pterm.Error.Println("failed to get RollApp's operator address:", err)
 				return

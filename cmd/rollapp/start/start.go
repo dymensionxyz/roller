@@ -1,6 +1,7 @@
 package start
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -96,6 +97,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				go healthagent.Start(home, rollerLogger)
 			}
 
+			done := make(chan error, 1)
 			// nolint: errcheck
 			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(
@@ -118,12 +120,44 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 					"Re-enter keyring passphrase": psw,
 				}
 
-				go bash.ExecCmdFollow(
-					startRollappCmd,
-					pr,
-				)
+				ctx, cancel := context.WithCancel(cmd.Context())
+				defer cancel()
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startRollappCmd,
+						pr,
+					)
+
+					done <- err
+				}()
 			} else {
-				go bash.ExecCmdFollow(startRollappCmd, nil)
+				ctx, cancel := context.WithCancel(cmd.Context())
+				defer cancel()
+
+				go func() {
+					err := bash.ExecCmdFollow(
+						done,
+						ctx,
+						startRollappCmd,
+						nil, // No need for printOutput since we configured output above
+					)
+
+					done <- err
+				}()
+
+				select {
+				case err := <-done:
+					if err != nil {
+						pterm.Error.Println("rollapp's process returned an error: ", err)
+						os.Exit(1)
+					}
+				case <-ctx.Done():
+					pterm.Error.Println("context cancelled, terminating command")
+					return
+				}
+
 			}
 
 			select {}
@@ -249,7 +283,7 @@ func createPidFile(path string, cmd *exec.Cmd) error {
 		fmt.Println("Error creating file:", err)
 		return err
 	}
-	// nolint errcheck
+	// nolint: errcheck
 	defer file.Close()
 
 	pid := cmd.Process.Pid

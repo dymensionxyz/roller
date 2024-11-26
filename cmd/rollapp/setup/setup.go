@@ -749,7 +749,7 @@ RollApp's IRO time: %v`,
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"settlement_gas_prices",
-				"1000000000000adym",
+				"20000000000adym",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
@@ -781,9 +781,18 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		Telegram: "",
 		X:        "",
 	}
-	defaultGasPrice, ok := github_com_cosmos_cosmos_sdk_types.NewIntFromString(
-		raCfg.HubData.GasPrice,
-	)
+
+	var defaultGasPrice cosmossdktypes.Int
+	var ok bool
+
+	if raCfg.HubData.GasPrice != "" {
+		defaultGasPrice, ok = github_com_cosmos_cosmos_sdk_types.NewIntFromString(
+			raCfg.HubData.GasPrice,
+		)
+	} else {
+		defaultGasPrice = cosmossdktypes.NewInt(2000000000)
+		ok = true
+	}
 	if !ok {
 		return errors.New("failed to parse gas price")
 	}

@@ -55,18 +55,8 @@ func ExtractTarGz(path string, data io.ReadCloser, dep dependencytypes.Dependenc
 	}
 
 	for _, bin := range dep.Binaries {
-		err := bash.ExecCommandWithInteractions(
-			"sudo",
-			"mv",
+		err := MoveBinaryIntoPlaceAndMakeExecutable(
 			filepath.Join(path, bin.Binary),
-			bin.BinaryDestination,
-		)
-		if err != nil {
-			return err
-		}
-		err = bash.ExecCommandWithInteractions(
-			"sudo",
-			"chmod", "+x",
 			bin.BinaryDestination,
 		)
 		if err != nil {
@@ -75,4 +65,28 @@ func ExtractTarGz(path string, data io.ReadCloser, dep dependencytypes.Dependenc
 	}
 
 	return err
+}
+
+// MoveBinaryIntoPlaceAndMakeExecutable is a fantastic function name, ik
+func MoveBinaryIntoPlaceAndMakeExecutable(
+	src, dest string,
+) error {
+	err := bash.ExecCommandWithInteractions(
+		"sudo",
+		"mv",
+		src,
+		dest,
+	)
+	if err != nil {
+		return err
+	}
+	err = bash.ExecCommandWithInteractions(
+		"sudo",
+		"chmod", "+x",
+		dest,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
