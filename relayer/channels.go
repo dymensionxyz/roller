@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"slices"
 
@@ -54,6 +55,9 @@ func (r *Relayer) LoadActiveChannel(
 	if len(raChannelResponse.Channels) == 0 {
 		return "", "", nil
 	}
+
+	j, _ := json.Marshal(raChannelResponse.Channels)
+	fmt.Println(string(j))
 
 	var hubChannelResponse QueryChannelsResponse
 	hubChannels, err := bash.ExecCommandWithStdout(r.queryChannelsHubCmd(hd))
