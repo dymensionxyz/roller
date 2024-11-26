@@ -269,10 +269,20 @@ RollApp's IRO time: %v`,
 						af,
 					)
 
+					blnc, _ := sequencer.BaseDenomToDenom(*balance, 18)
+
+					nb := cosmossdktypes.Coin{
+						Denom:  consts.Denoms.Hub,
+						Amount: necessaryBalance,
+					}
+					necBlnc, _ := sequencer.BaseDenomToDenom(nb, 18)
+
 					pterm.Info.Printf(
-						"current balance: %s\nnecessary balance: %s\n",
+						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
 						balance.String(),
+						blnc.String(),
 						fmt.Sprintf("%s%s", necessaryBalance.String(), consts.Denoms.Hub),
+						necBlnc.String(),
 					)
 
 					// check whether balance is bigger or equal to the necessaryBalance
@@ -767,7 +777,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 
-	var defaultGasPrice cosmossdktypes.Int
+	var defaultGasPrice cosmossdkmath.Int
 	var ok bool
 
 	if raCfg.HubData.GasPrice != "" {
