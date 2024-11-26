@@ -56,7 +56,7 @@ func (r *Relayer) LoadActiveChannel(
 		return "", "", nil
 	}
 
-	j, _ := json.Marshal(raChannelResponse.Channels)
+	j, _ := json.Marshal(raChannelResponse)
 	fmt.Println(string(j))
 
 	var hubChannelResponse QueryChannelsResponse
