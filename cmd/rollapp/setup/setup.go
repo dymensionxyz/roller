@@ -270,10 +270,11 @@ RollApp's IRO time: %v`,
 					)
 
 					blnc, _ := sequencer.BaseDenomToDenom(*balance, 18)
+					oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 
 					nb := cosmossdktypes.Coin{
 						Denom:  consts.Denoms.Hub,
-						Amount: necessaryBalance.Add(cosmossdkmath.NewInt(1)),
+						Amount: necessaryBalance.Add(oneDym),
 					}
 					necBlnc, _ := sequencer.BaseDenomToDenom(nb, 18)
 
