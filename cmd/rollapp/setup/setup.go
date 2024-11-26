@@ -264,6 +264,11 @@ RollApp's IRO time: %v`,
 						cosmossdkmath.NewInt(consts.DefaultTxFee),
 					)
 
+					af, _ := cosmossdkmath.NewIntFromString(consts.DefaultAdditionalFunding)
+					necessaryBalance = necessaryBalance.Add(
+						af,
+					)
+
 					pterm.Info.Printf(
 						"current balance: %s\nnecessary balance: %s\n",
 						balance.String(),
