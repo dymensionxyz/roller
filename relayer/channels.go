@@ -55,6 +55,15 @@ func (r *Relayer) LoadActiveChannel(
 		fmt.Printf("\t%s: %s\n", v.ChannelID, v.State)
 	}
 
+	raIbcChanIndex := slices.IndexFunc(
+		gacResponse.Channels, func(ibcChan Channel) bool {
+			return ibcChan.State == "STATE_OPEN"
+		},
+	)
+
+	j, _ = json.MarshalIndent(gacResponse.Channels[raIbcChanIndex], "", "  ")
+	fmt.Printf("\topen channel: \n%s", string(j))
+
 	return "", "", errors.New("debugging")
 
 	var activeRaConnectionID string

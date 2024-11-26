@@ -94,7 +94,6 @@ func (r *Relayer) GetActiveConnectionIDs(
 		return "", "", nil
 	}
 
-	// TODO: review, why return nil error?
 	var raActiveConnectionInfo *ConnectionInfo
 
 	j, _ := json.Marshal(rollappIbcConnection.Connections)
