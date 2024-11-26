@@ -161,6 +161,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			dymdDep := dependencies.DefaultDymdDependency()
+			err = dependencies.InstallBinaryFromRelease(dymdDep)
+			if err != nil {
+				pterm.Error.Printfln("failed to install binary: %s", err)
+				return
+			}
+
 			// things to check:
 			// 1. relayer folder exists
 			isRelayerDirPresent, err := filesystem.DirNotEmpty(relayerHome)
