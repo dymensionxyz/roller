@@ -319,6 +319,7 @@ RollApp's IRO time: %v`,
 						pterm.Error.Println("failed to get address balance: ", err)
 						return
 					}
+					blnc, _ = sequencer.BaseDenomToDenom(*balance, 18)
 
 					pterm.Info.Printf(
 						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
