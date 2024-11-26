@@ -24,6 +24,7 @@ func (r *Relayer) LoadActiveChannel(
 
 	gacCmd := exec.Command(
 		consts.Executables.RollappEVM,
+		"q",
 		"ibc",
 		"channel",
 		"channels",
