@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -201,6 +202,7 @@ func (r *Relayer) queryConnectionRollappCmd(
 		"-o", "json",
 	}
 	cmd := exec.Command(consts.Executables.RollappEVM, args...)
+	fmt.Println(cmd.String())
 
 	return cmd
 }
