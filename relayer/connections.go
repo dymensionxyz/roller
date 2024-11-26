@@ -97,6 +97,9 @@ func (r *Relayer) GetActiveConnectionIDs(
 	// TODO: review, why return nil error?
 	var connectionInfo *ConnectionInfo
 
+	j, _ := json.Marshal(rollappIbcConnection.Connections)
+	fmt.Printf("\tibc connections:\n%s", string(j))
+
 	for _, conn := range rollappIbcConnection.Connections {
 		if conn.State == "STATE_OPEN" {
 			connectionInfo = &conn
