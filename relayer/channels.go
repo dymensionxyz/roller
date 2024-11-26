@@ -47,7 +47,12 @@ func (r *Relayer) LoadActiveChannel(
 	}
 
 	j, _ := json.Marshal(gacResponse)
-	r.logger.Printf("\tgac response: \n%s", string(j))
+	fmt.Printf("\tgac response: \n%s", string(j))
+
+	fmt.Println("\nchannels:")
+	for _, v := range gacResponse.Channels {
+		fmt.Printf("\t%s: %s\n", v.ChannelID, v.State)
+	}
 
 	return "", "", errors.New("debugging")
 
