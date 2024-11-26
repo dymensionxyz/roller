@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"slices"
@@ -21,9 +22,38 @@ func (r *Relayer) LoadActiveChannel(
 	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
 	defer spinner.Stop()
 
+	gacCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"ibc",
+		"channel",
+		"channels",
+		"--node",
+		raData.RpcUrl,
+		"--chain-id",
+		raData.ID,
+		"-o",
+		"json",
+	)
+
+	gacOut, err := bash.ExecCommandWithStdout(gacCmd)
+	if err != nil {
+		return "", "", err
+	}
+
+	var gacResponse QueryChannelsResponse
+	err = json.Unmarshal(gacOut.Bytes(), &gacResponse)
+	if err != nil {
+		return "", "", err
+	}
+
+	j, _ := json.Marshal(gacResponse)
+	r.logger.Printf("\tgac response: \n%s", string(j))
+
+	return "", "", errors.New("debugging")
+
 	var activeRaConnectionID string
 	var activeHubConnectionID string
-	activeRaConnectionID, activeHubConnectionID, err := r.GetActiveConnectionIDs(raData, hd)
+	activeRaConnectionID, activeHubConnectionID, err = r.GetActiveConnectionIDs(raData, hd)
 	if err != nil {
 		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)

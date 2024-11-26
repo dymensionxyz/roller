@@ -95,20 +95,20 @@ func (r *Relayer) GetActiveConnectionIDs(
 	}
 
 	// TODO: review, why return nil error?
-	var connectionInfo *ConnectionInfo
+	var raActiveConnectionInfo *ConnectionInfo
 
 	j, _ := json.Marshal(rollappIbcConnection.Connections)
 	fmt.Printf("\tibc connections:\n%s", string(j))
 
 	for _, conn := range rollappIbcConnection.Connections {
 		if conn.State == "STATE_OPEN" {
-			connectionInfo = &conn
+			raActiveConnectionInfo = &conn
 		}
 	}
-	if connectionInfo == nil {
+	if raActiveConnectionInfo == nil {
 		return "", "", nil
 	}
-	hubConnectionID := connectionInfo.Counterparty.ConnectionID
+	hubConnectionID := raActiveConnectionInfo.Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
 	var hubIbcConnection ConnectionsQueryResult
@@ -132,7 +132,7 @@ func (r *Relayer) GetActiveConnectionIDs(
 
 	hubConnection := hubIbcConnection.Connections[hubConnIndex]
 
-	return connectionInfo.ID, hubConnection.ID, nil
+	return raActiveConnectionInfo.ID, hubConnection.ID, nil
 }
 
 func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubData) (
