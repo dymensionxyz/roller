@@ -46,7 +46,7 @@ func (r *Relayer) LoadActiveChannel(
 	fmt.Println(raIbcChanIndex)
 
 	if raIbcChanIndex == -1 {
-		pterm.Error.Printfln("no open channel found for %s", r.Rollapp.ID)
+		return fmt.Errorf("no open channel found for %s\n", r.Rollapp.ID)
 	}
 
 	raChan := gacResponse.Channels[raIbcChanIndex]
