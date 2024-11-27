@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	yaml "gopkg.in/yaml.v3"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -30,8 +28,6 @@ type Relayer struct {
 	// clients
 	SrcClientID string
 	DstClientID string
-
-	Config *Config
 
 	logger *log.Logger
 }
@@ -85,18 +81,4 @@ func (r *Relayer) StatusFilePath() string {
 type ConnectionChannels struct {
 	Src string
 	Dst string
-}
-
-func (c *Config) Load(rlyConfigPath string) error {
-	data, err := os.ReadFile(rlyConfigPath)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(data, c)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

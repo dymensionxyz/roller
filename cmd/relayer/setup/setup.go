@@ -49,11 +49,6 @@ func Cmd() *cobra.Command {
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 			rly.SetLogger(relayerLogger)
-			err = rly.Config.Load(rly.ConfigFilePath)
-			if err != nil {
-				pterm.Error.Println("failed to load relayer config: ", err)
-				return
-			}
 
 			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
@@ -67,6 +62,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
+
+			var rlyCfg relayer.Config
+			err = rlyCfg.Load(rly.ConfigFilePath)
+			if err != nil {
+				pterm.Error.Println("failed to load relayer config: ", err)
+				return
+			}
 
 			// err = installRelayerDependencies(home, raID, *hd)
 			// if err != nil {
@@ -89,9 +91,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if rly.Config.GetPath() == nil {
+			if rlyCfg.GetPath() == nil {
 				pterm.Error.Println("no existing path")
-				if err := rly.Config.CreatePath(*rollappChainData); err != nil {
+				if err := rlyCfg.CreatePath(*rollappChainData); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}

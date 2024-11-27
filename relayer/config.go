@@ -68,6 +68,21 @@ type Paths struct {
 	} `yaml:"hub-rollapp"`
 }
 
+func (c *Config) Load(rlyConfigPath string) error {
+	fmt.Println("loading config from", rlyConfigPath)
+	data, err := os.ReadFile(rlyConfigPath)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Config) GetPath() *Paths {
 	if c.Paths == nil || c.Paths.HubRollapp == nil {
 		return nil

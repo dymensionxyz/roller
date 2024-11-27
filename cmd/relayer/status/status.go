@@ -45,7 +45,6 @@ func Cmd() *cobra.Command {
 				*raData,
 				*hd,
 			)
-			rly.Config = &rlyCfg
 
 			bytes, err := os.ReadFile(rly.StatusFilePath())
 			if err != nil {
