@@ -65,7 +65,7 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 
 	raIbcConnIndex := slices.IndexFunc(
 		raIbcConnections.Connections, func(ibcConn ConnectionInfo) bool {
-			return ibcConn.ID == raIbcConnectionID
+			return ibcConn.ID == raIbcConnectionID && ibcConn.State == "STATE_OPEN"
 		},
 	)
 
@@ -79,7 +79,7 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 	conn := raIbcConnections.Connections[raIbcConnIndex]
 	r.SrcConnectionID = conn.ID
 	r.SrcClientID = conn.ClientID
-	r.DstClientID = conn.Counterparty.ClientID
+	r.SrcChannel = conn.Counterparty.ClientID
 
 	return nil
 }
