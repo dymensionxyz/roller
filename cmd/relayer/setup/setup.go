@@ -37,51 +37,18 @@ func Cmd() *cobra.Command {
 			// relayerHome := relayerutils.GetHomeDir(home)
 			// relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
 
-			raID, hd, _, err := relayerutils.GetRollappToRunFor(home)
+			raData, hd, err := getPreRunInfo(home)
 			if err != nil {
-				pterm.Error.Println("failed to determine what RollApp to run for:", err)
+				pterm.Error.Println("failed to run pre-flight checks: ", err)
 				return
 			}
 
-			_, err = rollapputils.ValidateChainID(hd.ID)
-			if err != nil {
-				pterm.Error.Printf("'%s' is not a valid Hub ID: %v", raID, err)
-				return
-			}
-
-			_, err = rollapputils.ValidateChainID(raID)
-			if err != nil {
-				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
-				return
-			}
-
-			ok, err := rollapp.IsRegistered(raID, *hd)
-			if err != nil {
-				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
-				return
-			}
-
-			if !ok {
-				pterm.Error.Printf("%s rollapp not registered on %s", raID, hd.ID)
-				return
-			}
-
-			raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, *hd)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
-				return
-			}
-
-			raData := consts.RollappData{
-				ID:     raID,
-				RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
-			}
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 
 			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
-				raID,
+				raData.ID,
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
@@ -196,7 +163,7 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			// logFileOption := logging.WithLoggerLogging(relayerLogger)
 
-			err = rly.LoadActiveChannel(raData, *hd)
+			err = rly.LoadActiveChannel(*raData, *hd)
 			if err != nil {
 				pterm.Error.Printf("failed to load active channel, %v", err)
 				return
@@ -435,6 +402,49 @@ func Cmd() *cobra.Command {
 	}
 	//
 	return relayerStartCmd
+}
+
+func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, error) {
+	raID, hd, _, err := relayerutils.GetRollappToRunFor(home)
+	if err != nil {
+		pterm.Error.Println("failed to determine what RollApp to run for:", err)
+		return nil, nil, err
+	}
+
+	_, err = rollapputils.ValidateChainID(hd.ID)
+	if err != nil {
+		pterm.Error.Printf("'%s' is not a valid Hub ID: %v", raID, err)
+		return nil, nil, err
+	}
+
+	_, err = rollapputils.ValidateChainID(raID)
+	if err != nil {
+		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
+		return nil, nil, err
+	}
+
+	ok, err := rollapp.IsRegistered(raID, *hd)
+	if err != nil {
+		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
+		return nil, nil, err
+	}
+
+	if !ok {
+		pterm.Error.Printf("%s rollapp not registered on %s", raID, hd.ID)
+		return nil, nil, err
+	}
+
+	raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, *hd)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
+		return nil, nil, err
+	}
+
+	raData := consts.RollappData{
+		ID:     raID,
+		RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
+	}
+	return &raData, hd, nil
 }
 
 func getDrsVersionFromGenesis(
