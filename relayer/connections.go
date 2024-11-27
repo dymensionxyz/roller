@@ -245,6 +245,6 @@ func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
 
 func (r *Relayer) queryConnectionsHubCmd() *exec.Cmd {
 	args := []string{"q", "connections", r.Hub.ID}
-	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
+	args = append(args, "--home", filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }

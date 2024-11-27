@@ -3,6 +3,7 @@ package setup
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -40,9 +41,14 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to run pre-flight checks: ", err)
 				return
 			}
-
+			rly := relayer.NewRelayer(
+				home,
+				*raData,
+				*hd,
+			)
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
+			rly.SetLogger(relayerLogger)
 
 			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
@@ -50,7 +56,6 @@ func Cmd() *cobra.Command {
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
-
 			err = rollappChainData.ValidateConfig()
 			if err != nil {
 				pterm.Error.Println("rollapp data validation error: ", err)
@@ -63,81 +68,32 @@ func Cmd() *cobra.Command {
 			// 	pterm.Error.Println("failed to install relayer dependencies: ", err)
 			// 	return
 			// }
-			//
-			// // things to check:
-			// // 1. relayer folder exists
-			// isRelayerDirPresent, err := filesystem.DirNotEmpty(relayerHome)
-			// if err != nil {
-			// 	pterm.Error.Printf("failed to check %s: %v\n", relayerHome, err)
-			// 	return
-			// }
-			//
-			// var ibcPathChains *relayerutils.IbcPathChains
-			//
-			// if isRelayerDirPresent {
-			// 	ibcPathChains, err = relayerutils.ValidateIbcPathChains(
-			// 		relayerHome,
-			// 		raID,
-			// 		*hd,
-			// 	)
-			// 	if err != nil {
-			// 		pterm.Error.Printf(
-			// 			"validate relayer config IBC path %s: %v\n",
-			// 			relayerHome,
-			// 			err,
-			// 		)
-			// 		return
-			// 	}
-			// } else {
-			// 	err = os.MkdirAll(relayerHome, 0o755)
-			// 	if err != nil {
-			// 		pterm.Error.Printf("failed to create %s: %v\n", relayerHome, err)
-			// 		return
-			// 	}
-			// }
 
-			// if ibcPathChains != nil {
-			// 	if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
-			// 		!ibcPathChains.DstChainOk {
-			// 		pterm.Warning.Println("relayer config verification failed...")
-			// 		if ibcPathChains.DefaultPathOk {
-			// 			pterm.Info.Printfln(
-			// 				"removing path from config %s",
-			// 				consts.DefaultRelayerPath,
-			// 			)
-			// 			err := relayer.DeletePath(*rollappChainData)
-			// 			if err != nil {
-			// 				pterm.Error.Printf("failed to delete relayer IBC path: %v\n", err)
-			// 				return
-			// 			}
-			// 		}
-			//
-			// 		pterm.Info.Println("populating relayer config with correct values...")
-			// 		err = relayerutils.InitializeRelayer(home, *rollappChainData)
-			// 		if err != nil {
-			// 			pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
-			// 			return
-			// 		}
-			//
-			// 		if err := relayer.CreatePath(*rollappChainData); err != nil {
-			// 			pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
-			// 			return
-			// 		}
-			// 	}
-			// } else {
-			// 	pterm.Info.Println("populating relayer config with correct values...")
-			// 	err = relayerutils.InitializeRelayer(home, *rollappChainData)
-			// 	if err != nil {
-			// 		pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
-			// 		return
-			// 	}
-			//
-			// 	if err := relayer.CreatePath(*rollappChainData); err != nil {
-			// 		pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
-			// 		return
-			// 	}
-			// }
-			//
+			// things to check:
+			// 1. relayer folder exists
+			err = os.MkdirAll(rly.RelayerHome, 0o755)
+			if err != nil {
+				pterm.Error.Printf("failed to create %s: %v\n", rly.RelayerHome, err)
+				return
+			}
+
+			pterm.Info.Println("populating relayer config with correct values...")
+			err = relayerutils.InitializeRelayer(home, *rollappChainData)
+			if err != nil {
+				pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
+				return
+			}
+
+			if rly.Config.GetPath() == nil {
+				pterm.Error.Println("no existing path")
+				if err := rly.Config.CreatePath(*rollappChainData); err != nil {
+					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
+					return
+				}
+
+				return
+			}
+
 			// if err := relayerutils.UpdateConfigWithDefaultValues(relayerHome, *rollappChainData); err != nil {
 			// 	pterm.Error.Printf("failed to update relayer config file: %v\n", err)
 			// 	return
@@ -153,12 +109,6 @@ func Cmd() *cobra.Command {
 			// }
 
 			// 5. Are there existing channels ( from chain )
-			rly := relayer.NewRelayer(
-				home,
-				*raData,
-				*hd,
-			)
-			rly.SetLogger(relayerLogger)
 			// logFileOption := logging.WithLoggerLogging(relayerLogger)
 
 			err = rly.LoadActiveChannel(*raData, *hd)

@@ -8,12 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
+	yaml "gopkg.in/yaml.v3"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 type Relayer struct {
-	Home           string
+	RollerHome     string
+	RelayerHome    string
 	ConfigFilePath string
 
 	Rollapp consts.RollappData
@@ -28,6 +31,8 @@ type Relayer struct {
 	SrcClientID string
 	DstClientID string
 
+	Config *Config
+
 	logger *log.Logger
 }
 
@@ -35,11 +40,14 @@ func NewRelayer(home string, raData consts.RollappData, hd consts.HubData) *Rela
 	relayerHome := GetHomeDir(home)
 	relayerConfigPath := GetConfigFilePath(relayerHome)
 	return &Relayer{
-		Home:           home,
+		RollerHome:     home,
+		RelayerHome:    relayerHome,
 		ConfigFilePath: relayerConfigPath,
-		Rollapp:        raData,
-		Hub:            hd,
-		logger:         log.New(io.Discard, "", 0),
+
+		Rollapp: raData,
+		Hub:     hd,
+
+		logger: log.New(io.Discard, "", 0),
 	}
 }
 
@@ -71,10 +79,23 @@ func (r *Relayer) WriteRelayerStatus(status string) error {
 }
 
 func (r *Relayer) StatusFilePath() string {
-	return filepath.Join(r.Home, consts.ConfigDirName.Relayer, "relayer_status.txt")
+	return filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer, "relayer_status.txt")
 }
 
 type ConnectionChannels struct {
 	Src string
 	Dst string
+}
+
+func (c *Config) Load(rlyConfigPath string) error {
+	data, err := os.ReadFile(rlyConfigPath)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, c)
+	if err != nil {
+		return err
+	}
+	return nil
 }

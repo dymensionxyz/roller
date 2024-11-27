@@ -167,6 +167,6 @@ func (r *Relayer) getRelayerDefaultArgs() []string {
 	return []string{
 		consts.DefaultRelayerPath,
 		"--home",
-		filepath.Join(r.Home, consts.ConfigDirName.Relayer),
+		filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer),
 	}
 }

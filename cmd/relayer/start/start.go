@@ -39,14 +39,15 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				"config.yaml",
 			)
 
-			rlyConfig, err := relayerutils.LoadConfig(rlyConfigPath)
+			var rlyCfg relayer.Config
+			err := rlyCfg.Load(rlyConfigPath)
 			if err != nil {
 				pterm.Error.Println("failed to load relayer config: ", err)
 				return
 			}
 
-			raData := relayerutils.RaDataFromRelayerConfig(rlyConfig)
-			hd := relayerutils.HubDataFromRelayerConfig(rlyConfig)
+			raData := rlyCfg.RaDataFromRelayerConfig()
+			hd := rlyCfg.HubDataFromRelayerConfig()
 
 			raResponse, err := rollapp.GetMetadataFromChain(raData.ID, *hd)
 			if err != nil {

@@ -2,15 +2,12 @@ package relayer
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
-	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -41,95 +38,4 @@ func UpdateConfigWithDefaultValues(relayerHome string, rollerData roller.Rollapp
 	}
 
 	return nil
-}
-
-type IbcPathChains struct {
-	SrcChainOk          bool
-	DstChainOk          bool
-	DefaultPathOk       bool
-	RelayerConfigExists bool
-}
-
-func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPathChains, error) {
-	var err error
-	ibcPathChains := IbcPathChains{}
-
-	relayerConfigPath := GetConfigFilePath(relayerHome)
-
-	// 2. config file exists
-	relayerConfigExists, err := filesystem.DoesFileExist(relayerConfigPath)
-	if err != nil {
-		return nil, err
-	}
-	ibcPathChains.RelayerConfigExists = relayerConfigExists
-
-	if relayerConfigExists {
-		// 2.1. path exist
-		defaultPathOk, err := VerifyDefaultPath(relayerHome)
-		if err != nil {
-			pterm.Error.Printf(
-				"failed to verify relayer path %s: %v\n",
-				consts.DefaultRelayerPath,
-				err,
-			)
-		}
-		ibcPathChains.DefaultPathOk = defaultPathOk
-
-		if defaultPathOk {
-			// 2.2. isHubChainPresent
-			srcChainOk, err := VerifyPathSrcChain(relayerHome, hd)
-			if err != nil {
-				pterm.Error.Printf(
-					"failed to verify source chain in relayer path: %v\n",
-					err,
-				)
-			}
-			ibcPathChains.SrcChainOk = srcChainOk
-
-			// 2.3. isRollappChainPresent
-			dstChainOk, err := VerifyPathDstChain(relayerHome, raID)
-			if err != nil {
-				return &ibcPathChains, err
-			}
-			ibcPathChains.DstChainOk = dstChainOk
-		} else {
-			pterm.Error.Println("default path not found in relayer config")
-		}
-	}
-
-	pterm.Info.Println("ibc path validation passed")
-	return &ibcPathChains, nil
-}
-
-func HubDataFromRelayerConfig(rlyCfg *Config) *consts.HubData {
-	hd := consts.HubData{
-		ID:     rlyCfg.Paths.HubRollapp.Src.ChainID,
-		RpcUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Src.ChainID].Value.RpcAddr,
-		ApiUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Src.ChainID].Value.ApiAddr,
-	}
-
-	return &hd
-}
-
-func RaDataFromRelayerConfig(rlyCfg *Config) *consts.RollappData {
-	raData := consts.RollappData{
-		ID:     rlyCfg.Paths.HubRollapp.Dst.ChainID,
-		RpcUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Dst.ChainID].Value.RpcAddr,
-	}
-
-	return &raData
-}
-
-func LoadConfig(rlyConfigPath string) (*Config, error) {
-	data, err := os.ReadFile(rlyConfigPath)
-	if err != nil {
-		return nil, nil
-	}
-
-	var rlyConfig Config
-	err = yaml.Unmarshal(data, &rlyConfig)
-	if err != nil {
-		return nil, err
-	}
-	return &rlyConfig, nil
 }

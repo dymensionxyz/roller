@@ -6,7 +6,6 @@ import (
 
 	"github.com/pterm/pterm"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -26,30 +25,32 @@ func InitializeRelayer(home string, rollerData roller.RollappConfig) error {
 		return err
 	}
 
-	if !isRelayerInitialized {
-		pterm.Info.Println("initializing relayer config")
-		err = initconfig.InitializeRelayerConfig(
-			relayer.ChainConfig{
-				ID:            rollerData.RollappID,
-				RPC:           consts.DefaultRollappRPC,
-				Denom:         rollerData.BaseDenom,
-				AddressPrefix: rollerData.Bech32Prefix,
-				GasPrices:     "2000000000",
-			}, relayer.ChainConfig{
-				ID:            rollerData.HubData.ID,
-				RPC:           rollerData.HubData.RpcUrl,
-				Denom:         consts.Denoms.Hub,
-				AddressPrefix: consts.AddressPrefixes.Hub,
-				GasPrices:     rollerData.HubData.GasPrice,
-			}, home,
+	if isRelayerInitialized {
+		return nil
+	}
+
+	pterm.Info.Println("initializing relayer config")
+	err = relayer.InitializeConfig(
+		relayer.ChainConfig{
+			ID:            rollerData.RollappID,
+			RPC:           consts.DefaultRollappRPC,
+			Denom:         rollerData.BaseDenom,
+			AddressPrefix: rollerData.Bech32Prefix,
+			GasPrices:     "2000000000",
+		}, relayer.ChainConfig{
+			ID:            rollerData.HubData.ID,
+			RPC:           rollerData.HubData.RpcUrl,
+			Denom:         consts.Denoms.Hub,
+			AddressPrefix: consts.AddressPrefixes.Hub,
+			GasPrices:     rollerData.HubData.GasPrice,
+		}, home,
+	)
+	if err != nil {
+		pterm.Error.Printf(
+			"failed to initialize relayer config: %v\n",
+			err,
 		)
-		if err != nil {
-			pterm.Error.Printf(
-				"failed to initialize relayer config: %v\n",
-				err,
-			)
-			return err
-		}
+		return err
 	}
 
 	return nil

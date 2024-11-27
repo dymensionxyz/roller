@@ -14,7 +14,6 @@ import (
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/logging"
-	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 )
 
 func Cmd() *cobra.Command {
@@ -31,20 +30,22 @@ func Cmd() *cobra.Command {
 			)
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 
-			rlyConfig, err := relayerutils.LoadConfig(rlyConfigPath)
+			var rlyCfg relayer.Config
+			err := rlyCfg.Load(rlyConfigPath)
 			if err != nil {
 				pterm.Error.Println("failed to load relayer config: ", err)
 				return
 			}
 
-			raData := relayerutils.RaDataFromRelayerConfig(rlyConfig)
-			hd := relayerutils.HubDataFromRelayerConfig(rlyConfig)
+			raData := rlyCfg.RaDataFromRelayerConfig()
+			hd := rlyCfg.HubDataFromRelayerConfig()
 
 			rly := relayer.NewRelayer(
 				home,
 				*raData,
 				*hd,
 			)
+			rly.Config = &rlyCfg
 
 			bytes, err := os.ReadFile(rly.StatusFilePath())
 			if err != nil {
