@@ -65,7 +65,7 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 
 	raIbcConnIndex := slices.IndexFunc(
 		raIbcConnections.Connections, func(ibcConn ConnectionInfo) bool {
-			return ibcConn.Counterparty.ConnectionID == raIbcConnectionID
+			return ibcConn.ID == raIbcConnectionID
 		},
 	)
 
@@ -77,7 +77,6 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 	fmt.Printf("💈 Hub IBC Connection:\n%s", string(j))
 
 	conn := raIbcConnections.Connections[raIbcConnIndex]
-	r.DstConnectionID = raIbcConnectionID
 	r.SrcConnectionID = conn.ID
 	r.SrcClientID = conn.ClientID
 	r.DstClientID = conn.Counterparty.ClientID
