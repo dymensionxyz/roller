@@ -175,8 +175,15 @@ func Cmd() *cobra.Command {
 
 			if rly.SrcChannel != "" && rly.DstChannel != "" {
 				pterm.Info.Println("existing IBC channels found ")
-				pterm.Info.Println("Hub: ", rly.SrcChannel)
-				pterm.Info.Println("RollApp: ", rly.DstChannel)
+				pterm.Info.Println("Hub chan: ", rly.SrcChannel)
+				pterm.Info.Println("RollApp chan: ", rly.DstChannel)
+				pterm.Info.Println("RollApp conn: ", rly.DstConnectionID)
+
+				err := rly.GetHubIbcConnectionFromRa(*hd, rly.DstConnectionID)
+				if err != nil {
+					pterm.Error.Println("failed to get hub ibc connection: ", err)
+					return
+				}
 			}
 
 			pterm.Error.Println("debugging")
