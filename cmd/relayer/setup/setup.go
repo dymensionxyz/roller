@@ -49,6 +49,11 @@ func Cmd() *cobra.Command {
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 			rly.SetLogger(relayerLogger)
+			err = rly.Config.Load(rly.ConfigFilePath)
+			if err != nil {
+				pterm.Error.Println("failed to load relayer config: ", err)
+				return
+			}
 
 			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
