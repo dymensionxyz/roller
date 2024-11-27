@@ -158,8 +158,8 @@ func Cmd() *cobra.Command {
 			// 5. Are there existing channels ( from chain )
 			rly := relayer.NewRelayer(
 				home,
-				raData.ID,
-				hd.ID,
+				*raData,
+				*hd,
 			)
 			rly.SetLogger(relayerLogger)
 			// logFileOption := logging.WithLoggerLogging(relayerLogger)
@@ -172,6 +172,12 @@ func Cmd() *cobra.Command {
 
 			j, _ := json.MarshalIndent(rly, "", "  ")
 			fmt.Println("💈 RLY: ", string(j))
+
+			if rly.SrcChannel != "" && rly.DstChannel != "" {
+				pterm.Info.Println("existing IBC channels found ")
+				pterm.Info.Println("Hub: ", rly.SrcChannel)
+				pterm.Info.Println("RollApp: ", rly.DstChannel)
+			}
 
 			pterm.Error.Println("debugging")
 			return

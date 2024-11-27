@@ -2,9 +2,11 @@ package relayer
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
@@ -97,4 +99,37 @@ func ValidateIbcPathChains(relayerHome, raID string, hd consts.HubData) (*IbcPat
 
 	pterm.Info.Println("ibc path validation passed")
 	return &ibcPathChains, nil
+}
+
+func HubDataFromRelayerConfig(rlyCfg *Config) *consts.HubData {
+	hd := consts.HubData{
+		ID:     rlyCfg.Paths.HubRollapp.Src.ChainID,
+		RpcUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Src.ChainID].Value.RpcAddr,
+		ApiUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Src.ChainID].Value.ApiAddr,
+	}
+
+	return &hd
+}
+
+func RaDataFromRelayerConfig(rlyCfg *Config) *consts.RollappData {
+	raData := consts.RollappData{
+		ID:     rlyCfg.Paths.HubRollapp.Dst.ChainID,
+		RpcUrl: rlyCfg.Chains[rlyCfg.Paths.HubRollapp.Dst.ChainID].Value.RpcAddr,
+	}
+
+	return &raData
+}
+
+func LoadConfig(rlyConfigPath string) (*Config, error) {
+	data, err := os.ReadFile(rlyConfigPath)
+	if err != nil {
+		return nil, nil
+	}
+
+	var rlyConfig Config
+	err = yaml.Unmarshal(data, &rlyConfig)
+	if err != nil {
+		return nil, err
+	}
+	return &rlyConfig, nil
 }

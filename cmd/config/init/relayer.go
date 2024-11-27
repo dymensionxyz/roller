@@ -19,6 +19,7 @@ type RelayerFileChainConfigValue struct {
 	Key            string   `json:"key"`
 	ChainID        string   `json:"chain-id"`
 	RpcAddr        string   `json:"rpc-addr"`
+	ApiAddr        string   `json:"http-addr"`
 	AccountPrefix  string   `json:"account-prefix"`
 	KeyringBackend string   `json:"keyring-backend"`
 	GasAdjustment  float64  `json:"gas-adjustment"`

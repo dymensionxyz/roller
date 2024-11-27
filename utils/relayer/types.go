@@ -1,6 +1,10 @@
 package relayer
 
-import cosmossdkmath "cosmossdk.io/math"
+import (
+	cosmossdkmath "cosmossdk.io/math"
+
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+)
 
 var oneDayRelayPrice, _ = cosmossdkmath.NewIntFromString(
 	"2000000000000000000",
@@ -32,7 +36,8 @@ type Channels struct {
 // Config struct represents the paths section inside the relayer
 // configuration file
 type Config struct {
-	Paths *struct {
+	Chains map[string]initconfig.RelayerFileChainConfig `yaml:"chains"`
+	Paths  *struct {
 		HubRollapp *struct {
 			Dst *struct {
 				ChainID      string `yaml:"chain-id"`

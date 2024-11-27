@@ -66,17 +66,21 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
+func (r *Relayer) GetHubIbcConnection() error {
+	return nil
+}
+
 func (r *Relayer) GetActiveConnectionIDs(
 	raData consts.RollappData,
 	hd consts.HubData,
 ) (string, string, error) {
-	cmd := r.queryConnectionRollappCmd(raData)
+	cmd := r.getQueryRaIbcConnectionsCmd(raData)
 
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		r.logger.Printf(
 			"failed to find connection on the rollapp side for %s: %v",
-			r.RollappID,
+			r.Rollapp.ID,
 			err,
 		)
 		return "", "", err
@@ -90,7 +94,7 @@ func (r *Relayer) GetActiveConnectionIDs(
 	}
 
 	if len(rollappIbcConnection.Connections) == 0 {
-		r.logger.Printf("no connections found on the rollapp side for %s", r.RollappID)
+		r.logger.Printf("no connections found on the rollapp side for %s", r.Rollapp.ID)
 		return "", "", nil
 	}
 
@@ -140,14 +144,14 @@ func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubD
 	error,
 ) {
 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(
-		r.queryConnectionRollappCmd(
+		r.getQueryRaIbcConnectionsCmd(
 			raData,
 		),
 	)
 	if err != nil {
 		r.logger.Printf(
 			"failed to find connection on the rollapp side for %s: %v",
-			r.RollappID,
+			r.Rollapp.ID,
 			err,
 		)
 		return nil, nil, err
@@ -161,7 +165,7 @@ func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubD
 	}
 
 	if len(rollappIbcConnection.Connections) == 0 {
-		r.logger.Printf("no connections found on the rollapp side for %s", r.RollappID)
+		r.logger.Printf("no connections found on the rollapp side for %s", r.Rollapp.ID)
 		return nil, nil, nil
 	}
 
@@ -196,7 +200,7 @@ func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubD
 	return &rollappIbcConnection.Connections[0], &hubConnection, nil
 }
 
-func (r *Relayer) queryConnectionRollappCmd(
+func (r *Relayer) getQueryRaIbcConnectionsCmd(
 	raData consts.RollappData,
 ) *exec.Cmd {
 	args := []string{
@@ -237,7 +241,7 @@ func (r *Relayer) queryConnectionHubCmd(hd consts.HubData) *exec.Cmd {
 }
 
 func (r *Relayer) queryConnectionsHubCmd() *exec.Cmd {
-	args := []string{"q", "connections", r.HubID}
+	args := []string{"q", "connections", r.Hub.ID}
 	args = append(args, "--home", filepath.Join(r.Home, consts.ConfigDirName.Relayer))
 	return exec.Command(consts.Executables.Relayer, args...)
 }

@@ -45,7 +45,7 @@ func (r *Relayer) LoadActiveChannel(
 	}
 
 	if len(gacResponse.Channels) == 0 {
-		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
+		pterm.Error.Printfln("no open channel found for %s", r.Rollapp.ID)
 	}
 
 	raIbcChanIndex := slices.IndexFunc(
@@ -55,7 +55,7 @@ func (r *Relayer) LoadActiveChannel(
 	)
 
 	if raIbcChanIndex == -1 {
-		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
+		pterm.Error.Printfln("no open channel found for %s", r.Rollapp.ID)
 	}
 
 	raChan := gacResponse.Channels[raIbcChanIndex]

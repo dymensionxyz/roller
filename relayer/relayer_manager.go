@@ -13,9 +13,9 @@ import (
 )
 
 type Relayer struct {
-	Home      string
-	RollappID string
-	HubID     string
+	Home    string
+	Rollapp consts.RollappData
+	Hub     consts.HubData
 	// channels
 	SrcChannel string
 	DstChannel string
@@ -27,12 +27,12 @@ type Relayer struct {
 	logger *log.Logger
 }
 
-func NewRelayer(home, rollappID, hubID string) *Relayer {
+func NewRelayer(home string, raData consts.RollappData, hd consts.HubData) *Relayer {
 	return &Relayer{
-		Home:      home,
-		RollappID: rollappID,
-		HubID:     hubID,
-		logger:    log.New(io.Discard, "", 0),
+		Home:    home,
+		Rollapp: raData,
+		Hub:     hd,
+		logger:  log.New(io.Discard, "", 0),
 	}
 }
 
