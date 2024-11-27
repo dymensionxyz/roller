@@ -15,7 +15,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -41,7 +40,7 @@ func Cmd() *cobra.Command {
 			)
 
 			relayerHome := relayerutils.GetHomeDir(home)
-			relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
+			// relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
 
 			raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
 			if err != nil {
@@ -202,42 +201,46 @@ func Cmd() *cobra.Command {
 			rly.SetLogger(relayerLogger)
 			logFileOption := logging.WithLoggerLogging(relayerLogger)
 
-			srcIbcChannel, dstIbcChannel, err := rly.LoadActiveChannel(raData, *hd)
+			err = rly.LoadActiveChannel(raData, *hd)
 			if err != nil {
 				pterm.Error.Printf("failed to load active channel, %v", err)
 				return
 			}
 
-			if srcIbcChannel != "" && dstIbcChannel != "" {
+			pterm.Error.Println("debugging")
+			return
+
+			// nolint: govet
+			if rly.SrcChannel != "" && rly.DstChannel != "" {
 				pterm.Info.Println("updating application relayer config")
 
-				rollappIbcConnection, hubIbcConnection, err := rly.GetActiveConnections(
-					raData,
-					*hd,
-				)
-				if err != nil {
-					pterm.Error.Printf("failed to retrieve active connections: %v\n", err)
-					return
-				}
+				// rollappIbcConnection, hubIbcConnection, err := rly.GetActiveConnections(
+				// 	raData,
+				// 	*hd,
+				// )
+				// if err != nil {
+				// 	pterm.Error.Printf("failed to retrieve active connections: %v\n", err)
+				// 	return
+				// }
 
-				updates := map[string]interface{}{
-					// hub
-					fmt.Sprintf("paths.%s.src.client-id", consts.DefaultRelayerPath):     hubIbcConnection.ClientID,
-					fmt.Sprintf("paths.%s.src.connection-id", consts.DefaultRelayerPath): hubIbcConnection.ID,
-
-					// ra
-					fmt.Sprintf("paths.%s.dst.client-id", consts.DefaultRelayerPath):     rollappIbcConnection.ClientID,
-					fmt.Sprintf("paths.%s.dst.connection-id", consts.DefaultRelayerPath): rollappIbcConnection.ID,
-				}
-				err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
-				if err != nil {
-					pterm.Error.Printf("Error updating YAML: %v\n", err)
-					return
-				}
-
+				// updates := map[string]interface{}{
+				// 	// hub
+				// 	fmt.Sprintf("paths.%s.src.client-id", consts.DefaultRelayerPath):     hubIbcConnection.ClientID,
+				// 	fmt.Sprintf("paths.%s.src.connection-id", consts.DefaultRelayerPath): hubIbcConnection.ID,
+				//
+				// 	// ra
+				// 	fmt.Sprintf("paths.%s.dst.client-id", consts.DefaultRelayerPath):     rollappIbcConnection.ClientID,
+				// 	fmt.Sprintf("paths.%s.dst.connection-id", consts.DefaultRelayerPath): rollappIbcConnection.ID,
+				// }
+				// err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
+				// if err != nil {
+				// 	pterm.Error.Printf("Error updating YAML: %v\n", err)
+				// 	return
+				// }
+				//
 				pterm.Info.Println("existing IBC channels found ")
-				pterm.Info.Println("Hub: ", srcIbcChannel)
-				pterm.Info.Println("RollApp: ", dstIbcChannel)
+				pterm.Info.Println("Hub: ", rly.SrcChannel)
+				pterm.Info.Println("RollApp: ", rly.DstChannel)
 				return
 			}
 
@@ -408,8 +411,8 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				srcIbcChannel = channels.Src
-				dstIbcChannel = channels.Dst
+				srcIbcChannel := channels.Src
+				dstIbcChannel := channels.Dst
 
 				status := fmt.Sprintf(
 					"Active\nrollapp: %s\n<->\nhub: %s",

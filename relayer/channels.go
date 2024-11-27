@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os/exec"
 	"slices"
@@ -10,7 +9,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
@@ -18,11 +16,10 @@ import (
 func (r *Relayer) LoadActiveChannel(
 	raData consts.RollappData,
 	hd consts.HubData,
-) (string, string, error) {
+) error {
 	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
 	defer spinner.Stop()
 
-	pterm.Info.Println("querying channels")
 	gacCmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"q",
@@ -39,13 +36,17 @@ func (r *Relayer) LoadActiveChannel(
 
 	gacOut, err := bash.ExecCommandWithStdout(gacCmd)
 	if err != nil {
-		return "", "", err
+		return err
 	}
 
 	var gacResponse QueryChannelsResponse
 	err = json.Unmarshal(gacOut.Bytes(), &gacResponse)
 	if err != nil {
-		return "", "", err
+		return err
+	}
+
+	if len(gacResponse.Channels) == 0 {
+		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
 	}
 
 	j, _ := json.Marshal(gacResponse)
@@ -61,121 +62,132 @@ func (r *Relayer) LoadActiveChannel(
 			return ibcChan.State == "STATE_OPEN"
 		},
 	)
+
+	if raIbcChanIndex == -1 {
+		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
+	}
 	j, _ = json.MarshalIndent(gacResponse.Channels[raIbcChanIndex], "", "  ")
 	fmt.Printf("\topen channel: \n%s", string(j))
-	cmd := r.queryConnectionRollappCmd(raData)
-
-	// QUERY CONNECTIONS
-	pterm.Info.Println("querying connections")
-	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		pterm.Error.Printfln(
-			"failed to find connection on the rollapp side for %s: %v",
-			r.RollappID,
-			err,
-		)
-		return "", "", err
-	}
-	var raIbcConnections ConnectionsQueryResult
-	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &raIbcConnections)
-	if err != nil {
-		return "", "", err
-	}
-
-	activeIbcConnectionID := gacResponse.Channels[raIbcChanIndex].ConnectionHops[0]
-	raIbcConnInx := slices.IndexFunc(
-		raIbcConnections.Connections, func(conn ConnectionInfo) bool {
-			return conn.ID == activeIbcConnectionID
-		},
-	)
-
-	raIbcConn := raIbcConnections.Connections[raIbcConnInx]
-	j, _ = json.Marshal(raIbcConn)
-	fmt.Printf("\tRA IBC Connection:\n%s", string(j))
-	// END QUERY CONNECTIONS
-
-	return "", "", errors.New("debugging")
-
-	var activeRaConnectionID string
-	var activeHubConnectionID string
-	activeRaConnectionID, activeHubConnectionID, err = r.GetActiveConnectionIDs(raData, hd)
-	if err != nil {
-		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
-			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
-			return "", "", nil
-		} else {
-			r.logger.Println("something bad happened", err)
-			return "", "", err
-		}
-	}
-	if activeRaConnectionID == "" {
-		r.logger.Println("no active connection found")
-		return "", "", nil
-	}
-
-	pterm.Info.Println("active connection found on the hub side: ", activeHubConnectionID)
-	pterm.Info.Println("active connection found on the rollapp side: ", activeRaConnectionID)
-
-	var raChannelResponse QueryChannelsResponse
-	rollappChannels, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(raData))
-	if err != nil {
-		return "", "", err
-	}
-
-	err = json.Unmarshal(rollappChannels.Bytes(), &raChannelResponse)
-	if err != nil {
-		return "", "", err
-	}
-
-	if len(raChannelResponse.Channels) == 0 {
-		return "", "", nil
-	}
-
-	for _, v := range raChannelResponse.Channels {
-		fmt.Printf("%s: %s\n", v.ChannelID, v.State)
-	}
-
-	raChanIndex := slices.IndexFunc(
-		raChannelResponse.Channels, func(ibcChan Channel) bool {
-			return ibcChan.ConnectionHops[0] == activeRaConnectionID &&
-				ibcChan.State == "STATE_OPEN"
-		},
-	)
-	raChan := raChannelResponse.Channels[raChanIndex]
-
-	var hubChannelResponse QueryChannelsResponse
-	hubChannels, err := bash.ExecCommandWithStdout(r.queryChannelsHubCmd(hd))
-	if err != nil {
-		return "", "", err
-	}
-
-	err = json.Unmarshal(hubChannels.Bytes(), &hubChannelResponse)
-	if err != nil {
-		return "", "", err
-	}
-
-	if len(hubChannelResponse.Channels) == 0 {
-		return "", "", nil
-	}
-
-	hubChanIndex := slices.IndexFunc(
-		hubChannelResponse.Channels, func(ibcChan Channel) bool {
-			return ibcChan.ConnectionHops[0] == activeHubConnectionID &&
-				ibcChan.State == "STATE_OPEN"
-		},
-	)
-	hubChan := hubChannelResponse.Channels[hubChanIndex]
-
-	pterm.Info.Println("active channel found on the hub side: ", hubChan.ChannelID)
-	pterm.Info.Println("active channel found on the rollapp side: ", raChan.ChannelID)
-
-	spinner.Success("IBC channels loaded successfully")
-
-	r.SrcChannel = hubChan.ChannelID
-	r.DstChannel = raChan.ChannelID
-
-	return r.SrcChannel, r.DstChannel, nil
+	return nil
 }
+
+// func (r *Relayer) GetActiveConnections(
+// 	raData consts.RollappData,
+// 	hd consts.HubData,
+// ) (string, string, error) {
+// 	var gacResponse QueryChannelsResponse
+//
+// 	pterm.Info.Println("querying connections")
+// 	cmd := r.queryConnectionRollappCmd(raData)
+// 	rollappConnectionOutput, err := bash.ExecCommandWithStdout(cmd)
+// 	if err != nil {
+// 		pterm.Error.Printfln(
+// 			"failed to find connection on the rollapp side for %s: %v",
+// 			r.RollappID,
+// 			err,
+// 		)
+// 		return "", "", err
+// 	}
+// 	var raIbcConnections ConnectionsQueryResult
+// 	err = json.Unmarshal(rollappConnectionOutput.Bytes(), &raIbcConnections)
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	activeIbcConnectionID := gacResponse.Channels[0].ConnectionHops[0]
+// 	raIbcConnInx := slices.IndexFunc(
+// 		raIbcConnections.Connections, func(conn ConnectionInfo) bool {
+// 			return conn.ID == activeIbcConnectionID
+// 		},
+// 	)
+//
+// 	raIbcConn := raIbcConnections.Connections[raIbcConnInx]
+// 	j, _ := json.Marshal(raIbcConn)
+// 	fmt.Printf("\tRA IBC Connection:\n%s", string(j))
+// 	// END QUERY CONNECTIONS
+//
+// 	return "", "", errors.New("debugging")
+//
+// 	var activeRaConnectionID string
+// 	var activeHubConnectionID string
+// 	activeRaConnectionID, activeHubConnectionID, err = r.GetActiveConnectionIDs(raData, hd)
+// 	if err != nil {
+// 		if keyErr, ok := err.(*utils.KeyNotFoundError); ok {
+// 			r.logger.Printf("No active connection found. Key not found: %v", keyErr)
+// 			return "", "", nil
+// 		} else {
+// 			r.logger.Println("something bad happened", err)
+// 			return "", "", err
+// 		}
+// 	}
+// 	if activeRaConnectionID == "" {
+// 		r.logger.Println("no active connection found")
+// 		return "", "", nil
+// 	}
+//
+// 	pterm.Info.Println("active connection found on the hub side: ", activeHubConnectionID)
+// 	pterm.Info.Println("active connection found on the rollapp side: ", activeRaConnectionID)
+//
+// 	var raChannelResponse QueryChannelsResponse
+// 	rollappChannels, err := bash.ExecCommandWithStdout(r.queryChannelsRollappCmd(raData))
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	err = json.Unmarshal(rollappChannels.Bytes(), &raChannelResponse)
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	if len(raChannelResponse.Channels) == 0 {
+// 		return "", "", nil
+// 	}
+//
+// 	for _, v := range raChannelResponse.Channels {
+// 		fmt.Printf("%s: %s\n", v.ChannelID, v.State)
+// 	}
+//
+// 	raChanIndex := slices.IndexFunc(
+// 		raChannelResponse.Channels, func(ibcChan Channel) bool {
+// 			return ibcChan.ConnectionHops[0] == activeRaConnectionID &&
+// 				ibcChan.State == "STATE_OPEN"
+// 		},
+// 	)
+// 	raChan := raChannelResponse.Channels[raChanIndex]
+//
+// 	var hubChannelResponse QueryChannelsResponse
+// 	hubChannels, err := bash.ExecCommandWithStdout(r.queryChannelsHubCmd(hd))
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	err = json.Unmarshal(hubChannels.Bytes(), &hubChannelResponse)
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	if len(hubChannelResponse.Channels) == 0 {
+// 		return "", "", nil
+// 	}
+//
+// 	hubChanIndex := slices.IndexFunc(
+// 		hubChannelResponse.Channels, func(ibcChan Channel) bool {
+// 			return ibcChan.ConnectionHops[0] == activeHubConnectionID &&
+// 				ibcChan.State == "STATE_OPEN"
+// 		},
+// 	)
+// 	hubChan := hubChannelResponse.Channels[hubChanIndex]
+//
+// 	pterm.Info.Println("active channel found on the hub side: ", hubChan.ChannelID)
+// 	pterm.Info.Println("active channel found on the rollapp side: ", raChan.ChannelID)
+//
+// 	spinner.Success("IBC channels loaded successfully")
+//
+// 	r.SrcChannel = hubChan.ChannelID
+// 	r.DstChannel = raChan.ChannelID
+//
+// 	return r.SrcChannel, r.DstChannel, nil
+// }
 
 func (r *Relayer) queryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
 	args := []string{"q", "ibc", "channel", "channels"}

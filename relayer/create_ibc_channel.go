@@ -70,7 +70,7 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
-	_, _, err = r.LoadActiveChannel(raData, hd)
+	err = r.LoadActiveChannel(raData, hd)
 	if err != nil {
 		return ConnectionChannels{}, err
 	}

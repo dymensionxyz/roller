@@ -137,7 +137,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			// TODO: relayer is initialized with both chains at this point and it should be possible
 			// to construct the hub data from relayer config
-			_, _, err = rly.LoadActiveChannel(raData, hd)
+			err = rly.LoadActiveChannel(raData, hd)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// override := cmd.Flag(flagOverride).Changed
