@@ -170,9 +170,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			j, _ := json.MarshalIndent(rly, "", "  ")
-			fmt.Println("💈 RLY: ", string(j))
-
 			if rly.SrcChannel != "" && rly.DstChannel != "" {
 				pterm.Info.Println("existing IBC channels found ")
 				pterm.Info.Println("Hub chan: ", rly.SrcChannel)
@@ -185,6 +182,9 @@ func Cmd() *cobra.Command {
 					return
 				}
 			}
+
+			j, _ := json.MarshalIndent(rly, "", "  ")
+			fmt.Println("💈 RLY: ", string(j))
 
 			pterm.Error.Println("debugging")
 			return
