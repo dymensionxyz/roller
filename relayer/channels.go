@@ -66,6 +66,8 @@ func (r *Relayer) LoadActiveChannel(
 	if raIbcChanIndex == -1 {
 		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
 	}
+
+	fmt.Println("index:", raIbcChanIndex)
 	j, _ = json.MarshalIndent(gacResponse.Channels[raIbcChanIndex], "", "  ")
 	fmt.Printf("\topen channel: \n%s", string(j))
 	return nil
