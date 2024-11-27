@@ -13,12 +13,18 @@ import (
 )
 
 type Relayer struct {
-	Home       string
-	RollappID  string
-	HubID      string
+	Home      string
+	RollappID string
+	HubID     string
+	// channels
 	SrcChannel string
 	DstChannel string
-	logger     *log.Logger
+	// connections
+	SrcConnectionID string
+	DstConnectionID string
+	// clients
+
+	logger *log.Logger
 }
 
 func NewRelayer(home, rollappID, hubID string) *Relayer {

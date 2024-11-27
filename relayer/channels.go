@@ -61,6 +61,7 @@ func (r *Relayer) LoadActiveChannel(
 	raChan := gacResponse.Channels[raIbcChanIndex]
 	r.SrcChannel = raChan.Counterparty.ChannelID
 	r.DstChannel = raChan.ChannelID
+	r.DstConnectionID = raChan.ConnectionHops[0]
 
 	return nil
 }
