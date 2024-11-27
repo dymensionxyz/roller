@@ -13,7 +13,9 @@ import (
 )
 
 type Relayer struct {
-	Home    string
+	Home           string
+	ConfigFilePath string
+
 	Rollapp consts.RollappData
 	Hub     consts.HubData
 	// channels
@@ -30,11 +32,14 @@ type Relayer struct {
 }
 
 func NewRelayer(home string, raData consts.RollappData, hd consts.HubData) *Relayer {
+	relayerHome := GetHomeDir(home)
+	relayerConfigPath := GetConfigFilePath(relayerHome)
 	return &Relayer{
-		Home:    home,
-		Rollapp: raData,
-		Hub:     hd,
-		logger:  log.New(io.Discard, "", 0),
+		Home:           home,
+		ConfigFilePath: relayerConfigPath,
+		Rollapp:        raData,
+		Hub:            hd,
+		logger:         log.New(io.Discard, "", 0),
 	}
 }
 

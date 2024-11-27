@@ -9,6 +9,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 )
 
 func (r *Relayer) HubIbcConnections(hd consts.HubData) (*ConnectionsQueryResult, error) {
@@ -48,6 +49,24 @@ func (r *Relayer) RaIbcConnections(
 		return nil, err
 	}
 	return &raIbcConnections, nil
+}
+
+func (r *Relayer) UpdateDefaultPath() error {
+	updates := map[string]interface{}{
+		// hub
+		fmt.Sprintf("paths.%s.src.client-id", consts.DefaultRelayerPath):     r.SrcClientID,
+		fmt.Sprintf("paths.%s.src.connection-id", consts.DefaultRelayerPath): r.SrcConnectionID,
+
+		// ra
+		fmt.Sprintf("paths.%s.dst.client-id", consts.DefaultRelayerPath):     r.DstClientID,
+		fmt.Sprintf("paths.%s.dst.connection-id", consts.DefaultRelayerPath): r.DstConnectionID,
+	}
+	err := yamlconfig.UpdateNestedYAML(r.ConfigFilePath, updates)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Relayer) ConnectionInfoFromRaConnID(

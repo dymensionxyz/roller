@@ -35,9 +35,6 @@ func Cmd() *cobra.Command {
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 
-			// relayerHome := relayerutils.GetHomeDir(home)
-			// relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
-
 			raData, hd, err := getPreRunInfo(home)
 			if err != nil {
 				pterm.Error.Println("failed to run pre-flight checks: ", err)
@@ -181,6 +178,13 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to get hub ibc connection: ", err)
 					return
 				}
+
+				err = rly.UpdateDefaultPath()
+				if err != nil {
+					pterm.Error.Println("failed to update relayer config: ", err)
+					return
+				}
+				return
 			}
 
 			j, _ := json.MarshalIndent(rly, "", "  ")
@@ -202,20 +206,6 @@ func Cmd() *cobra.Command {
 				// 	return
 				// }
 
-				// updates := map[string]interface{}{
-				// 	// hub
-				// 	fmt.Sprintf("paths.%s.src.client-id", consts.DefaultRelayerPath):     hubIbcConnection.ClientID,
-				// 	fmt.Sprintf("paths.%s.src.connection-id", consts.DefaultRelayerPath): hubIbcConnection.ID,
-				//
-				// 	// ra
-				// 	fmt.Sprintf("paths.%s.dst.client-id", consts.DefaultRelayerPath):     rollappIbcConnection.ClientID,
-				// 	fmt.Sprintf("paths.%s.dst.connection-id", consts.DefaultRelayerPath): rollappIbcConnection.ID,
-				// }
-				// err = yamlconfig.UpdateNestedYAML(relayerConfigPath, updates)
-				// if err != nil {
-				// 	pterm.Error.Printf("Error updating YAML: %v\n", err)
-				// 	return
-				// }
 				//
 				pterm.Info.Println("existing IBC channels found ")
 				pterm.Info.Println("Hub: ", rly.SrcChannel)
