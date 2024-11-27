@@ -66,7 +66,7 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) GetHubIbcConnectionFromRa(
+func (r *Relayer) HubIbcConnectionFromRaConnID(
 	hd consts.HubData,
 	raIbcConnectionID string,
 ) error {
@@ -96,6 +96,9 @@ func (r *Relayer) GetHubIbcConnectionFromRa(
 	if hubIbcConnIndex == -1 {
 		return fmt.Errorf("no open channel found for %s", r.Rollapp.ID)
 	}
+
+	j, _ := json.MarshalIndent(hubIbcConnections.Connections[hubIbcConnIndex], "", "  ")
+	fmt.Printf("💈 Hub IBC Connection:\n%s", string(j))
 
 	r.SrcConnectionID = hubIbcConnections.Connections[hubIbcConnIndex].ID
 

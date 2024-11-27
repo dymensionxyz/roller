@@ -98,7 +98,7 @@ func Cmd() *cobra.Command {
 			// 		return
 			// 	}
 			// }
-			//
+
 			// if ibcPathChains != nil {
 			// 	if !ibcPathChains.DefaultPathOk || !ibcPathChains.SrcChainOk ||
 			// 		!ibcPathChains.DstChainOk {
@@ -176,7 +176,7 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("RollApp chan: ", rly.DstChannel)
 				pterm.Info.Println("RollApp conn: ", rly.DstConnectionID)
 
-				err := rly.GetHubIbcConnectionFromRa(*hd, rly.DstConnectionID)
+				err := rly.HubIbcConnectionFromRaConnID(*hd, rly.DstConnectionID)
 				if err != nil {
 					pterm.Error.Println("failed to get hub ibc connection: ", err)
 					return
