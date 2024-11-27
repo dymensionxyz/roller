@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"slices"
 
@@ -41,6 +42,8 @@ func (r *Relayer) LoadActiveChannel(
 			return ibcChan.State == "STATE_OPEN"
 		},
 	)
+
+	fmt.Println(raIbcChanIndex)
 
 	if raIbcChanIndex == -1 {
 		pterm.Error.Printfln("no open channel found for %s", r.Rollapp.ID)
