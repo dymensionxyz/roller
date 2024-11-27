@@ -100,7 +100,10 @@ func (r *Relayer) HubIbcConnectionFromRaConnID(
 	j, _ := json.MarshalIndent(hubIbcConnections.Connections[hubIbcConnIndex], "", "  ")
 	fmt.Printf("💈 Hub IBC Connection:\n%s", string(j))
 
-	r.SrcConnectionID = hubIbcConnections.Connections[hubIbcConnIndex].ID
+	conn := hubIbcConnections.Connections[hubIbcConnIndex]
+	r.SrcConnectionID = conn.ID
+	r.SrcClientID = conn.ClientID
+	r.DstClientID = conn.Counterparty.ClientID
 
 	return nil
 }

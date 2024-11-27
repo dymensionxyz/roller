@@ -23,6 +23,8 @@ type Relayer struct {
 	SrcConnectionID string
 	DstConnectionID string
 	// clients
+	SrcClientID string
+	DstClientID string
 
 	logger *log.Logger
 }
