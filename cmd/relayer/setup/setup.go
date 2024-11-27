@@ -91,6 +91,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			pterm.Info.Println("verifying path in relayer config")
 			if rlyCfg.GetPath() == nil {
 				pterm.Error.Println("no existing path")
 				if err := rlyCfg.CreatePath(*rollappChainData); err != nil {
