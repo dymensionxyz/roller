@@ -70,17 +70,9 @@ func (r *Relayer) HubIbcConnectionFromRaConnID(
 	hd consts.HubData,
 	raIbcConnectionID string,
 ) error {
-	cmd := r.queryConnectionHubCmd(hd)
-
-	hubIbcConnectionsOut, err := bash.ExecCommandWithStdout(cmd)
+	hubIbcConnections, err := r.HubIbcConnections(hd)
 	if err != nil {
 		return err
-	}
-
-	var hubIbcConnections ConnectionsQueryResult
-	err = json.Unmarshal(hubIbcConnectionsOut.Bytes(), &hubIbcConnections)
-	if err != nil {
-		r.logger.Printf("error while decoding JSON: %v", err)
 	}
 
 	if len(hubIbcConnections.Connections) == 0 {
@@ -106,6 +98,22 @@ func (r *Relayer) HubIbcConnectionFromRaConnID(
 	r.DstClientID = conn.Counterparty.ClientID
 
 	return nil
+}
+
+func (r *Relayer) HubIbcConnections(hd consts.HubData) (*ConnectionsQueryResult, error) {
+	cmd := r.queryConnectionHubCmd(hd)
+
+	hubIbcConnectionsOut, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var hubIbcConnections ConnectionsQueryResult
+	err = json.Unmarshal(hubIbcConnectionsOut.Bytes(), &hubIbcConnections)
+	if err != nil {
+		return nil, err
+	}
+	return &hubIbcConnections, nil
 }
 
 func (r *Relayer) GetActiveConnectionIDs(
@@ -152,26 +160,18 @@ func (r *Relayer) GetActiveConnectionIDs(
 	hubConnectionID := raActiveConnectionInfo.Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
-	var hubIbcConnection ConnectionsQueryResult
-	outputHub, err := bash.ExecCommandWithStdout(
-		r.queryConnectionHubCmd(hd),
-	)
-	if err != nil {
-		return "", "", err
-	}
-
-	err = json.Unmarshal(outputHub.Bytes(), &hubIbcConnection)
+	hubIbcConnections, err := r.HubIbcConnections(hd)
 	if err != nil {
 		return "", "", err
 	}
 
 	hubConnIndex := slices.IndexFunc(
-		hubIbcConnection.Connections, func(conn ConnectionInfo) bool {
+		hubIbcConnections.Connections, func(conn ConnectionInfo) bool {
 			return conn.ID == hubConnectionID
 		},
 	)
 
-	hubConnection := hubIbcConnection.Connections[hubConnIndex]
+	hubConnection := hubIbcConnections.Connections[hubConnIndex]
 
 	return raActiveConnectionInfo.ID, hubConnection.ID, nil
 }
@@ -214,26 +214,18 @@ func (r *Relayer) GetActiveConnections(raData consts.RollappData, hd consts.HubD
 	hubConnectionID := rollappIbcConnection.Connections[0].Counterparty.ConnectionID
 
 	// Check if the connection is open on the hub
-	var hubIbcConnection ConnectionsQueryResult
-	outputHub, err := bash.ExecCommandWithStdout(
-		r.queryConnectionHubCmd(hd),
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	err = json.Unmarshal(outputHub.Bytes(), &hubIbcConnection)
+	hubIbcConnections, err := r.HubIbcConnections(hd)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	hubConnIndex := slices.IndexFunc(
-		hubIbcConnection.Connections, func(conn ConnectionInfo) bool {
+		hubIbcConnections.Connections, func(conn ConnectionInfo) bool {
 			return conn.ID == hubConnectionID
 		},
 	)
 
-	hubConnection := hubIbcConnection.Connections[hubConnIndex]
+	hubConnection := hubIbcConnections.Connections[hubConnIndex]
 
 	return &rollappIbcConnection.Connections[0], &hubConnection, nil
 }
