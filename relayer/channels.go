@@ -19,19 +19,7 @@ func (r *Relayer) LoadActiveChannel(
 	spinner, _ := pterm.DefaultSpinner.Start("loading active IBC channels")
 	defer spinner.Stop()
 
-	gacCmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"q",
-		"ibc",
-		"channel",
-		"channels",
-		"--node",
-		raData.RpcUrl,
-		"--chain-id",
-		raData.ID,
-		"-o",
-		"json",
-	)
+	gacCmd := r.getQueryChannelsRollappCmd(raData)
 
 	gacOut, err := bash.ExecCommandWithStdout(gacCmd)
 	if err != nil {
@@ -184,7 +172,7 @@ func (r *Relayer) LoadActiveChannel(
 // 	return r.SrcChannel, r.DstChannel, nil
 // }
 
-func (r *Relayer) queryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
+func (r *Relayer) getQueryChannelsRollappCmd(raData consts.RollappData) *exec.Cmd {
 	args := []string{"q", "ibc", "channel", "channels"}
 	args = append(args, "--node", raData.RpcUrl, "--chain-id", raData.ID, "-o", "json")
 

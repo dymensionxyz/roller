@@ -66,7 +66,39 @@ type PrefixInfo struct {
 	KeyPrefix string `json:"key_prefix"`
 }
 
-func (r *Relayer) GetHubIbcConnection() error {
+func (r *Relayer) GetHubIbcConnectionFromRa(
+	hd consts.HubData,
+	raIbcConnectionID string,
+) error {
+	cmd := r.queryConnectionHubCmd(hd)
+
+	hubIbcConnectionsOut, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return err
+	}
+
+	var hubIbcConnections ConnectionsQueryResult
+	err = json.Unmarshal(hubIbcConnectionsOut.Bytes(), &hubIbcConnections)
+	if err != nil {
+		r.logger.Printf("error while decoding JSON: %v", err)
+	}
+
+	if len(hubIbcConnections.Connections) == 0 {
+		return fmt.Errorf("no connections found on the rollapp side for %s", r.Rollapp.ID)
+	}
+
+	hubIbcConnIndex := slices.IndexFunc(
+		hubIbcConnections.Connections, func(ibcConn ConnectionInfo) bool {
+			return ibcConn.Counterparty.ConnectionID == raIbcConnectionID
+		},
+	)
+
+	if hubIbcConnIndex == -1 {
+		return fmt.Errorf("no open channel found for %s", r.Rollapp.ID)
+	}
+
+	r.SrcConnectionID = hubIbcConnections.Connections[hubIbcConnIndex].ID
+
 	return nil
 }
 
