@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -168,6 +169,9 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("failed to load active channel, %v", err)
 				return
 			}
+
+			j, _ := json.MarshalIndent(rly, "", "  ")
+			fmt.Println("💈 RLY: ", string(j))
 
 			pterm.Error.Println("debugging")
 			return

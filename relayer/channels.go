@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"slices"
 
@@ -49,14 +48,6 @@ func (r *Relayer) LoadActiveChannel(
 		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
 	}
 
-	j, _ := json.Marshal(gacResponse)
-	fmt.Printf("\tgac response: \n%s", string(j))
-
-	fmt.Println("\nchannels:")
-	for _, v := range gacResponse.Channels {
-		fmt.Printf("\t%s: %s\n", v.ChannelID, v.State)
-	}
-
 	raIbcChanIndex := slices.IndexFunc(
 		gacResponse.Channels, func(ibcChan Channel) bool {
 			return ibcChan.State == "STATE_OPEN"
@@ -67,9 +58,10 @@ func (r *Relayer) LoadActiveChannel(
 		pterm.Error.Printfln("no open channel found for %s", r.RollappID)
 	}
 
-	fmt.Println("index:", raIbcChanIndex)
-	j, _ = json.MarshalIndent(gacResponse.Channels[raIbcChanIndex], "", "  ")
-	fmt.Printf("\topen channel: \n%s", string(j))
+	raChan := gacResponse.Channels[raIbcChanIndex]
+	r.SrcChannel = raChan.Counterparty.ChannelID
+	r.DstChannel = raChan.ChannelID
+
 	return nil
 }
 
