@@ -77,9 +77,9 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 	fmt.Printf("💈 Hub IBC Connection:\n%s", string(j))
 
 	conn := raIbcConnections.Connections[raIbcConnIndex]
-	r.SrcConnectionID = conn.ID
-	r.SrcClientID = conn.ClientID
-	r.SrcChannel = conn.Counterparty.ClientID
+	r.SrcConnectionID = conn.Counterparty.ConnectionID
+	r.SrcClientID = conn.Counterparty.ClientID
+	r.DstClientID = conn.ClientID
 
 	return nil
 }
