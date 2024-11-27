@@ -97,5 +97,6 @@ func (c *Config) Load(rlyConfigPath string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
