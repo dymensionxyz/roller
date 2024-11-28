@@ -3,24 +3,18 @@ package start
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/logging"
-	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/dymensionxyz/roller/utils/roller"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 const (
@@ -44,83 +38,24 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				"config.yaml",
 			)
 
-			data, err := os.ReadFile(rlyConfigPath)
+			var rlyCfg relayer.Config
+			err := rlyCfg.Load(rlyConfigPath)
 			if err != nil {
-				fmt.Printf("Error reading YAML file: %v\n", err)
+				pterm.Error.Println("failed to load relayer config: ", err)
 				return
 			}
 
-			var rlyConfig relayerutils.Config
-			err = yaml.Unmarshal(data, &rlyConfig)
-			if err != nil {
-				fmt.Printf("Error unmarshaling YAML: %v\n", err)
-				return
-			}
+			raData := rlyCfg.RaDataFromRelayerConfig()
+			hd := rlyCfg.HubDataFromRelayerConfig()
 
-			var hd consts.HubData
-			var raChainID string
-			var hubChainID string
-
-			rollerConfig, err := roller.LoadConfig(home)
-			if err != nil {
-				// src is Hub, dst is RollApp
-				raChainID = rlyConfig.Paths.HubRollapp.Dst.ChainID
-				hubChainID = rlyConfig.Paths.HubRollapp.Src.ChainID
-
-				var found bool
-				_, hd, found = roller.FindHubDataByID(consts.Hubs, hubChainID)
-				if !found {
-					pterm.Error.Println("Hub Data not found for ", hubChainID)
-					runCustomHub, _ := pterm.DefaultInteractiveConfirm.WithDefaultText("would you like to provide custom hub?").
-						WithDefaultValue(false).
-						Show()
-
-					if !runCustomHub {
-						pterm.Error.Println("cancelled by user")
-						return
-					}
-
-					chd, err := config.CreateCustomHubData()
-					if err != nil {
-						pterm.Error.Println("failed to create custom hub data:", err)
-						return
-					}
-					hd = consts.HubData{
-						ApiUrl:        chd.ApiUrl,
-						ID:            chd.ID,
-						RpcUrl:        chd.RpcUrl,
-						ArchiveRpcUrl: chd.RpcUrl,
-						GasPrice:      chd.GasPrice,
-						DaNetwork:     consts.CelestiaTestnet,
-					}
-				}
-			} else {
-				hd = rollerConfig.HubData
-				raChainID = rlyConfig.Paths.HubRollapp.Dst.ChainID
-				hubChainID = rollerConfig.HubData.ID
-			}
-
-			raResponse, err := rollapp.GetMetadataFromChain(raChainID, hd)
+			raResponse, err := rollapp.GetMetadataFromChain(raData.ID, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
 				return
 			}
+			raData.Denom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
 
-			// errorhandling.RequireMigrateIfNeeded(rollappConfig)
-			raRpc, err := sequencerutils.GetRpcEndpointFromChain(
-				raChainID,
-				hd,
-			)
-			if err != nil {
-				return
-			}
-			raData := consts.RollappData{
-				ID:     raChainID,
-				RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
-				Denom:  raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
-			}
-
-			err = relayerutils.VerifyRelayerBalances(hd)
+			err = relayer.VerifyRelayerBalances(*hd)
 			if err != nil {
 				pterm.Error.Println("failed to check balances", err)
 				return
@@ -130,14 +65,12 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			logFileOption := logging.WithLoggerLogging(logger)
 			rly := relayer.NewRelayer(
 				home,
-				raChainID,
-				hubChainID,
+				*raData,
+				*hd,
 			)
 			rly.SetLogger(logger)
 
-			// TODO: relayer is initialized with both chains at this point and it should be possible
-			// to construct the hub data from relayer config
-			_, _, err = rly.LoadActiveChannel(raData, hd)
+			err = rly.LoadActiveChannel(*raData, *hd)
 			errorhandling.PrettifyErrorIfExists(err)
 
 			// override := cmd.Flag(flagOverride).Changed
@@ -147,7 +80,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			// }
 
 			if rly.ChannelReady() {
-				fmt.Println("💈 IBC transfer channel is already established!")
+				fmt.Println("💈 IBC transfer channel is established!")
 				status := fmt.Sprintf(
 					"Active\nrollapp: %s\n<->\nhub: %s\n",
 					rly.DstChannel, rly.SrcChannel,
@@ -171,9 +104,13 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			)
 
 			fmt.Printf(
-				"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s\n",
-				rly.SrcChannel,
+				`💈 The relayer is running successfully on you local machine!
+Channels:
+RollApp: %s
+				<->
+Hub: %s`,
 				rly.DstChannel,
+				rly.SrcChannel,
 			)
 			fmt.Println("💈 Log file path: ", relayerLogFilePath)
 

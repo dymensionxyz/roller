@@ -5,6 +5,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
+const (
+	DefaultRelayerVersion = "v0.4.2-v2.5.2-roller"
+)
+
 func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 	return map[string]types.Dependency{
 		"rly": {
@@ -12,7 +16,7 @@ func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 			RepositoryOwner: "artemijspavlovs",
 			RepositoryName:  "go-relayer",
 			RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
-			Release:         "v0.4.0-v2.5.2-relayer-pg-roller",
+			Release:         DefaultRelayerVersion,
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rly",

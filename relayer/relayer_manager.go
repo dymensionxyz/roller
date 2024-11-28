@@ -13,20 +13,37 @@ import (
 )
 
 type Relayer struct {
-	Home       string
-	RollappID  string
-	HubID      string
+	RollerHome     string
+	RelayerHome    string
+	ConfigFilePath string
+
+	Rollapp consts.RollappData
+	Hub     consts.HubData
+	// channels
 	SrcChannel string
 	DstChannel string
-	logger     *log.Logger
+	// connections
+	SrcConnectionID string
+	DstConnectionID string
+	// clients
+	SrcClientID string
+	DstClientID string
+
+	logger *log.Logger
 }
 
-func NewRelayer(home, rollappID, hubID string) *Relayer {
+func NewRelayer(home string, raData consts.RollappData, hd consts.HubData) *Relayer {
+	relayerHome := GetHomeDir(home)
+	relayerConfigPath := GetConfigFilePath(relayerHome)
 	return &Relayer{
-		Home:      home,
-		RollappID: rollappID,
-		HubID:     hubID,
-		logger:    log.New(io.Discard, "", 0),
+		RollerHome:     home,
+		RelayerHome:    relayerHome,
+		ConfigFilePath: relayerConfigPath,
+
+		Rollapp: raData,
+		Hub:     hd,
+
+		logger: log.New(io.Discard, "", 0),
 	}
 }
 
@@ -58,7 +75,7 @@ func (r *Relayer) WriteRelayerStatus(status string) error {
 }
 
 func (r *Relayer) StatusFilePath() string {
-	return filepath.Join(r.Home, consts.ConfigDirName.Relayer, "relayer_status.txt")
+	return filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer, "relayer_status.txt")
 }
 
 type ConnectionChannels struct {

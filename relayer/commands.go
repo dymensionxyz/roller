@@ -47,6 +47,6 @@ func (r *Relayer) getArgsWithSrcChannel() []string {
 		consts.DefaultRelayerPath,
 		r.DstChannel,
 		"--home",
-		filepath.Join(r.Home, consts.ConfigDirName.Relayer),
+		filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer),
 	}
 }

@@ -4,14 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/logging"
-	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 func Cmd() *cobra.Command {
@@ -20,14 +22,28 @@ func Cmd() *cobra.Command {
 		Short: "Show the status of the relayer on the local machine.",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
-			rollappConfig, err := roller.LoadConfig(home)
-
+			rlyConfigPath := filepath.Join(
+				home,
+				consts.ConfigDirName.Relayer,
+				"config",
+				"config.yaml",
+			)
 			relayerLogFilePath := logging.GetRelayerLogPath(home)
-			errorhandling.PrettifyErrorIfExists(err)
+
+			var rlyCfg relayer.Config
+			err := rlyCfg.Load(rlyConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to load relayer config: ", err)
+				return
+			}
+
+			raData := rlyCfg.RaDataFromRelayerConfig()
+			hd := rlyCfg.HubDataFromRelayerConfig()
+
 			rly := relayer.NewRelayer(
-				rollappConfig.Home,
-				rollappConfig.RollappID,
-				rollappConfig.HubData.ID,
+				home,
+				*raData,
+				*hd,
 			)
 
 			bytes, err := os.ReadFile(rly.StatusFilePath())
