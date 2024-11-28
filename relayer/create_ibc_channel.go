@@ -131,7 +131,7 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 }
 
 func (r *Relayer) getCreateConnectionCmd(unbondingTime string) *exec.Cmd {
-	args := []string{"tx", "connection", "--max-clock-drift", "70m", "--client-tp", unbondingTime}
+	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
 	args = append(args, r.getRelayerDefaultArgs()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
