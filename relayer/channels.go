@@ -336,9 +336,9 @@ func (r *Relayer) HandleIbcChannelCreation(
 	r.DstChannel = channels.Dst
 
 	status := fmt.Sprintf(
-		"Active\nrollapp: %s\n<->\nhub: %s",
-		r.SrcChannel,
+		"Active\nRollApp: %s\n<->Hub: %s",
 		r.DstChannel,
+		r.SrcChannel,
 	)
 
 	pterm.Info.Println(status)

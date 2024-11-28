@@ -104,9 +104,13 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			)
 
 			fmt.Printf(
-				"💈 The relayer is running successfully on you local machine!\nChannels:\nrollapp: %s\n<->\nhub: %s\n",
-				rly.SrcChannel,
+				`💈 The relayer is running successfully on you local machine!
+Channels:
+RollApp: %s
+				<->
+Hub: %s`,
 				rly.DstChannel,
+				rly.SrcChannel,
 			)
 			fmt.Println("💈 Log file path: ", relayerLogFilePath)
 
