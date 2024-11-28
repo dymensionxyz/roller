@@ -65,13 +65,6 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			var rlyCfg relayer.Config
-			err = rlyCfg.Load(rly.ConfigFilePath)
-			if err != nil {
-				pterm.Error.Println("failed to load relayer config: ", err)
-				return
-			}
-
 			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to install relayer dependencies: ", err)
@@ -80,13 +73,13 @@ func Cmd() *cobra.Command {
 
 			// things to check:
 			// 1. relayer folder exists
-			ok, err := filesystem.DirNotEmpty(rly.RelayerHome)
+			dirExist, err := filesystem.DirNotEmpty(rly.RelayerHome)
 			if err != nil {
 				pterm.Error.Printf("failed to check %s: %v\n", rly.RelayerHome, err)
 				return
 			}
 
-			if !ok {
+			if !dirExist {
 				err = os.MkdirAll(rly.RelayerHome, 0o755)
 				if err != nil {
 					pterm.Error.Printf("failed to create %s: %v\n", rly.RelayerHome, err)
@@ -98,6 +91,13 @@ func Cmd() *cobra.Command {
 			err = relayerutils.InitializeRelayer(home, *rollappChainData)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
+				return
+			}
+
+			var rlyCfg relayer.Config
+			err = rlyCfg.Load(rly.ConfigFilePath)
+			if err != nil {
+				pterm.Error.Println("failed to load relayer config: ", err)
 				return
 			}
 
