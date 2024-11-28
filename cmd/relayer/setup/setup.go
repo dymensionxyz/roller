@@ -1,7 +1,7 @@
 package setup
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -36,7 +36,7 @@ func Cmd() *cobra.Command {
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 
-			raData, hd, err := getPreRunInfo(home)
+			raData, hd, kb, err := getPreRunInfo(home)
 			if err != nil {
 				pterm.Error.Println("failed to run pre-flight checks: ", err)
 				return
@@ -56,6 +56,8 @@ func Cmd() *cobra.Command {
 				*hd,
 			)
 			errorhandling.PrettifyErrorIfExists(err)
+			rollappChainData.KeyringBackend = consts.SupportedKeyringBackend(kb)
+
 			err = rollappChainData.ValidateConfig()
 			if err != nil {
 				pterm.Error.Println("rollapp data validation error: ", err)
@@ -102,25 +104,76 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// if err := relayerutils.UpdateConfigWithDefaultValues(relayerHome, *rollappChainData); err != nil {
-			// 	pterm.Error.Printf("failed to update relayer config file: %v\n", err)
-			// 	return
-			// }
-			//
-			// relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
-			// if err != nil {
-			// 	pterm.Error.Println(
-			// 		"failed to ensure relayer keys are created/funded:",
-			// 		err,
-			// 	)
-			// 	return
-			// }
+			if err := rly.UpdateConfigWithDefaultValues(*rollappChainData); err != nil {
+				pterm.Error.Printf("failed to update relayer config file: %v\n", err)
+				return
+			}
+
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
+			if err != nil {
+				pterm.Error.Println(
+					"failed to ensure relayer keys are created/funded:",
+					err,
+				)
+				return
+			}
 
 			// 5. Are there existing channels ( from chain )
-			// logFileOption := logging.WithLoggerLogging(relayerLogger)
-
+			logFileOption := logging.WithLoggerLogging(relayerLogger)
 			err = rly.LoadActiveChannel(*raData, *hd)
 			if err != nil {
+				if errors.Is(err, relayer.ErrNoOpenChannel) {
+
+					pterm.Warning.Println("No open channel found")
+					var createIbcChannels bool
+					if !rly.ChannelReady() {
+						createIbcChannels, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
+							fmt.Sprintf(
+								"no channel found. would you like to create a new IBC channel for %s?",
+								pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+									Sprint(rollappChainData.RollappID),
+							),
+						).Show()
+
+						if !createIbcChannels {
+							pterm.Warning.Println("you can't run a relayer without an ibc channel")
+							return
+						}
+					}
+
+					pterm.Info.Println("checking whether node is eligible to create ibc connection")
+					canCreateIbc, err := relayerutils.NewIbcConnenctionCanBeCreatedOnCurrentNode(
+						home,
+						rly.Rollapp.ID,
+					)
+					if err != nil {
+						pterm.Error.Println(
+							"failed to determine whether connection can be created from this node:",
+							err,
+						)
+						return
+					}
+					if !canCreateIbc {
+						pterm.Error.Println(err)
+						return
+					}
+
+					pterm.Info.Println("creating ibc connection")
+					err = rly.HandleWhitelisting(
+						relKeys[consts.KeysIds.RollappRelayer].Address,
+						rollappChainData,
+					)
+					if err != nil {
+						pterm.Error.Println("failed to handle whitelisting: ", err)
+						return
+					}
+
+					err = rly.HandleIbcChannelCreation(home, *rollappChainData, logFileOption)
+					if err != nil {
+						pterm.Error.Println("failed to handle ibc channel creation: ", err)
+						return
+					}
+				}
 				pterm.Error.Printf("failed to load active channel, %v", err)
 				return
 			}
@@ -145,271 +198,61 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			j, _ := json.MarshalIndent(rly, "", "  ")
-			fmt.Println("💈 RLY: ", string(j))
-
-			pterm.Error.Println("debugging")
-			return
-
-			// nolint: govet
-			if rly.SrcChannel != "" && rly.DstChannel != "" {
-				pterm.Info.Println("updating application relayer config")
-
-				// rollappIbcConnection, hubIbcConnection, err := rly.GetActiveConnections(
-				// 	raData,
-				// 	*hd,
-				// )
-				// if err != nil {
-				// 	pterm.Error.Printf("failed to retrieve active connections: %v\n", err)
-				// 	return
-				// }
-
-				//
-				pterm.Info.Println("existing IBC channels found ")
-				pterm.Info.Println("Hub: ", rly.SrcChannel)
-				pterm.Info.Println("RollApp: ", rly.DstChannel)
-				return
-			}
-
-			// 		defer func() {
-			// 			pterm.Info.Println("reverting dymint config to 1h")
-			// 			err := dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
-			// 			if err != nil {
-			// 				pterm.Error.Println("failed to update dymint config: ", err)
-			// 				return
-			// 			}
-			// 		}()
-			//
-			// 		canCreateIbcConnectionOnCurrentNode, err := relayerutils.NewIbcConnenctionCanBeCreatedOnCurrentNode(
-			// 			home,
-			// 			raID,
-			// 		)
-			// 		if err != nil {
-			// 			pterm.Error.Println(
-			// 				"failed to determine whether connection can be created from this node:",
-			// 				err,
-			// 			)
-			// 			return
-			// 		}
-			//
-			// 		if !canCreateIbcConnectionOnCurrentNode {
-			// 			pterm.Error.Println(err)
-			// 			return
-			// 		}
-			//
-			// 		err = relayerutils.InitializeRelayer(home, *rollappChainData)
-			// 		if err != nil {
-			// 			pterm.Error.Println("failed to initialize relayer:", err)
-			// 			return
-			// 		}
-			//
-			// 		pterm.Info.Println("let's create that IBC connection, shall we?")
-			// 		seq := sequencer.GetInstance(*rollappChainData)
-			//
-			// 		dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
-			// 		err = relayer.WaitForValidRollappHeight(seq)
-			// 		if err != nil {
-			// 			pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
-			// 			return
-			// 		}
-			//
-			// 		// add whitelisted relayers
-			// 		seqAddr, err := sequencerutils.GetSequencerAccountAddress(*rollappChainData)
-			// 		if err != nil {
-			// 			pterm.Error.Printf("failed to get sequencer address: %v\n", err)
-			// 			return
-			// 		}
-			//
-			// 		isRlyKeyWhitelisted, err := relayerutils.IsRelayerRollappKeyWhitelisted(
-			// 			seqAddr,
-			// 			relKeys[consts.KeysIds.RollappRelayer].Address,
-			// 			*hd,
-			// 		)
-			// 		if err != nil {
-			// 			pterm.Error.Printf("failed to check if relayer key is whitelisted: %v\n", err)
-			// 			return
-			// 		}
-			//
-			// 		if !isRlyKeyWhitelisted {
-			// 			pterm.Warning.Printfln(
-			// 				"relayer key (%s) is not whitelisted, updating whitelisted relayers",
-			// 				relKeys[consts.KeysIds.RollappRelayer].Address,
-			// 			)
-			//
-			// 			err := sequencerutils.UpdateWhitelistedRelayers(
-			// 				home,
-			// 				relKeys[consts.KeysIds.RollappRelayer].Address,
-			// 				kb,
-			// 				*hd,
-			// 			)
-			// 			if err != nil {
-			// 				pterm.Error.Println("failed to update whitelisted relayers:", err)
-			// 				return
-			// 			}
-			// 		}
-			//
-			// 		raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(home, kb)
-			// 		if err != nil {
-			// 			pterm.Error.Println("failed to get RollApp's operator address:", err)
-			// 			return
-			// 		}
-			//
-			// 		wrSpinner, _ := pterm.DefaultSpinner.Start(
-			// 			"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
-			// 		)
-			// 		for {
-			// 			r, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
-			// 			if err != nil {
-			// 				pterm.Error.Println("failed to get whitelisted relayers:", err)
-			// 				return
-			// 			}
-			//
-			// 			if len(r) == 0 &&
-			// 				slices.Contains(r, relKeys[consts.KeysIds.RollappRelayer].Address) {
-			// 				wrSpinner.UpdateText(
-			// 					"waiting for the whitelisted relayer to propagate to RollApp...",
-			// 				)
-			// 				time.Sleep(time.Second * 5)
-			// 				continue
-			// 			} else {
-			// 				// nolint: errcheck
-			// 				wrSpinner.Success("relayer whitelisted and propagated to rollapp")
-			// 				break
-			// 			}
-			// 		}
-			//
-			// 		pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")
-			// 		err = dymintutils.UpdateDymintConfigForIBC(home, "5s", true)
-			// 		if err != nil {
-			// 			pterm.Error.Println("failed to update dymint config: ", err)
-			// 			return
-			// 		}
-			//
-			// 		if rly.ChannelReady() {
-			// 			pterm.DefaultSection.WithIndentCharacter("💈").
-			// 				Println("IBC transfer channel is already established!")
-			//
-			// 			status := fmt.Sprintf(
-			// 				"Active\nrollapp: %s\n<->\nhub: %s",
-			// 				rly.SrcChannel,
-			// 				rly.DstChannel,
-			// 			)
-			// 			err := rly.WriteRelayerStatus(status)
-			// 			if err != nil {
-			// 				fmt.Println(err)
-			// 				return
-			// 			}
-			//
-			// 			pterm.Info.Println(status)
-			// 			return
-			// 		}
-			//
-			// 		var createIbcChannels bool
-			// 		if !rly.ChannelReady() {
-			// 			createIbcChannels, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
-			// 				fmt.Sprintf(
-			// 					"no channel found. would you like to create a new IBC channel for %s?",
-			// 					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-			// 						Sprint(rollappChainData.RollappID),
-			// 				),
-			// 			).Show()
-			//
-			// 			if !createIbcChannels {
-			// 				pterm.Warning.Println("you can't run a relayer without an ibc channel")
-			// 				return
-			// 			}
-			// 		}
-			//
-			// 		if createIbcChannels {
-			// 			err = relayerutils.VerifyRelayerBalances(*hd)
-			// 			if err != nil {
-			// 				pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
-			// 				return
-			// 			}
-			//
-			// 			pterm.Info.Println("establishing IBC transfer channel")
-			// 			channels, err := rly.CreateIBCChannel(
-			// 				logFileOption,
-			// 				raData,
-			// 				*hd,
-			// 			)
-			// 			if err != nil {
-			// 				pterm.Error.Printf("failed to create IBC channel: %v\n", err)
-			// 				return
-			// 			}
-			//
-			// 			srcIbcChannel := channels.Src
-			// 			dstIbcChannel := channels.Dst
-			//
-			// 			status := fmt.Sprintf(
-			// 				"Active\nrollapp: %s\n<->\nhub: %s",
-			// 				srcIbcChannel,
-			// 				dstIbcChannel,
-			// 			)
-			//
-			// 			pterm.Info.Println(status)
-			// 			err = rly.WriteRelayerStatus(status)
-			// 			if err != nil {
-			// 				fmt.Println(err)
-			// 				return
-			// 			}
-			// 		}
-			//
-			// 		defer func() {
-			// 			pterm.Info.Println("next steps:")
-			// 			pterm.Info.Printf(
-			// 				"run %s load the necessary systemd services\n",
-			// 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-			// 					Sprintf("roller relayer services load"),
-			// 			)
-			// 		}()
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s load the necessary systemd services\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller relayer services load"),
+				)
+			}()
 		},
 	}
-	//
+
 	return relayerStartCmd
 }
 
-func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, error) {
-	raID, hd, _, err := relayerutils.GetRollappToRunFor(home)
+func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, error) {
+	raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
 	if err != nil {
 		pterm.Error.Println("failed to determine what RollApp to run for:", err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	_, err = rollapputils.ValidateChainID(hd.ID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid Hub ID: %v", raID, err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	_, err = rollapputils.ValidateChainID(raID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	ok, err := rollapp.IsRegistered(raID, *hd)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	if !ok {
 		pterm.Error.Printf("%s rollapp not registered on %s", raID, hd.ID)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	raRpc, err := sequencerutils.GetRpcEndpointFromChain(raID, *hd)
 	if err != nil {
 		pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	raData := consts.RollappData{
 		ID:     raID,
 		RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
 	}
-	return &raData, hd, nil
+	return &raData, hd, kb, nil
 }
 
 func getDrsVersionFromGenesis(

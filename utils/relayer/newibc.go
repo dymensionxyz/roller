@@ -79,7 +79,7 @@ func EnsureKeysArePresentAndFunded(
 		return nil, fmt.Errorf("cancelled by user")
 	}
 
-	err = VerifyRelayerBalances(rollerData.HubData)
+	err = relayer.VerifyRelayerBalances(rollerData.HubData)
 	if err != nil {
 		return nil, err
 	}

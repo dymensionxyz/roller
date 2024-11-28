@@ -14,7 +14,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/logging"
-	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
@@ -56,7 +55,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			}
 			raData.Denom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
 
-			err = relayerutils.VerifyRelayerBalances(*hd)
+			err = relayer.VerifyRelayerBalances(*hd)
 			if err != nil {
 				pterm.Error.Println("failed to check balances", err)
 				return

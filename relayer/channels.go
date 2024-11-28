@@ -9,7 +9,10 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
+	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 // TODO: Change to use the connection for fetching relevant channel using connection-channels rly command
@@ -34,7 +37,7 @@ func (r *Relayer) LoadActiveChannel(
 	}
 
 	if len(gacResponse.Channels) == 0 {
-		pterm.Error.Printfln("no open channel found for %s", r.Rollapp.ID)
+		return ErrNoOpenChannel
 	}
 
 	raIbcChanIndex := slices.IndexFunc(
@@ -46,7 +49,7 @@ func (r *Relayer) LoadActiveChannel(
 	fmt.Println(raIbcChanIndex)
 
 	if raIbcChanIndex == -1 {
-		return fmt.Errorf("no open channel found for %s\n", r.Rollapp.ID)
+		return ErrNoOpenChannel
 	}
 
 	raChan := gacResponse.Channels[raIbcChanIndex]
@@ -278,4 +281,70 @@ type RlyRollappQueryResult struct {
 	RlyOutput
 	PortID    string `json:"port_id"`
 	ChannelID string `json:"channel_id"`
+}
+
+func (r *Relayer) HandleIbcChannelCreation(
+	home string,
+	rollappChainData roller.RollappConfig,
+	logFileOption bash.CommandOption,
+) error {
+	defer func() {
+		pterm.Info.Println("reverting dymint config to 1h")
+		err := dymintutils.UpdateDymintConfigForIBC(home, "1h0m0s", true)
+		if err != nil {
+			pterm.Error.Println("failed to update dymint config: ", err)
+			return
+		}
+	}()
+
+	seq := sequencer.GetInstance(rollappChainData)
+
+	pterm.Info.Println("setting block time to 5s for esstablishing IBC connection")
+	err := dymintutils.UpdateDymintConfigForIBC(home, "5s", true)
+	if err != nil {
+		pterm.Error.Println("failed to update dymint config: ", err)
+		return err
+	}
+
+	dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
+	err = WaitForValidRollappHeight(seq)
+	if err != nil {
+		pterm.Error.Printf("rollapp did not reach valid height: %v\n", err)
+		return err
+	}
+
+	err = VerifyRelayerBalances(r.Hub)
+	if err != nil {
+		pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
+		return err
+	}
+
+	pterm.Info.Println("establishing IBC transfer channel")
+	channels, err := r.CreateIBCChannel(
+		logFileOption,
+		r.Rollapp,
+		r.Hub,
+	)
+	if err != nil {
+		pterm.Error.Printf("failed to create IBC channel: %v\n", err)
+		return err
+	}
+
+	r.SrcChannel = channels.Src
+	r.DstChannel = channels.Dst
+
+	status := fmt.Sprintf(
+		"Active\nrollapp: %s\n<->\nhub: %s",
+		r.SrcChannel,
+		r.DstChannel,
+	)
+
+	pterm.Info.Println(status)
+	err = r.WriteRelayerStatus(status)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }
