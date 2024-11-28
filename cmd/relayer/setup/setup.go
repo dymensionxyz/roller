@@ -179,9 +179,10 @@ func Cmd() *cobra.Command {
 						pterm.Error.Println("failed to handle ibc channel creation: ", err)
 						return
 					}
+				} else {
+					pterm.Error.Printf("failed to load active channel, %v", err)
+					return
 				}
-				pterm.Error.Printf("failed to load active channel, %v", err)
-				return
 			}
 
 			if rly.SrcChannel != "" && rly.DstChannel != "" {

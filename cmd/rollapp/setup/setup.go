@@ -748,7 +748,7 @@ RollApp's IRO time: %v`,
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"settlement_gas_prices",
-				"20000000000adym",
+				"10000000000adym",
 			)
 
 			pterm.Info.Println("enabling block explorer endpoint")
