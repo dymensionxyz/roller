@@ -49,6 +49,7 @@ func (r *Relayer) CreateIBCChannel(
 		}
 
 		createConnectionCmd := r.getCreateConnectionCmd(sp.UnbondingTime)
+		fmt.Println(createConnectionCmd.String())
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
@@ -129,19 +130,19 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	}
 }
 
-func (r *Relayer) getCreateConnectionCmd(unbondingTime time.Duration) *exec.Cmd {
-	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
+func (r *Relayer) getCreateConnectionCmd(unbondingTime string) *exec.Cmd {
+	args := []string{"tx", "connection", "--max-clock-drift", "70m", "--client-tp", unbondingTime}
 	args = append(args, r.getRelayerDefaultArgs()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
 type StakingParamsResponse struct {
-	BondDenom         string        `json:"bond_denom"`
-	HistoricalEntries uint32        `json:"historical_entries"`
-	MaxEntries        uint32        `json:"max_entries"`
-	MaxValidators     uint32        `json:"max_validators"`
-	MinCommissionRate string        `json:"min_commission_rate"`
-	UnbondingTime     time.Duration `json:"unbonding_time"`
+	BondDenom         string `json:"bond_denom"`
+	HistoricalEntries uint32 `json:"historical_entries"`
+	MaxEntries        uint32 `json:"max_entries"`
+	MaxValidators     uint32 `json:"max_validators"`
+	MinCommissionRate string `json:"min_commission_rate"`
+	UnbondingTime     string `json:"unbonding_time"`
 }
 
 func getHubStakingParams(hd consts.HubData) (*StakingParamsResponse, error) {
