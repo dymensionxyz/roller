@@ -205,7 +205,6 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("RollApp chanel: ", rly.DstChannel)
 				pterm.Info.Println("RollApp connection: ", rly.DstConnectionID)
 				pterm.Info.Println("RollApp client: ", rly.DstClientID)
-				return
 			}
 
 			defer func() {
