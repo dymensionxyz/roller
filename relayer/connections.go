@@ -92,9 +92,6 @@ func (r *Relayer) ConnectionInfoFromRaConnID(
 		return fmt.Errorf("no open channel found for %s", r.Rollapp.ID)
 	}
 
-	j, _ := json.MarshalIndent(raIbcConnections.Connections[raIbcConnIndex], "", "  ")
-	fmt.Printf("💈 Hub IBC Connection:\n%s", string(j))
-
 	conn := raIbcConnections.Connections[raIbcConnIndex]
 	r.SrcConnectionID = conn.Counterparty.ConnectionID
 	r.SrcClientID = conn.Counterparty.ClientID

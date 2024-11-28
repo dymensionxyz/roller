@@ -295,6 +295,8 @@ func (r *Relayer) HandleIbcChannelCreation(
 			pterm.Error.Println("failed to update dymint config: ", err)
 			return
 		}
+
+		dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 	}()
 
 	seq := sequencer.GetInstance(rollappChainData)

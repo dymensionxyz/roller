@@ -186,11 +186,6 @@ func Cmd() *cobra.Command {
 			}
 
 			if rly.SrcChannel != "" && rly.DstChannel != "" {
-				pterm.Info.Println("existing IBC channels found ")
-				pterm.Info.Println("Hub chan: ", rly.SrcChannel)
-				pterm.Info.Println("RollApp chan: ", rly.DstChannel)
-				pterm.Info.Println("RollApp conn: ", rly.DstConnectionID)
-
 				err := rly.ConnectionInfoFromRaConnID(*raData, rly.DstConnectionID)
 				if err != nil {
 					pterm.Error.Println("failed to get hub ibc connection: ", err)
@@ -202,6 +197,14 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to update relayer config: ", err)
 					return
 				}
+
+				pterm.Info.Println("IBC connection information:")
+				pterm.Info.Println("Hub chanel: ", rly.SrcChannel)
+				pterm.Info.Println("Hub connection: ", rly.SrcChannel)
+				pterm.Info.Println("Hub client: ", rly.SrcClientID)
+				pterm.Info.Println("RollApp chanel: ", rly.DstChannel)
+				pterm.Info.Println("RollApp connection: ", rly.DstConnectionID)
+				pterm.Info.Println("RollApp client: ", rly.DstClientID)
 				return
 			}
 
