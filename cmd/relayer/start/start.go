@@ -2,6 +2,7 @@ package start
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 
@@ -47,6 +48,12 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 
 			raData := rlyCfg.RaDataFromRelayerConfig()
 			hd := rlyCfg.HubDataFromRelayerConfig()
+
+			j, _ := json.MarshalIndent(rlyCfg, "", "  ")
+			fmt.Println(string(j))
+
+			j, _ = json.MarshalIndent(hd, "", "  ")
+			fmt.Println(string(j))
 
 			raResponse, err := rollapp.GetMetadataFromChain(raData.ID, *hd)
 			if err != nil {
