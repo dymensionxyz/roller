@@ -17,24 +17,24 @@ import (
 )
 
 type RelayerFileChainConfig struct {
-	Type  string                      `json:"type"`
-	Value RelayerFileChainConfigValue `json:"value"`
+	Type  string                      `yaml:"type"  json:"type"`
+	Value RelayerFileChainConfigValue `yaml:"value" json:"value"`
 }
 
 type RelayerFileChainConfigValue struct {
-	Key            string   `json:"key"`
-	ChainID        string   `json:"chain-id"`
-	RpcAddr        string   `json:"rpc-addr"`
-	ApiAddr        string   `json:"http-addr"`
-	AccountPrefix  string   `json:"account-prefix"`
-	KeyringBackend string   `json:"keyring-backend"`
-	GasAdjustment  float64  `json:"gas-adjustment"`
-	GasPrices      string   `json:"gas-prices"`
-	Debug          bool     `json:"debug"`
-	Timeout        string   `json:"timeout"`
-	OutputFormat   string   `json:"output-format"`
-	SignMode       string   `json:"sign-mode"`
-	ExtraCodecs    []string `json:"extra-codecs"`
+	Key            string   `yaml:"key"             json:"key"`
+	ChainID        string   `yaml:"chain-id"        json:"chain-id"`
+	RpcAddr        string   `yaml:"rpc-addr"        json:"rpc-addr"`
+	ApiAddr        string   `yaml:"http-addr"       json:"http-addr"`
+	AccountPrefix  string   `yaml:"account-prefix"  json:"account-prefix"`
+	KeyringBackend string   `yaml:"keyring-backend" json:"keyring-backend"`
+	GasAdjustment  float64  `yaml:"gas-adjustment"  json:"gas-adjustment"`
+	GasPrices      string   `yaml:"gas-prices"      json:"gas-prices"`
+	Debug          bool     `yaml:"debug"           json:"debug"`
+	Timeout        string   `yaml:"timeout"         json:"timeout"`
+	OutputFormat   string   `yaml:"output-format"   json:"output-format"`
+	SignMode       string   `yaml:"sign-mode"       json:"sign-mode"`
+	ExtraCodecs    []string `yaml:"extra-codecs"    json:"extra-codecs"`
 }
 
 type RelayerChainConfig struct {
