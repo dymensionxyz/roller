@@ -1,6 +1,7 @@
 package relayer
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -42,7 +43,12 @@ func (r *Relayer) CreateIBCChannel(
 			return ConnectionChannels{}, err
 		}
 
-		createConnectionCmd := r.getCreateConnectionCmd()
+		sp, err := getHubStakingParams(r.Hub)
+		if err != nil {
+			return ConnectionChannels{}, err
+		}
+
+		createConnectionCmd := r.getCreateConnectionCmd(sp.UnbondingTime)
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}
@@ -123,32 +129,74 @@ func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	}
 }
 
-func (r *Relayer) getCreateConnectionCmd() *exec.Cmd {
+func (r *Relayer) getCreateConnectionCmd(unbondingTime time.Duration) *exec.Cmd {
 	args := []string{"tx", "connection", "--max-clock-drift", "70m"}
 	args = append(args, r.getRelayerDefaultArgs()...)
 	return exec.Command(consts.Executables.Relayer, args...)
 }
 
-func (r *Relayer) getTxLinkCmd(override bool) *exec.Cmd {
-	args := []string{
-		"tx",
-		"link",
-		consts.DefaultRelayerPath,
-		"--src-port",
-		"transfer",
-		"--dst-port",
-		"transfer",
-		"--version",
-		"ics20-1",
-		"--max-clock-drift",
-		"70m",
-	}
-	if override {
-		args = append(args, "--override")
-	}
-	args = append(args, r.getRelayerDefaultArgs()...)
-	return exec.Command(consts.Executables.Relayer, args...)
+type StakingParamsResponse struct {
+	BondDenom         string        `json:"bond_denom"`
+	HistoricalEntries uint32        `json:"historical_entries"`
+	MaxEntries        uint32        `json:"max_entries"`
+	MaxValidators     uint32        `json:"max_validators"`
+	MinCommissionRate string        `json:"min_commission_rate"`
+	UnbondingTime     time.Duration `json:"unbonding_time"`
 }
+
+func getHubStakingParams(hd consts.HubData) (*StakingParamsResponse, error) {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"staking",
+		"params",
+		"--node",
+		hd.RpcUrl,
+		"--chain-id",
+		hd.ID,
+		"--output",
+		"json",
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var stakingParams StakingParamsResponse
+	err = json.Unmarshal(out.Bytes(), &stakingParams)
+	if err != nil {
+		return nil, err
+	}
+
+	return &stakingParams, nil
+}
+
+// func (r *Relayer) getTxLinkCmd(override bool, unbondingTime time.Duration) *exec.Cmd {
+// 	args := []string{
+// 		"tx",
+// 		"link",
+// 		consts.DefaultRelayerPath,
+// 		"--src-port",
+// 		"transfer",
+// 		"--dst-port",
+// 		"transfer",
+// 		"--version",
+// 		"ics20-1",
+// 		"--max-clock-drift",
+// 		"70m",
+// 		"--client-tp",
+// 		unbondingTime.String(),
+// 	}
+// 	if override {
+// 		args = append(args, "--override")
+// 	}
+// 	args = append(args, r.getRelayerDefaultArgs()...)
+// 	cmd := exec.Command(consts.Executables.Relayer, args...)
+// 	fmt.Println(cmd.String())
+//
+// 	return cmd
+// }
 
 func (r *Relayer) getCreateChannelCmd(override bool) *exec.Cmd {
 	args := []string{"tx", "channel", "--timeout", "60s", "--debug"}
