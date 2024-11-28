@@ -80,7 +80,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			// }
 
 			if rly.ChannelReady() {
-				fmt.Println("💈 IBC transfer channel is already established!")
+				fmt.Println("💈 IBC transfer channel is established!")
 				status := fmt.Sprintf(
 					"Active\nrollapp: %s\n<->\nhub: %s\n",
 					rly.DstChannel, rly.SrcChannel,
