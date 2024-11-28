@@ -65,11 +65,11 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			// err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
-			// if err != nil {
-			// 	pterm.Error.Println("failed to install relayer dependencies: ", err)
-			// 	return
-			// }
+			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to install relayer dependencies: ", err)
+				return
+			}
 
 			// things to check:
 			// 1. relayer folder exists
