@@ -159,12 +159,10 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 }
 
 func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
-	fmt.Println("here avail details........", cfg)
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("avail balance hereee.....", balance)
 	return []keys.AccountData{
 		{
 			Address: a.AccAddress,
@@ -203,4 +201,12 @@ func (a *Avail) GetStatus(c roller.RollappConfig) string {
 
 func (a *Avail) GetKeyName() string {
 	return "avail"
+}
+
+func (a *Avail) GetNamespaceID() string {
+	return ""
+}
+
+func (a *Avail) GetAppID() int {
+	return a.AppID
 }

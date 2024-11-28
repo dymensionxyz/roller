@@ -180,7 +180,13 @@ func Cmd() *cobra.Command {
 					RpcUrl:        chd.RpcUrl,
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
-					DaNetwork:     consts.CelestiaTestnet,
+					// DaNetwork:     consts.CelestiaTestnet,
+					DaNetwork: consts.AvailTestnet,
+				}
+
+				rollerConfig, _ := roller.LoadConfig(home)
+				if rollerConfig.DA.ID != "" {
+					hd.DaNetwork = rollerConfig.DA.ID
 				}
 
 				if err != nil {

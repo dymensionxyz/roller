@@ -28,7 +28,8 @@ type DataLayer interface {
 	GetKeyName() string
 	GetPrivateKey() (string, error)
 	GetRootDirectory() string
-	// GetNamespaceID() string
+	GetNamespaceID() string
+	GetAppID() int
 }
 
 type DAManager struct {
@@ -57,21 +58,16 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 }
 
 func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
-	var daData consts.DaData
 	var daNetwork string
+
 	switch env {
-	case "playground":
-		if daBackend == string(consts.Celestia) {
+	case "playground", "custom":
+		switch daBackend {
+		case string(consts.Celestia):
 			daNetwork = string(consts.CelestiaTestnet)
-		} else if daBackend == string(consts.Avail) {
+		case string(consts.Avail):
 			daNetwork = string(consts.AvailTestnet)
-		} else {
-			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
-		}
-	case "custom":
-		if daBackend == string(consts.Celestia) {
-			daNetwork = string(consts.CelestiaTestnet)
-		} else {
+		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
 	case "mock":
@@ -79,7 +75,12 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	default:
 		return nil, fmt.Errorf("unsupported environment: %s", env)
 	}
-	daData = consts.DaNetworks[daNetwork]
+
+	// Check if the daNetwork exists in DaNetworks
+	daData, exists := consts.DaNetworks[daNetwork]
+	if !exists {
+		return nil, fmt.Errorf("DA network configuration not found for: %s", daNetwork)
+	}
 
 	return &daData, nil
 }

@@ -29,6 +29,7 @@ import (
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
@@ -47,6 +48,11 @@ func Cmd() *cobra.Command {
 			relayerConfigPath := relayerutils.GetConfigFilePath(relayerHome)
 
 			raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
+			rollerConfig, _ := roller.LoadConfig(home)
+			fmt.Println("roller config in relayer setup.........", rollerConfig.DA)
+			if rollerConfig.DA.ID != "" {
+				hd.DaNetwork = rollerConfig.DA.ID
+			}
 			if err != nil {
 				pterm.Error.Println("failed to determine what RollApp to run for:", err)
 				return

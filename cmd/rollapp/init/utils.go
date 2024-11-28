@@ -9,6 +9,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
@@ -76,30 +77,49 @@ func runInit(
 	// }
 
 	/* ------------------------ Initialize DA light node ------------------------ */
-	// daKeyInfo, err := celestialightclient.Initialize(env, ic)
-	// if err != nil {
-	// 	return err
-	// }
 
-	// if daKeyInfo != nil {
-	// 	addresses = append(addresses, *daKeyInfo)
-	// }
+	fmt.Println("Init config DA data.........", ic.DA)
 
-	damanager := datalayer.NewDAManager(consts.Avail, home, kb)
-	_, err = damanager.InitializeLightNodeConfig()
-	if err != nil {
-		return err
-	}
-	daAddress, err := damanager.GetDAAccountAddress()
-	if err != nil {
-		return err
-	}
+	// Generalize DA initialization logic
+	switch ic.DA.Backend {
+	case consts.Celestia:
+		// Initialize Celestia light client
+		daKeyInfo, err := celestialightclient.Initialize(env, ic)
+		if err != nil {
+			return fmt.Errorf("failed to initialize Celestia light client: %w", err)
+		}
 
-	if daAddress != nil {
-		addresses = append(addresses, keys.KeyInfo{
-			Name:    damanager.GetKeyName(),
-			Address: daAddress.Address,
-		})
+		// Append DA account address if available
+		if daKeyInfo != nil {
+			addresses = append(addresses, *daKeyInfo)
+		}
+
+	case consts.Avail:
+		// Initialize DAManager for Avail
+		damanager := datalayer.NewDAManager(consts.Avail, home, kb)
+
+		// Initialize the light node configuration
+		_, err := damanager.InitializeLightNodeConfig()
+		if err != nil {
+			return fmt.Errorf("failed to initialize Avail light node config: %w", err)
+		}
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Avail account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
+
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
 
 	/* ------------------------------ Print output ------------------------------ */

@@ -381,3 +381,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 		authToken,
 	)
 }
+
+func (c *Celestia) GetAppID() int {
+	return 0
+}

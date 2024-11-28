@@ -44,7 +44,7 @@ func AddFlags(cmd *cobra.Command) error {
 		StringP(
 			FlagNames.DAType,
 			"",
-			"Celestia",
+			"Avail",
 			"The DA layer for the RollApp. Can be one of 'Celestia, Avail, Local'",
 		)
 

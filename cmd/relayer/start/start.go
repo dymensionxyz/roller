@@ -91,7 +91,11 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 						RpcUrl:        chd.RpcUrl,
 						ArchiveRpcUrl: chd.RpcUrl,
 						GasPrice:      chd.GasPrice,
-						DaNetwork:     consts.CelestiaTestnet,
+						// DaNetwork:     consts.CelestiaTestnet,
+						DaNetwork: consts.AvailTestnet,
+					}
+					if rollerConfig.DA.ID != "" {
+						hd.DaNetwork = rollerConfig.DA.ID
 					}
 				}
 			} else {
