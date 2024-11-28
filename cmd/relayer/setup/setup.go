@@ -256,6 +256,7 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 		pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
 		return nil, nil, "", err
 	}
+	raRpc = strings.TrimSuffix(raRpc, "/")
 
 	raData := consts.RollappData{
 		ID:     raID,

@@ -26,6 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/templates"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
@@ -359,11 +360,27 @@ func Cmd() *cobra.Command {
 			for {
 				// Prompt the user for the RPC URL
 				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"dymint rpc endpoint that you trust (example: rpc.rollapp.dym.xyz)",
+					"dymint rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
 				).Show()
 				if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 					rpc = "https://" + rpc
 				}
+
+				if strings.TrimSpace(rpc) == "" {
+					rpc, err = sequencerutils.GetRpcEndpointFromChain(raID, hd)
+					if err != nil {
+						pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
+						rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+							"can't fetch rpc endpoint from chain, provide manually (example: rpc.rollapp.dym.xyz)",
+						).Show()
+						if !strings.HasPrefix(rpc, "http://") &&
+							!strings.HasPrefix(rpc, "https://") {
+							rpc = "https://" + rpc
+						}
+					}
+				}
+
+				rpc = strings.TrimSuffix(rpc, "/")
 
 				isValid := config.IsValidURL(rpc)
 
