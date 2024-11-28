@@ -51,7 +51,7 @@ func (r *Relayer) CreateIBCChannel(
 	// Sleep for a few seconds to make sure the connection is created
 	time.Sleep(15 * time.Second)
 	// we ran create channel with override, as it not recovarable anyway
-	createChannelCmd := r.getCreateChannelCmd(true)
+	createChannelCmd := r.getCreateChannelCmd(false)
 
 	pterm.Info.Println("💈 Creating channel (this may take a while)...")
 	if err := r.WriteRelayerStatus(status); err != nil {
