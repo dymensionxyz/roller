@@ -72,18 +72,26 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// err = installRelayerDependencies(home, raID, *hd)
-			// if err != nil {
-			// 	pterm.Error.Println("failed to install relayer dependencies: ", err)
-			// 	return
-			// }
+			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to install relayer dependencies: ", err)
+				return
+			}
 
 			// things to check:
 			// 1. relayer folder exists
-			err = os.MkdirAll(rly.RelayerHome, 0o755)
+			ok, err := filesystem.DirNotEmpty(rly.RelayerHome)
 			if err != nil {
-				pterm.Error.Printf("failed to create %s: %v\n", rly.RelayerHome, err)
+				pterm.Error.Printf("failed to check %s: %v\n", rly.RelayerHome, err)
 				return
+			}
+
+			if !ok {
+				err = os.MkdirAll(rly.RelayerHome, 0o755)
+				if err != nil {
+					pterm.Error.Printf("failed to create %s: %v\n", rly.RelayerHome, err)
+					return
+				}
 			}
 
 			pterm.Info.Println("populating relayer config with correct values...")
