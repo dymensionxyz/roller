@@ -24,7 +24,6 @@ func UpdateNestedYAML(filename string, updates map[string]interface{}) error {
 
 	// Update values
 	for path, value := range updates {
-		fmt.Printf("updating %s to %s in %s\n", path, value, filename)
 		keys := strings.Split(path, ".")
 		err = setNestedValue(yamlData, keys, value)
 		if err != nil {
