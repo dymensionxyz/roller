@@ -49,7 +49,6 @@ func (r *Relayer) CreateIBCChannel(
 		}
 
 		createConnectionCmd := r.getCreateConnectionCmd(sp.UnbondingTime)
-		fmt.Println(createConnectionCmd.String())
 		if err := bash.ExecCmd(createConnectionCmd, logFileOption); err != nil {
 			return ConnectionChannels{}, err
 		}

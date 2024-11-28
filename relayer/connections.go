@@ -218,7 +218,6 @@ func (r *Relayer) getQueryRaIbcConnectionsCmd(
 		"-o", "json",
 	}
 	cmd := exec.Command(consts.Executables.RollappEVM, args...)
-	fmt.Println(cmd.String())
 
 	return cmd
 }
