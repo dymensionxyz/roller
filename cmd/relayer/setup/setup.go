@@ -108,8 +108,6 @@ func Cmd() *cobra.Command {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
-
-				return
 			}
 
 			if err := rly.UpdateConfigWithDefaultValues(*rollappChainData); err != nil {
