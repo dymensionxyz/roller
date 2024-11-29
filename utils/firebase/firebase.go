@@ -6,14 +6,15 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
-	"github.com/pterm/pterm"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
 // DrsVersionInfo represents the structure of DRS version information in Firestore
 type DrsVersionInfo struct {
-	Commit string `firestore:"commit"`
+	Commit     string `firestore:"commit"`
+	EvmCommit  string `firestore:"evm-commit"`
+	WasmCommit string `firestore:"wasm-commit"`
 }
 
 // GetLatestDrsVersionCommit
@@ -55,6 +56,5 @@ func GetLatestDrsVersionCommit(drsVersion string) (*DrsVersionInfo, error) {
 		return nil, fmt.Errorf("failed to parse DRS version info: %v", err)
 	}
 
-	pterm.Info.Printf("Found DRS commit hash: %s\n", drsInfo.Commit)
 	return &drsInfo, nil
 }

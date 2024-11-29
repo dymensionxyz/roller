@@ -58,18 +58,19 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 		}
 	case "wasm":
 		dep = types.Dependency{
-			DependencyName:  "dymd",
+			DependencyName:  "rollapp",
 			RepositoryOwner: "dymensionxyz",
-			RepositoryName:  "dymd",
-			RepositoryUrl:   "https://github.com/dymensionxyz/dymd.git",
-			Release:         DefaultDymdDependency().Release,
+			RepositoryName:  "rollapp-wasm",
+			RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm.git",
+			Release:         raBinInfo.Commit,
 			Binaries: []types.BinaryPathPair{
 				{
-					Binary:            "./build/dymd",
-					BinaryDestination: consts.Executables.Dymension,
+					Binary:            "./build/rollapp-wasm",
+					BinaryDestination: consts.Executables.RollappEVM,
 					BuildCommand: exec.Command(
 						"make",
 						"build",
+						fmt.Sprintf("BECH32_PREFIX=%s", raBinInfo.Bech32Prefix),
 					),
 				},
 			},
