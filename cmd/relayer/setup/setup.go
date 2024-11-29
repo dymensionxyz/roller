@@ -306,9 +306,17 @@ func installRelayerDependencies(
 		return err
 	}
 
+	var raCommit string
+	switch strings.ToLower(raResp.Rollapp.VmType) {
+	case "evm":
+		raCommit = drsInfo.EvmCommit
+	case "wasm":
+		raCommit = drsInfo.WasmCommit
+	}
+
 	rbi := dependencies.NewRollappBinaryInfo(
 		raResp.Rollapp.GenesisInfo.Bech32Prefix,
-		drsInfo.Commit,
+		raCommit,
 		strings.ToLower(raResp.Rollapp.VmType),
 	)
 

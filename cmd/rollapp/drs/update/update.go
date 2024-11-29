@@ -46,6 +46,15 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			raResp, err := rollapputils.GetMetadataFromChain(
+				rollerData.RollappID,
+				rollerData.HubData,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+				return
+			}
+
 			drsVersion, err := rollapputils.ExtractDrsVersionFromBinary()
 			if err != nil {
 				pterm.Error.Println("Failed to extract drs version from binary:", err)
@@ -58,19 +67,18 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if drsInfo.Commit[:6] == cv {
-				pterm.Info.Println("You are already using the latest version of DRS")
-				return
+			var raCommit string
+			switch strings.ToLower(raResp.Rollapp.VmType) {
+			case "evm":
+				raCommit = drsInfo.EvmCommit
+			case "wasm":
+				raCommit = drsInfo.WasmCommit
 			}
 
 			// if doesn't match, take latest as the reference
 			// download the latest, build into ~/.roller/tmp
-			raResp, err := rollapputils.GetMetadataFromChain(
-				rollerData.RollappID,
-				rollerData.HubData,
-			)
-			if err != nil {
-				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+			if raCommit[:6] == cv {
+				pterm.Info.Println("You are already using the latest version of DRS")
 				return
 			}
 
@@ -86,7 +94,7 @@ func Cmd() *cobra.Command {
 
 			rbi := dependencies.NewRollappBinaryInfo(
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
-				drsInfo.Commit,
+				raCommit,
 				strings.ToLower(raResp.Rollapp.VmType),
 			)
 
