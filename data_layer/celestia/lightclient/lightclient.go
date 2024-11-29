@@ -9,7 +9,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pterm/pterm"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"

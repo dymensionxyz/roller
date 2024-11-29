@@ -16,6 +16,9 @@ type DrsVersionInfo struct {
 	Commit string `firestore:"commit"`
 }
 
+// GetLatestDrsVersionCommit
+// Fetch DRS version information using the nested collection path
+// Path format: versions/{version}/revisions/{revision}
 func GetLatestDrsVersionCommit(drsVersion string) (*DrsVersionInfo, error) {
 	ctx := context.Background()
 	conf := &firebase.Config{ProjectID: "drs-metadata"}

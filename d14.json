@@ -1,0 +1,7 @@
+{
+  "id": "dymension_1405-1",
+  "rpcUrl": "https://rpc-dym-migration-test-2.mzonder.com:443",
+  "apiUrl": "https://api-dym-migration-test-2.mzonder.com:443",
+  "commit": "1c428229",
+  "gasPrice": "2000000000"
+}
