@@ -156,66 +156,66 @@ func ExpandHomePath(path string) (string, error) {
 // 	return nil
 // }
 
-// func DownloadFile(url, fp string) error {
-// 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
-// 	if err != nil {
-// 		return err
-// 	}
+func DownloadFile(url, fp string) error {
+	err := os.MkdirAll(filepath.Dir(fp), 0o755)
+	if err != nil {
+		return err
+	}
 
-// 	spinner, _ := pterm.DefaultSpinner.
-// 		Start("Accessing ", filepath.Base(fp))
-// 	fmt.Println()
+	spinner, _ := pterm.DefaultSpinner.
+		Start("Accessing ", filepath.Base(fp))
+	fmt.Println()
 
-// 	// Check if the URL is a local file path
-// 	if _, err := os.Stat(url); err == nil {
-// 		// The URL is a local file; copy it to the target location
-// 		sourceFile, err := os.Open(url)
-// 		if err != nil {
-// 			spinner.Fail("failed to access local file: ", err)
-// 			return err
-// 		}
-// 		defer sourceFile.Close()
+	// Check if the URL is a local file path
+	if _, err := os.Stat(url); err == nil {
+		// The URL is a local file; copy it to the target location
+		sourceFile, err := os.Open(url)
+		if err != nil {
+			spinner.Fail("failed to access local file: ", err)
+			return err
+		}
+		defer sourceFile.Close()
 
-// 		out, err := os.Create(fp)
-// 		if err != nil {
-// 			spinner.Fail("failed to create output file: ", err)
-// 			return err
-// 		}
-// 		defer out.Close()
+		out, err := os.Create(fp)
+		if err != nil {
+			spinner.Fail("failed to create output file: ", err)
+			return err
+		}
+		defer out.Close()
 
-// 		// Copy the local file to the target path
-// 		_, err = io.Copy(out, sourceFile)
-// 		if err != nil {
-// 			spinner.Fail("failed to copy local file: ", err)
-// 			return err
-// 		}
-// 		spinner.Success(fmt.Sprintf("Successfully accessed the local file %s", filepath.Base(fp)))
-// 		return nil
-// 	}
+		// Copy the local file to the target path
+		_, err = io.Copy(out, sourceFile)
+		if err != nil {
+			spinner.Fail("failed to copy local file: ", err)
+			return err
+		}
+		spinner.Success(fmt.Sprintf("Successfully accessed the local file %s", filepath.Base(fp)))
+		return nil
+	}
 
-// 	// If not a local file, proceed with downloading from the URL
-// 	resp, err := http.Get(url)
-// 	if err != nil || resp.StatusCode != http.StatusOK {
-// 		resp.Body.Close()
-// 		spinner.Fail("failed to download file: ", err)
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
+	// If not a local file, proceed with downloading from the URL
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		spinner.Fail("failed to download file: ", err)
+		return err
+	}
+	defer resp.Body.Close()
 
-// 	out, err := os.Create(fp)
-// 	if err != nil {
-// 		spinner.Fail("failed to create output file: ", err)
-// 		return err
-// 	}
-// 	defer out.Close()
+	out, err := os.Create(fp)
+	if err != nil {
+		spinner.Fail("failed to create output file: ", err)
+		return err
+	}
+	defer out.Close()
 
-// 	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))
-// 	_, err = io.Copy(out, resp.Body)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 type JSONRPCResponse struct {
 	JSONRPC string `json:"jsonrpc"`
@@ -224,77 +224,77 @@ type JSONRPCResponse struct {
 	} `json:"result"`
 }
 
-func DownloadFile(url, fp string) error {
-	// Create directories if not exist
-	err := os.MkdirAll(filepath.Dir(fp), 0o755)
-	if err != nil {
-		return err
-	}
+// func DownloadFile(url, fp string) error {
+// 	// Create directories if not exist
+// 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Start the spinner
-	spinner, _ := pterm.DefaultSpinner.Start("Downloading ", filepath.Base(fp))
-	fmt.Println()
+// 	// Start the spinner
+// 	spinner, _ := pterm.DefaultSpinner.Start("Downloading ", filepath.Base(fp))
+// 	fmt.Println()
 
-	// nolint:gosec
-	resp, err := http.Get(url)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		if resp != nil {
-			// nolint:errcheck,gosec
-			resp.Body.Close()
-		}
-		spinner.Fail("failed to download file: ", err)
-		return err
-	}
-	// nolint:errcheck
-	defer resp.Body.Close()
+// 	// nolint:gosec
+// 	resp, err := http.Get(url)
+// 	if err != nil || resp.StatusCode != http.StatusOK {
+// 		if resp != nil {
+// 			// nolint:errcheck,gosec
+// 			resp.Body.Close()
+// 		}
+// 		spinner.Fail("failed to download file: ", err)
+// 		return err
+// 	}
+// 	// nolint:errcheck
+// 	defer resp.Body.Close()
 
-	// Read the response body into memory
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		spinner.Fail("failed to read response body: ", err)
-		return err
-	}
+// 	// Read the response body into memory
+// 	body, err := io.ReadAll(resp.Body)
+// 	if err != nil {
+// 		spinner.Fail("failed to read response body: ", err)
+// 		return err
+// 	}
 
-	// Check if the response is a JSON-RPC response
-	var jsonResponse JSONRPCResponse
-	writeData := body // Default to writing the whole body
-	if err := json.Unmarshal(body, &jsonResponse); err == nil && jsonResponse.JSONRPC != "" {
-		// JSON-RPC response detected
-		if len(jsonResponse.Result.Genesis) > 0 {
-			spinner.Success("Found genesis value and writing it to the file")
-			writeData, err = json.MarshalIndent(jsonResponse.Result.Genesis, "", "  ") // Indent for readability
+// 	// Check if the response is a JSON-RPC response
+// 	var jsonResponse JSONRPCResponse
+// 	writeData := body // Default to writing the whole body
+// 	if err := json.Unmarshal(body, &jsonResponse); err == nil && jsonResponse.JSONRPC != "" {
+// 		// JSON-RPC response detected
+// 		if len(jsonResponse.Result.Genesis) > 0 {
+// 			spinner.Success("Found genesis value and writing it to the file")
+// 			writeData, err = json.MarshalIndent(jsonResponse.Result.Genesis, "", "  ") // Indent for readability
 
-			if err != nil {
-				spinner.Fail("failed to format genesis data: ", err)
-				return err
-			}
-		} else {
-			spinner.Warning("JSON-RPC response does not contain a 'genesis' value in 'result'")
-		}
-	} else {
-		spinner.Success("Successfully downloaded the file")
-	}
+// 			if err != nil {
+// 				spinner.Fail("failed to format genesis data: ", err)
+// 				return err
+// 			}
+// 		} else {
+// 			spinner.Warning("JSON-RPC response does not contain a 'genesis' value in 'result'")
+// 		}
+// 	} else {
+// 		spinner.Success("Successfully downloaded the file")
+// 	}
 
-	// Add a newline to the end of writeData
-	writeData = append(writeData, '\n')
+// 	// Add a newline to the end of writeData
+// 	writeData = append(writeData, '\n')
 
-	// Write the data to the file (either genesis value or full body)
-	out, err := os.Create(fp)
-	if err != nil {
-		spinner.Fail("failed to create file: ", err)
-		return err
-	}
-	// nolint:errcheck
-	defer out.Close()
+// 	// Write the data to the file (either genesis value or full body)
+// 	out, err := os.Create(fp)
+// 	if err != nil {
+// 		spinner.Fail("failed to create file: ", err)
+// 		return err
+// 	}
+// 	// nolint:errcheck
+// 	defer out.Close()
 
-	// Write the data to the file
-	_, err = out.Write(writeData)
-	if err != nil {
-		return err
-	}
+// 	// Write the data to the file
+// 	_, err = out.Write(writeData)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func RemoveFileIfExists(filePath string) error {
 	_, err := os.Stat(filePath)
