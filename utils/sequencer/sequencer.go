@@ -311,7 +311,9 @@ func GetAllP2pPeers(raID string, hd consts.HubData) ([]string, error) {
 	var peers []string
 
 	for _, s := range sequencers.Sequencers {
-		peers = append(peers, s.Metadata.P2PSeeds...)
+		if s.OptedIn && s.Status == "OPERATING_STATUS_BONDED" {
+			peers = append(peers, s.Metadata.P2PSeeds...)
+		}
 	}
 
 	return peers, nil
