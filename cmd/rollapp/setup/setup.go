@@ -730,16 +730,6 @@ RollApp's IRO time: %v`,
 			pterm.Info.Println("updating dymint configuration")
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
-				"da_layer",
-				string(rollappConfig.DA.Backend),
-			)
-			_ = tomlconfig.UpdateFieldInFile(
-				dymintConfigPath,
-				"namespace_id",
-				daNamespace,
-			)
-			_ = tomlconfig.UpdateFieldInFile(
-				dymintConfigPath,
 				"da_config",
 				daConfig,
 			)

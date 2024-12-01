@@ -38,9 +38,6 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 
 	dymintCfg.Set("block_batch_size", "500")
 	dymintCfg.Set("block_time", "0.2s")
-	dymintCfg.Set("batch_submit_max_time", "100s")
-	dymintCfg.Set("empty_blocks_max_time", "3600s")
-	dymintCfg.Set("rollapp_id", rlpCfg.RollappID)
 	dymintCfg.Set("settlement_node_address", rlpCfg.HubData.RpcUrl)
 	dymintCfg.Set("dym_account_name", consts.KeysIds.HubSequencer)
 	dymintCfg.Set("keyring_home_dir", hubKeysDir)
@@ -48,7 +45,7 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 	dymintCfg.Set("gas_prices", rlpCfg.HubData.GasPrice+consts.Denoms.Hub)
 	dymintCfg.Set("instrumentation.prometheus", true)
 	dymintCfg.Set("instrumentation.prometheus_listen_addr", ":2112")
-	dymintCfg.Set("batch_submit_max_time", "1h0m0s")
+	dymintCfg.Set("batch_submit_time", "1h0m0s")
 
 	file, err := os.Create(dymintTomlPath)
 	if err != nil {
