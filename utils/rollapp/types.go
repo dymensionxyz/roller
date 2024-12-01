@@ -35,6 +35,7 @@ type Rollapp struct {
 	Launched              bool                `json:"launched,omitempty"`
 	LivenessEventHeight   string              `json:"liveness_event_height,omitempty"`
 	LastStateUpdateHeight string              `json:"last_state_update_height,omitempty"`
+	MinSequencerBond      string              `json:"min_sequencer_bond,omitempty"`
 }
 
 type GenesisInfo struct {

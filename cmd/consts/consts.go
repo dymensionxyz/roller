@@ -15,6 +15,7 @@ const (
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var (
+	AllServices            = []string{"rollapp", "da-light-client", "relayer", "eibc"}
 	RollappSystemdServices = []string{"rollapp", "da-light-client"}
 	RelayerSystemdServices = []string{"relayer"}
 	EibcSystemdServices    = []string{"eibc"}

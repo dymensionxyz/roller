@@ -13,7 +13,7 @@ import (
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	dymrollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -145,7 +145,7 @@ func isValidSequencerMetadata(path string) (bool, error) {
 		return false, err
 	}
 
-	var sm dymensionseqtypes.SequencerMetadata
+	var sm dymrollapptypes.Rollapp
 	err = json.Unmarshal(b, &sm)
 	if err != nil {
 		return false, err
@@ -224,11 +224,11 @@ func GetJsonRpcEndpointFromChain(raID string, hd consts.HubData) (string, error)
 	return metadata.RestApiUrls[0], err
 }
 
-func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, error) {
-	var qpr dymensionseqtypes.QueryParamsResponse
+func GetMinSequencerBondInBaseDenom(raID string, hd consts.HubData) (*cosmossdktypes.Coin, error) {
+	var qra dymrollapptypes.Rollapp
 	cmd := exec.Command(
 		consts.Executables.Dymension,
-		"q", "sequencer", "params", "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
+		"q", "rollapp", "show", raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
 	)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
@@ -236,9 +236,14 @@ func GetMinSequencerBondInBaseDenom(hd consts.HubData) (*cosmossdktypes.Coin, er
 		return nil, err
 	}
 
-	_ = json.Unmarshal(out.Bytes(), &qpr)
+	_ = json.Unmarshal(out.Bytes(), &qra)
 
-	return &qpr.Params.MinBond, nil
+	c := cosmossdktypes.NewCoin(
+		consts.Denoms.Hub,
+		cosmossdkmath.NewIntFromUint64(qra.MinSequencerBond),
+	)
+
+	return &c, nil
 }
 
 func BaseDenomToDenom(

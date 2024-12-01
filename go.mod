@@ -21,7 +21,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240905113548-004462d5f45b
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241130123033-f4b2029af117
 	github.com/gogo/protobuf v1.3.3
 	github.com/ignite/cli v0.27.2
 	github.com/lib/pq v1.10.9
@@ -54,6 +54,7 @@ require (
 	cloud.google.com/go/longrunning v0.6.0 // indirect
 	cloud.google.com/go/storage v1.43.0 // indirect
 	cosmossdk.io/api v0.7.0 // indirect
+	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.10.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/log v1.3.1 // indirect
@@ -85,6 +86,7 @@ require (
 	github.com/containerd/console v1.0.4-0.20230508195404-8d3c090fd31c // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.0.0 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.4.10 // indirect
@@ -112,8 +114,8 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
-	github.com/dymensionxyz/gerr-cosmos v1.0.0 // indirect
-	github.com/dymensionxyz/sdk-utils v0.2.8-0.20240823083607-ea6d7a482d69 // indirect
+	github.com/dymensionxyz/gerr-cosmos v1.1.0 // indirect
+	github.com/dymensionxyz/sdk-utils v0.2.12 // indirect
 	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

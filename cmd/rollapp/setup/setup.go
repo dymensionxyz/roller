@@ -204,7 +204,10 @@ RollApp's IRO time: %v`,
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(rollappConfig.HubData)
+					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(
+						rollappConfig.RollappID,
+						rollappConfig.HubData,
+					)
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
 					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
