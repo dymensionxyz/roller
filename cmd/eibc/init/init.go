@@ -20,9 +20,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
-	"github.com/dymensionxyz/roller/utils/dependencies"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -34,20 +32,6 @@ import (
 
 //go:embed templates/*.tmpl
 var embeddedTemplates embed.FS
-
-type EibcOperatorMetadata struct {
-	Moniker           string                     `json:"moniker"`
-	Description       string                     `json:"description"`
-	ContactDetails    EibcOperatorContactDetails `json:"contact_details"`
-	FeeShare          string                     `json:"fee_share"`
-	SupportedRollapps []string                   `json:"supported_rollapps"`
-}
-
-type EibcOperatorContactDetails struct {
-	X        string `json:"x"`
-	Website  string `json:"website"`
-	Telegram string `json:"telegram"`
-}
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -79,6 +63,7 @@ func Cmd() *cobra.Command {
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			var ki *keys.KeyInfo
 
+			// get hub data
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
 				rollerConfig.HubData.ID == "" {
@@ -98,65 +83,18 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if isEibcClientInitialized {
-				pterm.Warning.Println("eibc client already initialized")
-
-				kc := eibcutils.GetKeyConfig()
-				pterm.Info.Printfln("checking for existing %s address", kc.ID)
-				isEibcKeyInKeyring, err := kc.IsInKeyring(home)
-				if err != nil {
-					pterm.Error.Println("failed to get eibc key info: ", err)
-					return
-				}
-
-				if isEibcKeyInKeyring {
-					err := handleGroupWithExistingKey(home, eibcHome, hd, kc)
-					if err != nil {
-						pterm.Error.Println("failed to handle group with existing key: ", err)
-					}
-				} else {
-					// nolint:gofumpt
-					err := handleExistingEibcDirOverride(eibcHome)
-					if err != nil {
-						pterm.Error.Println("failed to override existing eibc dir: ", err)
-						return
-					}
-
-					c := eibcutils.GetInitCmd()
-					err = bash.ExecCmd(c)
-					if err != nil {
-						pterm.Error.Println("failed to initialize eibc client", err)
-						return
-					}
-
-					ki, err = eibcutils.EnsureWhaleAccount()
-					if err != nil {
-						pterm.Error.Printf("failed to create whale account: %v\n", err)
-						return
-					}
-				}
-			} else {
-				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
-				for _, v := range deps {
-					err := dependencies.InstallBinaryFromRelease(v)
-					if err != nil {
-						pterm.Error.Printfln("failed to install binary: %s", err)
-						return
-					}
-				}
-
-				pterm.Info.Printfln("not initialized, initializing %s", eibcHome)
+			if !isEibcClientInitialized {
+				pterm.Info.Println("initializing eibc client")
 				c := eibcutils.GetInitCmd()
 				err = bash.ExecCmd(c)
 				if err != nil {
-					pterm.Error.Println("failed to initialize eibc client", err)
+					pterm.Error.Println("failed to initialize eibc client: ", err)
 					return
 				}
 
-				// todo: refactor the ensure function
-				ki, err = eibcutils.EnsureWhaleAccount()
+				err = setupEibcClient(hd, eibcHome, ki)
 				if err != nil {
-					pterm.Error.Printf("failed to create whale account: %v\n", err)
+					pterm.Error.Println("failed to setup eibc client: ", err)
 					return
 				}
 			}
@@ -199,141 +137,26 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			var runForExisting bool
-			var raID string
-			rollerConfigFilePath := filepath.Join(roller.GetRootDir(), consts.RollerConfigFileName)
-			var rollerData roller.RollappConfig
-
-			_, err = os.Stat(rollerConfigFilePath)
+			raIDs, err := eibcutils.LoadSupportedRollapps(eibcConfigPath)
 			if err != nil {
-				if errors.Is(err, fs.ErrNotExist) {
-					pterm.Info.Println("existing roller configuration not found")
-					runForExisting = false
-				} else {
-					pterm.Error.Println("failed to check existing roller config")
-					return
-				}
-			} else {
-				pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
-
-				rollerData, err = roller.LoadConfig(roller.GetRootDir())
-				if err != nil {
-					pterm.Error.Printf("failed to load rollapp config: %v\n", err)
-					return
-				}
-				rollerRaID := rollerData.RollappID
-				rollerHubData := rollerData.HubData
-
-				var eibcFromRoller bool
-				if rollerRaID != "" {
-					msg := fmt.Sprintf(
-						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
-						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-							Sprint(rollerRaID),
-					)
-					eibcFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
-					if eibcFromRoller {
-						raID = rollerRaID
-						hd = rollerHubData
-						runForExisting = true
-					}
-				}
-
-				if !eibcFromRoller {
-					runForExisting = false
-				}
-			}
-
-			if !runForExisting {
-				for {
-					raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID to fulfill eibc orders for").
-						Show()
-
-					_, err := rollapp.ValidateChainID(raID)
-					if err != nil {
-						pterm.Error.Printf("'%s' is not a valid RollApp ID: %v\n", raID, err)
-						continue
-					} else {
-						break
-					}
-				}
-			}
-
-			var fNodes []string
-			var rpc string
-			for {
-				// Prompt the user for the RPC URL
-				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"dymint rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
-				).Show()
-				if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
-					rpc = "https://" + rpc
-				}
-
-				if strings.TrimSpace(rpc) == "" {
-					rpc, err = sequencerutils.GetRpcEndpointFromChain(raID, hd)
-					if err != nil {
-						pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
-						rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-							"can't fetch rpc endpoint from chain, provide manually (example: rpc.rollapp.dym.xyz)",
-						).Show()
-						if !strings.HasPrefix(rpc, "http://") &&
-							!strings.HasPrefix(rpc, "https://") {
-							rpc = "https://" + rpc
-						}
-					}
-				}
-
-				rpc = strings.TrimSuffix(rpc, "/")
-
-				isValid := config.IsValidURL(rpc)
-
-				if !isValid {
-					pterm.Error.Println("Invalid URL. Please try again.")
-				} else {
-					fNodes = append(fNodes, rpc)
-					break
-				}
-			}
-
-			err = eibcutils.AddRollappToEibc(raID, eibcHome, fNodes)
-			if err != nil {
-				pterm.Error.Println("failed to add the rollapp to eibc config: ", err)
+				pterm.Error.Println("failed to load supported rollapps: ", err)
 				return
 			}
 
-			err = updateEibcConfig(eibcConfigPath, hd)
+			metadata := eibcutils.NewEibcOperatorMetadata(raIDs)
+			mb, err := metadata.ToBytes()
 			if err != nil {
-				pterm.Error.Println("failed to update config", err)
+				pterm.Error.Println("failed to generate eibc operator metadata: ", err)
 				return
 			}
 
-			cfgBytes, err := os.ReadFile(eibcConfigPath)
-			if err != nil {
-				pterm.Error.Println("failed to read eibc config file: ", err)
-				return
-			}
-
-			var cfg eibcutils.Config
-			err = yaml.Unmarshal(cfgBytes, &cfg)
-			if err != nil {
-				pterm.Error.Println("failed to unmarshal eibc config file: ", err)
-				return
-			}
-
-			err = removeDefaultEibcChain(cfg, eibcConfigPath, ki, hd, eibcHome)
-			if err != nil {
-				pterm.Error.Println("failed to remove default eibc chain: ", err)
-				return
-			}
-
-			gID, err := createGroupIfNotPresent(ki, hd, eibcHome)
+			gID, err := createGroupIfNotPresent(ki, hd, eibcHome, mb)
 			if err != nil {
 				pterm.Error.Println("failed to create group: ", err)
 				return
 			}
 
-			policyAddr, err := createPolicyIfNotPresent(eibcHome, gID, hd)
+			policyAddr, err := createPolicyIfNotPresent(eibcHome, gID, hd, mb)
 			if err != nil {
 				pterm.Error.Println("failed to create policy: ", err)
 				return
@@ -365,33 +188,134 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func handleExistingEibcDirOverride(eibcHome string) error {
-	msg := fmt.Sprintf(
-		"Directory %s is not empty. Do you want to overwrite it?",
-		eibcHome,
-	)
-	shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
-		WithDefaultValue(false).
-		Show()
+func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error {
+	var runForExisting bool
+	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
+	var raID string
+	rollerConfigFilePath := filepath.Join(roller.GetRootDir(), consts.RollerConfigFileName)
+	var rollerData roller.RollappConfig
+
+	_, err := os.Stat(rollerConfigFilePath)
 	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
-	}
-
-	if shouldOverwrite {
-		err = os.RemoveAll(eibcHome)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return err
-		}
-
-		err = os.MkdirAll(eibcHome, 0o755)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
+		if errors.Is(err, fs.ErrNotExist) {
+			pterm.Info.Println("existing roller configuration not found")
+			runForExisting = false
+		} else {
+			pterm.Error.Println("failed to check existing roller config")
 			return err
 		}
 	} else {
-		os.Exit(0)
+		pterm.Info.Println("existing roller configuration found, retrieving RollApp ID from it")
+
+		rollerData, err = roller.LoadConfig(roller.GetRootDir())
+		if err != nil {
+			pterm.Error.Printf("failed to load rollapp config: %v\n", err)
+			return err
+		}
+		rollerRaID := rollerData.RollappID
+		rollerHubData := rollerData.HubData
+
+		var eibcFromRoller bool
+		if rollerRaID != "" {
+			msg := fmt.Sprintf(
+				"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprint(rollerRaID),
+			)
+			eibcFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+			if eibcFromRoller {
+				raID = rollerRaID
+				hd = rollerHubData
+				runForExisting = true
+			}
+		}
+
+		if !eibcFromRoller {
+			runForExisting = false
+		}
+	}
+
+	if !runForExisting {
+		for {
+			raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID to fulfill eibc orders for").
+				Show()
+
+			_, err := rollapp.ValidateChainID(raID)
+			if err != nil {
+				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v\n", raID, err)
+				continue
+			} else {
+				break
+			}
+		}
+	}
+
+	var fNodes []string
+	var rpc string
+	for {
+
+		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"dymint rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
+		).Show()
+		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
+			rpc = "https://" + rpc
+		}
+
+		if strings.TrimSpace(rpc) == "" {
+			rpc, err = sequencerutils.GetRpcEndpointFromChain(raID, hd)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
+				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"can't fetch rpc endpoint from chain, provide manually (example: rpc.rollapp.dym.xyz)",
+				).Show()
+				if !strings.HasPrefix(rpc, "http://") &&
+					!strings.HasPrefix(rpc, "https://") {
+					rpc = "https://" + rpc
+				}
+			}
+		}
+
+		rpc = strings.TrimSuffix(rpc, "/")
+
+		isValid := config.IsValidURL(rpc)
+
+		if !isValid {
+			pterm.Error.Println("Invalid URL. Please try again.")
+		} else {
+			fNodes = append(fNodes, rpc)
+			break
+		}
+	}
+
+	err = eibcutils.AddRollappToEibc(raID, eibcHome, fNodes)
+	if err != nil {
+		pterm.Error.Println("failed to add the rollapp to eibc config: ", err)
+		return err
+	}
+
+	err = updateEibcConfig(eibcConfigPath, hd)
+	if err != nil {
+		pterm.Error.Println("failed to update config", err)
+		return err
+	}
+
+	cfgBytes, err := os.ReadFile(eibcConfigPath)
+	if err != nil {
+		pterm.Error.Println("failed to read eibc config file: ", err)
+		return err
+	}
+
+	var cfg eibcutils.Config
+	err = yaml.Unmarshal(cfgBytes, &cfg)
+	if err != nil {
+		pterm.Error.Println("failed to unmarshal eibc config file: ", err)
+		return err
+	}
+
+	err = removeDefaultEibcChain(cfg, eibcConfigPath, ki, hd, eibcHome)
+	if err != nil {
+		pterm.Error.Println("failed to remove default eibc chain: ", err)
+		return err
 	}
 	return nil
 }
@@ -467,6 +391,7 @@ func createGroupIfNotPresent(
 	ki *keys.KeyInfo,
 	hd consts.HubData,
 	eibcHome string,
+	metadata []byte,
 ) (string, error) {
 	grp, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
 	if err != nil {
@@ -491,7 +416,7 @@ func createGroupIfNotPresent(
 		membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
 		cGrpCmd := eibcutils.GetCreateGroupDelegationCmd(
 			eibcHome,
-			"eibc-operator",
+			base64.StdEncoding.EncodeToString(metadata),
 			membersDefinitionFilePath,
 			hd,
 		)
@@ -525,7 +450,11 @@ func createGroupIfNotPresent(
 	return groupID, err
 }
 
-func createPolicyIfNotPresent(eibcHome, groupID string, hd consts.HubData) (string, error) {
+func createPolicyIfNotPresent(
+	eibcHome, groupID string,
+	hd consts.HubData,
+	metadata []byte,
+) (string, error) {
 	pol, err := eibcutils.GetPolicies(eibcHome, groupID, hd)
 	if err != nil {
 		return "", err
@@ -551,9 +480,7 @@ func createPolicyIfNotPresent(eibcHome, groupID string, hd consts.HubData) (stri
 		policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
 		cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
 			eibcHome,
-			base64.StdEncoding.EncodeToString(
-				[]byte(`{"name": "eibc-operator", "description": "eibc operator group"}`),
-			),
+			base64.StdEncoding.EncodeToString(metadata),
 			policyDefinitionFilePath,
 			groupID,
 			hd,
@@ -654,68 +581,4 @@ func printPolicyAddress(policyAddr string) {
 			Sprint(policyAddr),
 	)
 	pterm.Info.Println("share this with the LP provider")
-}
-
-func handleGroupWithExistingKey(
-	home, eibcHome string,
-	hd consts.HubData,
-	kc *keys.KeyConfig,
-) error {
-	ki, err := kc.Info(home)
-	if err != nil {
-		return err
-	}
-	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-
-	pterm.Info.Println("eibc key already present in the keyring")
-	pterm.Info.Println("checking for existing delegation groups")
-	grp, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
-	if err != nil {
-		return err
-	}
-
-	if len(grp.Groups) > 0 {
-		groupID := grp.Groups[0].ID
-		pterm.Info.Printfln("delegation group found with ID: %s", groupID)
-
-		pterm.Info.Println("checking for existing policies")
-		pol, err := eibcutils.GetPolicies(eibcHome, groupID, hd)
-		if err != nil {
-			return err
-		}
-
-		if pol != nil && len(pol.GroupPolicies) > 0 {
-			pterm.Info.Printfln("policies already present for %s", kc.ID)
-
-			printPolicyAddress(pol.GroupPolicies[0].Address)
-
-			updates := map[string]interface{}{
-				"fulfillers.policy_address": pol.GroupPolicies[0].Address,
-				"operator.group_id":         groupID,
-			}
-			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
-			if err != nil {
-				return err
-			}
-
-			return err
-		} else {
-			policyAddr, err := createPolicyIfNotPresent(eibcHome, groupID, hd)
-			if err != nil {
-				return err
-			}
-
-			printPolicyAddress(policyAddr)
-			updates := map[string]interface{}{
-				"fulfillers.policy_address": policyAddr,
-				"operator.group_id":         groupID,
-			}
-			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
