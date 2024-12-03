@@ -3,6 +3,7 @@ package init
 import (
 	"embed"
 	_ "embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -33,6 +34,20 @@ import (
 
 //go:embed templates/*.tmpl
 var embeddedTemplates embed.FS
+
+type EibcOperatorMetadata struct {
+	Moniker           string                     `json:"moniker"`
+	Description       string                     `json:"description"`
+	ContactDetails    EibcOperatorContactDetails `json:"contact_details"`
+	FeeShare          string                     `json:"fee_share"`
+	SupportedRollapps []string                   `json:"supported_rollapps"`
+}
+
+type EibcOperatorContactDetails struct {
+	X        string `json:"x"`
+	Website  string `json:"website"`
+	Telegram string `json:"telegram"`
+}
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -67,43 +82,11 @@ func Cmd() *cobra.Command {
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
 				rollerConfig.HubData.ID == "" {
-				pterm.Warning.Println("no roller config found")
-				pterm.Info.Println("initializing for environment")
 
-				envs := []string{"playground", "custom"}
-				env, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText(
-						"select the environment you want to initialize eibc client for",
-					).
-					WithOptions(envs).
-					Show()
-
-				if env == "custom" {
-					var rollerConfig roller.RollappConfig
-					hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
-						Show()
-					hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
-						Show()
-
-					rollerConfig.HubData.ID = hdid
-					rollerConfig.HubData.RpcUrl = hdrpc
-
-					hd = rollerConfig.HubData
-
-					rollerCfgDir := roller.GetRootDir()
-					err = os.MkdirAll(rollerCfgDir, 0o755)
-					if err != nil {
-						pterm.Error.Println("failed to create roller config dir", err)
-						return
-					}
-
-					err := roller.WriteConfig(rollerConfig)
-					if err != nil {
-						pterm.Error.Println("failed to write roller config", err)
-						return
-					}
-				} else {
-					hd = consts.Hubs[env]
+				hd, err = initializeEibcForEnvironment()
+				if err != nil {
+					pterm.Error.Println("failed to initialize hub metadata for eibc client: ", err)
+					return
 				}
 			} else {
 				hd = rollerConfig.HubData
@@ -120,103 +103,23 @@ func Cmd() *cobra.Command {
 
 				kc := eibcutils.GetKeyConfig()
 				pterm.Info.Printfln("checking for existing %s address", kc.ID)
-				ok, err := kc.IsInKeyring(home)
+				isEibcKeyInKeyring, err := kc.IsInKeyring(home)
 				if err != nil {
 					pterm.Error.Println("failed to get eibc key info: ", err)
 					return
 				}
 
-				if ok {
-					ki, err = kc.Info(home)
+				if isEibcKeyInKeyring {
+					err := handleGroupWithExistingKey(home, eibcHome, hd, kc)
 					if err != nil {
-						pterm.Error.Println("failed to get eibc key info: ", err)
-						return
-					}
-
-					pterm.Info.Println("eibc key already present in the keyring")
-					pterm.Info.Println("checking for existing delegation groups")
-					grp, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
-					if err != nil {
-						pterm.Error.Println("failed to get groups: ", err)
-						return
-					}
-
-					if len(grp.Groups) > 0 {
-						groupID := grp.Groups[0].ID
-						pterm.Info.Printfln("delegation group found with ID: %s", groupID)
-
-						pterm.Info.Println("checking for existing policies")
-						pol, err := eibcutils.GetPolicies(eibcHome, groupID, hd)
-						if err != nil {
-							pterm.Error.Println("failed to get policies: ", err)
-							return
-						}
-
-						if pol != nil && len(pol.GroupPolicies) > 0 {
-							pterm.Info.Printfln("policies already present for %s", kc.ID)
-
-							printPolicyAddress(pol.GroupPolicies[0].Address)
-
-							updates := map[string]interface{}{
-								"fulfillers.policy_address": pol.GroupPolicies[0].Address,
-								"operator.group_id":         groupID,
-							}
-							err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
-							if err != nil {
-								pterm.Error.Println("failed to update config", err)
-								return
-							}
-
-							return
-						} else {
-							policyAddr, err := createPolicyIfNotPresent(eibcHome, groupID, hd)
-							if err != nil {
-								pterm.Error.Println("failed to create policy: ", err)
-								return
-							}
-
-							printPolicyAddress(policyAddr)
-							updates := map[string]interface{}{
-								"fulfillers.policy_address": policyAddr,
-								"operator.group_id":         groupID,
-							}
-							err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
-							if err != nil {
-								pterm.Error.Println("failed to update config", err)
-								return
-							}
-							return
-						}
+						pterm.Error.Println("failed to handle group with existing key: ", err)
 					}
 				} else {
-					pterm.Info.Printfln("safe to override %s", eibcHome)
-
-					msg := fmt.Sprintf(
-						"Directory %s is not empty. Do you want to overwrite it?",
-						eibcHome,
-					)
-					shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
-						WithDefaultValue(false).
-						Show()
+					// nolint:gofumpt
+					err := handleExistingEibcDirOverride(eibcHome)
 					if err != nil {
-						errorhandling.PrettifyErrorIfExists(err)
+						pterm.Error.Println("failed to override existing eibc dir: ", err)
 						return
-					}
-
-					if shouldOverwrite {
-						err = os.RemoveAll(eibcHome)
-						if err != nil {
-							errorhandling.PrettifyErrorIfExists(err)
-							return
-						}
-						// nolint:gofumpt
-						err = os.MkdirAll(eibcHome, 0o755)
-						if err != nil {
-							errorhandling.PrettifyErrorIfExists(err)
-							return
-						}
-					} else {
-						os.Exit(0)
 					}
 
 					c := eibcutils.GetInitCmd()
@@ -250,6 +153,7 @@ func Cmd() *cobra.Command {
 					return
 				}
 
+				// todo: refactor the ensure function
 				ki, err = eibcutils.EnsureWhaleAccount()
 				if err != nil {
 					pterm.Error.Printf("failed to create whale account: %v\n", err)
@@ -320,22 +224,22 @@ func Cmd() *cobra.Command {
 				rollerRaID := rollerData.RollappID
 				rollerHubData := rollerData.HubData
 
-				var rlyFromRoller bool
+				var eibcFromRoller bool
 				if rollerRaID != "" {
 					msg := fmt.Sprintf(
 						"the retrieved RollApp ID is: %s, would you like to initialize the eibc client for this RollApp?",
 						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 							Sprint(rollerRaID),
 					)
-					rlyFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
-					if rlyFromRoller {
+					eibcFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
+					if eibcFromRoller {
 						raID = rollerRaID
 						hd = rollerHubData
 						runForExisting = true
 					}
 				}
 
-				if !rlyFromRoller {
+				if !eibcFromRoller {
 					runForExisting = false
 				}
 			}
@@ -417,16 +321,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			cfg.RemoveChain("example_1234-1")
-			updatedData, err := yaml.Marshal(&cfg)
+			err = removeDefaultEibcChain(cfg, eibcConfigPath, ki, hd, eibcHome)
 			if err != nil {
-				pterm.Error.Println("failed to marshal eibc config file: ", err)
-				return
-			}
-
-			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
-			if err != nil {
-				pterm.Error.Println("failed to write eibc config file: ", err)
+				pterm.Error.Println("failed to remove default eibc chain: ", err)
 				return
 			}
 
@@ -468,7 +365,109 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func createGroupIfNotPresent(ki *keys.KeyInfo, hd consts.HubData, eibcHome string) (string, error) {
+func handleExistingEibcDirOverride(eibcHome string) error {
+	msg := fmt.Sprintf(
+		"Directory %s is not empty. Do you want to overwrite it?",
+		eibcHome,
+	)
+	shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
+		WithDefaultValue(false).
+		Show()
+	if err != nil {
+		errorhandling.PrettifyErrorIfExists(err)
+		return err
+	}
+
+	if shouldOverwrite {
+		err = os.RemoveAll(eibcHome)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
+
+		err = os.MkdirAll(eibcHome, 0o755)
+		if err != nil {
+			errorhandling.PrettifyErrorIfExists(err)
+			return err
+		}
+	} else {
+		os.Exit(0)
+	}
+	return nil
+}
+
+func initializeEibcForEnvironment() (consts.HubData, error) {
+	pterm.Warning.Println("no roller config found")
+	pterm.Info.Println("initializing for environment")
+	var hd consts.HubData
+
+	envs := []string{"playground", "custom"}
+	env, _ := pterm.DefaultInteractiveSelect.
+		WithDefaultText(
+			"select the environment you want to initialize eibc client for",
+		).
+		WithOptions(envs).
+		Show()
+
+	if env == "custom" {
+		var rollerConfig roller.RollappConfig
+		hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
+			Show()
+		hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
+			Show()
+
+		rollerConfig.HubData.ID = hdid
+		rollerConfig.HubData.RpcUrl = hdrpc
+
+		hd = rollerConfig.HubData
+
+		rollerCfgDir := roller.GetRootDir()
+		err := os.MkdirAll(rollerCfgDir, 0o755)
+		if err != nil {
+			pterm.Error.Println("failed to create roller config dir", err)
+			return consts.HubData{}, err
+		}
+
+		err = roller.WriteConfig(rollerConfig)
+		if err != nil {
+			pterm.Error.Println("failed to write roller config", err)
+			return consts.HubData{}, err
+		}
+	} else {
+		hd = consts.Hubs[env]
+	}
+
+	return hd, nil
+}
+
+func removeDefaultEibcChain(
+	cfg eibcutils.Config,
+	eibcConfigPath string,
+	ki *keys.KeyInfo,
+	hd consts.HubData,
+	eibcHome string,
+) error {
+	cfg.RemoveChain("example_1234-1")
+	updatedData, err := yaml.Marshal(&cfg)
+	if err != nil {
+		pterm.Error.Println("failed to marshal eibc config file: ", err)
+		return err
+	}
+
+	err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
+	if err != nil {
+		pterm.Error.Println("failed to write eibc config file: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func createGroupIfNotPresent(
+	ki *keys.KeyInfo,
+	hd consts.HubData,
+	eibcHome string,
+) (string, error) {
 	grp, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
 	if err != nil {
 		pterm.Error.Println("failed to get groups: ", err)
@@ -488,6 +487,7 @@ func createGroupIfNotPresent(ki *keys.KeyInfo, hd consts.HubData, eibcHome strin
 			pterm.Error.Println("failed to create members file: ", err)
 			return "", err
 		}
+
 		membersDefinitionFilePath := filepath.Join(eibcHome, "init", "members.json")
 		cGrpCmd := eibcutils.GetCreateGroupDelegationCmd(
 			eibcHome,
@@ -547,10 +547,13 @@ func createPolicyIfNotPresent(eibcHome, groupID string, hd consts.HubData) (stri
 			pterm.Error.Println("failed to create members file: ", err)
 			return "", err
 		}
+
 		policyDefinitionFilePath := filepath.Join(eibcHome, "init", "policy.json")
 		cPolicyCmd := eibcutils.GetCreateGroupPolicyCmd(
 			eibcHome,
-			"eibc-operator",
+			base64.StdEncoding.EncodeToString(
+				[]byte(`{"name": "eibc-operator", "description": "eibc operator group"}`),
+			),
 			policyDefinitionFilePath,
 			groupID,
 			hd,
@@ -651,4 +654,68 @@ func printPolicyAddress(policyAddr string) {
 			Sprint(policyAddr),
 	)
 	pterm.Info.Println("share this with the LP provider")
+}
+
+func handleGroupWithExistingKey(
+	home, eibcHome string,
+	hd consts.HubData,
+	kc *keys.KeyConfig,
+) error {
+	ki, err := kc.Info(home)
+	if err != nil {
+		return err
+	}
+	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
+
+	pterm.Info.Println("eibc key already present in the keyring")
+	pterm.Info.Println("checking for existing delegation groups")
+	grp, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
+	if err != nil {
+		return err
+	}
+
+	if len(grp.Groups) > 0 {
+		groupID := grp.Groups[0].ID
+		pterm.Info.Printfln("delegation group found with ID: %s", groupID)
+
+		pterm.Info.Println("checking for existing policies")
+		pol, err := eibcutils.GetPolicies(eibcHome, groupID, hd)
+		if err != nil {
+			return err
+		}
+
+		if pol != nil && len(pol.GroupPolicies) > 0 {
+			pterm.Info.Printfln("policies already present for %s", kc.ID)
+
+			printPolicyAddress(pol.GroupPolicies[0].Address)
+
+			updates := map[string]interface{}{
+				"fulfillers.policy_address": pol.GroupPolicies[0].Address,
+				"operator.group_id":         groupID,
+			}
+			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+			if err != nil {
+				return err
+			}
+
+			return err
+		} else {
+			policyAddr, err := createPolicyIfNotPresent(eibcHome, groupID, hd)
+			if err != nil {
+				return err
+			}
+
+			printPolicyAddress(policyAddr)
+			updates := map[string]interface{}{
+				"fulfillers.policy_address": policyAddr,
+				"operator.group_id":         groupID,
+			}
+			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
