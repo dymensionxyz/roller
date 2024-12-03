@@ -635,6 +635,8 @@ github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241130123033-f4b2029af117 h1:vPV0mxZunRtXKrdTGlLPIlbA5tl9mo4qC5EirjUUzw0=
 github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241130123033-f4b2029af117/go.mod h1:0fjf73QSddz/55i6TNx47WebJHWQJoGC4kQzRN+RUD0=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241203120245-89d3abd36078 h1:obpxLKy5++CypmNW4+ROUCLboSI/FIlP+GUFeaqoYiM=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241203120245-89d3abd36078/go.mod h1:kBpPNqUu9QvfGZwK6RmeYyjmbgISvlS+tcX4YC7nem0=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.1.2 h1:HvBvVm2SdhKn9RYEiW8IbrvoDL3SbQhYVFo+aj4ELUw=
