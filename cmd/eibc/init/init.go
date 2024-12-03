@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -91,75 +92,112 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to initialize eibc client: ", err)
 					return
 				}
+			}
 
+			ki, err = eibcutils.EnsureWhaleAccount()
+			if err != nil {
+				pterm.Error.Printf("failed to create whale account: %v\n", err)
+				return
+			}
+
+			pterm.Info.Printfln(
+				"eibc operator address: %s",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprint(ki.Address),
+			)
+
+			g, err := eibcutils.GetGroups(eibcHome, ki.Address, hd)
+			if err != nil {
+				pterm.Error.Println("failed to get groups: ", err)
+				return
+			}
+
+			var gID string
+			var policyAddr string
+
+			if len(g.Groups) == 0 {
 				err = setupEibcClient(hd, eibcHome, ki)
 				if err != nil {
 					pterm.Error.Println("failed to setup eibc client: ", err)
 					return
 				}
-			}
 
-			pterm.Info.Println(
-				"you are about to run the eibc client for the following Dymension network:",
-			)
-			fmt.Println("network ID:",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprint(hd.ID),
-			)
+				for {
+					cqc := keys.ChainQueryConfig{
+						Binary: consts.Executables.Dymension,
+						Denom:  consts.Denoms.Hub,
+						RPC:    hd.RpcUrl,
+					}
+					balance, err := keys.QueryBalance(cqc, ki.Address)
+					if err != nil {
+						pterm.Error.Println("failed to get balance: ", err)
+						return
+					}
 
-			for {
-				cqc := keys.ChainQueryConfig{
-					Binary: consts.Executables.Dymension,
-					Denom:  consts.Denoms.Hub,
-					RPC:    hd.RpcUrl,
+					if !balance.Amount.IsPositive() {
+						pterm.Info.Println(
+							"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
+						)
+						ki.Print(keys.WithName(), keys.WithMnemonic())
+						proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+							WithDefaultText(
+								"press 'y' when the wallets are funded",
+							).Show()
+						if !proceed {
+							pterm.Error.Println("cancelled by user")
+							return
+						}
+					} else {
+						break
+					}
 				}
-				balance, err := keys.QueryBalance(cqc, ki.Address)
+
+				pterm.Info.Println(
+					"you are about to run the eibc client for the following Dymension network:",
+				)
+				fmt.Println("network ID:",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprint(hd.ID),
+				)
+
+				raIDs, err := eibcutils.LoadSupportedRollapps(eibcConfigPath)
 				if err != nil {
-					pterm.Error.Println("failed to get balance: ", err)
+					pterm.Error.Println("failed to load supported rollapps: ", err)
 					return
 				}
 
-				if !balance.Amount.IsPositive() {
-					pterm.Info.Println(
-						"please fund the addresses below to run the eibc client. this address will be the operator address of the client.",
-					)
-					ki.Print(keys.WithName(), keys.WithMnemonic())
-					proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-						WithDefaultText(
-							"press 'y' when the wallets are funded",
-						).Show()
-					if !proceed {
-						pterm.Error.Println("cancelled by user")
-						return
-					}
-				} else {
-					break
+				metadata := eibcutils.NewEibcOperatorMetadata(raIDs)
+				mb, err := metadata.ToBytes()
+				if err != nil {
+					pterm.Error.Println("failed to generate eibc operator metadata: ", err)
+					return
 				}
-			}
 
-			raIDs, err := eibcutils.LoadSupportedRollapps(eibcConfigPath)
-			if err != nil {
-				pterm.Error.Println("failed to load supported rollapps: ", err)
-				return
-			}
+				gID, err = createGroupIfNotPresent(ki, hd, eibcHome, mb)
+				if err != nil {
+					pterm.Error.Println("failed to create group: ", err)
+					return
+				}
 
-			metadata := eibcutils.NewEibcOperatorMetadata(raIDs)
-			mb, err := metadata.ToBytes()
-			if err != nil {
-				pterm.Error.Println("failed to generate eibc operator metadata: ", err)
-				return
-			}
+				policyAddr, err = createPolicyIfNotPresent(eibcHome, gID, hd, mb)
+				if err != nil {
+					pterm.Error.Println("failed to create policy: ", err)
+					return
+				}
+			} else {
+				mb := []byte{}
 
-			gID, err := createGroupIfNotPresent(ki, hd, eibcHome, mb)
-			if err != nil {
-				pterm.Error.Println("failed to create group: ", err)
-				return
-			}
+				gID, err = createGroupIfNotPresent(ki, hd, eibcHome, mb)
+				if err != nil {
+					pterm.Error.Println("failed to create group: ", err)
+					return
+				}
 
-			policyAddr, err := createPolicyIfNotPresent(eibcHome, gID, hd, mb)
-			if err != nil {
-				pterm.Error.Println("failed to create policy: ", err)
-				return
+				policyAddr, err = createPolicyIfNotPresent(eibcHome, gID, hd, mb)
+				if err != nil {
+					pterm.Error.Println("failed to create policy: ", err)
+					return
+				}
 			}
 
 			printPolicyAddress(policyAddr)
@@ -253,26 +291,26 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 	var fNodes []string
 	var rpc string
 	for {
-
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 			"dymint rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
 		).Show()
-		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
-			rpc = "https://" + rpc
-		}
 
 		if strings.TrimSpace(rpc) == "" {
+			rpcSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+				Start("fetching rpc endpoint from chain")
 			rpc, err = sequencerutils.GetRpcEndpointFromChain(raID, hd)
 			if err != nil {
 				pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
 				rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 					"can't fetch rpc endpoint from chain, provide manually (example: rpc.rollapp.dym.xyz)",
 				).Show()
-				if !strings.HasPrefix(rpc, "http://") &&
-					!strings.HasPrefix(rpc, "https://") {
-					rpc = "https://" + rpc
-				}
 			}
+			rpcSpinner.Success("rpc endpoint fetched from chain")
+		}
+
+		if !strings.HasPrefix(rpc, "http://") &&
+			!strings.HasPrefix(rpc, "https://") {
+			rpc = "https://" + rpc
 		}
 
 		rpc = strings.TrimSuffix(rpc, "/")
@@ -400,7 +438,12 @@ func createGroupIfNotPresent(
 	}
 
 	if len(grp.Groups) > 0 {
-		pterm.Info.Printfln("delegation group found with ID: %s", grp.Groups[0].ID)
+		pterm.Info.Printfln(
+			"delegation group found with ID: %s",
+			pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+				Sprint(grp.Groups[0].ID),
+		)
+
 		return grp.Groups[0].ID, nil
 	}
 
@@ -461,11 +504,6 @@ func createPolicyIfNotPresent(
 	}
 
 	if len(pol.GroupPolicies) > 0 {
-		pterm.Info.Printfln(
-			"found existing policy for %s: %s",
-			groupID,
-			pol.GroupPolicies[0].Address,
-		)
 		return pol.GroupPolicies[0].Address, nil
 	}
 
@@ -507,6 +545,10 @@ func createPolicyIfNotPresent(
 		if err != nil {
 			return "", err
 		}
+
+		s, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).Start("finalizing")
+		time.Sleep(time.Second * 2)
+		s.Success("done")
 
 		return pol.GroupPolicies[0].Address, nil
 	}
@@ -580,5 +622,5 @@ func printPolicyAddress(policyAddr string) {
 		pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 			Sprint(policyAddr),
 	)
-	pterm.Info.Println("share this with the LP provider")
+	pterm.Info.Println("share the policy address with the LP provider")
 }

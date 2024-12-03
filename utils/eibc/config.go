@@ -1,18 +1,23 @@
 package eibc
 
 import (
-	"encoding/json"
+	"fmt"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 func LoadSupportedRollapps(eibcConfigPath string) ([]string, error) {
 	data, err := os.ReadFile(eibcConfigPath)
 	if err != nil {
+		fmt.Println("failed to read: ", err)
 		return nil, err
 	}
 
 	var config Config
-	if err := json.Unmarshal(data, &config); err != nil {
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		fmt.Println("failed to unmarshal eibc config file: ", err)
 		return nil, err
 	}
 
