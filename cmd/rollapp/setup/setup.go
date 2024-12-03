@@ -204,12 +204,18 @@ RollApp's IRO time: %v`,
 				)
 
 				if !isSequencerRegistered {
-					minBond, _ := sequencer.GetMinSequencerBondInBaseDenom(
+					minBond, err := sequencer.GetMinSequencerBondInBaseDenom(
 						rollappConfig.RollappID,
 						rollappConfig.HubData,
 					)
+					if err != nil {
+						pterm.Error.Println("failed to get min bond: ", err)
+						return
+					}
+
 					var bondAmount cosmossdktypes.Coin
 					bondAmount.Denom = consts.Denoms.Hub
+
 					floatDenomRepresentation := displayRegularDenom(*minBond, 18)
 					displayDenom := fmt.Sprintf(
 						"%s%s",
