@@ -227,7 +227,9 @@ func EibcOperatorMetadataFromChain(
 	return &m, nil
 }
 
-func UpdateGroupOnchainMetadata(eibcConfigPath string, cfg Config, home string) error {
+// UpdateGroupSupportedRollapps function updates the supported rollapps list in the onchain metadata
+// of group and group-policy and returns an error if any
+func UpdateGroupSupportedRollapps(eibcConfigPath string, cfg Config, home string) error {
 	rspn, _ := pterm.DefaultSpinner.Start("updating eibc operator metadata")
 	rspn.UpdateText("retrieving updated supported rollapp list")
 	raIDs, err := LoadSupportedRollapps(eibcConfigPath)
@@ -247,16 +249,57 @@ func UpdateGroupOnchainMetadata(eibcConfigPath string, cfg Config, home string) 
 		pterm.Error.Println("failed to retrieve eibc operator metadata: ", err)
 		return err
 	}
+	rspn.UpdateText("updating supported rollapp list")
+	metadata.SupportedRollapps = raIDs
 
-	j, err := json.Marshal(metadata)
+	mb, err := metadata.ToBytes()
+	if err != nil {
+		pterm.Error.Println("failed to generate eibc operator metadata: ", err)
+		return err
+	}
+	mbs := base64.StdEncoding.EncodeToString(mb)
+
+	rspn.UpdateText("pushing changes to chain")
+	err = UpdateEibcOperatorMetadata(home, mbs, *hd)
+	if err != nil {
+		pterm.Error.Println("failed to update eibc operator metadata: ", err)
+		return err
+	}
+	rspn.Success("operator metadata updated, new metadata:")
+	ym, err := yaml.Marshal(metadata)
 	if err != nil {
 		pterm.Error.Println("failed to marshal eibc operator metadata: ", err)
 		return err
 	}
-	fmt.Println(string(j))
+	fmt.Println(string(ym))
+	return nil
+}
+
+// UpdateGroupSupportedRollapps function updates the supported rollapps list in the onchain metadata
+// of group and group-policy and returns an error if any
+func UpdateGroupOperatorMinFee(
+	eibcConfigPath string,
+	feeShare float64,
+	cfg Config,
+	home string,
+) error {
+	rspn, _ := pterm.DefaultSpinner.Start("updating eibc operator metadata")
+	rspn.UpdateText("retrieving updated supported rollapp list")
+	hd, err := cfg.HubDataFromHubRpc(eibcConfigPath)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve hub data: ", err)
+		return err
+	}
+
+	rspn.UpdateText("retrieving existing eibc operator metadata")
+	metadata, err := EibcOperatorMetadataFromChain(home, *hd)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve eibc operator metadata: ", err)
+		return err
+	}
 
 	rspn.UpdateText("updating supported rollapp list")
-	metadata.SupportedRollapps = raIDs
+	metadata.FeeShare = feeShare
 
 	mb, err := metadata.ToBytes()
 	if err != nil {

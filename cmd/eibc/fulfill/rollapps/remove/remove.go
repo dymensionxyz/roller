@@ -45,13 +45,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			var cfg eibcutils.Config
-			err = cfg.LoadConfig(eibcConfigPath)
-			if err != nil {
-				pterm.Error.Println("failed to load eibc config: ", err)
-				return
-			}
-
 			// Parse the YAML
 			var config eibc.Config
 
@@ -77,7 +70,14 @@ func Cmd() *cobra.Command {
 			}
 			lspn.Success("rollapp removed from eibc config")
 
-			err = eibcutils.UpdateGroupOnchainMetadata(eibcConfigPath, cfg, home)
+			var cfg eibcutils.Config
+			err = cfg.LoadConfig(eibcConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to load eibc config: ", err)
+				return
+			}
+
+			err = eibcutils.UpdateGroupSupportedRollapps(eibcConfigPath, cfg, home)
 			if err != nil {
 				pterm.Error.Println("failed to update eibc operator metadata: ", err)
 				return
