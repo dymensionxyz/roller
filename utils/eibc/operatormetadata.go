@@ -1,28 +1,36 @@
 package eibc
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
+
+// TODO: refactor everything here, it'll be a lot easier and cleaner to use io.Reader/Writer + []byte
 
 // EibcOperatorMetadata struct represents the metadata for the eibc operator which is associated with the
 // eibc group and delegation policy
 type EibcOperatorMetadata struct {
-	Moniker           string                     `json:"moniker"`
-	Description       string                     `json:"description"`
-	ContactDetails    EibcOperatorContactDetails `json:"contact_details"`
-	FeeShare          float64                    `json:"fee_share"`
-	SupportedRollapps []string                   `json:"supported_rollapps"`
+	Moniker           string                     `json:"moniker"            yaml:"moniker"`
+	Description       string                     `json:"description"        yaml:"description"`
+	ContactDetails    EibcOperatorContactDetails `json:"contact_details"    yaml:"contact_details"`
+	FeeShare          float64                    `json:"fee_share"          yaml:"fee_share"`
+	SupportedRollapps []string                   `json:"supported_rollapps" yaml:"supported_rollapps"`
 }
 
 // EibcOperatorContactDetails struct represents the contact details for the eibc operator
 type EibcOperatorContactDetails struct {
-	X        string `json:"x"`
-	Website  string `json:"website"`
-	Telegram string `json:"telegram"`
+	X        string `json:"x"        yaml:"x"`
+	Website  string `json:"website"  yaml:"website"`
+	Telegram string `json:"telegram" yaml:"telegram"`
 }
 
 // ToBytes converts EibcOperatorMetadata to []byte
@@ -120,4 +128,100 @@ func NewEibcOperatorMetadata(raIDs []string) *EibcOperatorMetadata {
 	}
 
 	return metadata
+}
+
+func getUpdateEibcOperatorMetadataCmd(
+	eibcHome string,
+	adminAddr, groupID, metadata string,
+	hd consts.HubData,
+) *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"tx",
+		"group",
+		"update-group-metadata",
+		adminAddr,
+		groupID,
+		metadata,
+		"--home",
+		eibcHome,
+		"--node",
+		hd.RpcUrl,
+		"--chain-id",
+		hd.ID,
+		"--keyring-backend",
+		"test",
+		"--fees",
+		fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
+		"-y",
+	)
+
+	return cmd
+}
+
+func UpdateEibcOperatorMetadata(home, metadata string, hd consts.HubData) error {
+	eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+	kc := GetKeyConfig()
+	ki, err := kc.Info(home)
+	if err != nil {
+		return err
+	}
+
+	gid, err := GetGroups(eibcHome, ki.Address, hd)
+	if err != nil {
+		return err
+	}
+
+	c := getUpdateEibcOperatorMetadataCmd(eibcHome, ki.Address, gid.Groups[0].ID, metadata, hd)
+
+	out, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		pterm.Error.Println("failed to create group: ", err)
+		return err
+	}
+
+	txHash, err := bash.ExtractTxHash(out.String())
+	if err != nil {
+		pterm.Error.Println("failed to extract tx hash: ", err)
+		return err
+	}
+
+	err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EibcOperatorMetadataFromChain(
+	home string,
+	hd consts.HubData,
+) (*EibcOperatorMetadata, error) {
+	eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+	kc := GetKeyConfig()
+
+	ki, err := kc.Info(home)
+	if err != nil {
+		return nil, err
+	}
+
+	pol, err := GetGroups(eibcHome, ki.Address, hd)
+	if err != nil {
+		return nil, err
+	}
+
+	metadataB64 := pol.Groups[0].Metadata
+	metadata, err := base64.StdEncoding.DecodeString(metadataB64)
+	if err != nil {
+		return nil, err
+	}
+
+	var m EibcOperatorMetadata
+	err = json.Unmarshal(metadata, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
 }
