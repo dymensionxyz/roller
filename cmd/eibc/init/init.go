@@ -325,7 +325,7 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 		}
 	}
 
-	err = eibcutils.AddRollappToEibc(raID, eibcHome, fNodes)
+	err = eibcutils.AddRollappToEibcConfig(raID, eibcHome, fNodes)
 	if err != nil {
 		pterm.Error.Println("failed to add the rollapp to eibc config: ", err)
 		return err
