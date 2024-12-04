@@ -160,16 +160,19 @@ func applyMigrations(from, to, vmt string, versions []upgrades.Version) error {
 	}
 
 	pterm.Info.Println("applying relevant upgrades")
-	for _, version := range versionsToApply {
-		pterm.Info.Printf("applying %s config changes\n", version.VersionIdentifier)
-		err := applyMigration(version)
-		if err != nil {
-			pterm.Error.Printf(
-				"failed to apply %s config changes: %v\n",
-				version.VersionIdentifier,
-				err,
-			)
-			return err
+
+	if len(versionsToApply) != 0 {
+		for _, version := range versionsToApply {
+			pterm.Info.Printf("applying %s config changes\n", version.VersionIdentifier)
+			err := applyMigration(version)
+			if err != nil {
+				pterm.Error.Printf(
+					"failed to apply %s config changes: %v\n",
+					version.VersionIdentifier,
+					err,
+				)
+				return err
+			}
 		}
 	}
 	return nil
