@@ -238,6 +238,9 @@ func GetMinSequencerBondInBaseDenom(raID string, hd consts.HubData) (*cosmossdkt
 
 	_ = json.Unmarshal(out.Bytes(), &qra)
 
+	j, _ := json.MarshalIndent(qra, "", "  ")
+	pterm.Println(string(j))
+
 	var c cosmossdktypes.Coin
 	if qra.MinSequencerBond != nil {
 		c = qra.MinSequencerBond[0]
