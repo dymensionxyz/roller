@@ -225,7 +225,9 @@ func GetJsonRpcEndpointFromChain(raID string, hd consts.HubData) (string, error)
 }
 
 func GetMinSequencerBondInBaseDenom(raID string, hd consts.HubData) (*cosmossdktypes.Coin, error) {
-	var qra dymrollapptypes.Rollapp
+	var qra struct {
+		Rollapp dymrollapptypes.Rollapp `json:"rollapp"`
+	}
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q", "rollapp", "show", raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
@@ -239,8 +241,8 @@ func GetMinSequencerBondInBaseDenom(raID string, hd consts.HubData) (*cosmossdkt
 	_ = json.Unmarshal(out.Bytes(), &qra)
 
 	var c cosmossdktypes.Coin
-	if qra.MinSequencerBond != nil {
-		c = qra.MinSequencerBond[0]
+	if qra.Rollapp.MinSequencerBond != nil {
+		c = qra.Rollapp.MinSequencerBond[0]
 	} else {
 		params, err := rollapp.GetRollappParams(hd)
 		if err != nil {
