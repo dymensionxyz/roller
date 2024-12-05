@@ -123,7 +123,7 @@ func CreateMongoDbContainer() error {
 	return err
 }
 
-func AddRollappToEibc(raID, eibcHome string, fullnodes []string) error {
+func AddRollappToEibcConfig(raID, eibcHome string, fullnodes []string) error {
 	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 
 	updates := map[string]interface{}{

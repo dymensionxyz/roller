@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/eibc"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
@@ -34,6 +35,7 @@ instance.
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
@@ -54,8 +56,23 @@ instance.
 
 			fNodes := strings.Split(fullNodes, ",")
 
-			err = eibc.AddRollappToEibc(rollAppID, eibcHome, fNodes)
+			lspn, _ := pterm.DefaultSpinner.Start("adding rollapp to eibc config")
+			err = eibc.AddRollappToEibcConfig(rollAppID, eibcHome, fNodes)
 			if err != nil {
+				return
+			}
+			lspn.Success("rollapp added to eibc config")
+
+			var cfg eibcutils.Config
+			err = cfg.LoadConfig(eibcConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to load eibc config: ", err)
+				return
+			}
+
+			err = eibcutils.UpdateGroupSupportedRollapps(eibcConfigPath, cfg, home)
+			if err != nil {
+				pterm.Error.Println("failed to update eibc operator metadata: ", err)
 				return
 			}
 		},

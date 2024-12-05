@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/eibc"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
@@ -54,6 +55,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			lspn, _ := pterm.DefaultSpinner.Start("removing rollapp to eibc config")
 			config.RemoveChain(rollAppID)
 			updatedData, err := yaml.Marshal(&config)
 			if err != nil {
@@ -64,6 +66,20 @@ func Cmd() *cobra.Command {
 			err = os.WriteFile(eibcConfigPath, updatedData, 0o644)
 			if err != nil {
 				pterm.Error.Printf("Error reading file: %v\n", err)
+				return
+			}
+			lspn.Success("rollapp removed from eibc config")
+
+			var cfg eibcutils.Config
+			err = cfg.LoadConfig(eibcConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to load eibc config: ", err)
+				return
+			}
+
+			err = eibcutils.UpdateGroupSupportedRollapps(eibcConfigPath, cfg, home)
+			if err != nil {
+				pterm.Error.Println("failed to update eibc operator metadata: ", err)
 				return
 			}
 		},

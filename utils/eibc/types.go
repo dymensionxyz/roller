@@ -1,9 +1,18 @@
 package eibc
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
+	"gopkg.in/yaml.v3"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/sequencer"
 )
 
 type Config struct {
@@ -72,4 +81,48 @@ type slackConfig struct {
 
 func (e *Config) RemoveChain(chainId string) {
 	delete(e.Rollapps, chainId)
+}
+
+func (e *Config) LoadConfig(eibcConfigPath string) error {
+	data, err := os.ReadFile(eibcConfigPath)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, &e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Config) HubDataFromHubRpc(eibcConfigPath string) (*consts.HubData, error) {
+	err := e.LoadConfig(eibcConfigPath)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.Get(fmt.Sprintf("%s/status", e.NodeAddress))
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response sequencer.Response
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, err
+	}
+
+	hd := consts.HubData{
+		ID:     response.Result.NodeInfo.Network,
+		RpcUrl: e.NodeAddress,
+	}
+
+	return &hd, nil
 }
