@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 )
 
 func Cmd() *cobra.Command {
@@ -46,6 +47,19 @@ func Cmd() *cobra.Command {
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
 				pterm.Error.Println("failed to update config", err)
+				return
+			}
+
+			var cfg eibcutils.Config
+			err = cfg.LoadConfig(eibcConfigPath)
+			if err != nil {
+				pterm.Error.Println("failed to load eibc config: ", err)
+				return
+			}
+
+			err = eibcutils.UpdateGroupOperatorMinFee(eibcConfigPath, ff, cfg, home)
+			if err != nil {
+				pterm.Error.Println("failed to update eibc operator metadata: ", err)
 				return
 			}
 		},

@@ -251,7 +251,6 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 			return err
 		}
 		rollerRaID := rollerData.RollappID
-		rollerHubData := rollerData.HubData
 
 		var eibcFromRoller bool
 		if rollerRaID != "" {
@@ -263,7 +262,6 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 			eibcFromRoller, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(msg).Show()
 			if eibcFromRoller {
 				raID = rollerRaID
-				hd = rollerHubData
 				runForExisting = true
 			}
 		}
