@@ -57,8 +57,8 @@ func Cmd() *cobra.Command {
 
 			drsVersion, err := rollapputils.ExtractDrsVersionFromBinary()
 			if err != nil {
-				pterm.Error.Println("Failed to extract drs version from binary:", err)
-				return
+				pterm.Warning.Println("Failed to extract drs version from binary:", err)
+				pterm.Info.Println("Installing the latest version", err)
 			}
 
 			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
