@@ -175,6 +175,8 @@ func applyMigrations(from, to, vmt string, versions []upgrades.Version) error {
 			}
 		}
 	}
+
+	pterm.Info.Println("upgrade finished")
 	return nil
 }
 
