@@ -134,6 +134,7 @@ RollApp's IRO time: %v`,
 					raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 					bp,
 				)
+				// TODO: reinstall rollapp binary with the right bech32 prefix
 				return
 			}
 
@@ -295,7 +296,6 @@ RollApp's IRO time: %v`,
 						necBlnc.String(),
 					)
 
-					// check whether balance is bigger or equal to the necessaryBalance
 					isAddrFunded := balance.Amount.GTE(necessaryBalance)
 					if !isAddrFunded {
 						pterm.DefaultSection.WithIndentCharacter("🔔").
