@@ -98,7 +98,7 @@ func ReplaceFieldInFile(tmlFilePath, oldPath, newPath string, value any) error {
 	}
 
 	if !tomlCfg.Has(oldPath) {
-		return fmt.Errorf("old key %s does not exist", oldPath)
+		pterm.Warning.Printfln("old key %s does not exist", oldPath)
 	}
 
 	var writeableValue any
