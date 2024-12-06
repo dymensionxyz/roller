@@ -284,7 +284,6 @@ func UpdateGroupOperatorMinFee(
 	home string,
 ) error {
 	rspn, _ := pterm.DefaultSpinner.Start("updating eibc operator metadata")
-	rspn.UpdateText("retrieving updated supported rollapp list")
 	hd, err := cfg.HubDataFromHubRpc(eibcConfigPath)
 	if err != nil {
 		pterm.Error.Println("failed to retrieve hub data: ", err)
@@ -298,7 +297,7 @@ func UpdateGroupOperatorMinFee(
 		return err
 	}
 
-	rspn.UpdateText("updating supported rollapp list")
+	rspn.UpdateText("updating fee share")
 	metadata.FeeShare = feeShare
 
 	mb, err := metadata.ToBytes()
