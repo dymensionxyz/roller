@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/pelletier/go-toml"
+	"github.com/pterm/pterm"
 )
 
 func Load(path string) ([]byte, error) {
@@ -79,7 +80,7 @@ func RemoveFieldFromFile(tmlFilePath, keyPath string) error {
 	}
 
 	if !tomlCfg.Has(keyPath) {
-		return fmt.Errorf("key %s does not exist", keyPath)
+		pterm.Warning.Printfln("key %s does not exist", keyPath)
 	}
 
 	err = tomlCfg.Delete(keyPath)
