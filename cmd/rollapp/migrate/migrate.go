@@ -3,6 +3,7 @@ package migrate
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -50,8 +51,9 @@ func Cmd() *cobra.Command {
 			case consts.EVM_ROLLAPP:
 				rollappType := "rollapp-evm"
 				err = applyMigrations(
+					rollerData.Home,
 					rollerData.RollappBinaryVersion, raUpgrade.CurrentVersionCommit, rollappType,
-					upgrades.EvmRollappUpgradeModules,
+					upgrades.EvmRollappUpgradeModules(home),
 				)
 				if err != nil {
 					pterm.Error.Println("failed to apply migrations: ", err)
@@ -60,6 +62,7 @@ func Cmd() *cobra.Command {
 			case consts.WASM_ROLLAPP:
 				rollappType := "rollapp-wasm"
 				err = applyMigrations(
+					rollerData.Home,
 					rollerData.RollappBinaryVersion, raUpgrade.CurrentVersionCommit, rollappType,
 					upgrades.WasmRollappUpgradeModules,
 				)
@@ -76,7 +79,7 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-func applyMigrations(from, to, vmt string, versions []upgrades.Version) error {
+func applyMigrations(home, from, to, vmt string, versions []upgrades.Version) error {
 	var fromTs time.Time
 	var toTs time.Time
 	var err error
@@ -150,7 +153,7 @@ func applyMigrations(from, to, vmt string, versions []upgrades.Version) error {
 
 		fmt.Println("version: ", upgradeVersionTimestamp, v.VersionIdentifier)
 		fmt.Println("from: ", fromTs, from)
-		fmt.Println("to: ", fromTs, to)
+		fmt.Println("to: ", toTs, to)
 
 		isNew := upgradeVersionTimestamp.Before(toTs) || upgradeVersionTimestamp.Equal(toTs)
 		if upgradeVersionTimestamp.After(fromTs) || isNew {
@@ -175,6 +178,18 @@ func applyMigrations(from, to, vmt string, versions []upgrades.Version) error {
 			}
 		}
 	}
+
+	err = tomlconfig.UpdateFieldInFile(
+		filepath.Join(home, "roller.toml"),
+		"rollapp_binary_version",
+		to,
+	)
+	if err != nil {
+		pterm.Error.Println("failed to update rollapp binary version: ", err)
+		return err
+	}
+
+	pterm.Info.Println("upgrade finished")
 	return nil
 }
 
