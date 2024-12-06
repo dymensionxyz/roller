@@ -179,16 +179,17 @@ func applyMigrations(home, from, to, vmt string, versions []upgrades.Version) er
 		}
 	}
 
-	pterm.Info.Println("upgrade finished")
 	err = tomlconfig.UpdateFieldInFile(
 		filepath.Join(home, "roller.toml"),
-		"rollapp_binary_versio",
+		"rollapp_binary_version",
 		to,
 	)
 	if err != nil {
 		pterm.Error.Println("failed to update rollapp binary version: ", err)
 		return err
 	}
+
+	pterm.Info.Println("upgrade finished")
 	return nil
 }
 
