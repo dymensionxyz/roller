@@ -827,7 +827,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"dymint rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+			"rollapp rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 			rpc = "https://" + rpc

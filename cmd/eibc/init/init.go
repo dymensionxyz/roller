@@ -290,7 +290,7 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 	var rpc string
 	for {
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"dymint rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
+			"rollapp rpc endpoint that you trust, leave empty to fetch from chain (example: rpc.rollapp.dym.xyz)",
 		).Show()
 
 		if strings.TrimSpace(rpc) == "" {
