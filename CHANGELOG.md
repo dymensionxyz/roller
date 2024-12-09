@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.0-alpha-rc05](https://github.com/dymensionxyz/roller/compare/v1.10.0-alpha-rc05...v1.11.0-alpha-rc05) (2024-12-09)
+
+
+### Features
+
+* add policy address to group's metadata ([ed6e9a7](https://github.com/dymensionxyz/roller/commit/ed6e9a7485dd609ec80b838ca10ac18afbf63336))
+
+
+### Bug Fixes
+
+* change phrasing to be clearer ( dymint &gt; rollapp rpc ) ([2f12088](https://github.com/dymensionxyz/roller/commit/2f1208802504065667ea028df63c6338ba766514))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
