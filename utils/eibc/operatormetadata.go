@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"gopkg.in/yaml.v3"
@@ -23,6 +24,7 @@ type EibcOperatorMetadata struct {
 	Moniker           string                     `json:"moniker"            yaml:"moniker"`
 	Description       string                     `json:"description"        yaml:"description"`
 	ContactDetails    EibcOperatorContactDetails `json:"contact_details"    yaml:"contact_details"`
+	PolicyAddress     string                     `json:"policy_address"     yaml:"policy_address"`
 	FeeShare          float64                    `json:"fee_share"          yaml:"fee_share"`
 	SupportedRollapps []string                   `json:"supported_rollapps" yaml:"supported_rollapps"`
 }
@@ -81,9 +83,17 @@ func NewEibcOperatorMetadata(raIDs []string) *EibcOperatorMetadata {
 	pterm.Info.Println(
 		"the information provided below will be associated with the eibc group and delegation policy",
 	)
-	moniker, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-		"provide a moniker for the eibc operator",
-	).Show()
+
+	var moniker string
+	for {
+		moniker, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a moniker for the eibc operator",
+		).Show()
+
+		if strings.TrimSpace(moniker) != "" {
+			break
+		}
+	}
 
 	metadata := &EibcOperatorMetadata{
 		Moniker:           moniker,

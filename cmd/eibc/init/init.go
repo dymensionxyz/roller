@@ -200,6 +200,29 @@ func Cmd() *cobra.Command {
 				}
 			}
 
+			pterm.Info.Println("retrieving existing eibc operator metadata from chain")
+			metadata, err := eibcutils.EibcOperatorMetadataFromChain(home, hd)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve eibc operator metadata: ", err)
+				return
+			}
+
+			metadata.PolicyAddress = policyAddr
+
+			mb, err := metadata.ToBytes()
+			if err != nil {
+				pterm.Error.Println("failed to generate eibc operator metadata: ", err)
+				return
+			}
+			mbs := base64.StdEncoding.EncodeToString(mb)
+
+			pterm.Info.Println("updating eibc operator metadata with the policy address")
+			err = eibcutils.UpdateEibcOperatorMetadata(home, mbs, hd)
+			if err != nil {
+				pterm.Error.Println("failed to update eibc operator metadata: ", err)
+				return
+			}
+
 			printPolicyAddress(policyAddr)
 			updates := map[string]interface{}{
 				"fulfillers.policy_address": policyAddr,
