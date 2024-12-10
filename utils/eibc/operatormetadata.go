@@ -222,19 +222,30 @@ func EibcOperatorMetadataFromChain(
 		return nil, err
 	}
 
-	metadataB64 := pol.Groups[0].Metadata
-	metadata, err := base64.StdEncoding.DecodeString(metadataB64)
+	if pol.Groups[0].Metadata != "" {
+		metadataB64 := pol.Groups[0].Metadata
+		var m EibcOperatorMetadata
+		metadata, err := base64.StdEncoding.DecodeString(metadataB64)
+		if err != nil {
+			pterm.Warning.Println("not base 64 decodeable")
+			m.Moniker = pol.Groups[0].Metadata
+
+			return &m, nil
+		}
+
+		err = json.Unmarshal(metadata, &m)
+		if err != nil {
+			return nil, err
+		}
+		return &m, nil
+	}
+
+	raIDs, err := LoadSupportedRollapps(filepath.Join(eibcHome, "config.yaml"))
 	if err != nil {
 		return nil, err
 	}
-
-	var m EibcOperatorMetadata
-	err = json.Unmarshal(metadata, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	return &m, nil
+	m := NewEibcOperatorMetadata(raIDs)
+	return m, nil
 }
 
 // UpdateGroupSupportedRollapps function updates the supported rollapps list in the onchain metadata
