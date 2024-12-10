@@ -222,16 +222,17 @@ func EibcOperatorMetadataFromChain(
 		return nil, err
 	}
 
-	fmt.Println(pol.Groups[0].Metadata)
-
 	if pol.Groups[0].Metadata != "" {
 		metadataB64 := pol.Groups[0].Metadata
+		var m EibcOperatorMetadata
 		metadata, err := base64.StdEncoding.DecodeString(metadataB64)
 		if err != nil {
-			return nil, err
+			pterm.Warning.Println("not base 64 decodeable")
+			m.Moniker = pol.Groups[0].Metadata
+
+			return &m, nil
 		}
 
-		var m EibcOperatorMetadata
 		err = json.Unmarshal(metadata, &m)
 		if err != nil {
 			return nil, err
