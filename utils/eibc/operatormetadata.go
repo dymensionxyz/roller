@@ -222,6 +222,8 @@ func EibcOperatorMetadataFromChain(
 		return nil, err
 	}
 
+	fmt.Println(pol.Groups[0].Metadata)
+
 	if pol.Groups[0].Metadata != "" {
 		metadataB64 := pol.Groups[0].Metadata
 		metadata, err := base64.StdEncoding.DecodeString(metadataB64)
