@@ -6,17 +6,18 @@ import (
 )
 
 const (
-	DefaultRelayerVersion = "v0.4.3-v2.5.2-roller"
+	DefaultRelayerVersion = "v0.3.4-v2.5.2-relayer-canon-4"
 )
 
 func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 	return map[string]types.Dependency{
 		"rly": {
 			DependencyName:  "go-relayer",
-			RepositoryOwner: "artemijspavlovs",
+			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "go-relayer",
-			RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
-			Release:         DefaultRelayerVersion,
+			//RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
+			RepositoryUrl: "https://github.com/dymensionxyz/go-relayer",
+			Release:       DefaultRelayerVersion,
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rly",
