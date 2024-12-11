@@ -7,6 +7,7 @@ import (
 
 const (
 	DefaultRelayerVersion = "v0.3.4-v2.5.2-relayer-canon-4"
+	//DefaultRelayerVersion = "v0.4.3-v2.5.2-roller"
 )
 
 func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
