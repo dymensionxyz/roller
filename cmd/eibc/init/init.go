@@ -21,6 +21,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -85,6 +86,16 @@ func Cmd() *cobra.Command {
 			}
 
 			if !isEibcClientInitialized {
+				pterm.Info.Println("installing eibc client dependencies...")
+				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
+				for _, v := range deps {
+					err := dependencies.InstallBinaryFromRelease(v)
+					if err != nil {
+						pterm.Error.Printfln("failed to install binary: %s", err)
+						return
+					}
+				}
+
 				pterm.Info.Println("initializing eibc client")
 				c := eibcutils.GetInitCmd()
 				err = bash.ExecCmd(c)
