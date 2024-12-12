@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.11.0-alpha-rc01...v1.11.1-alpha-rc01) (2024-12-12)
+
+
+### Bug Fixes
+
+* get the default eibc client version from remote ([976aa54](https://github.com/dymensionxyz/roller/commit/976aa541b21896b9e5e856620b82fcd9ee39d135))
+* get the default relayer version from remote ([e77d8a9](https://github.com/dymensionxyz/roller/commit/e77d8a9d3df7cd4c0d95cbb77dbb54386d2ad851))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
