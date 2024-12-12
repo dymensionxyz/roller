@@ -90,3 +90,16 @@ Once all previous steps are complete, start the roller with:
 ```
 
 These are the required changes to verify before starting the Rollapp. Please follow the instructions above carefully before starting roller.
+
+**Note**: If you encounter the issue of a negative registration fee when starting the roller, update the registration_fee field in the erc20 params section of your genesis.json file as shown below:
+
+```json 
+"erc20": {
+  "params": {
+    "enable_erc20": true,
+    "enable_evm_hook": true,
+    "registration_fee": "1000000000000000000"
+  },
+  "token_pairs": []
+}
+```
