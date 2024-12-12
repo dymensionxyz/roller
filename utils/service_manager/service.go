@@ -14,7 +14,6 @@ import (
 
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -261,7 +260,7 @@ func StopSystemServices(services []string) error {
 			}
 		}
 	case "darwin":
-		for _, svc := range consts.RollappSystemdServices {
+		for _, svc := range services {
 			err := StopLaunchdService(svc)
 			if err != nil {
 				pterm.Error.Println("failed to remove systemd service: ", err)

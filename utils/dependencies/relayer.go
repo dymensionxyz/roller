@@ -13,9 +13,9 @@ func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 	return map[string]types.Dependency{
 		"rly": {
 			DependencyName:  "go-relayer",
-			RepositoryOwner: "artemijspavlovs",
+			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "go-relayer",
-			RepositoryUrl:   "https://github.com/artemijspavlovs/go-relayer",
+			RepositoryUrl:   "https://github.com/dymensionxyz/go-relayer",
 			Release:         DefaultRelayerVersion,
 			Binaries: []types.BinaryPathPair{
 				{

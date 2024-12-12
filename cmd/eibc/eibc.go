@@ -7,6 +7,7 @@ import (
 	eibcinit "github.com/dymensionxyz/roller/cmd/eibc/init"
 	"github.com/dymensionxyz/roller/cmd/eibc/scale"
 	"github.com/dymensionxyz/roller/cmd/eibc/start"
+	"github.com/dymensionxyz/roller/cmd/eibc/update"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
@@ -22,6 +23,7 @@ func Cmd() *cobra.Command {
 
 	cmd.AddCommand(eibcinit.Cmd())
 	cmd.AddCommand(start.Cmd())
+	cmd.AddCommand(update.Cmd())
 	cmd.AddCommand(scale.Cmd())
 	cmd.AddCommand(fulfill.Cmd())
 
