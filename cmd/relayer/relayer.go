@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/relayer/setup"
 	"github.com/dymensionxyz/roller/cmd/relayer/start"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
+	"github.com/dymensionxyz/roller/cmd/relayer/update"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
@@ -22,6 +23,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(setup.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
+	cmd.AddCommand(update.Cmd())
 
 	sl := []string{"relayer"}
 	cmd.AddCommand(
