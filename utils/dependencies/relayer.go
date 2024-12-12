@@ -1,22 +1,27 @@
 package dependencies
 
 import (
+	"github.com/pterm/pterm"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-)
-
-const (
-	DefaultRelayerVersion = "v0.4.4-v2.5.2-roller"
+	"github.com/dymensionxyz/roller/utils/firebase"
 )
 
 func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
+	bvi, err := firebase.GetDependencyVersions()
+	if err != nil {
+		pterm.Error.Println("failed to fetch binary versions: ", err)
+		return nil
+	}
+
 	return map[string]types.Dependency{
 		"rly": {
 			DependencyName:  "go-relayer",
 			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "go-relayer",
 			RepositoryUrl:   "https://github.com/dymensionxyz/go-relayer",
-			Release:         DefaultRelayerVersion,
+			Release:         bvi.Relayer,
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rly",
