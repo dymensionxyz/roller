@@ -8,11 +8,11 @@ To register Rollapp using Rollapp-EVM with Avail as the DA layer, follow the ins
 Clone the roller repository, switch to the branch with Avail support, and build the project:
 ```bash
 git clone https://github.com/vitwit/roller.git
-git fetch && git checkout add_avail_support1
+git fetch && git checkout v1.9.0-vw-main
 make build && make install
 ```
 
-Follow the steps in the (official doc)https://github.com/vitwit/roller/tree/add_avail_support1, with the additional adjustments specified below.
+Follow the steps in the (official doc)https://github.com/vitwit/roller/tree/v1.9.0-vw-main, with the additional adjustments specified below.
 
 init the rollapp
 
@@ -50,7 +50,6 @@ After making the above changes, you can run the following commands to register a
 ```bash
 ./build/roller rollapp services load
 
-./build/roller rollapp services start
 ```
 
 Once all previous steps are complete, start the roller with:
