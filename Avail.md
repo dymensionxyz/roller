@@ -35,15 +35,46 @@ setup the rollapp
 ```
 After executing the above command verify and replace the fields in the `dymint.toml` file, which is located at `$HOME/.roller/rollapp/config/dymint.toml`. The configuration should look like the example below:
 ```bash
-da_config = "{\"seed\": \"bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice\", \"api_url\": \"ws://127.0.0.1:9944\", \"app_id\": 1, \"tip\":0}"
-max_proof_time = "1s"
-max_idle_time = "2s"
-batch_submit_time = "30s"
 batch_acceptance_attempts = "5"
 batch_acceptance_timeout = "2m0s"
 batch_submit_bytes = 500000
-batch_submit_max_time = "1h0m0s"
+batch_submit_time = "30s"
+block_batch_size = "500"
+block_time = "0.2s"
+da_config = "{\"seed\": \"bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice\", \"api_url\": \"ws://127.0.0.1:9944\", \"app_id\": 1, \"tip\":0}"
 da_layer = "avail"
+dym_account_name = "hub_sequencer"
+gas_prices = "2000000000adym"
+keyring_backend = "test"
+keyring_home_dir = "/root/.roller/hub-keys"
+max_idle_time = "20s"
+max_proof_time = "5s"
+max_skew_time = "168h0m0s"
+p2p_advertising_enabled = "false"
+p2p_blocksync_block_request_interval = "30s"
+p2p_blocksync_enabled = "true"
+p2p_bootstrap_nodes = ""
+p2p_bootstrap_retry_time = "30s"
+p2p_gossip_cache_size = 50
+p2p_listen_address = "/ip4/0.0.0.0/tcp/26656"
+p2p_persistent_nodes = ""
+retry_attempts = "10"
+retry_max_delay = "10s"
+retry_min_delay = "1s"
+settlement_gas_fees = ""
+settlement_gas_limit = 0
+settlement_gas_prices = "20000000000adym"
+settlement_layer = "dymension"
+settlement_node_address = "http://localhost:36657"
+
+[db]
+  in_memory = false
+  sync_writes = true
+
+[instrumentation]
+  prometheus = true
+  prometheus_listen_addr = ":2112"
+
 ```
 
 After making the above changes, you can run the following commands to register and start the services, including the DA light client:
