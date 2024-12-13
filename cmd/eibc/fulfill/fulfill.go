@@ -3,6 +3,7 @@ package fulfill
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/feeshare"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/order"
 	"github.com/dymensionxyz/roller/cmd/eibc/fulfill/rollapps"
 )
@@ -14,6 +15,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(order.Cmd())
+	cmd.AddCommand(feeshare.Cmd())
 	cmd.AddCommand(rollapps.Cmd())
 
 	return cmd

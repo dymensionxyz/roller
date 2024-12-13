@@ -90,7 +90,7 @@ func (r *Relayer) CreateIBCChannel(
 	}, nil
 }
 
-// waitForValidRollappHeight waits for the rollapp height to be greater than 2 otherwise
+// WaitForValidRollappHeight waits for the rollapp height to be greater than 2 otherwise
 // it will fail to create clients.
 func WaitForValidRollappHeight(seq *sequencer.Sequencer) error {
 	spinner, _ := pterm.DefaultSpinner.Start("waiting for rollapp height to be reach 1")

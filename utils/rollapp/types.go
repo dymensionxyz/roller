@@ -3,6 +3,7 @@ package rollapp
 import (
 	"time"
 
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -21,20 +22,21 @@ type Summary struct {
 }
 
 type Rollapp struct {
-	RollappId             string              `json:"rollapp_id,omitempty"`
-	Owner                 string              `json:"owner,omitempty"`
-	PreLaunchTime         string              `json:"pre_launch_time,omitempty"`
-	GenesisState          RollappGenesisState `json:"genesis_state"`
-	ChannelId             string              `json:"channel_id,omitempty"`
-	Frozen                bool                `json:"frozen,omitempty"`
-	RegisteredDenoms      []string            `json:"registeredDenoms,omitempty"`
-	Metadata              *RollappMetadata    `json:"metadata,omitempty"`
-	GenesisInfo           GenesisInfo         `json:"genesis_info"`
-	InitialSequencer      string              `json:"initial_sequencer,omitempty"`
-	VmType                string              `json:"vm_type,omitempty"`
-	Launched              bool                `json:"launched,omitempty"`
-	LivenessEventHeight   string              `json:"liveness_event_height,omitempty"`
-	LastStateUpdateHeight string              `json:"last_state_update_height,omitempty"`
+	RollappId             string                `json:"rollapp_id,omitempty"`
+	Owner                 string                `json:"owner,omitempty"`
+	PreLaunchTime         string                `json:"pre_launch_time,omitempty"`
+	GenesisState          RollappGenesisState   `json:"genesis_state"`
+	ChannelId             string                `json:"channel_id,omitempty"`
+	Frozen                bool                  `json:"frozen,omitempty"`
+	RegisteredDenoms      []string              `json:"registeredDenoms,omitempty"`
+	Metadata              *RollappMetadata      `json:"metadata,omitempty"`
+	GenesisInfo           GenesisInfo           `json:"genesis_info"`
+	InitialSequencer      string                `json:"initial_sequencer,omitempty"`
+	VmType                string                `json:"vm_type,omitempty"`
+	Launched              bool                  `json:"launched,omitempty"`
+	LivenessEventHeight   string                `json:"liveness_event_height,omitempty"`
+	LastStateUpdateHeight string                `json:"last_state_update_height,omitempty"`
+	MinSequencerBond      []cosmossdktypes.Coin `json:"min_sequencer_bond,omitempty"`
 }
 
 type GenesisInfo struct {

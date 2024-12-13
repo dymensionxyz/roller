@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/pelletier/go-toml"
+	"github.com/pterm/pterm"
 )
 
 func Load(path string) ([]byte, error) {
@@ -79,7 +80,7 @@ func RemoveFieldFromFile(tmlFilePath, keyPath string) error {
 	}
 
 	if !tomlCfg.Has(keyPath) {
-		return fmt.Errorf("key %s does not exist", keyPath)
+		pterm.Warning.Printfln("key %s does not exist", keyPath)
 	}
 
 	err = tomlCfg.Delete(keyPath)
@@ -97,7 +98,9 @@ func ReplaceFieldInFile(tmlFilePath, oldPath, newPath string, value any) error {
 	}
 
 	if !tomlCfg.Has(oldPath) {
-		return fmt.Errorf("old key %s does not exist", oldPath)
+		// the assumption here is that if the value is not present, it was already migrated to the new value
+		pterm.Warning.Printfln("old key %s does not exist", oldPath)
+		return nil
 	}
 
 	var writeableValue any

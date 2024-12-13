@@ -54,12 +54,14 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 	if err != nil {
 		return "-1", err
 	}
+
 	//nolint:errcheck
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "-1", err
 	}
+
 	var response Response
 	if err := json.Unmarshal(body, &response); err != nil {
 		return "-2", err

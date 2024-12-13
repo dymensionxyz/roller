@@ -133,6 +133,8 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 		return res, err
 	}
 
+	// a.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
+
 	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
 	if err != nil {
 		return res, err

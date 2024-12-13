@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensiontypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/pterm/pterm"
 
@@ -278,4 +279,40 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	}
 
 	return &raResponse, nil
+}
+
+type RaParams struct {
+	Params MinSequencerBond `json:"params"`
+}
+
+type MinSequencerBond struct {
+	MinSequencerBondGlobal cosmossdktypes.Coin `json:"min_sequencer_bond_global"`
+}
+
+func GetRollappParams(hd consts.HubData) (*RaParams, error) {
+	var resp RaParams
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"rollapp",
+		"params",
+		"--node",
+		hd.RpcUrl,
+		"--chain-id",
+		hd.ID,
+		"-o",
+		"json",
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(out.Bytes(), &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }

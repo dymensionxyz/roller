@@ -2,8 +2,6 @@ package status
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -27,12 +25,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pidFilePath := filepath.Join(home, consts.ConfigDirName.Rollapp, "rollapp.pid")
-			pid, err := os.ReadFile(pidFilePath)
-			if err != nil {
-				fmt.Println("failed to read pid file:", err)
-			}
-
 			nodeID, err := dymint.GetNodeID(home)
 			if err != nil {
 				fmt.Println("failed to retrieve dymint node id:", err)
@@ -44,12 +36,12 @@ func Cmd() *cobra.Command {
 			ok, msg := healthagent.IsEndpointHealthy(health)
 			if !ok {
 				// TODO: use options pattern, this is ugly af
-				start.PrintOutput(rollerConfig, string(pid), true, false, true, false, nodeID)
+				start.PrintOutput(rollerConfig, true, false, true, false, nodeID)
 				fmt.Println("Unhealthy Message: ", msg)
 				return
 			}
 
-			start.PrintOutput(rollerConfig, string(pid), true, true, true, true, nodeID)
+			start.PrintOutput(rollerConfig, true, true, true, true, nodeID)
 		},
 	}
 	return cmd

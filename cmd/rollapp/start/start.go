@@ -88,12 +88,11 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 
 			seq := sequencer.GetInstance(rollappConfig)
 			startRollappCmd := seq.GetStartCmd(logLevel, rollappConfig.KeyringBackend)
-
 			fmt.Println(startRollappCmd.String())
 
 			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
 
-			if rollappConfig.HubData.ID != "mock" {
+			if rollappConfig.HubData.ID != "mock" && rollappConfig.HealthAgent.Enabled {
 				go healthagent.Start(home, rollerLogger)
 			}
 
@@ -146,7 +145,6 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 
 					done <- err
 				}()
-
 				select {
 				case err := <-done:
 					if err != nil {
@@ -170,16 +168,13 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 
 func PrintOutput(
 	rlpCfg roller.RollappConfig,
-	pid string,
 	withBalance,
 	withEndpoints,
 	withProcessInfo,
 	isHealthy bool,
 	dymintNodeID string,
 ) {
-	logPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp, "rollapp.log")
 	rollappDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.Rollapp)
-	fmt.Println("log file path.......", logPath, rollappDirPath)
 
 	seq := sequencer.GetInstance(rlpCfg)
 
@@ -228,29 +223,23 @@ func PrintOutput(
 	pterm.DefaultSection.WithIndentCharacter("💈").
 		Println("Filesystem Paths:")
 	fmt.Println("Rollapp root dir: ", rollappDirPath)
-	fmt.Println("Log file path: ", logPath)
 
 	if withProcessInfo {
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Process Info:")
-		fmt.Println("PID:", pid)
 		fmt.Println("OS:", runtime.GOOS)
 		fmt.Println("Architecture:", runtime.GOARCH)
 	}
 
-	fmt.Println("is healthyyyyyyyy........", isHealthy)
-
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
 		daManager := datalayer.NewDAManager(consts.Avail, rlpCfg.Home, rlpCfg.KeyringBackend) // avail as a da
-		fmt.Println("da manager heree.........", daManager, rlpCfg.KeyringBackend, err)
 		availAddrData, errCel := daManager.GetDAAccData(rlpCfg)
-		fmt.Println("avail configggg........", rlpCfg.DA)
 		if err != nil {
 			return
 		}
 
-		fmt.Println("avail address:: and error", availAddrData, errCel)
+		fmt.Println("avail address::", availAddrData)
 		if errCel != nil {
 			pterm.Error.Println("failed to retrieve DA address") // here check
 			return

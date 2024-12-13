@@ -39,6 +39,8 @@ type Info struct {
 	UnbondTime time.Time `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime"                          json:"unbond_time"`
 	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
 	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3"                json:"whitelisted_relayers,omitempty"`
+	// opted in defines whether the sequencer can be selected as proposer
+	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,proto3"                                                       json:"opted_in,omitempty"`
 }
 
 type Metadata struct {

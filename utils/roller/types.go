@@ -27,6 +27,11 @@ type RollappConfig struct {
 	Decimals             uint
 	MinGasPrices         string `toml:"minimum_gas_prices"`
 
-	HubData consts.HubData `toml:"HubData"`
-	DA      consts.DaData  `toml:"DA"`
+	HubData     consts.HubData    `toml:"HubData"`
+	DA          consts.DaData     `toml:"DA"`
+	HealthAgent HealthAgentConfig `toml:"HealthAgent"`
+}
+
+type HealthAgentConfig struct {
+	Enabled bool `toml:"enabled"`
 }

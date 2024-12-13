@@ -117,10 +117,6 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		if err != nil {
 			return err
 		}
-		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_max_time", want.String())
-		if err != nil {
-			return err
-		}
 		err = tomlconfig.UpdateFieldInFile(dymintPath, "batch_submit_time", want.String())
 		if err != nil {
 			return err

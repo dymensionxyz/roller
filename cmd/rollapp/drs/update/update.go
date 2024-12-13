@@ -11,6 +11,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/archives"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -46,10 +47,19 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			raResp, err := rollapputils.GetMetadataFromChain(
+				rollerData.RollappID,
+				rollerData.HubData,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+				return
+			}
+
 			drsVersion, err := rollapputils.ExtractDrsVersionFromBinary()
 			if err != nil {
-				pterm.Error.Println("Failed to extract drs version from binary:", err)
-				return
+				pterm.Warning.Println("Failed to extract drs version from binary:", err)
+				pterm.Info.Println("Installing the latest version", err)
 			}
 
 			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
@@ -58,19 +68,18 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if drsInfo.Commit[:6] == cv {
-				pterm.Info.Println("You are already using the latest version of DRS")
-				return
+			var raCommit string
+			switch strings.ToLower(raResp.Rollapp.VmType) {
+			case "evm":
+				raCommit = drsInfo.EvmCommit
+			case "wasm":
+				raCommit = drsInfo.WasmCommit
 			}
 
 			// if doesn't match, take latest as the reference
 			// download the latest, build into ~/.roller/tmp
-			raResp, err := rollapputils.GetMetadataFromChain(
-				rollerData.RollappID,
-				rollerData.HubData,
-			)
-			if err != nil {
-				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+			if raCommit[:6] == cv {
+				pterm.Info.Println("You are already using the latest version of DRS")
 				return
 			}
 
@@ -86,7 +95,7 @@ func Cmd() *cobra.Command {
 
 			rbi := dependencies.NewRollappBinaryInfo(
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
-				drsInfo.Commit,
+				raCommit,
 				strings.ToLower(raResp.Rollapp.VmType),
 			)
 
@@ -133,6 +142,16 @@ func Cmd() *cobra.Command {
 
 			// wait for healthy endpoint
 			dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
+
+			err = tomlconfig.UpdateFieldInFile(
+				filepath.Join(home, "roller.toml"),
+				"rollapp_binary_version",
+				raCommit,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to update rollapp binary version in config: ", err)
+				return
+			}
 
 			pterm.Success.Println("update complete")
 		},

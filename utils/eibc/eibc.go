@@ -93,7 +93,7 @@ func EnsureWhaleAccount() (*keys.KeyInfo, error) {
 	return ki, nil
 }
 
-// createMongoDbContainer function creates a mongodb container using docker
+// CreateMongoDbContainer function creates a mongodb container using docker
 // sdk. Any 'DOCKER_HOST' can be used for this mongodb container.
 // Mongodb is used to store information about processed eibc orders
 func CreateMongoDbContainer() error {
@@ -123,7 +123,7 @@ func CreateMongoDbContainer() error {
 	return err
 }
 
-func AddRollappToEibc(raID, eibcHome string, fullnodes []string) error {
+func AddRollappToEibcConfig(raID, eibcHome string, fullnodes []string) error {
 	eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 
 	updates := map[string]interface{}{

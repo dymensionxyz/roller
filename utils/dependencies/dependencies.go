@@ -45,6 +45,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	// nolint: errcheck
 	defer os.RemoveAll(genesisTmpDir)
 
+	var raCommit string
 	var drsVersion string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	if !withMockDA {
@@ -66,12 +67,23 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		}
 
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
-		pterm.Info.Println("RollApp binary version from the genesis file : ", drsVersion)
+		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
 		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
 		if err != nil {
 			return nil, nil, err
 		}
-		drsVersion = drsInfo.Commit
+
+		switch strings.ToLower(raResp.Rollapp.VmType) {
+		case "evm":
+			raCommit = drsInfo.EvmCommit
+		case "wasm":
+			raCommit = drsInfo.WasmCommit
+		}
+
+		pterm.Info.Println(
+			"Latest RollApp binary commit for the current DRS version: ",
+			raCommit[:6],
+		)
 	}
 
 	defer func() {
@@ -87,7 +99,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	if !withMockDA {
 		rbi := NewRollappBinaryInfo(
 			raResp.Rollapp.GenesisInfo.Bech32Prefix,
-			drsVersion,
+			raCommit,
 			raVmType,
 		)
 
@@ -229,8 +241,6 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	}
 
 	if dep.Release != "main" {
-		// Checkout a specific version (e.g., a tag or branch)
-		// fmt.Println("dependency name....... dep.release.......", dep.DependencyName, dep.Release)
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
 		if err := exec.Command("git", "checkout", dep.Release).Run(); err != nil {
 			spinner.Fail(
@@ -240,11 +250,19 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		}
 	}
 
+	var buildSource string
+	if strings.HasPrefix(dep.Release, "v") {
+		buildSource = dep.Release
+	} else {
+		buildSource = dep.Release[:6]
+		// buildSource = "main"
+	}
+
 	spinner.UpdateText(
 		fmt.Sprintf(
 			"[%s] starting build from %s (this can take several minutes)",
 			dep.DependencyName,
-			dep.Release,
+			buildSource,
 		),
 	)
 
