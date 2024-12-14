@@ -1,19 +1,16 @@
 package dependencies
 
 import (
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
-	"github.com/dymensionxyz/roller/utils/firebase"
 )
 
 func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
-	bvi, err := firebase.GetDependencyVersions()
-	if err != nil {
-		pterm.Error.Println("failed to fetch binary versions: ", err)
-		return nil
-	}
+	//bvi, err := firebase.GetDependencyVersions()
+	//if err != nil {
+	//	pterm.Error.Println("failed to fetch binary versions: ", err)
+	//	return nil
+	//}
 
 	return map[string]types.Dependency{
 		"rly": {
@@ -21,7 +18,7 @@ func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "go-relayer",
 			RepositoryUrl:   "https://github.com/dymensionxyz/go-relayer",
-			Release:         bvi.Relayer,
+			Release:         "v0.3.4-v2.5.2-relayer-canon-7-rc",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "rly",
