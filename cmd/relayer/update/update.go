@@ -39,14 +39,14 @@ func Cmd() *cobra.Command {
 				},
 			}
 
-			_ = servicemanager.StopSystemServices([]string{"eibc"})
+			_ = servicemanager.StopSystemServices([]string{"relayer"})
 			err = dependencies.InstallBinaryFromRelease(rlyDep)
 			if err != nil {
 				pterm.Error.Println("failed to install eibc client: ", err)
 				return
 			}
 
-			_ = servicemanager.StartSystemServices([]string{"eibc"})
+			_ = servicemanager.StartSystemServices([]string{"relayer"})
 		},
 	}
 
