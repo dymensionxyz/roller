@@ -274,13 +274,14 @@ func getDrsVersionFromGenesis(
 		return "", err
 	}
 
-	as, err := genesis.GetGenesisAppState(home)
+	as, err := genesis.GetDrsVersionFromGenesis(home)
 	if err != nil {
 		pterm.Error.Println("failed to get genesis app state: ", err)
 		return "", err
 	}
 	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
 
+	pterm.Info.Println("DRS version: ", drsVersion)
 	return drsVersion, nil
 }
 
