@@ -281,6 +281,7 @@ func getDrsVersionFromGenesis(
 	}
 	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
 
+	pterm.Info.Println("DRS version: ", drsVersion)
 	return drsVersion, nil
 }
 
