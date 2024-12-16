@@ -93,9 +93,6 @@ func GetDrsVersionFromGenesis(home string) (*AppState, error) {
 
 	as := gs.AppState
 
-	j, err := json.MarshalIndent(as, "", "  ")
-	fmt.Println(string(j))
-
 	return &as, err
 }
 
