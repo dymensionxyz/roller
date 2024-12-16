@@ -274,11 +274,6 @@ RollApp's IRO time: %v`,
 						cosmossdkmath.NewInt(consts.DefaultTxFee),
 					)
 
-					af, _ := cosmossdkmath.NewIntFromString(consts.DefaultAdditionalFunding)
-					necessaryBalance = necessaryBalance.Add(
-						af,
-					)
-
 					blnc, _ := sequencer.BaseDenomToDenom(*balance, 18)
 					oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 

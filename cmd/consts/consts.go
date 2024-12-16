@@ -5,11 +5,11 @@ import (
 )
 
 const (
-	binsDir                  = "/usr/local/bin"
-	DefaultTokenSupply       = "1000000000000000000000000000"
-	DefaultFee               = 2000000000000000000    // 2
-	DefaultTxFee             = 10000000000000000      // 0.01
-	DefaultAdditionalFunding = "20000000000000000000" // 20, this amount is added to the necessary sequencer balance
+	binsDir              = "/usr/local/bin"
+	DefaultTokenSupply   = "1000000000000000000000000000"
+	DefaultFee           = 2000000000000000000   // 2
+	DefaultTxFee         = 10000000000000000     // 0.01
+	MinOperationalAmount = "5000000000000000000" // 5, is checked on every rollapp process interaction ( start, restart )
 )
 
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)

@@ -15,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 	"github.com/dymensionxyz/roller/utils/upgrades"
 )
@@ -35,6 +36,12 @@ func RollappCmd() *cobra.Command {
 
 			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			err = sequencerutils.CheckBalance(rollappConfig)
+			if err != nil {
+				pterm.Error.Println("failed to check sequencer balance: ", err)
+				return
+			}
 
 			if rollappConfig.HubData.ID != consts.MockHubID {
 				raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
