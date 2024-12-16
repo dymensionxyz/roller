@@ -274,7 +274,7 @@ func getDrsVersionFromGenesis(
 		return "", err
 	}
 
-	as, err := genesis.GetGenesisAppState(home)
+	as, err := genesis.GetDrsVersionFromGenesis(home)
 	if err != nil {
 		pterm.Error.Println("failed to get genesis app state: ", err)
 		return "", err

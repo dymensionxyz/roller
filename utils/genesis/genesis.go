@@ -75,6 +75,23 @@ func GetGenesisAppState(home string) (*AppState, error) {
 	return &as, err
 }
 
+func GetDrsVersionFromGenesis(home string) (*AppState, error) {
+	genesisFile, err := os.Open(GetGenesisFilePath(home))
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	// nolint:errcheck
+	defer genesisFile.Close()
+
+	var as AppState
+	err = json.NewDecoder(genesisFile).Decode(&as)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling genesis file: %v", err)
+	}
+
+	return &as, err
+}
+
 func VerifyGenesisChainID(genesisPath, raID string) error {
 	genesis, err := types.GenesisDocFromFile(genesisPath)
 	if err != nil {
