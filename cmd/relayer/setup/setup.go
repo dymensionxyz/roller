@@ -23,6 +23,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: cleanup required, a lot of duplicate code in this cmd
@@ -35,6 +36,13 @@ func Cmd() *cobra.Command {
 			home, _ := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
+
+			pterm.Info.Println("stopping relayer services, if any...")
+			err := servicemanager.StopSystemServices(consts.AllServices)
+			if err != nil {
+				pterm.Error.Println("failed to stop system services: ", err)
+				return
+			}
 
 			raData, hd, kb, err := getPreRunInfo(home)
 			if err != nil {
@@ -274,13 +282,14 @@ func getDrsVersionFromGenesis(
 		return "", err
 	}
 
-	as, err := genesis.GetGenesisAppState(home)
+	as, err := genesis.GetDrsVersionFromGenesis(home)
 	if err != nil {
 		pterm.Error.Println("failed to get genesis app state: ", err)
 		return "", err
 	}
 	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
 
+	pterm.Info.Println("DRS version: ", drsVersion)
 	return drsVersion, nil
 }
 

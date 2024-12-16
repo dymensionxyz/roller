@@ -103,7 +103,7 @@ func NewEibcOperatorMetadata(raIDs []string) *EibcOperatorMetadata {
 	}
 
 	shouldFillOptionalFields, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"Would you also like to fill optional metadata for your sequencer?",
+		"Would you also like to fill optional metadata for your eibc operator?",
 	).Show()
 
 	if shouldFillOptionalFields {

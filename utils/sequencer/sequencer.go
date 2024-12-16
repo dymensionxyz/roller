@@ -681,7 +681,7 @@ type RaWhitelisterRelayersResponse struct {
 
 func GetWhitelistedRelayersOnRa(raOpAddr string) ([]string, error) {
 	cmd := exec.Command(
-		"rollappd",
+		consts.Executables.RollappEVM,
 		"q",
 		"sequencers",
 		"whitelisted-relayers",
