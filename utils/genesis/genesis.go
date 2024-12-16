@@ -89,6 +89,9 @@ func GetDrsVersionFromGenesis(home string) (*AppState, error) {
 		return nil, fmt.Errorf("error unmarshaling genesis file: %v", err)
 	}
 
+	j, err := json.MarshalIndent(as, "", "  ")
+	fmt.Println(string(j))
+
 	return &as, err
 }
 
