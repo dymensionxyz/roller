@@ -6,6 +6,7 @@ import (
 	"time"
 
 	toml "github.com/pelletier/go-toml"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -27,6 +28,7 @@ func setMinimumGasPrice(cfg roller.RollappConfig, value string) error {
 func setBlockTime(cfg roller.RollappConfig, value string) error {
 	dymintTomlPath := sequencerutils.GetDymintFilePath(cfg.Home)
 
+	pterm.Info.Println("updating block time")
 	_, err := time.ParseDuration(value)
 	if err != nil {
 		return fmt.Errorf(
@@ -50,6 +52,8 @@ func setBlockTime(cfg roller.RollappConfig, value string) error {
 			return err
 		}
 	}
+
+	pterm.Info.Println("block time updated, restarting rollapp")
 
 	err = servicemanager.RestartSystemServices([]string{"rollapp"}, cfg.Home)
 	if err != nil {
