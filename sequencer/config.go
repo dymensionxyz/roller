@@ -12,6 +12,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
@@ -97,7 +98,21 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
 
-	appCfg.Set("minimum-gas-prices", "2000000000"+rlpCfg.BaseDenom)
+	as, err := genesis.GetAppStateFromGenesisFile(rlpCfg.Home)
+	if err != nil {
+		return err
+	}
+
+	var minimumGasPrice string
+	if as.FeeMarket != nil && as.FeeMarket.Params != nil && as.FeeMarket.Params.MinGasPrice != "" {
+		minimumGasPrice = as.FeeMarket.Params.MinGasPrice
+	} else if len(as.RollappParams.Params.MinGasPrices) > 0 {
+		minimumGasPrice = as.RollappParams.Params.MinGasPrices[0].Amount.String()
+	} else {
+		minimumGasPrice = consts.DefaultMinGasPrice
+	}
+
+	appCfg.Set("minimum-gas-prices", fmt.Sprintf("%s%s", minimumGasPrice, rlpCfg.BaseDenom))
 	appCfg.Set("gas-adjustment", 1.3)
 	appCfg.Set("api.enable", true)
 	appCfg.Set("api.enabled-unsafe-cors", true)
