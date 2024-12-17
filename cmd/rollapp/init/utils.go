@@ -203,13 +203,4 @@ func PrintInitOutput(
 		fmt.Println()
 	}
 	keys.PrintAddressesWithTitle(addresses)
-
-	if rollappConfig.HubData.ID != consts.MockHubID {
-		pterm.DefaultSection.WithIndentCharacter("🔔").
-			Println("Please fund the addresses below to register and run the rollapp.")
-		fa := initconfig.FormatAddresses(rollappConfig, addresses)
-		for _, v := range fa {
-			v.Print(keys.WithName())
-		}
-	}
 }

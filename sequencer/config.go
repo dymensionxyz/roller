@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
@@ -105,10 +106,13 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 
 	var minimumGasPrice string
 	if as.FeeMarket != nil && as.FeeMarket.Params != nil && as.FeeMarket.Params.MinGasPrice != "" {
+		pterm.Info.Println("applying feemarket gas price")
 		minimumGasPrice = as.FeeMarket.Params.MinGasPrice
 	} else if len(as.RollappParams.Params.MinGasPrices) > 0 {
+		pterm.Info.Println("applying rollappparam gas price")
 		minimumGasPrice = as.RollappParams.Params.MinGasPrices[0].Amount.String()
 	} else {
+		pterm.Info.Println("applying default gas price")
 		minimumGasPrice = consts.DefaultMinGasPrice
 	}
 
