@@ -8,16 +8,21 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 type ServiceConfig struct {
@@ -272,5 +277,57 @@ func StopSystemServices(services []string) error {
 		return errors.New("OS not supported")
 	}
 
+	return nil
+}
+
+func RestartSystemServices(services []string, home string) error {
+	if slices.Contains(services, "rollapp") {
+		rollappConfig, err := roller.LoadConfig(home)
+		errorhandling.PrettifyErrorIfExists(err)
+
+		if rollappConfig.HubData.ID != consts.MockHubID {
+			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+			if err != nil {
+				pterm.Error.Println("failed to check rollapp version equality: ", err)
+			}
+
+			err = migrations.RequireRollappMigrateIfNeeded(
+				raUpgrade.CurrentVersionCommit[:6],
+				rollappConfig.RollappBinaryVersion[:6],
+				string(rollappConfig.RollappVMType),
+			)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if runtime.GOOS == "linux" {
+		for _, service := range services {
+			err := RestartSystemdService(fmt.Sprintf("%s.service", service))
+			if err != nil {
+				return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
+			}
+		}
+		pterm.Success.Printf(
+			"💈 Services %s restarted successfully.\n",
+			strings.Join(services, ", "),
+		)
+	} else if runtime.GOOS == "darwin" {
+		if runtime.GOOS == "linux" {
+			for _, service := range services {
+				err := RestartLaunchctlService(service)
+				if err != nil {
+					return fmt.Errorf("failed to restart %s systemd service: %v", service, err)
+				}
+			}
+			pterm.Success.Printf(
+				"💈 Services %s restarted successfully.\n",
+				strings.Join(services, ", "),
+			)
+		}
+	} else {
+		return errors.New("os not supported")
+	}
 	return nil
 }

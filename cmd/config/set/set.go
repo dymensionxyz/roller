@@ -10,17 +10,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{
-	"rollapp-rpc-port":     setRollappRPC,
-	"lc-gateway-port":      setLCGatewayPort,
-	"lc-rpc-port":          setLCRPCPort,
-	"rollapp-jsonrpc-port": setJsonRpcPort,
-	"rollapp-ws-port":      setWSPort,
-	"rollapp-grpc-port":    setGRPCPort,
-	"da":                   setDA,
-	"hub-rpc":              setHubRPC,
-}
-
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "set <key> <value>",
@@ -57,3 +46,20 @@ func getSupportedKeys() []string {
 	}
 	return keys
 }
+
+var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{
+	"minimum-gas-price": setMinimumGasPrice,
+	"hub-rpc-endpoint":  setHubRPC,
+	"block-time":        setBlockTime,
+}
+
+// var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{
+// 	"rollapp-rpc-port":     setRollappRPC,
+// 	"lc-gateway-port":      setLCGatewayPort,
+// 	"lc-rpc-port":          setLCRPCPort,
+// 	"rollapp-jsonrpc-port": setJsonRpcPort,
+// 	"rollapp-ws-port":      setWSPort,
+// 	"rollapp-grpc-port":    setGRPCPort,
+// 	"da":                   setDA,
+// 	"hub-rpc":              setHubRPC,
+// }

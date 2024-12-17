@@ -15,11 +15,11 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/services/load"
-	"github.com/dymensionxyz/roller/cmd/services/restart"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/roller"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func Start(home string, l *log.Logger) {
@@ -85,7 +85,7 @@ func Start(home string, l *log.Logger) {
 				pterm.Error.Println("failed to update services")
 			}
 
-			err = restart.RestartSystemdServices(servicesToRestart, home)
+			err = servicemanager.RestartSystemServices(servicesToRestart, home)
 			if err != nil {
 				pterm.Error.Println("failed to restart services")
 			}
