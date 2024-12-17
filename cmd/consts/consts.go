@@ -10,6 +10,7 @@ const (
 	DefaultFee           = 2000000000000000000   // 2
 	DefaultTxFee         = 10000000000000000     // 0.01
 	MinOperationalAmount = "5000000000000000000" // 5, is checked on every rollapp process interaction ( start, restart )
+	DefaultMinGasPrice   = "2000000000"
 )
 
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)

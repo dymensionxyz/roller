@@ -13,6 +13,7 @@ import (
 
 	"github.com/cometbft/cometbft/types"
 	comettypes "github.com/cometbft/cometbft/types"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -28,6 +29,21 @@ import (
 type AppState struct {
 	Bank          Bank          `json:"bank"`
 	RollappParams RollappParams `json:"rollappparams"`
+	FeeMarket     *FeeMarket    `json:"feemarket"`
+}
+
+type FeeMarket struct {
+	Params *FeeMarketParams `json:"params"`
+}
+
+type FeeMarketParams struct {
+	BaseFee                  string `json:"base_fee"`
+	BaseFeeChangeDenominator int    `json:"base_fee_change_denominator"`
+	ElasticityMultiplier     int    `json:"elasticity_multiplier"`
+	EnableHeight             string `json:"enable_height"`
+	MinGasMultiplier         string `json:"min_gas_multiplier"`
+	MinGasPrice              string `json:"min_gas_price"`
+	NoBaseFee                bool   `json:"no_base_fee"`
 }
 
 type Bank struct {
@@ -36,8 +52,9 @@ type Bank struct {
 
 type RollappParams struct {
 	Params struct {
-		Da         string `json:"da"`
-		DrsVersion int    `json:"drs_version"`
+		Da           string                  `json:"da"`
+		DrsVersion   int                     `json:"drs_version"`
+		MinGasPrices cosmossdktypes.DecCoins `json:"min_gas_prices"`
 	} `json:"params"`
 }
 
@@ -59,6 +76,9 @@ func DownloadGenesis(home, genesisUrl string) error {
 	return nil
 }
 
+// GetGenesisAppState function retrieves the genesis file content using comet's
+// native function, the problem here is that it takes time due to json.rawMessage
+// for the app state itself
 func GetGenesisAppState(home string) (*AppState, error) {
 	genesis, err := comettypes.GenesisDocFromFile(GetGenesisFilePath(home))
 	if err != nil {
@@ -75,7 +95,10 @@ func GetGenesisAppState(home string) (*AppState, error) {
 	return &as, err
 }
 
-func GetDrsVersionFromGenesis(home string) (*AppState, error) {
+// GetAppStateFromGenesisFile function is a more minimalistic version of
+// GetGenesisAppState, it only retrieves the relevant genesis information
+// by unmarshalling bytes into the custom struct
+func GetAppStateFromGenesisFile(home string) (*AppState, error) {
 	genesisFile, err := os.Open(GetGenesisFilePath(home))
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %v", err)
