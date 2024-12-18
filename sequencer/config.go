@@ -108,18 +108,21 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 	}
 
 	var minimumGasPrice string
-	if as.FeeMarket != nil && as.FeeMarket.Params != nil && as.FeeMarket.Params.MinGasPrice != "" {
-		pterm.Info.Println("applying feemarket gas price")
-		minimumGasPrice = as.FeeMarket.Params.MinGasPrice
-	} else if len(as.RollappParams.Params.MinGasPrices) > 0 {
+	if len(as.RollappParams.Params.MinGasPrices) > 0 {
 		pterm.Info.Println("applying rollappparam gas price")
-		minimumGasPrice = as.RollappParams.Params.MinGasPrices[0].Amount.String()
+
+		minGasPricesStrs := make([]string, len(as.RollappParams.Params.MinGasPrices))
+		for i, minGasPrice := range as.RollappParams.Params.MinGasPrices {
+			minGasPricesStrs[i] = minGasPrice.String()
+		}
+		minimumGasPrice = strings.Join(minGasPricesStrs, ",")
+		appCfg.Set("minimum-gas-prices", minimumGasPrice)
 	} else {
 		pterm.Info.Println("applying default gas price")
 		minimumGasPrice = consts.DefaultMinGasPrice
+		appCfg.Set("minimum-gas-prices", fmt.Sprintf("%s%s", minimumGasPrice, rlpCfg.BaseDenom))
 	}
 
-	appCfg.Set("minimum-gas-prices", fmt.Sprintf("%s%s", minimumGasPrice, rlpCfg.BaseDenom))
 	appCfg.Set("gas-adjustment", 1.3)
 	appCfg.Set("api.enable", true)
 	appCfg.Set("api.enabled-unsafe-cors", true)
