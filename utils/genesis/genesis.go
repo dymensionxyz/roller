@@ -30,6 +30,20 @@ type AppState struct {
 	Bank          Bank          `json:"bank"`
 	RollappParams RollappParams `json:"rollappparams"`
 	FeeMarket     *FeeMarket    `json:"feemarket"`
+	Staking       *Staking      `json:"staking"`
+}
+
+type Staking struct {
+	Params *StakingParams `json:"params"`
+}
+
+type StakingParams struct {
+	BondDenom         string `json:"bond_denom"`
+	HistoricalEntries uint64 `json:"historical_entries"`
+	MaxEntries        uint32 `json:"max_entries"`
+	MaxValidators     uint32 `json:"max_validators"`
+	MinCommissionRate string `json:"min_commission_rate"`
+	UnbondingTime     string `json:"unbonding_time"`
 }
 
 type FeeMarket struct {
