@@ -824,10 +824,8 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	}
 
 	var denom string
-	fmt.Println(as.RollappParams.Params.MinGasPrices[0].Amount.TruncateInt())
-
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
-		defaultGasPrice = cosmossdkmath.Int(as.RollappParams.Params.MinGasPrices[0].Amount)
+		defaultGasPrice = as.RollappParams.Params.MinGasPrices[0].Amount.TruncateInt()
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
 	} else {
 		pterm.Info.Println("more then 1 gas token option found")
@@ -840,7 +838,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		selectedIndex := slices.IndexFunc(as.RollappParams.Params.MinGasPrices, func(t cosmossdktypes.DecCoin) bool {
 			return t.Denom == denom
 		})
-		defaultGasPrice = cosmossdkmath.Int(as.RollappParams.Params.MinGasPrices[selectedIndex].Amount)
+		defaultGasPrice = as.RollappParams.Params.MinGasPrices[selectedIndex].Amount.TruncateInt()
 	}
 
 	sgt, err := SupportedGasDenoms(raCfg)
@@ -870,9 +868,6 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		GasPrice:       &defaultGasPrice,
 		FeeDenom:       &fd,
 	}
-
-	j, _ := json.MarshalIndent(sm, "", "  ")
-	fmt.Println(string(j))
 
 	path := filepath.Join(
 		raCfg.Home,
