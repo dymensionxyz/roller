@@ -28,8 +28,15 @@ import (
 
 type AppState struct {
 	Bank          Bank          `json:"bank"`
+	Staking       Staking       `json:"staking"`
 	RollappParams RollappParams `json:"rollappparams"`
 	FeeMarket     *FeeMarket    `json:"feemarket"`
+}
+
+type Staking struct {
+	Params struct {
+		BondDenom string `json:"bond_denom"`
+	} `json:"params"`
 }
 
 type FeeMarket struct {
