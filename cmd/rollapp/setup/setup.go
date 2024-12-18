@@ -869,6 +869,9 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		FeeDenom:       &fd,
 	}
 
+	j, _ := json.MarshalIndent(sm, "", "  ")
+	fmt.Println(string(j))
+
 	path := filepath.Join(
 		raCfg.Home,
 		consts.ConfigDirName.Rollapp,

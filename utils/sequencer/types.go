@@ -74,9 +74,9 @@ type Metadata struct {
 }
 
 type DenomMetadata struct {
-	Display  string
-	Base     string
-	Exponent int
+	Display  string `json:"display"`
+	Base     string `json:"base"`
+	Exponent int    `json:"exponent"`
 }
 
 type ContactDetails struct {
