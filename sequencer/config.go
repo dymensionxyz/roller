@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pterm/pterm"
 
@@ -114,8 +114,8 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 
 		minGasPricesStrs := make([]string, len(as.RollappParams.Params.MinGasPrices))
 		for i, minGasPrice := range as.RollappParams.Params.MinGasPrices {
-			minGasPrice.Amount = cosmossdkmath.LegacyDec(minGasPrice.Amount.TruncateInt())
-			minGasPricesStrs[i] = minGasPrice.String()
+			tkn := cosmossdktypes.NewCoin(minGasPrice.Denom, minGasPrice.Amount.TruncateInt())
+			minGasPricesStrs[i] = tkn.String()
 		}
 		minimumGasPrice = strings.Join(minGasPricesStrs, ",")
 		appCfg.Set("minimum-gas-prices", minimumGasPrice)
