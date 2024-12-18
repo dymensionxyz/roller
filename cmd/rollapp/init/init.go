@@ -220,7 +220,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			builtDeps, _, err := dependencies.PrepareDependencies(isMock, *rollappResp)
+			builtDeps, goreleaserDeps, err := dependencies.PrepareDependencies(isMock, *rollappResp)
 			if err != nil {
 				pterm.Error.Println("failed to prepare dependencies: ", err)
 				return
@@ -229,7 +229,19 @@ func Cmd() *cobra.Command {
 			// install dependencies based on rollapp info on the hub
 			if !shouldSkipBinaryInstallation {
 				start := time.Now()
-				err := dependencies.InstallBinaries(isMock, *rollappResp)
+				err := dependencies.InstallBinaries(isMock, builtDeps, goreleaserDeps)
+				if err != nil {
+					pterm.Error.Println("failed to install binaries: ", err)
+					return
+				}
+				elapsed := time.Since(start)
+				pterm.Info.Println("all dependencies installed in: ", elapsed)
+			}
+
+			// install dependencies based on rollapp info on the hub
+			if !shouldSkipBinaryInstallation {
+				start := time.Now()
+				err := dependencies.InstallBinaries(isMock, builtDeps, goreleaserDeps)
 				if err != nil {
 					pterm.Error.Println("failed to install binaries: ", err)
 					return
