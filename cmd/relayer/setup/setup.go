@@ -38,8 +38,7 @@ func Cmd() *cobra.Command {
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 
-			pterm.Info.Println("stopping relayer services, if any...")
-			err := servicemanager.StopSystemServices(consts.AllServices)
+			err := servicemanager.StopSystemServices(consts.RelayerSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to stop system services: ", err)
 				return
