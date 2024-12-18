@@ -824,7 +824,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	}
 
 	var denom string
-	fmt.Println(as.RollappParams.Params.MinGasPrices)
+	fmt.Println(as.RollappParams.Params.MinGasPrices[0].Amount)
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
 		defaultGasPrice = cosmossdkmath.Int(as.RollappParams.Params.MinGasPrices[0].Amount)
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
