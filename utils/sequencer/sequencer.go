@@ -25,6 +25,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
+func GetSequencerConfigDir(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
+}
+
 func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
 	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
 	if err != nil {

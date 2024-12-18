@@ -15,11 +15,11 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/sequencer"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
-	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 }
 
 func UpdateDymintDAConfig(rlpCfg roller.RollappConfig) error {
-	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -93,7 +93,10 @@ func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) err
 }
 
 func SetAppConfig(rlpCfg roller.RollappConfig) error {
-	appConfigFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "app.toml")
+	appConfigFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(rlpCfg.Home),
+		"app.toml",
+	)
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
@@ -129,7 +132,10 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 }
 
 func SetTMConfig(rlpCfg roller.RollappConfig) error {
-	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
+	configFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(rlpCfg.Home),
+		"config.toml",
+	)
 	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -149,7 +155,9 @@ func (seq *Sequencer) ReadPorts() error {
 	}
 
 	seq.RPCPort = getPortFromAddress(rpcAddr)
-	appCfg, err := toml.LoadFile(filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "app.toml"))
+	appCfg, err := toml.LoadFile(
+		filepath.Join(sequencerutils.GetSequencerConfigDir(seq.RlpCfg.Home), "app.toml"),
+	)
 	if err != nil {
 		return err
 	}
@@ -162,7 +170,10 @@ func (seq *Sequencer) ReadPorts() error {
 }
 
 func (seq *Sequencer) GetConfigValue(key string) (string, error) {
-	configFilePath := filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "config.toml")
+	configFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(seq.RlpCfg.Home),
+		"config.toml",
+	)
 	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -180,10 +191,6 @@ func (seq *Sequencer) GetRPCEndpoint() string {
 
 func (seq *Sequencer) GetLocalEndpoint(port string) string {
 	return "http://localhost:" + port
-}
-
-func getSequencerConfigDir(rollerHome string) string {
-	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
 }
 
 func getPortFromAddress(addr string) string {
