@@ -13,7 +13,7 @@ import (
 )
 
 func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
-	pterm.Info.Println("extracting bech 32 prefix")
+	pterm.Info.Println("extracting bech32 prefix")
 	c := exec.Command(
 		"go",
 		"version",

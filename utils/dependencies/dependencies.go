@@ -26,73 +26,66 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
-	map[string]types.Dependency,
-	map[string]types.Dependency,
-	error,
-) {
-	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
-	_, err := bash.ExecCommandWithStdout(c)
-	if err != nil {
-		errMsg := fmt.Sprintf("failed to create %s\n", consts.InternalBinsDir)
-		return nil, nil, errors.New(errMsg)
-	}
-
+// DRSToCommit get the correct binary commit for the specified drs version
+func DRSToCommit(raResp rollapp.ShowRollappResponse) (string, error) {
+	// TODO refactor, this genesis file fetch is redundant and will slow the process down
+	// when the genesis file is big
 	genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
 	if err != nil {
-		return nil, nil, err
+		return "", fmt.Errorf("failed to create a temp directory: %w", err)
 	}
 	// nolint: errcheck
 	defer os.RemoveAll(genesisTmpDir)
 
-	var raCommit string
-	var drsVersion string
-	raVmType := strings.ToLower(raResp.Rollapp.VmType)
-	if !withMockDA {
-		// TODO refactor, this genesis file fetch is redundand and will slow the process down
-		// when the genesis file is big
-		err = genesisutils.DownloadGenesis(genesisTmpDir, raResp.Rollapp.Metadata.GenesisUrl)
-		if err != nil {
-			pterm.Error.Println("failed to download genesis file: ", err)
-			return nil, nil, err
-		}
-
-		as, err := genesisutils.GetGenesisAppState(genesisTmpDir)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
-		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
-		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		switch strings.ToLower(raResp.Rollapp.VmType) {
-		case "evm":
-			raCommit = drsInfo.EvmCommit
-		case "wasm":
-			raCommit = drsInfo.WasmCommit
-		}
-
-		pterm.Info.Println(
-			"Latest RollApp binary commit for the current DRS version: ",
-			raCommit[:6],
-		)
+	err = genesisutils.DownloadGenesis(genesisTmpDir, raResp.Rollapp.Metadata.GenesisUrl)
+	if err != nil {
+		pterm.Error.Println("failed to download genesis file: ", err)
+		return "", err
 	}
 
-	defer func() {
-		dir, err := os.UserHomeDir()
-		if err != nil {
-			return
-		}
-		_ = os.Chdir(dir)
-	}()
+	as, err := genesisutils.GetGenesisAppState(genesisTmpDir)
+	if err != nil {
+		return "", err
+	}
+
+	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
+	pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
+	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+	if err != nil {
+		return "", err
+	}
+
+	var raCommit string
+	switch strings.ToLower(raResp.Rollapp.VmType) {
+	case "evm":
+		raCommit = drsInfo.EvmCommit
+	case "wasm":
+		raCommit = drsInfo.WasmCommit
+	}
+
+	pterm.Info.Println(
+		"Latest RollApp binary commit for the current DRS version: ",
+		raCommit[:6],
+	)
+
+	return raCommit, nil
+}
+
+// PrepareDependencies
+func PrepareDependencies(mock bool, raResp rollapp.ShowRollappResponse) (
+	map[string]types.Dependency,
+	map[string]types.Dependency,
+	error) {
+
+	raVmType := strings.ToLower(raResp.Rollapp.VmType)
+	raCommit, err := DRSToCommit(raResp)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	buildableDeps := map[string]types.Dependency{}
-
-	if !withMockDA {
+	goreleaserDeps := map[string]types.Dependency{}
+	if !mock {
 		rbi := NewRollappBinaryInfo(
 			raResp.Rollapp.GenesisInfo.Bech32Prefix,
 			raCommit,
@@ -100,52 +93,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 		)
 
 		buildableDeps = DefaultRollappBuildableDependencies(rbi)
-	}
-
-	goreleaserDeps := map[string]types.Dependency{}
-
-	if !withMockDA {
 		goreleaserDeps = DefaultRollappPrebuiltDependencies()
-	}
-
-	if withMockDA {
-		// @20240913 libwasm is necessary on the host VM to be able to run the prebuilt rollapp binary
-		var outputPath string
-		var libName string
-		libVersion := "v1.2.3"
-
-		if runtime.GOOS == "linux" {
-			outputPath = "/usr/lib"
-			if runtime.GOARCH == "arm64" {
-				libName = "libwasmvm.aarch64.so"
-			} else if runtime.GOARCH == "amd64" {
-				libName = "libwasmvm.x86_64.so"
-			}
-		} else if runtime.GOOS == "darwin" {
-			outputPath = "/usr/local/lib"
-			libName = "libwasmvm.dylib"
-		} else {
-			return nil, nil, errors.New("unsupported OS")
-		}
-
-		downloadPath := fmt.Sprintf(
-			"https://github.com/CosmWasm/wasmvm/releases/download/%s/%s",
-			libVersion,
-			libName,
-		)
-
-		fsc := exec.Command("sudo", "mkdir", "-p", outputPath)
-		_, err := bash.ExecCommandWithStdout(fsc)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		c := exec.Command("sudo", "wget", "-O", filepath.Join(outputPath, libName), downloadPath)
-		_, err = bash.ExecCommandWithStdout(c)
-		if err != nil {
-			return nil, nil, err
-		}
-
+	} else {
 		if raVmType == "evm" {
 			goreleaserDeps["rollapp"] = types.Dependency{
 				DependencyName:  "rollapp-evm",
@@ -175,27 +124,45 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 				},
 			}
 		}
+	}
 
+	return buildableDeps, goreleaserDeps, nil
+}
+
+func InstallBinaries(mock bool, buildableDeps, goreleaserDeps map[string]types.Dependency) error {
+	c := exec.Command("sudo", "mkdir", "-p", consts.InternalBinsDir)
+	_, err := bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %w", consts.InternalBinsDir, err)
+	}
+
+	defer func() {
+		dir, err := os.UserHomeDir()
+		if err != nil {
+			return
+		}
+		_ = os.Chdir(dir)
+	}()
+
+	if mock {
+		InstallMockDependencies()
 	}
 
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
-			return nil, nil, errors.New(errMsg)
+			return fmt.Errorf("failed to build binary %s: %w", k, err)
 		}
-
 	}
 
 	for k, dep := range buildableDeps {
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
-			return nil, nil, errors.New(errMsg)
+			return fmt.Errorf("failed to build binary %s: %w", k, err)
 		}
 	}
 
-	return buildableDeps, goreleaserDeps, nil
+	return nil
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
@@ -281,6 +248,48 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 	spinner.Success(fmt.Sprintf("[%s] installed\n", dep.DependencyName))
 	return nil
+}
+
+func InstallMockDependencies() error {
+	// @20240913 libwasm is necessary on the host VM to be able to run the prebuilt rollapp binary
+	var outputPath string
+	var libName string
+	libVersion := "v1.2.3"
+
+	if runtime.GOOS == "linux" {
+		outputPath = "/usr/lib"
+		if runtime.GOARCH == "arm64" {
+			libName = "libwasmvm.aarch64.so"
+		} else if runtime.GOARCH == "amd64" {
+			libName = "libwasmvm.x86_64.so"
+		}
+	} else if runtime.GOOS == "darwin" {
+		outputPath = "/usr/local/lib"
+		libName = "libwasmvm.dylib"
+	} else {
+		return errors.New("unsupported OS")
+	}
+
+	downloadPath := fmt.Sprintf(
+		"https://github.com/CosmWasm/wasmvm/releases/download/%s/%s",
+		libVersion,
+		libName,
+	)
+
+	fsc := exec.Command("sudo", "mkdir", "-p", outputPath)
+	_, err := bash.ExecCommandWithStdout(fsc)
+	if err != nil {
+		return err
+	}
+
+	c := exec.Command("sudo", "wget", "-O", filepath.Join(outputPath, libName), downloadPath)
+	_, err = bash.ExecCommandWithStdout(c)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func InstallBinaryFromRelease(dep types.Dependency) error {

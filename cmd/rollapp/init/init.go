@@ -48,11 +48,15 @@ func Cmd() *cobra.Command {
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
 
-			// preflight checks
-			var hd consts.HubData
-			var env string
-			var raID string
+			var (
+				hd          consts.HubData
+				env         string
+				raID        string
+				isMock      bool
+				rollappResp *rollapp.ShowRollappResponse
+			)
 
+			// preflight checks
 			isRootExist, err := filesystem.DirNotEmpty(home)
 			if err != nil {
 				pterm.Error.Printf(
@@ -116,6 +120,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			/* ---------------------------- choose env setup ---------------------------- */
 			if shouldUseMockBackend {
 				env = "mock"
 			} else {
@@ -128,9 +133,10 @@ func Cmd() *cobra.Command {
 
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
-			if !shouldUseMockBackend && env != "custom" {
+			/* ------------------------------ install dymd ------------------------------ */
+			if !shouldSkipBinaryInstallation {
 				dymdBinaryOptions := dependencies.DefaultDymdDependency()
-				pterm.Info.Println("installing dependencies")
+				pterm.Info.Println("installing dymd binary from release")
 				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
 				if err != nil {
 					pterm.Error.Println("failed to install dymd: ", err)
@@ -138,6 +144,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
+			/* ------------------------------ get rollappID ----------------------------- */
 			if len(args) != 0 {
 				raID = args[0]
 			} else {
@@ -173,82 +180,63 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
-				if err != nil {
-					pterm.Info.Println("failed to install dymd", err)
-					return
-				}
 			case "mock":
-				vmType := config.PromptVmType()
-				raRespMock := rollapp.ShowRollappResponse{
+				isMock = true
+				rollappResp = &rollapp.ShowRollappResponse{
 					Rollapp: rollapp.Rollapp{
 						RollappId: raID,
-						VmType:    vmType,
+						VmType:    config.PromptVmType(),
+						// FIXME: set correct prefix
 					},
 				}
-
-				if !shouldSkipBinaryInstallation {
-					_, _, err = dependencies.InstallBinaries(true, raRespMock)
-					if err != nil {
-						pterm.Error.Println("failed to install binaries: ", err)
-						return
-					}
-				}
-
-				err := runInit(
-					cmd,
-					env,
-					consts.HubData{},
-					raRespMock,
-					kb,
-				)
-				if err != nil {
-					fmt.Println("failed to run init: ", err)
-					return
-				}
-				return
 			default:
-				hd = consts.Hubs[env]
-
-				if shouldSkipBinaryInstallation {
-					dymdDep := dependencies.DefaultDymdDependency()
-					err = dependencies.InstallBinaryFromRelease(dymdDep)
-					if err != nil {
-						pterm.Error.Println("failed to install dymd: ", err)
-						return
-					}
+				var ok bool
+				hd, ok = consts.Hubs[env]
+				if !ok {
+					pterm.Error.Printf("invalid environment: %s\n", env)
+					return
 				}
 			}
 
 			// default flow
-			isRollappRegistered, _ := rollapp.IsRegistered(raID, hd)
-			if !isRollappRegistered {
-				pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
-				return
+			if rollappResp == nil {
+				isRollappRegistered, err := rollapp.IsRegistered(raID, hd)
+				if !isRollappRegistered {
+					pterm.Error.Printf("%s was not found as a registered rollapp: %v\n", raID, err)
+					return
+				}
+
+				rollappResp, err = rollapp.Show(raID, hd)
+				if err != nil {
+					pterm.Error.Println("failed to retrieve rollapp information: ", err)
+					return
+				}
+
+				if rollappResp.Rollapp.GenesisInfo.Bech32Prefix == "" {
+					pterm.Error.Println(
+						"RollApp does not contain Bech32Prefix, which is mandatory to continue",
+					)
+					return
+				}
 			}
 
-			raResponse, err := rollapp.Show(raID, hd)
+			builtDeps, _, err := dependencies.PrepareDependencies(isMock, *rollappResp)
 			if err != nil {
-				pterm.Error.Println("failed to retrieve rollapp information: ", err)
+				pterm.Error.Println("failed to prepare dependencies: ", err)
 				return
 			}
 
-			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
-				pterm.Error.Println(
-					"RollApp does not contain Bech32Prefix, which is mandatory to continue",
-				)
-				return
+			// install dependencies based on rollapp info on the hub
+			if !shouldSkipBinaryInstallation {
+				start := time.Now()
+				err := dependencies.InstallBinaries(isMock, *rollappResp)
+				if err != nil {
+					pterm.Error.Println("failed to install binaries: ", err)
+					return
+				}
+				elapsed := time.Since(start)
+				pterm.Info.Println("all dependencies installed in: ", elapsed)
 			}
-
-			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to install binaries: ", err)
-				return
-			}
-			elapsed := time.Since(start)
-
-			pterm.Info.Println("all dependencies installed in: ", elapsed)
 
 			// if roller has not been initialized or it was reset
 			// set the versions to the current version
@@ -268,22 +256,22 @@ func Cmd() *cobra.Command {
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
-				strings.ToLower(raResponse.Rollapp.VmType),
+				strings.ToLower(rollappResp.Rollapp.VmType),
 			)
 			if err != nil {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
 			}
 
-			if raResponse.Rollapp.GenesisInfo.Bech32Prefix != bp {
+			if rollappResp.Rollapp.GenesisInfo.Bech32Prefix != bp {
 				pterm.Error.Printf(
 					"rollapp bech32 prefix does not match, want: %s, have: %s",
-					raResponse.Rollapp.GenesisInfo.Bech32Prefix,
+					rollappResp.Rollapp.GenesisInfo.Bech32Prefix,
 					bp,
 				)
 				return
 			}
 
-			err = runInit(cmd, env, hd, *raResponse, kb)
+			err = runInit(cmd, env, hd, *rollappResp, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
