@@ -10,10 +10,12 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func Cmd() *cobra.Command {
