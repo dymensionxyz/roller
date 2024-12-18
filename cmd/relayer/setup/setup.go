@@ -14,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
@@ -173,6 +174,7 @@ func Cmd() *cobra.Command {
 					}
 
 					pterm.Info.Println("creating ibc connection")
+					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
 						rollappChainData,
