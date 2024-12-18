@@ -14,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
@@ -37,8 +38,7 @@ func Cmd() *cobra.Command {
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 
-			pterm.Info.Println("stopping relayer services, if any...")
-			err := servicemanager.StopSystemServices(consts.AllServices)
+			err := servicemanager.StopSystemServices(consts.RelayerSystemdServices)
 			if err != nil {
 				pterm.Error.Println("failed to stop system services: ", err)
 				return
@@ -173,6 +173,7 @@ func Cmd() *cobra.Command {
 					}
 
 					pterm.Info.Println("creating ibc connection")
+					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
 						rollappChainData,
