@@ -40,7 +40,7 @@ type Info struct {
 	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
 	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3"                json:"whitelisted_relayers,omitempty"`
 	// opted in defines whether the sequencer can be selected as proposer
-	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,proto3"                                                       json:"opted_in,omitempty"`
+	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,proto3"                                                    json:"opted_in,omitempty"`
 }
 
 type Metadata struct {
@@ -70,6 +70,13 @@ type Metadata struct {
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
 	GasPrice *cosmossdkmath.Int `json:"gas_price"`
+	FeeDenom DenomMetadata      `json:"fee_denom"`
+}
+
+type DenomMetadata struct {
+	Display  string
+	Base     string
+	Exponent int
 }
 
 type ContactDetails struct {
