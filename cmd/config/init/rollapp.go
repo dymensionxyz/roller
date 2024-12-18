@@ -58,7 +58,6 @@ func InitializeRollappConfig(
 			return err
 		}
 
-		// TODO: refactor
 		as, err := genesisutils.GetAppStateFromGenesisFile(initConfig.Home)
 		if err != nil {
 			return err

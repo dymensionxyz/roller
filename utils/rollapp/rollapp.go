@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -188,7 +189,6 @@ func GetMetadataFromChain(
 	return &raResponse, nil
 }
 
-// misleading function name, how to call this?
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -237,6 +237,31 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
 	}
 
+	var baseDenom string
+	if raResponse.Rollapp.GenesisInfo.NativeDenom != nil &&
+		raResponse.Rollapp.GenesisInfo.NativeDenom.Base != "" {
+		baseDenom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
+	} else {
+		pterm.Info.Println("no native denom found, assuming token-less rollapp and using the staking denom")
+		genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
+		if err != nil {
+			return nil, err
+		}
+		// nolint: errcheck
+		defer os.RemoveAll(genesisTmpDir)
+
+		err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
+		if err != nil {
+			pterm.Error.Println("failed to download genesis file: ", err)
+			return nil, err
+		}
+		as, err := GetAppStateFromGenesisFile(genesisTmpDir)
+		if err != nil {
+			return nil, err
+		}
+		baseDenom = as.Staking.Params.BondDenom
+	}
+
 	cfg = roller.RollappConfig{
 		Home:                 home,
 		KeyringBackend:       kb,
@@ -245,7 +270,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		RollappID:            raResponse.Rollapp.RollappId,
 		RollappBinary:        consts.Executables.RollappEVM,
 		RollappVMType:        vmt,
-		Denom:                raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
+		Denom:                baseDenom,
 		Decimals:             18,
 		HubData:              hd,
 		DA:                   DA,
@@ -253,7 +278,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Environment:          hd.ID,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
-		BaseDenom:            raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
+		BaseDenom:            baseDenom,
 		MinGasPrices:         "0",
 	}
 
@@ -311,4 +336,97 @@ func GetRollappParams(hd consts.HubData) (*RaParams, error) {
 	}
 
 	return &resp, nil
+}
+
+// this is a duplicate of the one in genesisutils, a quick fix to make things work
+func downloadGenesis(home, genesisUrl string) error {
+	genesisPath := getGenesisFilePath(home)
+	if genesisUrl == "" {
+		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
+	}
+
+	err := filesystem.DownloadFile(genesisUrl, genesisPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getGenesisFilePath(root string) string {
+	return filepath.Join(
+		RollappConfigDir(root),
+		"genesis.json",
+	)
+}
+
+func GetAppStateFromGenesisFile(home string) (*AppState, error) {
+	genesisFile, err := os.Open(getGenesisFilePath(home))
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	// nolint:errcheck
+	defer genesisFile.Close()
+
+	var gs struct {
+		AppState AppState `json:"app_state"`
+	}
+	err = json.NewDecoder(genesisFile).Decode(&gs)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling genesis file: %v", err)
+	}
+
+	as := gs.AppState
+
+	return &as, err
+}
+
+type AppState struct {
+	Bank          Bank          `json:"bank"`
+	RollappParams RollappParams `json:"rollappparams"`
+	FeeMarket     *FeeMarket    `json:"feemarket"`
+	Staking       *Staking      `json:"staking"`
+}
+
+type Staking struct {
+	Params *StakingParams `json:"params"`
+}
+
+type StakingParams struct {
+	BondDenom         string `json:"bond_denom"`
+	HistoricalEntries uint64 `json:"historical_entries"`
+	MaxEntries        uint32 `json:"max_entries"`
+	MaxValidators     uint32 `json:"max_validators"`
+	MinCommissionRate string `json:"min_commission_rate"`
+	UnbondingTime     string `json:"unbonding_time"`
+}
+
+type FeeMarket struct {
+	Params *FeeMarketParams `json:"params"`
+}
+
+type FeeMarketParams struct {
+	BaseFee                  string `json:"base_fee"`
+	BaseFeeChangeDenominator int    `json:"base_fee_change_denominator"`
+	ElasticityMultiplier     int    `json:"elasticity_multiplier"`
+	EnableHeight             string `json:"enable_height"`
+	MinGasMultiplier         string `json:"min_gas_multiplier"`
+	MinGasPrice              string `json:"min_gas_price"`
+	NoBaseFee                bool   `json:"no_base_fee"`
+}
+
+type Bank struct {
+	Supply []Denom `json:"supply"`
+}
+
+type RollappParams struct {
+	Params struct {
+		Da           string                  `json:"da"`
+		DrsVersion   int                     `json:"drs_version"`
+		MinGasPrices cosmossdktypes.DecCoins `json:"min_gas_prices"`
+	} `json:"params"`
+}
+
+type Denom struct {
+	Denom string `json:"denom"`
 }
