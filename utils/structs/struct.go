@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	cosmossdkmath "cosmossdk.io/math"
-
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
@@ -46,9 +44,8 @@ func InitializeMetadata(m sequencerutils.Metadata) {
 	if m.Snapshots == nil {
 		m.Snapshots = []*sequencerutils.SnapshotInfo{}
 	}
-	if m.GasPrice == nil {
-		zero := cosmossdkmath.NewInt(0)
-		m.GasPrice = &zero
+	if m.GasPrice == "" {
+		m.GasPrice = ""
 	}
 }
 

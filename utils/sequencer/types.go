@@ -3,7 +3,6 @@ package sequencer
 import (
 	"time"
 
-	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/types"
 )
@@ -69,8 +68,8 @@ type Metadata struct {
 	Snapshots []*SnapshotInfo `json:"snapshots"`
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
-	GasPrice *cosmossdkmath.Int `json:"gas_price"`
-	FeeDenom DenomMetadata      `json:"fee_denom"`
+	GasPrice string        `json:"gas_price"`
+	FeeDenom DenomMetadata `json:"fee_denom"`
 }
 
 type DenomMetadata struct {
