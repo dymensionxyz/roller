@@ -1,18 +1,32 @@
 ## Instructions to Run Avail as a Data Availability (DA) Layer
 
-To register Rollapp using Rollapp-EVM with Avail as the DA layer, follow the instructions provided in the [vitwit/rollapp-evm](https://github.com/vitwit/rollapp-evm/tree/fix_daconfig) repository.
+To build and test the roller with avail as DA follw these steps:
 
+First, install all the necessary dependencies using the following command:
+
+```sh
+git clone https://github.com/vitwit/roller.git
+cd roller
+git fetch
+git checkout v1.11.0-alpha-rc03-vw
+```
+Build the roller 
+```bash
+make build
+```
+
+This command builds the desired version of Roller and places the executable
+in the `./build` directory.
+
+To run Roller, use:
+
+```bash
+./build/roller
+```
 
 #### Steps to Run the Roller:
 
-Clone the roller repository, switch to the branch with Avail support, and build the project:
-```bash
-git clone https://github.com/vitwit/roller.git
-git fetch && git checkout v1.9.0-vw-main
-make build && make install
-```
-
-Follow the steps in the (official doc)https://github.com/vitwit/roller/tree/v1.9.0-vw-main, with the additional adjustments specified below.
+Follow the steps in the (official doc)https://github.com/vitwit/roller/tree/v1.11.0-alpha-rc03-vw, with the additional adjustments specified below.
 
 init the rollapp
 
@@ -91,15 +105,56 @@ Once all previous steps are complete, start the roller with:
 
 These are the required changes to verify before starting the Rollapp. Please follow the instructions above carefully before starting roller.
 
-**Note**: If you encounter the issue of a negative registration fee when starting the roller, update the registration_fee field in the erc20 params section of your genesis.json file as shown below:
+## Migrate RollApp to another server
 
-```json 
-"erc20": {
-  "params": {
-    "enable_erc20": true,
-    "enable_evm_hook": true,
-    "registration_fee": "1000000000000000000"
-  },
-  "token_pairs": []
-}
+To migrate rollapp to another server follow these instructions
+
+Compress .roller folder:
+
+```sh
+sudo tar -cvf - .roller | lz4 > copyroller.tar.lz4
+```
+
+Copy copyroller.tar.lz4 to new server and unzip it:
+
+```sh
+scp copyroller.tar.lz4 user@new-server:/path/to/destination
+```
+
+```sh
+lz4 -c -d copyroller.tar.lz4 | tar -x -C .
+```
+
+Modify the file .roller/rollapp/config/dymint.toml and change the user of the new server, if necessary:
+
+```sh
+keyring_home_dir = "/home/user/.roller/hub-keys"
+```
+Modify the file .roller/roller.toml and change the home path of the new server, if necessary:
+
+```sh
+home = "/home/user/.roller"
+```
+**Note**: As we are trying to run the RollApp, the Dymension node to which it is registered must also be migrated when moving from a local server to another server."
+
+Compress .dymension folder:
+
+```sh
+sudo tar -cvf - .dymension | lz4 > copydymension.tar.lz4
+```
+
+Copy copydymension.tar.lz4 to new server and unzip it:
+
+```sh
+scp copydymension.tar.lz4 user@new-server:/path/to/destination
+```
+
+```sh
+lz4 -c -d copydymension.tar.lz4 | tar -x -C .
+```
+
+After making the necessary changes, you can start the roller using below command.
+
+```sh
+./build/roller rollapp start
 ```
