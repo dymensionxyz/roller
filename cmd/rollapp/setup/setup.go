@@ -782,15 +782,16 @@ func SupportedGasDenoms(
 	}
 	sd := map[string]dymensionseqtypes.DenomMetadata{
 		"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D": {
-			Display:  "dym",
-			Base:     "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
+			Display:  "DYM",
+			Base:     "adym",
 			Exponent: 18,
 		},
-		"ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4": {
-			Display:  "usdc",
-			Base:     "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4",
-			Exponent: 6,
-		},
+
+		// "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4": {
+		// 	Display:  "usdc",
+		// 	Base:     "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4",
+		// 	Exponent: 6,
+		// },
 	}
 
 	if raResponse.Rollapp.GenesisInfo.NativeDenom != nil {
@@ -811,7 +812,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 
-	var defaultGasPrice cosmossdkmath.Int
+	var dgpAmount cosmossdkmath.Int
 	var ok bool
 
 	as, err := genesis.GetAppStateFromGenesisFile(raCfg.Home)
@@ -825,7 +826,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 
 	var denom string
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
-		defaultGasPrice = as.RollappParams.Params.MinGasPrices[0].Amount.TruncateInt()
+		dgpAmount = as.RollappParams.Params.MinGasPrices[0].Amount.TruncateInt()
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
 	} else {
 		pterm.Info.Println("more then 1 gas token option found")
@@ -838,7 +839,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		selectedIndex := slices.IndexFunc(as.RollappParams.Params.MinGasPrices, func(t cosmossdktypes.DecCoin) bool {
 			return t.Denom == denom
 		})
-		defaultGasPrice = as.RollappParams.Params.MinGasPrices[selectedIndex].Amount.TruncateInt()
+		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].Amount.TruncateInt()
 	}
 
 	sgt, err := SupportedGasDenoms(raCfg)
@@ -851,6 +852,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	}
 
 	fd := sgt[denom]
+	fd.Display = strings.ToUpper(fd.Display)
 
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
 	sm := dymensionseqtypes.SequencerMetadata{
@@ -865,7 +867,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		ContactDetails: &cd,
 		ExtraData:      []byte{},
 		Snapshots:      defaultSnapshots,
-		GasPrice:       &defaultGasPrice,
+		GasPrice:       &dgpAmount,
 		FeeDenom:       &fd,
 	}
 
