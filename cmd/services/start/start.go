@@ -49,14 +49,16 @@ func RollappCmd() *cobra.Command {
 					pterm.Error.Println("failed to check rollapp version equality: ", err)
 				}
 
+				fmt.Println("raUpgrade.CurrentVersionCommit.....", raUpgrade.CurrentVersionCommit, rollappConfig.RollappBinaryVersion)
 				err = migrations.RequireRollappMigrateIfNeeded(
 					raUpgrade.CurrentVersionCommit[:6],
-					rollappConfig.RollappBinaryVersion[:6],
+					// rollappConfig.RollappBinaryVersion[:6],
+					"main",
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
 					pterm.Error.Println(err)
-					return
+					// return
 				}
 			}
 

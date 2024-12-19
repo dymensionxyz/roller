@@ -652,6 +652,7 @@ RollApp's IRO time: %v`,
 			case "sequencer":
 				pterm.Info.Println("checking DA account balance")
 				insufficientBalances, err := damanager.CheckDABalance()
+				fmt.Printf("insufficientBalances setupppppppppp: %v\n", insufficientBalances)
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
 				}
@@ -722,13 +723,21 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			daNamespace := damanager.DataLayer.GetNamespaceID()
-			if daNamespace == "" {
-				pterm.Error.Println("failed to retrieve da namespace id")
-				return
+			if rollappConfig.DA.Backend == consts.Celestia {
+				daNamespace := damanager.DataLayer.GetNamespaceID()
+				if daNamespace == "" {
+					pterm.Error.Println("failed to retrieve da namespace id")
+					return
+				}
 			}
 
 			pterm.Info.Println("updating dymint configuration")
+
+			// _ = tomlconfig.UpdateFieldInFile(
+			// 	dymintConfigPath,
+			// 	"namespace_id",
+			// 	daNamespace, // TODO: change it to daNamespace if da is celestia
+			// )
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",

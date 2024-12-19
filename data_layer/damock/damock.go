@@ -70,3 +70,7 @@ func (d *DAMock) GetKeyName() string {
 func (d *DAMock) GetNetworkName() string {
 	return "local"
 }
+
+func (d *DAMock) GetAppID() int {
+	return 0
+}

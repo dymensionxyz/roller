@@ -113,7 +113,7 @@ func getLightNodeKeysDir(root string) string {
 func VerifyCelestiaLightNodeKeys(root string) error {
 	lightNodeKeysDir := filepath.Join(getLightNodeKeysDir(root), innerKeysDirName)
 
-	infoFilePath := filepath.Join(lightNodeKeysDir, "my_celes_key"+".info")
+	infoFilePath := filepath.Join(lightNodeKeysDir, ""+".info") //my_celes_key
 	err := verifyFileExists(infoFilePath)
 	if err != nil {
 		return err

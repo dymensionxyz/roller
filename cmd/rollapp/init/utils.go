@@ -77,13 +77,49 @@ func runInit(
 	// }
 
 	/* ------------------------ Initialize DA light node ------------------------ */
-	daKeyInfo, err := celestialightclient.Initialize(env, ic)
-	if err != nil {
-		return err
-	}
 
-	if daKeyInfo != nil {
-		addresses = append(addresses, *daKeyInfo)
+	fmt.Println("Init config DA data.........", ic.DA)
+
+	// Generalize DA initialization logic
+	switch ic.DA.Backend {
+	case consts.Celestia:
+		// Initialize Celestia light client
+		daKeyInfo, err := celestialightclient.Initialize(env, ic)
+		if err != nil {
+			return fmt.Errorf("failed to initialize Celestia light client: %w", err)
+		}
+
+		// Append DA account address if available
+		if daKeyInfo != nil {
+			addresses = append(addresses, *daKeyInfo)
+		}
+
+	case consts.Avail:
+		// Initialize DAManager for Avail
+		damanager := datalayer.NewDAManager(consts.Avail, home, kb)
+
+		// Initialize the light node configuration
+		_, err := damanager.InitializeLightNodeConfig()
+		if err != nil {
+			return fmt.Errorf("failed to initialize Avail light node config: %w", err)
+		}
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Avail account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
+
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
 
 	/* ------------------------------ Print output ------------------------------ */

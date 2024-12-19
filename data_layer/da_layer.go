@@ -5,6 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -28,6 +29,7 @@ type DataLayer interface {
 	GetPrivateKey() (string, error)
 	GetRootDirectory() string
 	GetNamespaceID() string
+	GetAppID() int
 }
 
 type DAManager struct {
@@ -41,8 +43,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 	switch datype {
 	case consts.Celestia:
 		dalayer = celestia.NewCelestia(home, kb)
-	// case config.Avail:
-	// 	dalayer = avail.NewAvail(home)
+	case consts.Avail:
+		dalayer = avail.NewAvail(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
@@ -56,19 +58,16 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 }
 
 func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
-	var daData consts.DaData
 	var daNetwork string
+
 	switch env {
-	case "playground":
-		if daBackend == string(consts.Celestia) {
+	case "playground", "custom":
+		switch daBackend {
+		case string(consts.Celestia):
 			daNetwork = string(consts.CelestiaTestnet)
-		} else {
-			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
-		}
-	case "custom":
-		if daBackend == string(consts.Celestia) {
-			daNetwork = string(consts.CelestiaTestnet)
-		} else {
+		case string(consts.Avail):
+			daNetwork = string(consts.AvailTestnet)
+		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
 	case "mock":
@@ -76,7 +75,12 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	default:
 		return nil, fmt.Errorf("unsupported environment: %s", env)
 	}
-	daData = consts.DaNetworks[daNetwork]
+
+	// Check if the daNetwork exists in DaNetworks
+	daData, exists := consts.DaNetworks[daNetwork]
+	if !exists {
+		return nil, fmt.Errorf("DA network configuration not found for: %s", daNetwork)
+	}
 
 	return &daData, nil
 }

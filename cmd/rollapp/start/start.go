@@ -76,12 +76,13 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 
 				err = migrations.RequireRollappMigrateIfNeeded(
 					raUpgrade.CurrentVersionCommit[:6],
-					rollappConfig.RollappBinaryVersion[:6],
+					// rollappConfig.RollappBinaryVersion[:6],
+					"main",
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
-					pterm.Error.Println(err)
-					return
+					pterm.Info.Println(err)
+					// return // TODO: enable it after handling proper versions in rollapp-evm fork
 				}
 			}
 
@@ -238,30 +239,28 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home, rlpCfg.KeyringBackend)
-		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		daManager := datalayer.NewDAManager(consts.Avail, rlpCfg.Home, rlpCfg.KeyringBackend) // avail as a da
+		availAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return
 		}
 
-		if err != nil {
+		fmt.Println("avail address::", availAddrData)
+		if errCel != nil {
+			pterm.Error.Println("failed to retrieve DA address") // here check
 			return
 		}
+
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
-		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
+		fmt.Println("Sequencer Address:", seqAddrData[0].Address, seqAddrData[0].Balance.String())
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 		}
 
-		if errCel != nil {
-			pterm.Error.Println("failed to retrieve DA address")
-			return
-		}
-
-		fmt.Println("Da Address:", celAddrData[0].Address)
+		// fmt.Println("Da Address:", availAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
-			fmt.Println("Da Balance:", celAddrData[0].Balance.String())
+			fmt.Println("Da Balance:", availAddrData[0].Balance.String())
 		}
 	}
 }

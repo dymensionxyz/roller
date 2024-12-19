@@ -166,7 +166,8 @@ func UpdateDymintConfigForIBC(home string, t string, forceUpdate bool) error {
 		}
 		spin.Success("restart successful")
 
-		WaitForHealthyRollApp("http://localhost:26657/health")
+		health := fmt.Sprintf(consts.DefaultRollappRPC+"%s", "/health")
+		WaitForHealthyRollApp(health)
 	}
 
 	return nil

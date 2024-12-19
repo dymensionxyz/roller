@@ -44,7 +44,7 @@ func AddFlags(cmd *cobra.Command) error {
 		StringP(
 			FlagNames.DAType,
 			"",
-			"Celestia",
+			"Avail",
 			"The DA layer for the RollApp. Can be one of 'Celestia, Avail, Local'",
 		)
 
@@ -96,6 +96,7 @@ func GetInitConfig(
 	cfg.HubData = hub
 
 	// cfg.RollerVersion = version.TrimVersionStr(version.BuildVersion)
+	// cfg.RollappID = "rollappevm_1234-1"
 	// cfg.RollappID = raID
 	// cfg.Denom = raBaseDenom
 

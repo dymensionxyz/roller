@@ -21,8 +21,10 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
-	requiredAVL               = 1
+	// DefaultRPCEndpoint     = "wss://goldberg.avail.tools/ws"
+	DefaultRPCEndpoint = "ws://127.0.0.1:9944" // change the avail rpc if it's different
+	requiredAVL        = 1
+	AppID              = 1
 )
 
 type Avail struct {
@@ -30,6 +32,7 @@ type Avail struct {
 	Mnemonic    string
 	AccAddress  string
 	RpcEndpoint string
+	AppID       int
 
 	client *gsrpc.SubstrateAPI
 }
@@ -55,6 +58,10 @@ func NewAvail(root string) *Avail {
 			panic(err)
 		}
 
+		// availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
+		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
+		availConfig.AppID = AppID
+
 		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {
 			panic(err)
@@ -69,15 +76,24 @@ func NewAvail(root string) *Avail {
 
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
+	availConfig.AppID = AppID // Change this if required
 	return &availConfig
 }
 
-func (a *Avail) InitializeLightNodeConfig() error {
-	return nil
+func (a *Avail) InitializeLightNodeConfig() (string, error) {
+	return "", nil
 }
 
-func (a *Avail) GetDAAccountAddress() (string, error) {
-	return a.AccAddress, nil
+func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
+	key := keys.KeyInfo{
+		Address: a.AccAddress,
+	}
+	// return a.AccAddress, nil
+	return &key, nil
+}
+
+func (c *Avail) GetRootDirectory() string {
+	return c.Root
 }
 
 func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
@@ -96,7 +112,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 				CurrentBalance:  balance.Int,
 				RequiredBalance: required,
 				Denom:           consts.Denoms.Avail,
-				Network:         "avail",
+				Network:         string(consts.Avail),
 			},
 		}, nil
 	}
@@ -116,6 +132,8 @@ func (a *Avail) getBalance() (availtypes.U128, error) {
 	if err != nil {
 		return res, err
 	}
+
+	// a.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
 
 	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
 	if err != nil {
@@ -142,7 +160,7 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error) {
+func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
@@ -158,11 +176,12 @@ func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error)
 	}, nil
 }
 
-func (a *Avail) GetSequencerDAConfig() string {
+func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`,
+		`{"seed": "%s", "api_url": "%s", "app_id": %d, "tip":0}`,
 		a.Mnemonic,
 		a.RpcEndpoint,
+		a.AppID,
 	)
 }
 
@@ -184,4 +203,12 @@ func (a *Avail) GetStatus(c roller.RollappConfig) string {
 
 func (a *Avail) GetKeyName() string {
 	return "avail"
+}
+
+func (a *Avail) GetNamespaceID() string {
+	return ""
+}
+
+func (a *Avail) GetAppID() int {
+	return a.AppID
 }

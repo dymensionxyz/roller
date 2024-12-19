@@ -44,6 +44,7 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 			RepositoryName:  "rollapp-evm",
 			RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm.git",
 			Release:         raBinInfo.Commit,
+			// Release: "main",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-evm",
