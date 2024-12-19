@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1-alpha-rc07](https://github.com/dymensionxyz/roller/compare/v1.11.0-alpha-rc07...v1.11.1-alpha-rc07) (2024-12-19)
+
+
+### Bug Fixes
+
+* custom sequencer struct field type ([cb1ed42](https://github.com/dymensionxyz/roller/commit/cb1ed42b71f7afe14bbb96500c13c5b2ff52fbfe))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
