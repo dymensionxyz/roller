@@ -854,6 +854,10 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	fd := sgt[denom]
 	fd.Display = strings.ToUpper(fd.Display)
 
+	if fd.Base != "adym" {
+		fd = dymensionseqtypes.DenomMetadata{}
+	}
+
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
 	sm := dymensionseqtypes.SequencerMetadata{
 		Moniker:        "",
