@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	"github.com/dymensionxyz/roller/utils/firebase"
 )
 
 func customDymdDependency(dymdCommit string) types.Dependency {
@@ -92,12 +93,18 @@ func InstallCustomDymdVersion(dymdCommit string) error {
 }
 
 func DefaultDymdDependency() types.Dependency {
+	bvi, err := firebase.GetDependencyVersions()
+	if err != nil {
+		pterm.Error.Println("failed to fetch binary versions: ", err)
+		return types.Dependency{}
+	}
+
 	return types.Dependency{
 		DependencyName:  "dymension",
 		RepositoryOwner: "dymensionxyz",
 		RepositoryName:  "dymension",
 		RepositoryUrl:   "https://github.com/artemijspavlovs/dymension",
-		Release:         "v3.1.0-mig23",
+		Release:         bvi.Dymd,
 		Binaries: []types.BinaryPathPair{
 			{
 				Binary:            "dymd",

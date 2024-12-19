@@ -833,7 +833,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 
-	var dgpAmount cosmossdkmath.Int
+	var dgpAmount string
 	var ok bool
 
 	as, err := genesis.GetAppStateFromGenesisFile(raCfg.Home)
@@ -847,7 +847,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 
 	var denom string
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
-		dgpAmount = as.RollappParams.Params.MinGasPrices[0].Amount.TruncateInt()
+		dgpAmount = as.RollappParams.Params.MinGasPrices[0].String()
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
 	} else {
 		pterm.Info.Println("more then 1 gas token option found")
@@ -860,7 +860,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		selectedIndex := slices.IndexFunc(as.RollappParams.Params.MinGasPrices, func(t cosmossdktypes.DecCoin) bool {
 			return t.Denom == denom
 		})
-		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].Amount.TruncateInt()
+		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].String()
 	}
 
 	sgt, err := SupportedGasDenoms(raCfg)
@@ -876,25 +876,41 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	fd.Display = strings.ToUpper(fd.Display)
 
 	// TODO: add support for other denoms
-	if fd.Base != "adym" {
-		fd = dymensionseqtypes.DenomMetadata{}
-	}
-
+	var sm dymensionseqtypes.SequencerMetadata
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
-	sm := dymensionseqtypes.SequencerMetadata{
-		Moniker:        "",
-		Details:        "",
-		P2PSeeds:       []string{},
-		Rpcs:           []string{},
-		EvmRpcs:        []string{},
-		RestApiUrls:    []string{},
-		ExplorerUrl:    "",
-		GenesisUrls:    []string{},
-		ContactDetails: &cd,
-		ExtraData:      []byte{},
-		Snapshots:      defaultSnapshots,
-		GasPrice:       &dgpAmount,
-		FeeDenom:       &fd,
+
+	if fd.Base != "adym" {
+		sm = dymensionseqtypes.SequencerMetadata{
+			Moniker:        "",
+			Details:        "",
+			P2PSeeds:       []string{},
+			Rpcs:           []string{},
+			EvmRpcs:        []string{},
+			RestApiUrls:    []string{},
+			ExplorerUrl:    "",
+			GenesisUrls:    []string{},
+			ContactDetails: &cd,
+			ExtraData:      []byte{},
+			Snapshots:      defaultSnapshots,
+			GasPrice:       dgpAmount,
+			FeeDenom:       nil,
+		}
+	} else {
+		sm = dymensionseqtypes.SequencerMetadata{
+			Moniker:        "",
+			Details:        "",
+			P2PSeeds:       []string{},
+			Rpcs:           []string{},
+			EvmRpcs:        []string{},
+			RestApiUrls:    []string{},
+			ExplorerUrl:    "",
+			GenesisUrls:    []string{},
+			ContactDetails: &cd,
+			ExtraData:      []byte{},
+			Snapshots:      defaultSnapshots,
+			GasPrice:       dgpAmount,
+			FeeDenom:       &fd,
+		}
 	}
 
 	path := filepath.Join(
