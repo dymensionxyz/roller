@@ -1,11 +1,13 @@
 package genesis
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -382,4 +384,44 @@ func GetAddGenesisAccountCmd(addr, amount string, raCfg *roller.RollappConfig) *
 	)
 
 	return cmd
+}
+
+type ValidateGenesisRequest struct {
+	RollappID             string `json:"rollapp-id"`
+	SettlementChainID     string `json:"settlement-chain-id"`
+	SettlementNodeAddress string `json:"settlement-node-address"`
+}
+
+const (
+	ValidateGenesisURL = "https://genesis-validator.rollapp.network/validate-genesis"
+)
+
+func ValidateGenesis(raID string, hd consts.HubData) error {
+	req := ValidateGenesisRequest{
+		RollappID:             raID,
+		SettlementChainID:     hd.ID,
+		SettlementNodeAddress: hd.RpcUrl,
+	}
+
+	b, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(ValidateGenesisURL, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	rb, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error validating genesis: %s", string(rb))
+	}
+
+	return nil
 }
