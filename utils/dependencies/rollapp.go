@@ -62,7 +62,7 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 			RepositoryOwner: "dymensionxyz",
 			RepositoryName:  "rollapp-wasm",
 			RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm.git",
-			Release:         raBinInfo.Commit,
+			Release:         "dc868eb915c761b201dfe40317e592db3dc1b116",
 			Binaries: []types.BinaryPathPair{
 				{
 					Binary:            "./build/rollapp-wasm",
