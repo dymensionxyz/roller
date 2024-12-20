@@ -966,29 +966,31 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		}
 	}
 
-	for {
-		// Prompt the user for the RPC URL
-		evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
-		).Show()
-		if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
-			evmRpc = "https://" + evmRpc
-		}
+	if raCfg.RollappVMType == consts.EVM_ROLLAPP {
+		for {
+			// Prompt the user for the RPC URL
+			evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
+			).Show()
+			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
+				evmRpc = "https://" + evmRpc
+			}
 
-		isValid := config.IsValidURL(evmRpc)
+			isValid := config.IsValidURL(evmRpc)
 
-		// Validate the URL
-		if !isValid {
-			pterm.Error.Println("Invalid URL. Please try again.")
-		} else {
-			// Valid URL, break out of the loop
-			break
+			// Validate the URL
+			if !isValid {
+				pterm.Error.Println("Invalid URL. Please try again.")
+			} else {
+				// Valid URL, break out of the loop
+				break
+			}
 		}
+		sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
 	}
 
 	sm.Rpcs = append(sm.Rpcs, rpc)
 	sm.RestApiUrls = append(sm.RestApiUrls, rest)
-	sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
 
 	shouldFillOptionalFields, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 		"Would you also like to fill optional metadata for your sequencer?",
