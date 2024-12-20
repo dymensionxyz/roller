@@ -135,6 +135,29 @@ Modify the file .roller/roller.toml and change the home path of the new server, 
 ```sh
 home = "/home/user/.roller"
 ```
+Migrate the dependencies downloaded locally during the roller init command. If the dependency versions differ, ensure that the correct versions are also migrated.
+
+```sh
+tar --absolute-names -czvf rollapp-binaries.tar.gz /usr/local/bin/dymd /usr/local/bin/rollapp-evm
+```
+
+```sh
+ scp rollapp-binaries.tar.gz user@new-server:/path/to/destination
+ ```
+
+ unzip the binaries in server
+
+ ```sh
+ tar --absolute-names -xzvf rollapp-binaries.tar.gz -C /usr/local/bin/
+ ```
+
+ verify the updated versions
+
+ ```sh
+ dymd version
+ rollapp-evm version
+ ```
+
 **Note**: As we are trying to run the RollApp, the Dymension node to which it is registered must also be migrated when moving from a local server to another server."
 
 Compress .dymension folder:
@@ -153,8 +176,13 @@ scp copydymension.tar.lz4 user@new-server:/path/to/destination
 lz4 -c -d copydymension.tar.lz4 | tar -x -C .
 ```
 
+```sh
+dymd start
+```
+
 After making the necessary changes, you can start the roller using below command.
 
 ```sh
 ./build/roller rollapp start
 ```
+
