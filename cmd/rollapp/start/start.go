@@ -85,10 +85,12 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				}
 			}
 
-			err = sequencerutils.CheckBalance(rollappConfig)
-			if err != nil {
-				pterm.Error.Println("failed to check sequencer balance: ", err)
-				return
+			if rollappConfig.NodeType == "sequencer" {
+				err = sequencerutils.CheckBalance(rollappConfig)
+				if err != nil {
+					pterm.Error.Println("failed to check sequencer balance: ", err)
+					return
+				}
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)

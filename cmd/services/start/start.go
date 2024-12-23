@@ -37,10 +37,12 @@ func RollappCmd() *cobra.Command {
 			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			err = sequencerutils.CheckBalance(rollappConfig)
-			if err != nil {
-				pterm.Error.Println("failed to check sequencer balance: ", err)
-				return
+			if rollappConfig.NodeType == "sequencer" {
+				err = sequencerutils.CheckBalance(rollappConfig)
+				if err != nil {
+					pterm.Error.Println("failed to check sequencer balance: ", err)
+					return
+				}
 			}
 
 			if rollappConfig.HubData.ID != consts.MockHubID {

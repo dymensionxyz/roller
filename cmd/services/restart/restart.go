@@ -30,10 +30,12 @@ func Cmd(services []string) *cobra.Command {
 				return
 			}
 
-			err = sequencerutils.CheckBalance(rollappConfig)
-			if err != nil {
-				pterm.Error.Println("failed to check sequencer balance: ", err)
-				return
+			if rollappConfig.NodeType == "sequencer" {
+				err = sequencerutils.CheckBalance(rollappConfig)
+				if err != nil {
+					pterm.Error.Println("failed to check sequencer balance: ", err)
+					return
+				}
 			}
 
 			err = servicemanager.RestartSystemServices(services, home)
