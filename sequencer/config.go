@@ -152,7 +152,7 @@ func SetTMConfig(rlpCfg roller.RollappConfig) error {
 	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
 	tomlCfg.Set("mempool.max_tx_bytes", "450000")
-	tomlCfg.Set("ttl-duration	", "5m0s")
+	tomlCfg.Set("mempool.ttl-duration", "5m0s")
 
 	return tomlconfig.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
