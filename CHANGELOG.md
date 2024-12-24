@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.11.1-alpha-rc10](https://github.com/dymensionxyz/roller/compare/v1.11.0-alpha-rc10...v1.11.1-alpha-rc10) (2024-12-24)
+
+
+### Bug Fixes
+
+* check balance only for sequencer during start/restart ([bc716fd](https://github.com/dymensionxyz/roller/commit/bc716fd1f43679e7cedb18f17d45d68fa5ee2fef))
+* typo in ttl-duration toml path ([9404490](https://github.com/dymensionxyz/roller/commit/94044904cf621d5dcd50b92a2c4007b544d31749))
+* update config.toml with sensible defaults ([418a023](https://github.com/dymensionxyz/roller/commit/418a023621ca99b1cd17f84d6ba1eeafbb8c6502))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
