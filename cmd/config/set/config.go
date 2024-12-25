@@ -79,12 +79,18 @@ func verifyMinimumGasPrice(
 }
 
 func setMinimumGasPrice(rollerData roller.RollappConfig, value string) error {
+	smgSpinner, _ := pterm.DefaultSpinner.Start("verifying minimum gas price")
+	// nolint: errcheck
+	defer smgSpinner.Stop()
+
+	smgSpinner.UpdateText("verifying minimum gas price")
 	amount, dm, err := verifyMinimumGasPrice(rollerData, value)
 	if err != nil {
-		pterm.Error.Println("failed to verift minimum gas price", err)
+		smgSpinner.Fail("failed to verift minimum gas price", err)
 		return err
 	}
 
+	smgSpinner.UpdateText("setrieving sequencer metadata")
 	hubSeqKC := keys.KeyConfig{
 		Dir:            consts.ConfigDirName.HubKeys,
 		ID:             consts.KeysIds.HubSequencer,
@@ -95,30 +101,32 @@ func setMinimumGasPrice(rollerData roller.RollappConfig, value string) error {
 
 	seqAddrInfo, err := hubSeqKC.Info(rollerData.Home)
 	if err != nil {
-		pterm.Error.Println("failed to get sequencer address", err)
+		smgSpinner.Fail("failed to get sequencer address", err)
 		return err
 	}
 	seqAddrInfo.Address = strings.TrimSpace(seqAddrInfo.Address)
 
 	metadata, err := sequencer.GetMetadata(seqAddrInfo.Address, rollerData.HubData)
 	if err != nil {
-		pterm.Error.Println("failed to get sequencer metadata", err)
+		smgSpinner.Fail("failed to get sequencer metadata", err)
 		return err
 	}
 
 	metadata.FeeDenom = dm
 	metadata.GasPrice = amount
 
+	smgSpinner.UpdateText("setrieving sequencer metadata")
 	appConfigFilePath := filepath.Join(
 		sequencerutils.GetSequencerConfigDir(rollerData.Home),
 		"app.toml",
 	)
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
-		pterm.Error.Println("failed to load app.toml", err)
+		smgSpinner.Fail("failed to load app.toml", err)
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
 	appCfg.Set("minimum-gas-prices", value)
+
 	return nil
 }
 
