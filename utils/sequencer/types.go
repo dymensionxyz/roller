@@ -68,8 +68,8 @@ type Metadata struct {
 	Snapshots []*SnapshotInfo `json:"snapshots"`
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
-	GasPrice string        `json:"gas_price"`
-	FeeDenom DenomMetadata `json:"fee_denom"`
+	GasPrice string         `json:"gas_price"`
+	FeeDenom *DenomMetadata `json:"fee_denom"`
 }
 
 type DenomMetadata struct {
