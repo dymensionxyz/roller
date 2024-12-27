@@ -18,7 +18,9 @@ import (
 	"golang.org/x/exp/maps"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func createBlockExplorerContainers(home, hostAddress string) error {
@@ -230,6 +232,25 @@ func runSQLMigration(home string) error {
 	err := os.MkdirAll(dbMigrationsPath, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create migrations directory: %w", err)
+	}
+
+	migrationFiles := []types.PersistFile{
+		{
+			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/schema.sql",
+			Target: dbMigrationsSchemaPath,
+		},
+		{
+			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/events.sql",
+			Target: dbMigrationsEventsPath,
+		},
+	}
+
+	for _, file := range migrationFiles {
+		err := filesystem.DownloadFile(file.Source, file.Target)
+		if err != nil {
+			pterm.Error.Printf("Failed to retrieve SQL migration %s: %v\n", file.Target, err)
+			return err
+		}
 	}
 
 	maxRetries := 30
