@@ -2,8 +2,10 @@ package run
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -28,7 +30,23 @@ func Cmd() *cobra.Command {
 
 			hostAddress := "host.docker.internal"
 			if runtime.GOOS == "linux" {
-				hostAddress = "172.17.0.1" // Default Docker bridge network gateway
+				// Try to get the Docker bridge network gateway dynamically
+				output, err := exec.Command("docker", "network", "inspect", "bridge", "-f", "{{range .IPAM.Config}}{{.Gateway}}{{end}}").
+					Output()
+				if err != nil {
+					hostAddress = "172.17.0.1" // Fallback to default gateway
+				} else {
+					hostAddress = strings.TrimSpace(string(output))
+				}
+
+				// Ensure host.docker.internal is available on Linux
+				err = rollerfilesystemutils.UpdateHostsFile(hostAddress, "host.docker.internal")
+				if err != nil {
+					pterm.Warning.Printf(
+						"Failed to update hosts file: %v. Using IP address directly.\n",
+						err,
+					)
+				}
 			}
 			var raID string
 			fmt.Println(hostAddress)

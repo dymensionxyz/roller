@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -17,10 +18,7 @@ import (
 	"golang.org/x/exp/maps"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	postgresqlutils "github.com/dymensionxyz/roller/utils/database/postgresql"
-	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	dockerutils "github.com/dymensionxyz/roller/utils/docker"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 )
 
 func createBlockExplorerContainers(home, hostAddress string) error {
@@ -162,34 +160,50 @@ func connectContainerToNetwork(
 	cc *client.Client,
 	networkName, containerName string,
 ) error {
-	networkResource, err := cc.NetworkInspect(ctx, networkName, network.InspectOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to inspect network: %v", err)
-	}
+	maxRetries := 3
+	retryDelay := time.Second * 2
 
-	for _, container := range networkResource.Containers {
-		if container.Name == containerName {
-			fmt.Printf(
-				"Container %s is already connected to network %s\n",
-				containerName,
-				networkName,
-			)
-			return nil
+	var lastErr error
+	for i := 0; i < maxRetries; i++ {
+		networkResource, err := cc.NetworkInspect(ctx, networkName, network.InspectOptions{})
+		if err != nil {
+			lastErr = fmt.Errorf("failed to inspect network: %v", err)
+			time.Sleep(retryDelay)
+			continue
 		}
+
+		for _, container := range networkResource.Containers {
+			if container.Name == containerName {
+				pterm.Success.Printf(
+					"Container %s is already connected to network %s\n",
+					containerName,
+					networkName,
+				)
+				return nil
+			}
+		}
+
+		err = cc.NetworkConnect(
+			ctx,
+			networkName,
+			containerName,
+			&network.EndpointSettings{},
+		)
+		if err != nil {
+			lastErr = fmt.Errorf(
+				"failed to connect container %s to network: %v",
+				containerName,
+				err,
+			)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		pterm.Success.Printf("Connected container %s to network %s\n", containerName, networkName)
+		return nil
 	}
 
-	err = cc.NetworkConnect(
-		ctx,
-		networkName,
-		containerName,
-		&network.EndpointSettings{},
-	)
-	if err != nil {
-		return fmt.Errorf("failed to connect container %s to network: %v", containerName, err)
-	}
-
-	fmt.Printf("Connected container %s to network %s\n", containerName, networkName)
-	return nil
+	return fmt.Errorf("failed to connect after %d retries: %v", maxRetries, lastErr)
 }
 
 func runSQLMigration(home string) error {
@@ -218,70 +232,63 @@ func runSQLMigration(home string) error {
 		return fmt.Errorf("failed to create migrations directory: %w", err)
 	}
 
-	migrationFiles := []types.PersistFile{
-		{
-			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/schema.sql",
-			Target: dbMigrationsSchemaPath,
-		},
-		{
-			Source: "https://raw.githubusercontent.com/dymensionxyz/roller/main/migrations/block-explorer/events.sql",
-			Target: dbMigrationsEventsPath,
-		},
-	}
+	maxRetries := 30
+	retryDelay := time.Second * 2
 
-	for _, file := range migrationFiles {
-		err := filesystem.DownloadFile(file.Source, file.Target)
+	var db *sql.DB
+	var lastErr error
+
+	for i := 0; i < maxRetries; i++ {
+		db, err = sql.Open("postgres", dbConnStr)
 		if err != nil {
-			pterm.Error.Printf("Failed to retrieve SQL migration %s: %v\n", file.Target, err)
-			return err
+			lastErr = fmt.Errorf("failed to open database connection: %w", err)
+			time.Sleep(retryDelay)
+			continue
 		}
+
+		err = db.Ping()
+		if err != nil {
+			db.Close()
+			lastErr = fmt.Errorf("failed to ping database: %w", err)
+			pterm.Info.Printf(
+				"Waiting for database to be ready (attempt %d/%d)...\n",
+				i+1,
+				maxRetries,
+			)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		break
 	}
 
-	dbAdmin, err := sql.Open("postgres", dbConnStr)
-	if err != nil {
-		return fmt.Errorf("failed to connect to database as admin: %w", err)
+	if db == nil {
+		return fmt.Errorf("failed to connect to database after %d retries: %v", maxRetries, lastErr)
 	}
-	defer dbAdmin.Close()
+	defer db.Close()
 
-	dbLocal, err := sql.Open("postgres", dbConnStr)
-	if err != nil {
-		return fmt.Errorf("failed to connect to database as local user: %w", err)
-	}
-	defer dbLocal.Close()
-
-	// Create migration tracking table
-	const createMigrationTableSQL = `
-    CREATE TABLE IF NOT EXISTS applied_migrations (
-        id SERIAL PRIMARY KEY,
-        filename VARCHAR(255) NOT NULL UNIQUE,
-        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );`
-
-	_, err = dbAdmin.Exec(createMigrationTableSQL)
-	if err != nil {
-		return fmt.Errorf("failed to create migration table: %w", err)
-	}
-
-	// Apply schema migration
+	pterm.Info.Println("Running schema migrations")
 	schemaContent, err := os.ReadFile(dbMigrationsSchemaPath)
 	if err != nil {
-		return fmt.Errorf("failed to read schema SQL file: %w", err)
-	}
-	err = postgresqlutils.ApplyMigration(dbLocal, "schema.sql", schemaContent)
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to read schema.sql: %w", err)
 	}
 
-	// Apply events migration
+	_, err = db.Exec(string(schemaContent))
+	if err != nil {
+		return fmt.Errorf("failed to execute schema.sql: %w", err)
+	}
+
+	pterm.Info.Println("Running events migrations")
 	eventsContent, err := os.ReadFile(dbMigrationsEventsPath)
 	if err != nil {
-		return fmt.Errorf("failed to read events SQL file: %w", err)
-	}
-	err = postgresqlutils.ApplyMigration(dbAdmin, "events.sql", eventsContent)
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to read events.sql: %w", err)
 	}
 
-	pterm.Success.Println("Migrations checked and applied successfully")
+	_, err = db.Exec(string(eventsContent))
+	if err != nil {
+		return fmt.Errorf("failed to execute events.sql: %w", err)
+	}
+
+	pterm.Success.Println("Database migrations completed successfully")
 	return nil
 }
