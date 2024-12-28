@@ -53,6 +53,8 @@ func ExtractBech32PrefixFromBinary(vmType string) (string, error) {
 		return "", errors.New("rollapp binary does not contain build flags ")
 	}
 
+	bech32Prefix = strings.ToLower(bech32Prefix)
+
 	return bech32Prefix, err
 }
 
