@@ -75,9 +75,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		args = append(args, cArgs...)
 	}
 
-	tmpCmd := exec.Command(consts.Executables.Dymension, args...)
-	fmt.Println(tmpCmd.String())
-
 	displayBond, err := BaseDenomToDenom(desiredBond, 18)
 	if err != nil {
 		return err
