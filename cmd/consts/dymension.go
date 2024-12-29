@@ -62,7 +62,7 @@ var Hubs = map[string]HubData{
 const (
 	MockHubName       = "mock"
 	LocalHubName      = "local"
-	BlumbusHubName    = "testnet"
+	BlumbusHubName    = "blumbus"
 	PlaygroundHubName = "playground"
 	MainnetHubName    = "mainnet"
 )
