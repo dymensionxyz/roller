@@ -346,8 +346,10 @@ func ExtractTxHash(output string) (string, error) {
 	for _, line := range lines {
 		if strings.HasPrefix(line, "raw_log:") {
 			fmt.Println(line)
-			str := strings.Trim(line, "raw_log:")
-			fmt.Println(str)
+			str := strings.Trim(line, "raw_log: ")
+			if str != "''" {
+				return "", fmt.Errorf("txhash not found in raw_log: %s", str)
+			}
 		}
 	}
 
