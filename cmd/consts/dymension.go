@@ -10,10 +10,10 @@ var MainnetHubData = HubData{
 	DaNetwork:     CelestiaMainnet,
 }
 
-var TestnetHubData = HubData{
+var BlumbusHubData = HubData{
 	Environment:   "blumbus",
 	ApiUrl:        "https://api-blumbus.mzonder.com",
-	ID:            TestnetHubID,
+	ID:            BlumbusHubID,
 	RpcUrl:        "https://rpc-blumbus.mzonder.com",
 	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com",
 	GasPrice:      "20000000000",
@@ -54,7 +54,7 @@ var PlaygroundHubData = HubData{
 var Hubs = map[string]HubData{
 	MockHubName:       MockHubData,
 	LocalHubName:      LocalHubData,
-	TestnetHubName:    TestnetHubData,
+	BlumbusHubName:    BlumbusHubData,
 	PlaygroundHubName: PlaygroundHubData,
 	MainnetHubName:    MainnetHubData,
 }
@@ -62,7 +62,7 @@ var Hubs = map[string]HubData{
 const (
 	MockHubName       = "mock"
 	LocalHubName      = "local"
-	TestnetHubName    = "testnet"
+	BlumbusHubName    = "testnet"
 	PlaygroundHubName = "playground"
 	MainnetHubName    = "mainnet"
 )
@@ -71,6 +71,6 @@ const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
 	PlaygroundHubID = "dymension_1405-1"
-	TestnetHubID    = "blumbus_111-1"
+	BlumbusHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"
 )

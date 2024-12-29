@@ -59,7 +59,7 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	var daData consts.DaData
 	var daNetwork string
 	switch env {
-	case "playground":
+	case "playground", "blumbus":
 		if daBackend == string(consts.Celestia) {
 			daNetwork = string(consts.CelestiaTestnet)
 		} else {
