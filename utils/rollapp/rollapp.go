@@ -104,6 +104,7 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 		"--node", hd.RpcUrl,
 		"--chain-id", hd.ID,
 	)
+	pterm.Debug.Println(cmd.String())
 
 	return cmd
 }
