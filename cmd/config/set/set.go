@@ -48,7 +48,7 @@ func getSupportedKeys() []string {
 }
 
 var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{
-	"minimum-gas-price": setMinimumGasPrice,
+	"minimum-gas-price": SetMinimumGasPrice,
 	"hub-rpc-endpoint":  setHubRPC,
 	"block-time":        setBlockTime,
 }

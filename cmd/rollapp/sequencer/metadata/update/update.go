@@ -2,7 +2,9 @@ package update
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -10,11 +12,13 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/config/set"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -128,6 +132,24 @@ func Cmd() *cobra.Command {
 			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
+				return
+			}
+
+			var seqMetadata sequencer.Metadata
+			b, err := os.ReadFile(metadataFilePath)
+			if err != nil {
+				pterm.Error.Println("failed to read metadata file: ", err)
+				return
+			}
+			err = json.Unmarshal(b, &seqMetadata)
+			if err != nil {
+				pterm.Error.Println("failed to unmarshal metadata file: ", err)
+				return
+			}
+
+			err = set.SetMinimumGasPrice(rollerData, seqMetadata.GasPrice)
+			if err != nil {
+				pterm.Error.Println("failed to set minimum gas price in app.toml: ", err)
 				return
 			}
 		},
