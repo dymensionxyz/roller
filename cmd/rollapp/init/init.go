@@ -1,6 +1,7 @@
 package initrollapp
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -209,6 +210,9 @@ func Cmd() *cobra.Command {
 				return
 			default:
 				hd = consts.Hubs[env]
+
+				j, _ := json.Marshal(hd)
+				fmt.Println(string(j))
 
 				if shouldSkipBinaryInstallation {
 					dymdDep := dependencies.DefaultDymdDependency()
