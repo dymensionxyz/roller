@@ -19,7 +19,7 @@ import (
 // For other environments, it returns the OS backend if not on Darwin, otherwise test backend.
 func KeyringBackendFromEnv(env string) consts.SupportedKeyringBackend {
 	switch env {
-	case "mock", "playground":
+	case "mock", "playground", "blumbus":
 		return consts.SupportedKeyringBackends.Test
 	case "custom":
 		krBackends := []string{"test"}
