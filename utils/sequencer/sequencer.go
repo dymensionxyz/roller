@@ -17,6 +17,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -108,6 +109,11 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		automaticPrompts,
 		manualPromptResponses,
 	)
+	if err != nil {
+		return err
+	}
+
+	err = tx_utils.CheckTxYamlStdOut(*txOutput)
 	if err != nil {
 		return err
 	}
