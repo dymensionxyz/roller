@@ -342,6 +342,7 @@ func ExecCommandWithInput(
 
 func ExtractTxHash(output string) (string, error) {
 	lines := strings.Split(output, "\n")
+
 	for _, line := range lines {
 		if strings.HasPrefix(line, "txhash:") {
 			return strings.TrimSpace(strings.TrimPrefix(line, "txhash:")), nil

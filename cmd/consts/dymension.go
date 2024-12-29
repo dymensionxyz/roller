@@ -12,10 +12,10 @@ var MainnetHubData = HubData{
 
 var BlumbusHubData = HubData{
 	Environment:   "blumbus",
-	ApiUrl:        "https://api-blumbus.mzonder.com",
+	ApiUrl:        "https://api-blumbus.mzonder.com:443",
 	ID:            BlumbusHubID,
-	RpcUrl:        "https://rpc-blumbus.mzonder.com",
-	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com",
+	RpcUrl:        "https://rpc-blumbus.mzonder.com:443",
+	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com:443",
 	GasPrice:      "20000000000",
 	DaNetwork:     CelestiaTestnet,
 }
