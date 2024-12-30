@@ -64,7 +64,7 @@ func Cmd() *cobra.Command {
 				err = applyMigrations(
 					rollerData.Home,
 					rollerData.RollappBinaryVersion, raUpgrade.CurrentVersionCommit, rollappType,
-					upgrades.WasmRollappUpgradeModules,
+					upgrades.WasmRollappUpgradeModules(home),
 				)
 				if err != nil {
 					pterm.Error.Println("failed to apply migrations: ", err)
