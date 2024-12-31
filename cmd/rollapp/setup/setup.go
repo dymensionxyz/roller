@@ -179,6 +179,7 @@ RollApp's IRO time: %v`,
 						pterm.Error.Println("failed to validate genesis: ", err)
 					}
 					err = genesis.ValidateGenesis(
+						localRollerConfig,
 						localRollerConfig.RollappID,
 						localRollerConfig.HubData,
 					)
