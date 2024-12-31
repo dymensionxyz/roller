@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/config/set"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
@@ -148,7 +148,11 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("setting minimum gas price in app.toml to", seqMetadata.GasPrice)
-			err = set.SetMinimumGasPrice(rollerData, seqMetadata.GasPrice)
+			err = tomlconfig.UpdateFieldInFile(
+				sequencer.GetDymintFilePath(rollerData.Home),
+				"minimum-gas-prices",
+				seqMetadata.GasPrice,
+			)
 			if err != nil {
 				pterm.Error.Println("failed to set minimum gas price in app.toml: ", err)
 				return
