@@ -147,7 +147,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Println("setting minimum gas price in app.toml")
+			pterm.Info.Println("setting minimum gas price in app.toml to", seqMetadata.GasPrice)
 			err = set.SetMinimumGasPrice(rollerData, seqMetadata.GasPrice)
 			if err != nil {
 				pterm.Error.Println("failed to set minimum gas price in app.toml: ", err)
