@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
-	"github.com/dymensionxyz/roller/cmd/config/set"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/sequencer"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
 
@@ -41,7 +41,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			rollerData, err := roller.LoadConfig(home)
+			raData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
@@ -60,18 +60,18 @@ func Cmd() *cobra.Command {
 				"--from",
 				consts.KeysIds.HubSequencer,
 				"--keyring-backend",
-				string(rollerData.KeyringBackend),
+				string(raData.KeyringBackend),
 				"--fees",
 				fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 				"--gas-adjustment",
 				"1.3",
 				"--keyring-dir",
 				filepath.Join(home, consts.ConfigDirName.HubKeys),
-				"--node", rollerData.HubData.RpcUrl, "--chain-id", rollerData.HubData.ID,
+				"--node", raData.HubData.RpcUrl, "--chain-id", raData.HubData.ID,
 			}
 			var txHash string
 
-			if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+			if raData.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.Dymension)
 				if err != nil {
 					pterm.Error.Println("failed to get os keyring psw file name", err)
@@ -129,13 +129,13 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
+			err = tx.MonitorTransaction(raData.HubData.RpcUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
 				return
 			}
 
-			var seqMetadata sequencer.Metadata
+			var seqMetadata sequencerutils.Metadata
 			b, err := os.ReadFile(metadataFilePath)
 			if err != nil {
 				pterm.Error.Println("failed to read metadata file: ", err)
@@ -147,7 +147,16 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = set.SetMinimumGasPrice(rollerData, seqMetadata.GasPrice)
+			appConfigFilePath := filepath.Join(
+				sequencerutils.GetSequencerConfigDir(raData.Home),
+				"app.toml",
+			)
+			pterm.Info.Println("setting minimum gas price in app.toml to", seqMetadata.GasPrice)
+			err = tomlconfig.UpdateFieldInFile(
+				appConfigFilePath,
+				"minimum-gas-prices",
+				seqMetadata.GasPrice,
+			)
 			if err != nil {
 				pterm.Error.Println("failed to set minimum gas price in app.toml: ", err)
 				return

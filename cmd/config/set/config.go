@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"time"
 
-	toml "github.com/pelletier/go-toml"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -16,12 +15,10 @@ import (
 
 func SetMinimumGasPrice(cfg roller.RollappConfig, value string) error {
 	appConfigFilePath := filepath.Join(sequencerutils.GetSequencerConfigDir(cfg.Home), "app.toml")
-	appCfg, err := toml.LoadFile(appConfigFilePath)
+	err := tomlconfig.UpdateFieldInFile(appConfigFilePath, "minimum-gas-prices", value)
 	if err != nil {
-		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
+		return err
 	}
-
-	appCfg.Set("minimum-gas-prices", value)
 	return nil
 }
 
