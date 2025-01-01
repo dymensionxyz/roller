@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -396,11 +397,25 @@ const (
 	ValidateGenesisURL = "https://genesis-validator.rollapp.network/validate-genesis"
 )
 
-func ValidateGenesis(raID string, hd consts.HubData) error {
+func ValidateGenesis(raCfg roller.RollappConfig, raID string, hd consts.HubData) error {
 	req := ValidateGenesisRequest{
 		RollappID:             raID,
 		SettlementChainID:     hd.ID,
 		SettlementNodeAddress: hd.RpcUrl,
+	}
+
+	isChecksumValid, err := CompareGenesisChecksum(
+		raCfg.Home,
+		raID,
+		hd,
+	)
+
+	if !isChecksumValid {
+		return errors.New("genesis checksum mismatch")
+	}
+
+	if err != nil {
+		return err
 	}
 
 	b, err := json.Marshal(req)

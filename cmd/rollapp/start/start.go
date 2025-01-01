@@ -19,6 +19,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/migrations"
@@ -65,6 +66,22 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 			rollappConfig, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config: ", err)
+				return
+			}
+
+			isChecksumValid, err := genesisutils.CompareGenesisChecksum(
+				rollappConfig.Home,
+				rollappConfig.RollappID,
+				rollappConfig.HubData,
+			)
+
+			if !isChecksumValid {
+				pterm.Error.Println("genesis checksum mismatch")
+				return
+			}
+
+			if err != nil {
+				pterm.Error.Println("failed to compare genesis checksum: ", err)
 				return
 			}
 
