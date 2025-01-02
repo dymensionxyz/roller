@@ -90,7 +90,7 @@ func createBlockExplorerContainers(home, hostAddress string) error {
 				{
 					Type:   mount.TypeBind,
 					Source: beChainConfigPath,
-					Target: "/app/.beid/chains.yaml",
+					Target: "/root/.beid/chains.yaml",
 				},
 			},
 		},
