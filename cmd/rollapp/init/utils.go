@@ -78,8 +78,6 @@ func runInit(
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 
-	fmt.Println("Init config DA data.........", ic.DA)
-
 	// Generalize DA initialization logic
 	switch ic.DA.Backend {
 	case consts.Celestia:

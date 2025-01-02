@@ -258,7 +258,6 @@ func PrintOutput(
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 		}
 
-		// fmt.Println("Da Address:", availAddrData[0].Address)
 		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
 			fmt.Println("Da Balance:", availAddrData[0].Balance.String())
 		}

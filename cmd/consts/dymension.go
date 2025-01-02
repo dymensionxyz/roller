@@ -44,15 +44,12 @@ var MockHubData = HubData{
 
 var PlaygroundHubData = HubData{
 	Environment:   "playground",
-	ApiUrl:        "http://localhost:1318",
+	ApiUrl:        "http://localhost:1318", // "https://api-dym-migration-test-2.mzonder.com:443",
 	ID:            PlaygroundHubID,
-	RpcUrl:        "http://localhost:36657",
-	ArchiveRpcUrl: "http://localhost:36657",
+	RpcUrl:        "http://localhost:36657", //  "https://rpc-dym-migration-test-2.mzonder.com:443",
+	ArchiveRpcUrl: "http://localhost:36657", // "https://rpc-dym-migration-test-2.mzonder.com:443",
 	GasPrice:      "2000000000",
 	DaNetwork:     AvailTestnet,
-	// ApiUrl:        "https://api-dym-migration-test-2.mzonder.com:443",
-	// RpcUrl:        "https://rpc-dym-migration-test-2.mzonder.com:443",
-	// ArchiveRpcUrl: "https://rpc-dym-migration-test-2.mzonder.com:443",
 }
 
 // TODO(#112): The available hub networks should be read from YAML file

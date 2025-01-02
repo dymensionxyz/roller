@@ -118,44 +118,6 @@ func ExpandHomePath(path string) (string, error) {
 	return path, nil
 }
 
-// TODO: download the file in chunks if possible
-// func DownloadFile(url, fp string) error {
-// 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	spinner, _ := pterm.DefaultSpinner.
-// 		Start("Downloading ", filepath.Base(fp))
-// 	fmt.Println()
-
-// 	// nolint:gosec
-// 	resp, err := http.Get(url)
-// 	if err != nil || resp.StatusCode != http.StatusOK {
-// 		// nolint:errcheck,gosec
-// 		resp.Body.Close()
-// 		spinner.Fail("failed to download file: ", err)
-// 		return err
-// 	}
-// 	// nolint:errcheck
-// 	defer resp.Body.Close()
-
-// 	out, err := os.Create(fp)
-// 	if err != nil {
-// 		spinner.Fail("failed to download file: ", err)
-// 		return err
-// 	}
-// 	// nolint:errcheck
-// 	defer out.Close()
-
-// 	spinner.Success(fmt.Sprintf("Successfully downloaded the %s", filepath.Base(fp)))
-// 	_, err = io.Copy(out, resp.Body)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 func DownloadFile(url, fp string) error {
 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
 	if err != nil {
@@ -223,78 +185,6 @@ type JSONRPCResponse struct {
 		Genesis json.RawMessage `json:"genesis"`
 	} `json:"result"`
 }
-
-// func DownloadFile(url, fp string) error {
-// 	// Create directories if not exist
-// 	err := os.MkdirAll(filepath.Dir(fp), 0o755)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Start the spinner
-// 	spinner, _ := pterm.DefaultSpinner.Start("Downloading ", filepath.Base(fp))
-// 	fmt.Println()
-
-// 	// nolint:gosec
-// 	resp, err := http.Get(url)
-// 	if err != nil || resp.StatusCode != http.StatusOK {
-// 		if resp != nil {
-// 			// nolint:errcheck,gosec
-// 			resp.Body.Close()
-// 		}
-// 		spinner.Fail("failed to download file: ", err)
-// 		return err
-// 	}
-// 	// nolint:errcheck
-// 	defer resp.Body.Close()
-
-// 	// Read the response body into memory
-// 	body, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		spinner.Fail("failed to read response body: ", err)
-// 		return err
-// 	}
-
-// 	// Check if the response is a JSON-RPC response
-// 	var jsonResponse JSONRPCResponse
-// 	writeData := body // Default to writing the whole body
-// 	if err := json.Unmarshal(body, &jsonResponse); err == nil && jsonResponse.JSONRPC != "" {
-// 		// JSON-RPC response detected
-// 		if len(jsonResponse.Result.Genesis) > 0 {
-// 			spinner.Success("Found genesis value and writing it to the file")
-// 			writeData, err = json.MarshalIndent(jsonResponse.Result.Genesis, "", "  ") // Indent for readability
-
-// 			if err != nil {
-// 				spinner.Fail("failed to format genesis data: ", err)
-// 				return err
-// 			}
-// 		} else {
-// 			spinner.Warning("JSON-RPC response does not contain a 'genesis' value in 'result'")
-// 		}
-// 	} else {
-// 		spinner.Success("Successfully downloaded the file")
-// 	}
-
-// 	// Add a newline to the end of writeData
-// 	writeData = append(writeData, '\n')
-
-// 	// Write the data to the file (either genesis value or full body)
-// 	out, err := os.Create(fp)
-// 	if err != nil {
-// 		spinner.Fail("failed to create file: ", err)
-// 		return err
-// 	}
-// 	// nolint:errcheck
-// 	defer out.Close()
-
-// 	// Write the data to the file
-// 	_, err = out.Write(writeData)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 func RemoveFileIfExists(filePath string) error {
 	_, err := os.Stat(filePath)

@@ -80,8 +80,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			raCommit = drsInfo.WasmCommit
 		}
 
-		fmt.Printf("raCommitttttttttttttt: %v\n", raCommit)
-
 		pterm.Info.Println(
 			"Latest RollApp binary commit for the current DRS version: ",
 			raCommit[:6],

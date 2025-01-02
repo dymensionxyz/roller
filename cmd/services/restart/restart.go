@@ -60,7 +60,6 @@ func RestartSystemdServices(services []string, home string) error {
 	if slices.Contains(services, "rollapp") {
 		rollappConfig, err := roller.LoadConfig(home)
 		errorhandling.PrettifyErrorIfExists(err)
-		fmt.Println("rollapp config.......", rollappConfig)
 
 		if rollappConfig.HubData.ID != consts.MockHubID { // TODO : enable this if required
 			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))

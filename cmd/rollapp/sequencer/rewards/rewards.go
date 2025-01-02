@@ -184,7 +184,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				// err = tx.MonitorTransaction("http://localhost:26657", txHash)
 				err = tx.MonitorTransaction(consts.DefaultRollappRPC, txHash)
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
@@ -217,7 +216,6 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				// err = tx.MonitorTransaction("http://localhost:26657", uTxHash)
 				err = tx.MonitorTransaction(consts.DefaultRollappRPC, uTxHash)
 				if err != nil {
 					pterm.Error.Println("failed to update sequencer: ", err)
