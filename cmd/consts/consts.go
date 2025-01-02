@@ -55,6 +55,7 @@ var KeysIds = struct {
 	Celestia                      string
 	Eibc                          string
 	Da                            string
+	Oracle                        string
 }{
 	HubSequencer:                  "hub_sequencer",
 	HubGenesis:                    "hub_genesis",
@@ -66,6 +67,7 @@ var KeysIds = struct {
 	Celestia:                      "my_celes_key",
 	Eibc:                          "whale",
 	Da:                            "da_key",
+	Oracle:                        "oracle",
 }
 
 var AddressPrefixes = struct {
@@ -83,6 +85,7 @@ var ConfigDirName = struct {
 	LocalHub             string
 	Eibc                 string
 	BlockExplorer        string
+	Oracle               string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -92,6 +95,7 @@ var ConfigDirName = struct {
 	LocalHub:             "local-hub",
 	Eibc:                 ".eibc-client",
 	BlockExplorer:        "block-explorer",
+	Oracle:               "oracle",
 }
 
 var Denoms = struct {
