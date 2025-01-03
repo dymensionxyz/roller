@@ -3,6 +3,7 @@ package deploy
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -61,7 +62,6 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 
 	j, _ := json.MarshalIndent(o, "", "  ")
 	pterm.Info.Println(string(j))
-	return nil
 	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
 
 	pterm.Info.Println("downloading oracle contract...")
@@ -244,6 +244,9 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
 	}
+
+	fmt.Println(cmd.String())
+	return errors.New("debug")
 
 	for {
 		balance, err := keys.QueryBalance(
