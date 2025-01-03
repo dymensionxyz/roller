@@ -21,10 +21,10 @@ import (
 
 type Oracle struct {
 	ConfigDirPath string
-	Key           string
 	CodeID        string
 	ContractAddr  string
-	Address       string
+	KeyName       string
+	KeyAddress    string
 }
 
 func NewOracle(rollerData roller.RollappConfig) *Oracle {
@@ -53,8 +53,9 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	o.Address = addr[0].Address
-	pterm.Info.Printfln("using oracle key: %s", o.Address)
+	o.KeyAddress = addr[0].Address
+	o.KeyName = addr[0].Name
+	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
 
 	pterm.Info.Println("downloading oracle contract...")
 	if err := o.DownloadContractCode(); err != nil {
@@ -193,27 +194,6 @@ func getOracleKeyConfig(kb consts.SupportedKeyringBackend) []keys.KeyConfig {
 func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	var cmd *exec.Cmd
 
-	switch rollerData.RollappVMType {
-	case consts.WASM_ROLLAPP:
-		cmd = exec.Command(
-			consts.Executables.RollappEVM,
-			"tx", "wasm", "store",
-			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
-			"--instantiate-anyof-addresses", o.Address,
-			"--from", "rol",
-			"--gas", "auto",
-			"--gas-adjustment", "1.3",
-			"--fees", "40693780000000000awasmnat",
-			"-y",
-		)
-	case consts.EVM_ROLLAPP:
-		return fmt.Errorf("EVM rollapp type does not support oracle deployment")
-	case consts.SDK_ROLLAPP:
-		return fmt.Errorf("SDK rollapp type does not support oracle deployment")
-	default:
-		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
-	}
-
 	var balanceDenom string
 	raResp, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
 	if err != nil {
@@ -226,13 +206,34 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
 	}
 
+	switch rollerData.RollappVMType {
+	case consts.WASM_ROLLAPP:
+		cmd = exec.Command(
+			consts.Executables.RollappEVM,
+			"tx", "wasm", "store",
+			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
+			"--instantiate-anyof-addresses", o.KeyAddress,
+			"--from", o.KeyName,
+			"--gas", "auto",
+			"--gas-adjustment", "1.3",
+			"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
+			"-y",
+		)
+	case consts.EVM_ROLLAPP:
+		return fmt.Errorf("EVM rollapp type does not support oracle deployment")
+	case consts.SDK_ROLLAPP:
+		return fmt.Errorf("SDK rollapp type does not support oracle deployment")
+	default:
+		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
+	}
+
 	for {
 		balance, err := keys.QueryBalance(
 			keys.ChainQueryConfig{
 				Denom:  balanceDenom,
 				RPC:    "http://localhost:26657",
 				Binary: consts.Executables.RollappEVM,
-			}, o.Address,
+			}, o.KeyAddress,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to query balance: %v", err)
@@ -328,7 +329,7 @@ func (o *Oracle) InstantiateContract() error {
 			PriceExpirySeconds  int    `json:"price_expiry_seconds"`
 			PriceThresholdRatio string `json:"price_threshold_ratio"`
 		}{
-			Updater:             o.Address,
+			Updater:             o.KeyAddress,
 			PriceExpirySeconds:  60,
 			PriceThresholdRatio: "0.001",
 		},
@@ -343,12 +344,12 @@ func (o *Oracle) InstantiateContract() error {
 		consts.Executables.RollappEVM,
 		"tx", "wasm", "instantiate", o.CodeID,
 		string(msgBytes),
-		"--from", o.Address,
+		"--from", o.KeyAddress,
 		"--label", "price_oracle",
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--fees", "40693780000000000awasmnat",
-		"--admin", o.Address,
+		"--admin", o.KeyAddress,
 	)
 
 	output, err := cmd.CombinedOutput()
