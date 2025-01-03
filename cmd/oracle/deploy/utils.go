@@ -394,7 +394,7 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 func (o *Oracle) ListContracts(rollerData roller.RollappConfig) ([]string, error) {
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
-		"query", "wasm", "list-contract-by-creator",
+		"query", "wasm", "list-contracts-by-creator",
 		o.KeyAddress,
 		"--node", "http://localhost:26657",
 		"--chain-id", rollerData.RollappID,
