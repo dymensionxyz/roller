@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
@@ -63,12 +65,21 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 	}
 	pterm.Success.Println("contract downloaded successfully")
 
-	if err := o.StoreContract(rollerData); err != nil {
-		return fmt.Errorf("failed to store contract: %v", err)
-	}
-
 	if err := o.GetCodeID(); err != nil {
 		return fmt.Errorf("failed to get code id: %v", err)
+	}
+
+	if o.CodeID == "" {
+		if err := o.StoreContract(rollerData); err != nil {
+			return fmt.Errorf("failed to store contract: %v", err)
+		}
+
+		// todo: switch to monitoring the transaction
+		time.Sleep(time.Second * 2)
+
+		if err := o.GetCodeID(); err != nil {
+			return fmt.Errorf("failed to get code id: %v", err)
+		}
 	}
 
 	pterm.Info.Printfln("contract code id: %s", o.CodeID)
@@ -291,24 +302,35 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 }
 
 func (o *Oracle) GetCodeID() error {
+	// Calculate SHA256 hash of the contract file
+	contractPath := filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm")
+	contractData, err := os.ReadFile(contractPath)
+	if err != nil {
+		return fmt.Errorf("failed to read contract file: %v", err)
+	}
+
+	contractHash := fmt.Sprintf("%x", sha256.Sum256(contractData))
+
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "wasm", "list-code",
 		"--output", "json",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return fmt.Errorf("failed to get code id: %v", err)
+		return fmt.Errorf("failed to get code id: %v, output: %s", err, output.String())
 	}
 
 	var response struct {
 		CodeInfos []struct {
-			CodeID string `json:"code_id"`
+			CodeID   string `json:"code_id"`
+			Creator  string `json:"creator"`
+			DataHash string `json:"data_hash"`
 		} `json:"code_infos"`
 	}
 
-	if err := json.Unmarshal(output, &response); err != nil {
+	if err := json.Unmarshal(output.Bytes(), &response); err != nil {
 		return fmt.Errorf("failed to parse response: %v", err)
 	}
 
@@ -316,8 +338,19 @@ func (o *Oracle) GetCodeID() error {
 		return fmt.Errorf("no code found")
 	}
 
-	o.CodeID = response.CodeInfos[len(response.CodeInfos)-1].CodeID
-	return nil
+	// Look for matching creator and contract hash
+	for _, codeInfo := range response.CodeInfos {
+		if codeInfo.Creator == o.KeyAddress && codeInfo.DataHash == contractHash {
+			o.CodeID = codeInfo.CodeID
+			return nil
+		}
+	}
+
+	return fmt.Errorf(
+		"no matching code found for creator %s and contract hash %s",
+		o.KeyAddress,
+		contractHash,
+	)
 }
 
 func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
