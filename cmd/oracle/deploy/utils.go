@@ -401,13 +401,15 @@ func (o *Oracle) ListContracts(rollerData roller.RollappConfig) ([]string, error
 		"--output", "json",
 	)
 
+	fmt.Println(cmd.String())
+
 	stdout, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list contracts: %v", err)
 	}
 
 	var response struct {
-		Contracts []string `json:"contracts"`
+		Contracts []string `json:"contract_addresses"`
 	}
 
 	if err := json.Unmarshal(stdout.Bytes(), &response); err != nil {
