@@ -59,7 +59,7 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
 
-	j, _ := json.MarshalIndent(addr, "", "  ")
+	j, _ := json.MarshalIndent(o, "", "  ")
 	pterm.Info.Println(string(j))
 	return nil
 	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
