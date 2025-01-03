@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	"time"
+
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -35,7 +37,34 @@ func Cmd() *cobra.Command {
 
 			oracle := NewOracle(rollerData)
 
-			if err := oracle.Deploy(rollerData); err != nil {
+			codeID, err := oracle.GetCodeID()
+			if err != nil {
+				pterm.Error.Printf("failed to get code ID: %v\n", err)
+				return
+			}
+
+			if codeID == "" {
+				pterm.Info.Println("no code ID found, storing contract on chain")
+
+				if err := oracle.StoreContract(rollerData); err != nil {
+					pterm.Error.Printf("failed to store contract: %v\n", err)
+					return
+				}
+
+				time.Sleep(time.Second * 2)
+
+				codeID, err = oracle.GetCodeID()
+				if err != nil {
+					pterm.Error.Printf("failed to get code ID: %v\n", err)
+					return
+				}
+			}
+
+			oracle.CodeID = codeID
+
+			pterm.Info.Printfln("code ID: %s", codeID)
+
+			if err := oracle.Deploy(rollerData, codeID); err != nil {
 				pterm.Error.Printf("failed to deploy oracle: %v\n", err)
 				return
 			}

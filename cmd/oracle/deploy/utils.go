@@ -15,7 +15,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -44,7 +43,7 @@ func (o *Oracle) ConfigDir(rollerData roller.RollappConfig) string {
 	return o.ConfigDirPath
 }
 
-func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
+func (o *Oracle) Deploy(rollerData roller.RollappConfig, codeID string) error {
 	pterm.Info.Println("deploying oracle")
 
 	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
@@ -58,9 +57,6 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
-
-	j, _ := json.MarshalIndent(o, "", "  ")
-	pterm.Info.Println(string(j))
 	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
 
 	pterm.Info.Println("downloading oracle contract...")
@@ -69,19 +65,8 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 	}
 	pterm.Success.Println("contract downloaded successfully")
 
-	if err := o.GetCodeID(); err != nil {
-		if _, ok := err.(*utils.GenericNotFoundError); !ok {
-			return fmt.Errorf("failed to get code id: %v", err)
-		}
-
-		pterm.Info.Printfln("contract code id not found, creating a new one")
-		if err := o.StoreContract(rollerData); err != nil {
-			return fmt.Errorf("failed to store contract: %v", err)
-		}
-	}
-
-	if err := o.GetCodeID(); err != nil {
-		return fmt.Errorf("failed to get code id: %v", err)
+	if err := o.StoreContract(rollerData); err != nil {
+		return fmt.Errorf("failed to store contract: %v", err)
 	}
 
 	pterm.Info.Printfln("contract code id: %s", o.CodeID)
@@ -238,8 +223,6 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		)
 	case consts.EVM_ROLLAPP:
 		return fmt.Errorf("EVM rollapp type does not support oracle deployment")
-	case consts.SDK_ROLLAPP:
-		return fmt.Errorf("SDK rollapp type does not support oracle deployment")
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
 	}
@@ -305,12 +288,12 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func (o *Oracle) GetCodeID() error {
+func (o *Oracle) GetCodeID() (string, error) {
 	// Calculate SHA256 hash of the contract file
 	contractPath := filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm")
 	contractData, err := os.ReadFile(contractPath)
 	if err != nil {
-		return fmt.Errorf("failed to read contract file: %v", err)
+		return "", fmt.Errorf("failed to read contract file: %v", err)
 	}
 
 	contractHash := fmt.Sprintf("%x", sha256.Sum256(contractData))
@@ -323,7 +306,7 @@ func (o *Oracle) GetCodeID() error {
 
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
-		return fmt.Errorf("failed to get code id: %v, output: %s", err, output.String())
+		return "", fmt.Errorf("failed to get code id: %v, output: %s", err, output.String())
 	}
 
 	var response struct {
@@ -335,29 +318,18 @@ func (o *Oracle) GetCodeID() error {
 	}
 
 	if err := json.Unmarshal(output.Bytes(), &response); err != nil {
-		return fmt.Errorf("failed to parse response: %v", err)
-	}
-
-	if len(response.CodeInfos) == 0 {
-		return &utils.GenericNotFoundError{
-			Thing: fmt.Sprintf(
-				"code with %s as creator and %s as data hash",
-				o.KeyAddress,
-				contractHash,
-			),
-		}
+		return "", fmt.Errorf("failed to parse response: %v", err)
 	}
 
 	// Look for matching creator and contract hash
 	for _, codeInfo := range response.CodeInfos {
 		if strings.EqualFold(codeInfo.Creator, o.KeyAddress) &&
 			strings.EqualFold(codeInfo.DataHash, contractHash) {
-			o.CodeID = codeInfo.CodeID
-			return nil
+			return codeInfo.CodeID, nil
 		}
 	}
 
-	return nil
+	return "", nil
 }
 
 func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
