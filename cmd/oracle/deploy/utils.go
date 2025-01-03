@@ -21,7 +21,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 type Oracle struct {
@@ -58,31 +57,6 @@ func (o *Oracle) SetKey(rollerData roller.RollappConfig) error {
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
-	return nil
-}
-
-func (o *Oracle) Deploy(rollerData roller.RollappConfig, codeID string) error {
-	pterm.Info.Println("deploying oracle")
-
-	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
-
-	pterm.Info.Println("downloading oracle contract...")
-	if err := o.DownloadContractCode(); err != nil {
-		return fmt.Errorf("failed to download contract: %v", err)
-	}
-	pterm.Success.Println("contract downloaded successfully")
-
-	if err := o.StoreContract(rollerData); err != nil {
-		return fmt.Errorf("failed to store contract: %v", err)
-	}
-
-	pterm.Info.Printfln("contract code id: %s", o.CodeID)
-
-	if err := o.InstantiateContract(rollerData); err != nil {
-		return fmt.Errorf("failed to instantiate contract: %v", err)
-	}
-
-	pterm.Success.Println("oracle deployed successfully")
 	return nil
 }
 
@@ -293,10 +267,10 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	pterm.Info.Printfln("transaction hash: %s", txHash)
 
 	// // Monitor transaction
-	wsURL := "http://localhost:26657"
-	if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
-		return fmt.Errorf("failed to monitor transaction: %v", err)
-	}
+	// wsURL := "http://localhost:26657"
+	// if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
+	// 	return fmt.Errorf("failed to monitor transaction: %v", err)
+	// }
 
 	return nil
 }

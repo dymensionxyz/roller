@@ -67,12 +67,15 @@ func Cmd() *cobra.Command {
 
 			oracle.CodeID = codeID
 
-			pterm.Info.Printfln("code ID: %s", codeID)
+			pterm.Info.Printfln("code ID: %s", oracle.CodeID)
 
-			if err := oracle.Deploy(rollerData, codeID); err != nil {
-				pterm.Error.Printf("failed to deploy oracle: %v\n", err)
+			pterm.Info.Println("instantiating contract...")
+			if err := oracle.InstantiateContract(rollerData); err != nil {
+				pterm.Error.Printf("failed to instantiate contract: %v\n", err)
 				return
 			}
+
+			pterm.Success.Println("oracle deployed successfully")
 		},
 	}
 
