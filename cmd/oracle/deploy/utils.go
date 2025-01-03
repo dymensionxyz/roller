@@ -10,12 +10,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -58,6 +58,10 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
+
+	j, _ := json.MarshalIndent(addr, "", "  ")
+	pterm.Info.Println(string(j))
+	return nil
 	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
 
 	pterm.Info.Println("downloading oracle contract...")
@@ -67,20 +71,18 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 	pterm.Success.Println("contract downloaded successfully")
 
 	if err := o.GetCodeID(); err != nil {
-		return fmt.Errorf("failed to get code id: %v", err)
-	}
+		if _, ok := err.(*utils.GenericNotFoundError); !ok {
+			return fmt.Errorf("failed to get code id: %v", err)
+		}
 
-	if o.CodeID == "" {
+		pterm.Info.Printfln("contract code id not found, creating a new one")
 		if err := o.StoreContract(rollerData); err != nil {
 			return fmt.Errorf("failed to store contract: %v", err)
 		}
+	}
 
-		// todo: switch to monitoring the transaction
-		time.Sleep(time.Second * 2)
-
-		if err := o.GetCodeID(); err != nil {
-			return fmt.Errorf("failed to get code id: %v", err)
-		}
+	if err := o.GetCodeID(); err != nil {
+		return fmt.Errorf("failed to get code id: %v", err)
 	}
 
 	pterm.Info.Printfln("contract code id: %s", o.CodeID)
@@ -348,11 +350,13 @@ func (o *Oracle) GetCodeID() error {
 		}
 	}
 
-	return fmt.Errorf(
-		"no matching code found for creator %s and contract hash %s",
-		o.KeyAddress,
-		contractHash,
-	)
+	return &utils.GenericNotFoundError{
+		Thing: fmt.Sprintf(
+			"code with %s as creator and %s as data hash",
+			o.KeyAddress,
+			contractHash,
+		),
+	}
 }
 
 func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
