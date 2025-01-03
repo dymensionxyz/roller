@@ -217,6 +217,8 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 			"--gas", "auto",
 			"--gas-adjustment", "1.3",
 			"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
+			"--keyring-backend", rollerData.KeyringBackend.String(),
+			"--home", o.ConfigDirPath,
 			"-y",
 		)
 	case consts.EVM_ROLLAPP:
