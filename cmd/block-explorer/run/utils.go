@@ -74,7 +74,7 @@ func createBlockExplorerContainers(home, hostAddress string) error {
 			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:next",
 			Port:  "3000",
 			Envs: []string{
-				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", domain),
+				"DATABASE_URL=postgresql://be:psw@be-postgresql:5432/blockexplorer",
 				fmt.Sprintf("HOST_ADDRESS=%s", domain),
 			},
 			Mounts: []mount.Mount{},
