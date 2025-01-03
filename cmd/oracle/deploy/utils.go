@@ -15,7 +15,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 type Oracle struct {
@@ -222,11 +221,11 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 
 	pterm.Info.Printfln("transaction hash: %s", txHash)
 
-	// Monitor transaction
-	wsURL := "http://localhost:26657"
-	if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
-		return fmt.Errorf("failed to monitor transaction: %v", err)
-	}
+	// // Monitor transaction
+	// wsURL := "http://localhost:26657"
+	// if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
+	// 	return fmt.Errorf("failed to monitor transaction: %v", err)
+	// }
 
 	return nil
 }
