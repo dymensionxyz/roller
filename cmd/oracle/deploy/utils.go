@@ -12,8 +12,11 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 type Oracle struct {
@@ -184,12 +187,13 @@ func getOracleKeyConfig(kb consts.SupportedKeyringBackend) []keys.KeyConfig {
 }
 
 func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
-	var cmd *exec.Cmd
+	var cmdName string
+	var args []string
 
 	switch rollerData.RollappVMType {
 	case consts.WASM_ROLLAPP:
-		cmd = exec.Command(
-			consts.Executables.RollappEVM,
+		cmdName = consts.Executables.RollappEVM
+		args = []string{
 			"tx", "wasm", "store",
 			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
 			"--instantiate-anyof-addresses", o.Address,
@@ -197,7 +201,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 			"--gas", "auto",
 			"--gas-adjustment", "1.3",
 			"--fees", "40693780000000000awasmnat",
-		)
+		}
 	case consts.EVM_ROLLAPP:
 		return fmt.Errorf("EVM rollapp type does not support oracle deployment")
 	case consts.SDK_ROLLAPP:
@@ -206,9 +210,56 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
 	}
 
-	output, err := cmd.CombinedOutput()
+	// Prepare prompt responses for automatic handling
+	var promptResponses map[string]string
+	if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+		pswFileName, err := filesystem.GetOsKeyringPswFileName(consts.Executables.RollappEVM)
+		if err != nil {
+			return err
+		}
+		fp := filepath.Join(rollerData.Home, string(pswFileName))
+		psw, err := filesystem.ReadFromFile(fp)
+		if err != nil {
+			return err
+		}
+
+		promptResponses = map[string]string{
+			"Enter keyring passphrase":    psw,
+			"Re-enter keyring passphrase": psw,
+		}
+	} else {
+		promptResponses = map[string]string{}
+	}
+
+	manualPrompts := map[string]string{
+		"signatures": fmt.Sprintf(
+			"this transaction will store the oracle contract byte code on chain with %s as the updater. do you want to continue?",
+			o.Address,
+		),
+	}
+
+	output, err := bash.ExecuteCommandWithPromptHandler(
+		cmdName,
+		args,
+		promptResponses,
+		manualPrompts,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to store contract: %v, output: %s", err, output)
+	}
+
+	// Extract transaction hash
+	txHash, err := bash.ExtractTxHash(output.String())
+	if err != nil {
+		return fmt.Errorf("failed to extract transaction hash: %v", err)
+	}
+
+	pterm.Info.Printfln("transaction hash: %s", txHash)
+
+	// Monitor transaction
+	wsURL := "ws://localhost:26657"
+	if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
+		return fmt.Errorf("failed to monitor transaction: %v", err)
 	}
 
 	return nil
