@@ -117,26 +117,28 @@ func (o *Oracle) DownloadContractCode() error {
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	useExistingOracleWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+	shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 		"would you like to import an existing Oracle key?",
 	).Show()
 
-	var addr []keys.KeyInfo
-	var err error
+	kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
+	ok, err := kc.IsInKeyring(home)
+	if err != nil {
+		return nil, err
+	}
 
-	if useExistingOracleWallet {
-		kc, err := keys.NewKeyConfig(
-			consts.ConfigDirName.Oracle,
-			consts.KeysIds.Oracle,
-			consts.Executables.RollappEVM,
-			consts.SDK_ROLLAPP,
-			rollerData.KeyringBackend,
-			keys.WithRecover(),
-		)
+	if ok {
+		pterm.Info.Printfln("existing oracle key found, using it")
+		ki, err := kc.Info(home)
 		if err != nil {
 			return nil, err
 		}
+		return []keys.KeyInfo{*ki}, nil
+	}
 
+	var addr []keys.KeyInfo
+
+	if shouldImportWallet {
 		ki, err := kc.Create(home)
 		if err != nil {
 			return nil, err
