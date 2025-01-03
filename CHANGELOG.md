@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1-alpha-rc01](https://github.com/dymensionxyz/roller/compare/v1.12.0-alpha-rc01...v1.12.1-alpha-rc01) (2025-01-03)
+
+
+### Bug Fixes
+
+* show eibc whale account ([b83ccf2](https://github.com/dymensionxyz/roller/commit/b83ccf256154a73cfed7f435870f7ba20a3eead8))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
