@@ -24,11 +24,12 @@ import (
 )
 
 type Oracle struct {
-	ConfigDirPath string
-	CodeID        string
-	ContractAddr  string
-	KeyName       string
-	KeyAddress    string
+	ConfigDirPath   string
+	CodeID          string
+	ContractAddr    string
+	KeyName         string
+	KeyAddress      string
+	ContractAddress string
 }
 
 func NewOracle(rollerData roller.RollappConfig) *Oracle {
@@ -388,4 +389,30 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 	pterm.Info.Printfln("transaction hash: %s", txHash)
 
 	return nil
+}
+
+func (o *Oracle) ListContracts(rollerData roller.RollappConfig) ([]string, error) {
+	cmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"query", "wasm", "list-contract-by-creator",
+		o.KeyAddress,
+		"--node", "http://localhost:26657",
+		"--chain-id", rollerData.RollappID,
+		"--output", "json",
+	)
+
+	stdout, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list contracts: %v", err)
+	}
+
+	var response struct {
+		Contracts []string `json:"contracts"`
+	}
+
+	if err := json.Unmarshal(stdout.Bytes(), &response); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return response.Contracts, nil
 }

@@ -69,10 +69,23 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Printfln("code ID: %s", oracle.CodeID)
 
-			pterm.Info.Println("instantiating contract...")
-			if err := oracle.InstantiateContract(rollerData); err != nil {
-				pterm.Error.Printf("failed to instantiate contract: %v\n", err)
+			pterm.Info.Println("checking for existing contracts...")
+
+			contracts, err := oracle.ListContracts(rollerData)
+			if err != nil {
+				pterm.Error.Printf("failed to list contracts: %v\n", err)
 				return
+			}
+
+			if len(contracts) > 0 {
+				pterm.Info.Printfln("found existing contract: %s", contracts[0])
+				oracle.ContractAddress = contracts[0]
+			} else {
+				pterm.Info.Println("no existing contracts found, instantiating contract...")
+				if err := oracle.InstantiateContract(rollerData); err != nil {
+					pterm.Error.Printf("failed to instantiate contract: %v\n", err)
+					return
+				}
 			}
 
 			pterm.Success.Println("oracle deployed successfully")
