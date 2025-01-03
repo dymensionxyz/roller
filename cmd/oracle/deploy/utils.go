@@ -245,7 +245,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 
 		pterm.DefaultSection.WithIndentCharacter("🔔").
 			Println("Please fund the addresses below to register and run the sequencer.")
-		ki.Print(keys.WithName())
+		ki.Print(keys.WithName(), keys.WithMnemonic())
 		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 			WithDefaultText(
 				"press 'y' when the wallets are funded",
