@@ -170,6 +170,8 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 				Mnemonic: address.Mnemonic,
 			},
 		)
+
+		address.Print(keys.WithName(), keys.WithMnemonic())
 	}
 	return addresses, nil
 }
@@ -245,7 +247,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 
 		pterm.DefaultSection.WithIndentCharacter("🔔").
 			Println("Please fund the addresses below to register and run the sequencer.")
-		ki.Print(keys.WithName(), keys.WithMnemonic())
+		ki.Print(keys.WithName())
 		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 			WithDefaultText(
 				"press 'y' when the wallets are funded",
