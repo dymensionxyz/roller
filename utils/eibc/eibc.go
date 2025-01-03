@@ -82,12 +82,14 @@ func EnsureWhaleAccount() (*keys.KeyInfo, error) {
 			"%s account not found in the keyring, creating it now",
 			consts.KeysIds.Eibc,
 		)
-		addressInfo, err := kc.Create(home)
+		ki, err := kc.Create(home)
 		if err != nil {
 			return nil, err
 		}
 
-		return addressInfo, nil
+		ki.Print(keys.WithName(), keys.WithMnemonic())
+
+		return ki, nil
 	}
 
 	return ki, nil
