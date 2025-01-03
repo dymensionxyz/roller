@@ -13,6 +13,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/blockexplorer"
 	"github.com/dymensionxyz/roller/utils/config"
+	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 )
 
 func Cmd() *cobra.Command {
@@ -24,6 +25,11 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			var beRpcEndpoint string
+			raID, _, _, err := relayerutils.GetRollappToRunFor(home)
+			if err != nil {
+				pterm.Error.Println("failed to determine what RollApp to run for:", err)
+				return
+			}
 
 			for {
 				// Prompt the user for the RPC URL
@@ -56,7 +62,6 @@ func Cmd() *cobra.Command {
 			if runtime.GOOS == "linux" {
 				hostAddress = "172.17.0.1" // Default Docker bridge network gateway
 			}
-			var raID string
 			fmt.Println(hostAddress)
 
 			beChainConfigPath := filepath.Join(
@@ -72,7 +77,7 @@ func Cmd() *cobra.Command {
 
 			fmt.Println(beChainConfig)
 
-			err := blockexplorer.WriteChainsYAML(beChainConfigPath, beChainConfig)
+			err = blockexplorer.WriteChainsYAML(beChainConfigPath, beChainConfig)
 			if err != nil {
 				pterm.Error.Println("failed to generate block explorer config", err)
 			}
