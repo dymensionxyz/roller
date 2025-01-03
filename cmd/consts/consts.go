@@ -99,13 +99,15 @@ var ConfigDirName = struct {
 }
 
 var Denoms = struct {
-	Hub      string
-	Celestia string
-	Avail    string
+	Hub             string
+	HubIbcOnRollapp string
+	Celestia        string
+	Avail           string
 }{
-	Hub:      "adym",
-	Celestia: "utia",
-	Avail:    "aAVL",
+	Hub:             "adym",
+	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
+	Celestia:        "utia",
+	Avail:           "aAVL",
 }
 
 const (

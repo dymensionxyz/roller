@@ -9,11 +9,13 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -206,6 +208,51 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("SDK rollapp type does not support oracle deployment")
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
+	}
+
+	var balanceDenom string
+	raResp, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
+	if err != nil {
+		return fmt.Errorf("failed to get rollapp metadata: %v", err)
+	}
+
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+		balanceDenom = consts.Denoms.HubIbcOnRollapp
+	} else {
+		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
+	}
+
+	balance, err := keys.QueryBalance(
+		keys.ChainQueryConfig{
+			Denom:  balanceDenom,
+			RPC:    "http://localhost:26657",
+			Binary: consts.Executables.RollappEVM,
+		}, o.Address,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to query balance: %v", err)
+	}
+
+	one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+	isAddrFunded := balance.Amount.GTE(one)
+
+	if !isAddrFunded {
+		kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
+		ki, err := kc.Info(rollerData.Home)
+		if err != nil {
+			return fmt.Errorf("failed to get key info: %v", err)
+		}
+
+		pterm.DefaultSection.WithIndentCharacter("🔔").
+			Println("Please fund the addresses below to register and run the sequencer.")
+		ki.Print(keys.WithName())
+		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+			WithDefaultText(
+				"press 'y' when the wallets are funded",
+			).Show()
+		if !proceed {
+			return fmt.Errorf("cancelled by user")
+		}
 	}
 
 	output, err := bash.ExecCommandWithStdout(cmd)
