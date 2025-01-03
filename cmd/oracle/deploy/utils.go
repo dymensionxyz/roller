@@ -3,7 +3,6 @@ package deploy
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -246,7 +245,6 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	}
 
 	fmt.Println(cmd.String())
-	return errors.New("debug")
 
 	for {
 		balance, err := keys.QueryBalance(
