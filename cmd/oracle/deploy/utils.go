@@ -131,7 +131,7 @@ func (o *Oracle) DownloadContractCode() error {
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
+	kc := getOracleKeyConfig()[0]
 	ok, err := kc.IsInKeyring(home)
 	if err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	OracleKeys := getOracleKeyConfig(rollerData.KeyringBackend)
+	OracleKeys := getOracleKeyConfig()
 	addresses := make([]keys.KeyInfo, 0)
 
 	for _, key := range OracleKeys {
@@ -192,13 +192,13 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 	return addresses, nil
 }
 
-func getOracleKeyConfig(kb consts.SupportedKeyringBackend) []keys.KeyConfig {
+func getOracleKeyConfig() []keys.KeyConfig {
 	kc := keys.KeyConfig{
 		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
 		ChainBinary:    consts.Executables.RollappEVM,
 		Type:           consts.SDK_ROLLAPP,
-		KeyringBackend: kb,
+		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
 	return []keys.KeyConfig{kc}
@@ -230,7 +230,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 			"--gas", "auto",
 			"--gas-adjustment", "1.3",
 			"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
-			"--keyring-backend", rollerData.KeyringBackend.String(),
+			"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
 			"--chain-id", rollerData.RollappID,
 			"--broadcast-mode", "sync",
 			"--home", o.ConfigDirPath,
@@ -262,7 +262,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
+			kc := getOracleKeyConfig()[0]
 			ki, err := kc.Info(rollerData.Home)
 			if err != nil {
 				return fmt.Errorf("failed to get key info: %v", err)
@@ -406,7 +406,7 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
-		"--keyring-backend", rollerData.KeyringBackend.String(),
+		"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
 		"--chain-id", rollerData.RollappID,
 		"--broadcast-mode", "sync",
 		"--home", o.ConfigDirPath,
