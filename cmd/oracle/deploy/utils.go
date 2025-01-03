@@ -176,9 +176,9 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 
 func getOracleKeyConfig(kb consts.SupportedKeyringBackend) []keys.KeyConfig {
 	kc := keys.KeyConfig{
-		Dir:            consts.ConfigDirName.HubKeys,
+		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
-		ChainBinary:    consts.Executables.Dymension,
+		ChainBinary:    consts.Executables.RollappEVM,
 		Type:           consts.SDK_ROLLAPP,
 		KeyringBackend: kb,
 	}
