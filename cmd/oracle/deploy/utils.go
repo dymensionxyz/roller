@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -15,10 +16,12 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/tx"
 )
 
 type Oracle struct {
@@ -218,7 +221,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 			"--from", o.KeyName,
 			"--gas", "auto",
 			"--gas-adjustment", "1.3",
-			"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
+			"--fees", fmt.Sprintf("40000000000000000%s", balanceDenom),
 			"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
 			"--chain-id", rollerData.RollappID,
 			"--broadcast-mode", "sync",
@@ -275,6 +278,12 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("failed to store contract: %v, output: %s", err, output)
 	}
 
+	tob := bytes.NewBufferString(output.String())
+	err = tx_utils.CheckTxYamlStdOut(*tob)
+	if err != nil {
+		return err
+	}
+
 	// Extract transaction hash
 	txHash, err := bash.ExtractTxHash(output.String())
 	if err != nil {
@@ -284,10 +293,10 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	pterm.Info.Printfln("transaction hash: %s", txHash)
 
 	// // Monitor transaction
-	// wsURL := "http://localhost:26657"
-	// if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
-	// 	return fmt.Errorf("failed to monitor transaction: %v", err)
-	// }
+	wsURL := "http://localhost:26657"
+	if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
+		return fmt.Errorf("failed to monitor transaction: %v", err)
+	}
 
 	return nil
 }
