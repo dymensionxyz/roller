@@ -43,9 +43,7 @@ func (o *Oracle) ConfigDir(rollerData roller.RollappConfig) string {
 	return o.ConfigDirPath
 }
 
-func (o *Oracle) Deploy(rollerData roller.RollappConfig, codeID string) error {
-	pterm.Info.Println("deploying oracle")
-
+func (o *Oracle) SetKey(rollerData roller.RollappConfig) error {
 	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
@@ -57,6 +55,12 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig, codeID string) error {
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
+	return nil
+}
+
+func (o *Oracle) Deploy(rollerData roller.RollappConfig, codeID string) error {
+	pterm.Info.Println("deploying oracle")
+
 	pterm.Info.Printfln("using oracle key: %s", o.KeyAddress)
 
 	pterm.Info.Println("downloading oracle contract...")

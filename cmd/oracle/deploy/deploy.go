@@ -36,6 +36,11 @@ func Cmd() *cobra.Command {
 			}
 
 			oracle := NewOracle(rollerData)
+			err = oracle.SetKey(rollerData)
+			if err != nil {
+				pterm.Error.Printf("failed to set oracle key: %v\n", err)
+				return
+			}
 
 			codeID, err := oracle.GetCodeID()
 			if err != nil {
