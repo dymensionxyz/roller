@@ -224,36 +224,40 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
 	}
 
-	balance, err := keys.QueryBalance(
-		keys.ChainQueryConfig{
-			Denom:  balanceDenom,
-			RPC:    "http://localhost:26657",
-			Binary: consts.Executables.RollappEVM,
-		}, o.Address,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to query balance: %v", err)
-	}
-
-	one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
-	isAddrFunded := balance.Amount.GTE(one)
-
-	if !isAddrFunded {
-		kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
-		ki, err := kc.Info(rollerData.Home)
+	for {
+		balance, err := keys.QueryBalance(
+			keys.ChainQueryConfig{
+				Denom:  balanceDenom,
+				RPC:    "http://localhost:26657",
+				Binary: consts.Executables.RollappEVM,
+			}, o.Address,
+		)
 		if err != nil {
-			return fmt.Errorf("failed to get key info: %v", err)
+			return fmt.Errorf("failed to query balance: %v", err)
 		}
 
-		pterm.DefaultSection.WithIndentCharacter("🔔").
-			Println("Please fund the addresses below to register and run the sequencer.")
-		ki.Print(keys.WithName())
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallets are funded",
-			).Show()
-		if !proceed {
-			return fmt.Errorf("cancelled by user")
+		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		isAddrFunded := balance.Amount.GTE(one)
+
+		if !isAddrFunded {
+			kc := getOracleKeyConfig(rollerData.KeyringBackend)[0]
+			ki, err := kc.Info(rollerData.Home)
+			if err != nil {
+				return fmt.Errorf("failed to get key info: %v", err)
+			}
+
+			pterm.DefaultSection.WithIndentCharacter("🔔").
+				Println("Please fund the addresses below be able to deploy an oracle")
+			ki.Print(keys.WithName())
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
+			if !proceed {
+				return fmt.Errorf("cancelled by user")
+			}
+		} else {
+			break
 		}
 	}
 
