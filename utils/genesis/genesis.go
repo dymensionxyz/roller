@@ -1,10 +1,14 @@
 package genesis
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +16,7 @@ import (
 	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -27,6 +32,35 @@ import (
 type AppState struct {
 	Bank          Bank          `json:"bank"`
 	RollappParams RollappParams `json:"rollappparams"`
+	FeeMarket     *FeeMarket    `json:"feemarket"`
+	Staking       *Staking      `json:"staking"`
+}
+
+type Staking struct {
+	Params *StakingParams `json:"params"`
+}
+
+type StakingParams struct {
+	BondDenom         string `json:"bond_denom"`
+	HistoricalEntries uint64 `json:"historical_entries"`
+	MaxEntries        uint32 `json:"max_entries"`
+	MaxValidators     uint32 `json:"max_validators"`
+	MinCommissionRate string `json:"min_commission_rate"`
+	UnbondingTime     string `json:"unbonding_time"`
+}
+
+type FeeMarket struct {
+	Params *FeeMarketParams `json:"params"`
+}
+
+type FeeMarketParams struct {
+	BaseFee                  string `json:"base_fee"`
+	BaseFeeChangeDenominator int    `json:"base_fee_change_denominator"`
+	ElasticityMultiplier     int    `json:"elasticity_multiplier"`
+	EnableHeight             string `json:"enable_height"`
+	MinGasMultiplier         string `json:"min_gas_multiplier"`
+	MinGasPrice              string `json:"min_gas_price"`
+	NoBaseFee                bool   `json:"no_base_fee"`
 }
 
 type Bank struct {
@@ -35,8 +69,9 @@ type Bank struct {
 
 type RollappParams struct {
 	Params struct {
-		Da         string `json:"da"`
-		DrsVersion int    `json:"drs_version"`
+		Da           string                  `json:"da"`
+		DrsVersion   int                     `json:"drs_version"`
+		MinGasPrices cosmossdktypes.DecCoins `json:"min_gas_prices"`
 	} `json:"params"`
 }
 
@@ -58,6 +93,9 @@ func DownloadGenesis(home, genesisUrl string) error {
 	return nil
 }
 
+// GetGenesisAppState function retrieves the genesis file content using comet's
+// native function, the problem here is that it takes time due to json.rawMessage
+// for the app state itself
 func GetGenesisAppState(home string) (*AppState, error) {
 	genesis, err := comettypes.GenesisDocFromFile(GetGenesisFilePath(home))
 	if err != nil {
@@ -74,7 +112,10 @@ func GetGenesisAppState(home string) (*AppState, error) {
 	return &as, err
 }
 
-func GetDrsVersionFromGenesis(home string) (*AppState, error) {
+// GetAppStateFromGenesisFile function is a more minimalistic version of
+// GetGenesisAppState, it only retrieves the relevant genesis information
+// by unmarshalling bytes into the custom struct
+func GetAppStateFromGenesisFile(home string) (*AppState, error) {
 	genesisFile, err := os.Open(GetGenesisFilePath(home))
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %v", err)
@@ -356,4 +397,58 @@ func GetAddGenesisAccountCmd(addr, amount string, raCfg *roller.RollappConfig) *
 	)
 
 	return cmd
+}
+
+type ValidateGenesisRequest struct {
+	RollappID             string `json:"rollapp-id"`
+	SettlementChainID     string `json:"settlement-chain-id"`
+	SettlementNodeAddress string `json:"settlement-node-address"`
+}
+
+const (
+	ValidateGenesisURL = "https://genesis-validator.rollapp.network/validate-genesis"
+)
+
+func ValidateGenesis(raCfg roller.RollappConfig, raID string, hd consts.HubData) error {
+	req := ValidateGenesisRequest{
+		RollappID:             raID,
+		SettlementChainID:     hd.ID,
+		SettlementNodeAddress: hd.RpcUrl,
+	}
+
+	isChecksumValid, err := CompareGenesisChecksum(
+		raCfg.Home,
+		raID,
+		hd,
+	)
+
+	if !isChecksumValid {
+		return errors.New("genesis checksum mismatch")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(ValidateGenesisURL, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	rb, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error validating genesis: %s", string(rb))
+	}
+
+	return nil
 }

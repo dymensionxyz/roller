@@ -8,13 +8,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -30,6 +30,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -168,6 +169,28 @@ RollApp's IRO time: %v`,
 				if !canRegister {
 					pterm.Error.Println("rollapp is not ready to register a sequencer")
 					return
+				}
+
+				if !raResponse.Rollapp.GenesisInfo.Sealed {
+					gvSpinner, err := pterm.DefaultSpinner.Start(
+						"validating genesis (this can take several minutes for large genesis files)",
+					)
+					if err != nil {
+						pterm.Error.Println("failed to validate genesis: ", err)
+					}
+					err = genesis.ValidateGenesis(
+						localRollerConfig,
+						localRollerConfig.RollappID,
+						localRollerConfig.HubData,
+					)
+					// nolint:errcheck
+					gvSpinner.Stop()
+					if err != nil {
+						pterm.Error.Println("failed to validate genesis: ", err)
+						return
+					}
+					gvSpinner.Success("genesis successfully validated")
+					fmt.Println()
 				}
 
 				pterm.Info.Println("getting the existing sequencer address ")
@@ -777,6 +800,42 @@ RollApp's IRO time: %v`,
 	return cmd
 }
 
+func SupportedGasDenoms(
+	raCfg roller.RollappConfig,
+) (map[string]dymensionseqtypes.DenomMetadata, error) {
+	raResponse, err := rollapp.GetMetadataFromChain(
+		raCfg.RollappID,
+		raCfg.HubData,
+	)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve rollapp information from hub: ", err)
+		return nil, err
+	}
+	sd := map[string]dymensionseqtypes.DenomMetadata{
+		"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D": {
+			Display:  "DYM",
+			Base:     "adym",
+			Exponent: 18,
+		},
+
+		// "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4": {
+		// 	Display:  "usdc",
+		// 	Base:     "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4",
+		// 	Exponent: 6,
+		// },
+	}
+
+	if raResponse.Rollapp.GenesisInfo.NativeDenom != nil {
+		sd[raResponse.Rollapp.GenesisInfo.NativeDenom.Base] = dymensionseqtypes.DenomMetadata{
+			Display:  raResponse.Rollapp.GenesisInfo.NativeDenom.Display,
+			Base:     raResponse.Rollapp.GenesisInfo.NativeDenom.Base,
+			Exponent: raResponse.Rollapp.GenesisInfo.NativeDenom.Exponent,
+		}
+	}
+
+	return sd, nil
+}
+
 func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	cd := dymensionseqtypes.ContactDetails{
 		Website:  "",
@@ -784,35 +843,84 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		X:        "",
 	}
 
-	var defaultGasPrice cosmossdkmath.Int
+	var dgpAmount string
 	var ok bool
 
-	if raCfg.HubData.GasPrice != "" {
-		defaultGasPrice, ok = github_com_cosmos_cosmos_sdk_types.NewIntFromString(
-			raCfg.HubData.GasPrice,
-		)
-	} else {
-		defaultGasPrice = cosmossdktypes.NewInt(2000000000)
-		ok = true
-	}
-	if !ok {
-		return errors.New("failed to parse gas price")
+	as, err := genesis.GetAppStateFromGenesisFile(raCfg.Home)
+	if err != nil {
+		return err
 	}
 
+	if len(as.RollappParams.Params.MinGasPrices) == 0 {
+		return errors.New("rollappparams should contain at least one gas token")
+	}
+
+	var denom string
+	if len(as.RollappParams.Params.MinGasPrices) == 1 {
+		dgpAmount = as.RollappParams.Params.MinGasPrices[0].String()
+		denom = as.RollappParams.Params.MinGasPrices[0].Denom
+	} else {
+		pterm.Info.Println("more then 1 gas token option found")
+		var options []string
+		for _, token := range as.RollappParams.Params.MinGasPrices {
+			options = append(options, token.Denom)
+		}
+
+		denom, _ := pterm.DefaultInteractiveSelect.WithOptions(options).WithDefaultText("select the token to use for the gas denom").Show()
+		selectedIndex := slices.IndexFunc(as.RollappParams.Params.MinGasPrices, func(t cosmossdktypes.DecCoin) bool {
+			return t.Denom == denom
+		})
+		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].String()
+	}
+
+	sgt, err := SupportedGasDenoms(raCfg)
+	if err != nil {
+		return err
+	}
+
+	if _, ok = sgt[denom]; !ok {
+		return errors.New("unsupported gas denom")
+	}
+
+	fd := sgt[denom]
+	fd.Display = strings.ToUpper(fd.Display)
+
+	// TODO: add support for other denoms
+	var sm dymensionseqtypes.SequencerMetadata
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
-	sm := dymensionseqtypes.SequencerMetadata{
-		Moniker:        "",
-		Details:        "",
-		P2PSeeds:       []string{},
-		Rpcs:           []string{},
-		EvmRpcs:        []string{},
-		RestApiUrls:    []string{},
-		ExplorerUrl:    "",
-		GenesisUrls:    []string{},
-		ContactDetails: &cd,
-		ExtraData:      []byte{},
-		Snapshots:      defaultSnapshots,
-		GasPrice:       &defaultGasPrice,
+
+	if fd.Base != "adym" {
+		sm = dymensionseqtypes.SequencerMetadata{
+			Moniker:        "",
+			Details:        "",
+			P2PSeeds:       []string{},
+			Rpcs:           []string{},
+			EvmRpcs:        []string{},
+			RestApiUrls:    []string{},
+			ExplorerUrl:    "",
+			GenesisUrls:    []string{},
+			ContactDetails: &cd,
+			ExtraData:      []byte{},
+			Snapshots:      defaultSnapshots,
+			GasPrice:       dgpAmount,
+			FeeDenom:       nil,
+		}
+	} else {
+		sm = dymensionseqtypes.SequencerMetadata{
+			Moniker:        "",
+			Details:        "",
+			P2PSeeds:       []string{},
+			Rpcs:           []string{},
+			EvmRpcs:        []string{},
+			RestApiUrls:    []string{},
+			ExplorerUrl:    "",
+			GenesisUrls:    []string{},
+			ContactDetails: &cd,
+			ExtraData:      []byte{},
+			Snapshots:      defaultSnapshots,
+			GasPrice:       dgpAmount,
+			FeeDenom:       &fd,
+		}
 	}
 
 	path := filepath.Join(
@@ -868,29 +976,31 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		}
 	}
 
-	for {
-		// Prompt the user for the RPC URL
-		evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
-		).Show()
-		if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
-			evmRpc = "https://" + evmRpc
-		}
+	if raCfg.RollappVMType == consts.EVM_ROLLAPP {
+		for {
+			// Prompt the user for the RPC URL
+			evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
+			).Show()
+			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
+				evmRpc = "https://" + evmRpc
+			}
 
-		isValid := config.IsValidURL(evmRpc)
+			isValid := config.IsValidURL(evmRpc)
 
-		// Validate the URL
-		if !isValid {
-			pterm.Error.Println("Invalid URL. Please try again.")
-		} else {
-			// Valid URL, break out of the loop
-			break
+			// Validate the URL
+			if !isValid {
+				pterm.Error.Println("Invalid URL. Please try again.")
+			} else {
+				// Valid URL, break out of the loop
+				break
+			}
 		}
+		sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
 	}
 
 	sm.Rpcs = append(sm.Rpcs, rpc)
 	sm.RestApiUrls = append(sm.RestApiUrls, rest)
-	sm.EvmRpcs = append(sm.EvmRpcs, evmRpc)
 
 	shouldFillOptionalFields, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 		"Would you also like to fill optional metadata for your sequencer?",
@@ -919,7 +1029,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		sm.Moniker = displayName
 	}
 
-	err := WriteStructToJSONFile(&sm, path)
+	err = WriteStructToJSONFile(&sm, path)
 	if err != nil {
 		return err
 	}

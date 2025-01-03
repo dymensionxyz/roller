@@ -14,6 +14,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
@@ -23,6 +24,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 // TODO: cleanup required, a lot of duplicate code in this cmd
@@ -35,6 +37,12 @@ func Cmd() *cobra.Command {
 			home, _ := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
+
+			err := servicemanager.StopSystemServices(consts.RelayerSystemdServices)
+			if err != nil {
+				pterm.Error.Println("failed to stop system services: ", err)
+				return
+			}
 
 			raData, hd, kb, err := getPreRunInfo(home)
 			if err != nil {
@@ -103,7 +111,9 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("verifying path in relayer config")
 			if rlyCfg.GetPath() == nil {
-				pterm.Error.Println("no existing path")
+				pterm.Info.Println(
+					"no existing path, roller will create a new IBC path and set it up",
+				)
 				if err := rlyCfg.CreatePath(*rollappChainData); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
@@ -165,6 +175,7 @@ func Cmd() *cobra.Command {
 					}
 
 					pterm.Info.Println("creating ibc connection")
+					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
 						rollappChainData,
@@ -274,7 +285,7 @@ func getDrsVersionFromGenesis(
 		return "", err
 	}
 
-	as, err := genesis.GetDrsVersionFromGenesis(home)
+	as, err := genesis.GetAppStateFromGenesisFile(home)
 	if err != nil {
 		pterm.Error.Println("failed to get genesis app state: ", err)
 		return "", err

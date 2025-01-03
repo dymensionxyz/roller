@@ -5,6 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
@@ -19,5 +20,10 @@ func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 		return err
 	}
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
-	return tomlconfig.UpdateFieldInFile(dymintTomlPath, "settlement_node_address", value)
+	err := tomlconfig.UpdateFieldInFile(dymintTomlPath, "settlement_node_address", value)
+	if err != nil {
+		return err
+	}
+
+	return servicemanager.RestartSystemServices([]string{"rollapp", "relayer"}, rlpCfg.Home)
 }

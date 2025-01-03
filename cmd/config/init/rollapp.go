@@ -1,9 +1,9 @@
 package initconfig
 
 import (
-	"errors"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 
@@ -58,18 +58,19 @@ func InitializeRollappConfig(
 			return err
 		}
 
-		// TODO: refactor
-		as, err := genesisutils.GetGenesisAppState(initConfig.Home)
+		as, err := genesisutils.GetAppStateFromGenesisFile(initConfig.Home)
 		if err != nil {
 			return err
 		}
 
-		if len(as.Bank.Supply) == 0 {
-			return errors.New("token supply is not defined in the genesis file")
-		}
+		rollappBaseDenom := as.Staking.Params.BondDenom
+		var rollappDenom string
 
-		rollappBaseDenom := as.Bank.Supply[0].Denom
-		rollappDenom := rollappBaseDenom[1:]
+		if strings.HasPrefix(as.Staking.Params.BondDenom, "ibc/") {
+			rollappDenom = as.Staking.Params.BondDenom
+		} else {
+			rollappDenom = rollappBaseDenom[1:]
+		}
 
 		initConfig.BaseDenom = rollappBaseDenom
 		initConfig.Denom = rollappDenom

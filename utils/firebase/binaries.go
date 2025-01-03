@@ -12,6 +12,7 @@ import (
 type BinaryVersionInfo struct {
 	EibcClient string `firestore:"eibc-client"`
 	Relayer    string `firestore:"relayer"`
+	Dymd       string `firestore:"dymd"`
 }
 
 // GetDependencyVersions

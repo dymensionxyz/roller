@@ -112,7 +112,7 @@ func getAvailableHubsMessage() string {
 	return fmt.Sprintf(
 		"Acceptable values are '%s', '%s' or '%s'",
 		consts.LocalHubName,
-		consts.TestnetHubName,
+		consts.BlumbusHubName,
 		consts.MainnetHubName,
 	)
 }

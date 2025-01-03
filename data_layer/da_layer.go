@@ -61,7 +61,16 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 	var daNetwork string
 
 	switch env {
-	case "playground", "custom":
+	case "playground", "blumbus":
+		switch daBackend {
+		case string(consts.Celestia):
+			daNetwork = string(consts.CelestiaTestnet)
+		case string(consts.Avail):
+			daNetwork = string(consts.AvailTestnet)
+		default:
+			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
+	case "custom":
 		switch daBackend {
 		case string(consts.Celestia):
 			daNetwork = string(consts.CelestiaTestnet)

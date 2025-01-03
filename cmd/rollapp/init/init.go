@@ -119,7 +119,7 @@ func Cmd() *cobra.Command {
 			if shouldUseMockBackend {
 				env = "mock"
 			} else {
-				envs := []string{"mock", "playground", "custom"}
+				envs := []string{"mock", "playground", "blumbus", "custom"}
 				env, _ = pterm.DefaultInteractiveSelect.
 					WithDefaultText("select the environment you want to initialize for").
 					WithOptions(envs).

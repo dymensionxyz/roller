@@ -4,7 +4,6 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -101,30 +100,5 @@ func getHubRlyAccData(home string, hd consts.HubData) (*keys.AccountData, error)
 	return &keys.AccountData{
 		Address: HubRlyAddr,
 		Balance: *HubRlyBalance,
-	}, nil
-}
-
-// nolint: unused
-func getRolRlyAccData(home string, raData roller.RollappConfig) (*keys.AccountData, error) {
-	RollappRlyAddr, err := keys.GetRelayerAddress(home, raData.RollappID)
-	seq := sequencer.GetInstance(raData)
-	if err != nil {
-		return nil, err
-	}
-
-	RollappRlyBalance, err := keys.QueryBalance(
-		keys.ChainQueryConfig{
-			RPC:    seq.GetRPCEndpoint(),
-			Denom:  raData.Denom,
-			Binary: consts.Executables.RollappEVM,
-		}, RollappRlyAddr,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &keys.AccountData{
-		Address: RollappRlyAddr,
-		Balance: *RollappRlyBalance,
 	}, nil
 }

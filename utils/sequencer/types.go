@@ -3,7 +3,6 @@ package sequencer
 import (
 	"time"
 
-	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/types"
 )
@@ -40,7 +39,7 @@ type Info struct {
 	// WhitelistedRelayers is an array of the whitelisted relayer addresses. Addresses are bech32-encoded strings.
 	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3"                json:"whitelisted_relayers,omitempty"`
 	// opted in defines whether the sequencer can be selected as proposer
-	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,proto3"                                                       json:"opted_in,omitempty"`
+	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,proto3"                                                    json:"opted_in,omitempty"`
 }
 
 type Metadata struct {
@@ -69,7 +68,14 @@ type Metadata struct {
 	Snapshots []*SnapshotInfo `json:"snapshots"`
 	// gas_price defines the value for each gas unit
 	// nolint:govet,staticcheck
-	GasPrice *cosmossdkmath.Int `json:"gas_price"`
+	GasPrice string        `json:"gas_price"`
+	FeeDenom DenomMetadata `json:"fee_denom"`
+}
+
+type DenomMetadata struct {
+	Display  string `json:"display"`
+	Base     string `json:"base"`
+	Exponent int    `json:"exponent"`
 }
 
 type ContactDetails struct {

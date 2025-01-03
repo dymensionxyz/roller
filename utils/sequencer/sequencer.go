@@ -17,6 +17,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -24,6 +25,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/tx"
 )
+
+func GetSequencerConfigDir(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
+}
 
 func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
 	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
@@ -102,6 +107,11 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		automaticPrompts,
 		manualPromptResponses,
 	)
+	if err != nil {
+		return err
+	}
+
+	err = tx_utils.CheckTxYamlStdOut(*txOutput)
 	if err != nil {
 		return err
 	}

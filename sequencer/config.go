@@ -6,18 +6,21 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	toml "github.com/pelletier/go-toml"
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/dymensionxyz/roller/utils/sequencer"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
-	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -56,7 +59,7 @@ func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 }
 
 func UpdateDymintDAConfig(rlpCfg roller.RollappConfig) error {
-	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
+	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
 	dymintCfg, err := toml.LoadFile(dymintTomlPath)
 	if err != nil {
 		return err
@@ -91,13 +94,37 @@ func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) err
 }
 
 func SetAppConfig(rlpCfg roller.RollappConfig) error {
-	appConfigFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "app.toml")
+	appConfigFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(rlpCfg.Home),
+		"app.toml",
+	)
 	appCfg, err := toml.LoadFile(appConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", appConfigFilePath, err)
 	}
 
-	appCfg.Set("minimum-gas-prices", "2000000000"+rlpCfg.BaseDenom)
+	as, err := genesis.GetAppStateFromGenesisFile(rlpCfg.Home)
+	if err != nil {
+		return err
+	}
+
+	var minimumGasPrice string
+	if len(as.RollappParams.Params.MinGasPrices) > 0 {
+		pterm.Info.Println("applying rollappparam gas price")
+
+		minGasPricesStrs := make([]string, len(as.RollappParams.Params.MinGasPrices))
+		for i, minGasPrice := range as.RollappParams.Params.MinGasPrices {
+			tkn := cosmossdktypes.NewCoin(minGasPrice.Denom, minGasPrice.Amount.TruncateInt())
+			minGasPricesStrs[i] = tkn.String()
+		}
+		minimumGasPrice = strings.Join(minGasPricesStrs, ",")
+		appCfg.Set("minimum-gas-prices", minimumGasPrice)
+	} else {
+		pterm.Info.Println("applying default gas price")
+		minimumGasPrice = consts.DefaultMinGasPrice
+		appCfg.Set("minimum-gas-prices", fmt.Sprintf("%s%s", minimumGasPrice, rlpCfg.BaseDenom))
+	}
+
 	appCfg.Set("gas-adjustment", 1.3)
 	appCfg.Set("api.enable", true)
 	appCfg.Set("api.enabled-unsafe-cors", true)
@@ -110,16 +137,23 @@ func SetAppConfig(rlpCfg roller.RollappConfig) error {
 }
 
 func SetTMConfig(rlpCfg roller.RollappConfig) error {
-	configFilePath := filepath.Join(getSequencerConfigDir(rlpCfg.Home), "config.toml")
+	configFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(rlpCfg.Home),
+		"config.toml",
+	)
 	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", configFilePath, err)
 	}
+
 	tomlCfg.Set("rpc.laddr", "tcp://0.0.0.0:26657")
 	tomlCfg.Set("rpc.timeout_broadcast_tx_commit", "30s")
 	tomlCfg.Set("rpc.max_subscriptions_per_client", "10")
 	tomlCfg.Set("log_level", "debug")
 	tomlCfg.Set("rpc.cors_allowed_origins", []string{"*"})
+	tomlCfg.Set("mempool.max_tx_bytes", "450000")
+	tomlCfg.Set("mempool.ttl-duration", "5m0s")
+
 	return tomlconfig.WriteTomlTreeToFile(tomlCfg, configFilePath)
 }
 
@@ -130,7 +164,9 @@ func (seq *Sequencer) ReadPorts() error {
 	}
 
 	seq.RPCPort = getPortFromAddress(rpcAddr)
-	appCfg, err := toml.LoadFile(filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "app.toml"))
+	appCfg, err := toml.LoadFile(
+		filepath.Join(sequencerutils.GetSequencerConfigDir(seq.RlpCfg.Home), "app.toml"),
+	)
 	if err != nil {
 		return err
 	}
@@ -143,7 +179,10 @@ func (seq *Sequencer) ReadPorts() error {
 }
 
 func (seq *Sequencer) GetConfigValue(key string) (string, error) {
-	configFilePath := filepath.Join(getSequencerConfigDir(seq.RlpCfg.Home), "config.toml")
+	configFilePath := filepath.Join(
+		sequencerutils.GetSequencerConfigDir(seq.RlpCfg.Home),
+		"config.toml",
+	)
 	tomlCfg, err := toml.LoadFile(configFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load %s: %v", configFilePath, err)
@@ -161,10 +200,6 @@ func (seq *Sequencer) GetRPCEndpoint() string {
 
 func (seq *Sequencer) GetLocalEndpoint(port string) string {
 	return "http://localhost:" + port
-}
-
-func getSequencerConfigDir(rollerHome string) string {
-	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
 }
 
 func getPortFromAddress(addr string) string {

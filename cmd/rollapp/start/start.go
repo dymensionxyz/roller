@@ -19,6 +19,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/healthagent"
 	"github.com/dymensionxyz/roller/utils/logging"
 	"github.com/dymensionxyz/roller/utils/migrations"
@@ -68,6 +69,22 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				return
 			}
 
+			isChecksumValid, err := genesisutils.CompareGenesisChecksum(
+				rollappConfig.Home,
+				rollappConfig.RollappID,
+				rollappConfig.HubData,
+			)
+
+			if !isChecksumValid {
+				pterm.Error.Println("genesis checksum mismatch")
+				return
+			}
+
+			if err != nil {
+				pterm.Error.Println("failed to compare genesis checksum: ", err)
+				return
+			}
+
 			if rollappConfig.HubData.ID != consts.MockHubID {
 				raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
 				if err != nil {
@@ -86,10 +103,12 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				}
 			}
 
-			err = sequencerutils.CheckBalance(rollappConfig)
-			if err != nil {
-				pterm.Error.Println("failed to check sequencer balance: ", err)
-				return
+			if rollappConfig.NodeType == "sequencer" {
+				err = sequencerutils.CheckBalance(rollappConfig)
+				if err != nil {
+					pterm.Error.Println("failed to check sequencer balance: ", err)
+					return
+				}
 			}
 
 			seq := sequencer.GetInstance(rollappConfig)

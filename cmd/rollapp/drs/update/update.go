@@ -116,6 +116,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			dymdDep := dependencies.DefaultDymdDependency()
+			pterm.Info.Println("installing dependencies")
+			err = dependencies.InstallBinaryFromRelease(dymdDep)
+			if err != nil {
+				pterm.Error.Println("failed to install dymd: ", err)
+				return
+			}
+
 			// stop services
 			err = servicemanager.StopSystemServices([]string{"rollapp"})
 			if err != nil {
