@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
@@ -340,7 +341,8 @@ func (o *Oracle) GetCodeID() error {
 
 	// Look for matching creator and contract hash
 	for _, codeInfo := range response.CodeInfos {
-		if codeInfo.Creator == o.KeyAddress && codeInfo.DataHash == contractHash {
+		if strings.EqualFold(codeInfo.Creator, o.KeyAddress) &&
+			strings.EqualFold(codeInfo.DataHash, contractHash) {
 			o.CodeID = codeInfo.CodeID
 			return nil
 		}
