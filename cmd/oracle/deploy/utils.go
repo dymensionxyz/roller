@@ -334,6 +334,9 @@ func (o *Oracle) GetCodeID() (string, error) {
 		return "", fmt.Errorf("failed to parse response: %v", err)
 	}
 
+	j, _ := json.MarshalIndent(response, "", "  ")
+	fmt.Println(string(j))
+
 	// Look for matching creator and contract hash
 	for _, codeInfo := range response.CodeInfos {
 		if strings.EqualFold(codeInfo.Creator, o.KeyAddress) &&
