@@ -850,6 +850,9 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	if err != nil {
 		return err
 	}
+	as.RollappParams.Params.MinGasPrices = cosmossdktypes.NewDecCoins(cosmossdktypes.DecCoin{Denom: "arax", Amount: cosmossdktypes.NewDec(10000000)})
+
+	fmt.Println("rollapp params.......", as.RollappParams)
 
 	if len(as.RollappParams.Params.MinGasPrices) == 0 {
 		return errors.New("rollappparams should contain at least one gas token")
