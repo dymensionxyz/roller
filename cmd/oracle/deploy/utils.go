@@ -341,7 +341,13 @@ func (o *Oracle) GetCodeID() error {
 	}
 
 	if len(response.CodeInfos) == 0 {
-		return fmt.Errorf("no code found")
+		return &utils.GenericNotFoundError{
+			Thing: fmt.Sprintf(
+				"code with %s as creator and %s as data hash",
+				o.KeyAddress,
+				contractHash,
+			),
+		}
 	}
 
 	// Look for matching creator and contract hash
@@ -353,13 +359,7 @@ func (o *Oracle) GetCodeID() error {
 		}
 	}
 
-	return &utils.GenericNotFoundError{
-		Thing: fmt.Sprintf(
-			"code with %s as creator and %s as data hash",
-			o.KeyAddress,
-			contractHash,
-		),
-	}
+	return nil
 }
 
 func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
