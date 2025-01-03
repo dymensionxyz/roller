@@ -362,6 +362,7 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		string(msgBytes),
 		"--from", o.KeyAddress,
 		"--label", "price_oracle",
+		"--admin", o.KeyAddress,
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
 		"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
