@@ -44,7 +44,7 @@ func (o *Oracle) ConfigDir(rollerData roller.RollappConfig) string {
 func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 	pterm.Info.Println("deploying oracle")
 
-	addr, err := generateRaOracleKeys(o.ConfigDirPath, rollerData)
+	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
