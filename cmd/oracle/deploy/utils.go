@@ -373,10 +373,17 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		"-y",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate contract: %v, output: %s", err, output)
 	}
+
+	txHash, err := bash.ExtractTxHash(output.String())
+	if err != nil {
+		return fmt.Errorf("failed to extract transaction hash: %v", err)
+	}
+
+	pterm.Info.Printfln("transaction hash: %s", txHash)
 
 	return nil
 }
