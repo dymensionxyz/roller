@@ -223,7 +223,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	pterm.Info.Printfln("transaction hash: %s", txHash)
 
 	// Monitor transaction
-	wsURL := "ws://localhost:26657"
+	wsURL := "http://localhost:26657"
 	if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
 		return fmt.Errorf("failed to monitor transaction: %v", err)
 	}
