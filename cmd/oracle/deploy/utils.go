@@ -367,7 +367,7 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		"--admin", o.KeyAddress,
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
+		"--fees", fmt.Sprintf("40000000000000000%s", balanceDenom),
 		"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
 		"--chain-id", rollerData.RollappID,
 		"--broadcast-mode", "sync",
