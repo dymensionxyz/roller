@@ -218,6 +218,8 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 			"--gas-adjustment", "1.3",
 			"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
 			"--keyring-backend", rollerData.KeyringBackend.String(),
+			"--chain-id", rollerData.RollappID,
+			"--broadcast-mode", "sync",
 			"--home", o.ConfigDirPath,
 			"-y",
 		)
