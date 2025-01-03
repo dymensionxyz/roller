@@ -73,7 +73,7 @@ func (o *Oracle) Deploy(rollerData roller.RollappConfig) error {
 
 	pterm.Info.Printfln("contract code id: %s", o.CodeID)
 
-	if err := o.InstantiateContract(); err != nil {
+	if err := o.InstantiateContract(rollerData); err != nil {
 		return fmt.Errorf("failed to instantiate contract: %v", err)
 	}
 
@@ -316,11 +316,11 @@ func (o *Oracle) GetCodeID() error {
 		return fmt.Errorf("no code found")
 	}
 
-	o.CodeID = response.CodeInfos[0].CodeID
+	o.CodeID = response.CodeInfos[len(response.CodeInfos)-1].CodeID
 	return nil
 }
 
-func (o *Oracle) InstantiateContract() error {
+func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 	instantiateMsg := struct {
 		Config struct {
 			Updater             string `json:"updater"`
@@ -344,6 +344,18 @@ func (o *Oracle) InstantiateContract() error {
 		return fmt.Errorf("failed to marshal instantiate message: %v", err)
 	}
 
+	var balanceDenom string
+	raResp, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
+	if err != nil {
+		return fmt.Errorf("failed to get rollapp metadata: %v", err)
+	}
+
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+		balanceDenom = consts.Denoms.HubIbcOnRollapp
+	} else {
+		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
+	}
+
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"tx", "wasm", "instantiate", o.CodeID,
@@ -352,8 +364,12 @@ func (o *Oracle) InstantiateContract() error {
 		"--label", "price_oracle",
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--fees", "40693780000000000awasmnat",
-		"--admin", o.KeyAddress,
+		"--fees", fmt.Sprintf("4000000000000000%s", balanceDenom),
+		"--keyring-backend", rollerData.KeyringBackend.String(),
+		"--chain-id", rollerData.RollappID,
+		"--broadcast-mode", "sync",
+		"--home", o.ConfigDirPath,
+		"-y",
 	)
 
 	output, err := cmd.CombinedOutput()
