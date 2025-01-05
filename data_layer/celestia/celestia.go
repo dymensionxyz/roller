@@ -374,9 +374,18 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 		panic(err)
 	}
 
+	var daGasPrices float64
+	switch raCfg.Environment {
+	case consts.MainnetHubData.Environment:
+		daGasPrices = 0.0045
+	default:
+		daGasPrices = 0.02
+	}
+
 	return fmt.Sprintf(
-		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":0.02, "gas_adjustment": 1.3, "namespace_id":"%s","auth_token":"%s","backoff":{"initial_delay":6000000000,"max_delay":6000000000,"growth_factor":2},"retry_attempts":4,"retry_delay":3000000000}`,
+		`{"base_url": "%s", "timeout": 60000000000, "gas_prices":%f, "gas_adjustment": 1.3, "namespace_id":"%s","auth_token":"%s","backoff":{"initial_delay":6000000000,"max_delay":6000000000,"growth_factor":2},"retry_attempts":4,"retry_delay":3000000000}`,
 		lcEndpoint,
+		daGasPrices,
 		c.NamespaceID,
 		authToken,
 	)
