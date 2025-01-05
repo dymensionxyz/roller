@@ -105,8 +105,16 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 	j, _ := json.Marshal(lresp.Files)
 	fmt.Println(string(j))
 
+	searchPattern := fmt.Sprintf("%s:%s:%s-%s-%s",
+		oracleType, // e.g., "cosmos-oracle"
+		version,    // e.g., "1.0.0-amd64"
+		oracleType, // repeated in the filename
+		goos,       // e.g., "linux"
+		arch,       // e.g., "amd64"
+	)
+
 	resp, err := filesService.List(parent).Filter(
-		fmt.Sprintf("name.contains('%s')", version),
+		fmt.Sprintf("name.contains('%s')", searchPattern),
 	).Do()
 	if err != nil {
 		return fmt.Errorf("failed to list files: %w", err)
