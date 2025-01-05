@@ -2,6 +2,7 @@ package dependencies
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -95,6 +96,15 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 
 	// List files matching our criteria
 	filesService := artifactregistry.NewProjectsLocationsRepositoriesFilesService(client)
+
+	lresp, err := filesService.List(parent).PageSize(1).Do()
+	if err != nil {
+		return fmt.Errorf("failed to list files: %w", err)
+	}
+	fmt.Println(lresp.Files)
+	j, _ := json.Marshal(lresp.Files)
+	fmt.Println(string(j))
+
 	resp, err := filesService.List(parent).Filter(
 		fmt.Sprintf("name.contains('%s')", version),
 	).Do()
