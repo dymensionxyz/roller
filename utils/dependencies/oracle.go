@@ -86,7 +86,8 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 	// Build the artifact path
 	arch := runtime.GOARCH
 	goos := runtime.GOOS
-	version := fmt.Sprintf("%s-%s-%s", config.Version, goos, arch)
+
+	version := fmt.Sprintf("%s-%s", config.Version, arch)
 
 	// Create parent path
 	parent := fmt.Sprintf("projects/%s/locations/%s/repositories/%s",
