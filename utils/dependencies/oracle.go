@@ -96,7 +96,7 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 	// List files matching our criteria
 	filesService := artifactregistry.NewProjectsLocationsRepositoriesFilesService(client)
 	resp, err := filesService.List(parent).Filter(
-		fmt.Sprintf("name.contains('%s') AND name.contains('%s')", oracleType, version),
+		fmt.Sprintf("name.contains('%s')", version),
 	).Do()
 	if err != nil {
 		return fmt.Errorf("failed to list files: %w", err)
