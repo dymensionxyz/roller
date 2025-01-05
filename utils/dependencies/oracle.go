@@ -2,7 +2,6 @@ package dependencies
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/pterm/pterm"
-	artifactregistry "google.golang.org/api/artifactregistry/v1"
 	"google.golang.org/api/option"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -69,15 +67,6 @@ func GetOracleBinaryVersion(vmt consts.VMType) (*OracleBinaryVersionInfo, error)
 }
 
 func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
-	// Initialize client without credentials (assuming default application credentials)
-	client, err := artifactregistry.NewService(
-		ctx,
-		option.WithoutAuthentication(),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create artifact registry client: %w", err)
-	}
-
 	// Determine oracle type based on rollapp type
 	oracleType := "evm-oracle"
 	if config.RollappType == consts.WASM_ROLLAPP {
@@ -90,23 +79,7 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 
 	version := fmt.Sprintf("%s-%s", config.Version, arch)
 
-	// Create parent path
-	parent := fmt.Sprintf("projects/%s/locations/%s/repositories/%s",
-		projectID, location, repository)
-
-	// List files matching our criteria
-	filesService := artifactregistry.NewProjectsLocationsRepositoriesFilesService(client)
-
-	lresp, err := filesService.List(parent).PageSize(1).Do()
-	if err != nil {
-		return fmt.Errorf("failed to list files: %w", err)
-	}
-	fmt.Println(lresp.Files)
-	j, _ := json.Marshal(lresp.Files)
-	fmt.Println(string(j))
-
-	fullPath := fmt.Sprintf("%s/files/%s:%s:%s-%s-%s",
-		parent,     // projects/dymension-ops/locations/europe-central2/repositories/oracle-clients
+	fullPath := fmt.Sprintf("%s:%s:%s-%s-%s",
 		oracleType, // cosmos-oracle
 		version,    // 1.0.0-amd64
 		oracleType, // cosmos-oracle
@@ -114,42 +87,32 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 		arch,       // amd64
 	)
 
-	resp, err := filesService.List(parent).Filter(
-		fmt.Sprintf(`name="%s"`, fullPath),
-	).Do()
+	downloadURL := fmt.Sprintf(
+		"https://artifactregistry.googleapis.com/download/v1/projects/%s/locations/%s/repositories/%s/files/%s:download?alt=media",
+		projectID,
+		location,
+		repository,
+		fullPath,
+	)
+
+	// Create the HTTP request
+	req, err := http.NewRequestWithContext(ctx, "GET", downloadURL, nil)
 	if err != nil {
-		return fmt.Errorf("failed to list files: %w", err)
+		return fmt.Errorf("failed to create download request: %w", err)
 	}
 
-	if len(resp.Files) == 0 {
-		return fmt.Errorf("no binary found for %s oracle (version %s) on %s/%s",
-			oracleType, version, goos, arch)
-	}
-
-	// Get download URL
-	downloadPath := fmt.Sprintf("%s/%s", parent, resp.Files[0].Name)
-	downloadResp, err := filesService.Download(downloadPath).Do()
+	// Make the request
+	httpClient := &http.Client{}
+	httpResp, err := httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to get download URL: %w", err)
+		return fmt.Errorf("failed to download file: %w", err)
 	}
+	defer httpResp.Body.Close()
 
-	// Create installation directory
+	// Create installation directory if it doesn't exist
 	if err := os.MkdirAll(filepath.Dir(config.InstallDir), 0o755); err != nil {
 		return fmt.Errorf("failed to create installation directory: %w", err)
 	}
-
-	// Download the file
-	pterm.Info.Printf("Downloading %s binary...\n", oracleType)
-	downloadUrl := downloadResp.ServerResponse.Header.Get("X-Goog-Download-URL")
-	if downloadUrl == "" {
-		return fmt.Errorf("download URL not found in response headers")
-	}
-	// nolint:gosec
-	httpResp, err := http.Get(downloadUrl)
-	if err != nil {
-		return fmt.Errorf("failed to download binary: %w", err)
-	}
-	defer httpResp.Body.Close()
 
 	// Save the file
 	destFile, err := os.OpenFile(config.InstallDir, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
