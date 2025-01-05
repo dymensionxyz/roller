@@ -71,7 +71,7 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 	// Initialize client without credentials (assuming default application credentials)
 	client, err := artifactregistry.NewService(
 		ctx,
-		option.WithScopes(artifactregistry.CloudPlatformScope),
+		option.WithoutAuthentication(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create artifact registry client: %w", err)
