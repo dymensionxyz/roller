@@ -15,6 +15,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/archives"
 )
 
 const (
@@ -114,15 +115,23 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
 		return fmt.Errorf("failed to create installation directory: %w", err)
 	}
 
-	// Save the file
-	destFile, err := os.OpenFile(config.InstallDir, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	// Create a temporary file
+	tmpFile, err := os.CreateTemp("", "oracle-binary-*")
 	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
+		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
-	defer destFile.Close()
+	tmpPath := tmpFile.Name()
+	defer os.Remove(tmpPath) // Clean up temp file in case of failure
 
-	if _, err := io.Copy(destFile, httpResp.Body); err != nil {
-		return fmt.Errorf("failed to write binary: %w", err)
+	// Copy downloaded content to temporary file
+	if _, err := io.Copy(tmpFile, httpResp.Body); err != nil {
+		return fmt.Errorf("failed to write binary to temporary file: %w", err)
+	}
+	tmpFile.Close()
+
+	// Move the binary into place and make it executable
+	if err := archives.MoveBinaryIntoPlaceAndMakeExecutable(tmpPath, config.InstallDir); err != nil {
+		return fmt.Errorf("failed to move binary into place: %w", err)
 	}
 
 	pterm.Success.Printf("%s binary installed successfully at %s\n",
