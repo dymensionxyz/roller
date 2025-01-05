@@ -233,7 +233,7 @@ func Cmd() *cobra.Command {
 }
 
 func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, error) {
-	raID, hd, kb, err := relayerutils.GetRollappToRunFor(home)
+	raID, hd, kb, err := relayerutils.GetRollappToRunFor(home, "relayer")
 	if err != nil {
 		pterm.Error.Println("failed to determine what RollApp to run for:", err)
 		return nil, nil, "", err

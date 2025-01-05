@@ -25,7 +25,7 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			var beRpcEndpoint string
-			raID, _, _, err := relayerutils.GetRollappToRunFor(home)
+			raID, _, _, err := relayerutils.GetRollappToRunFor(home, "block explorer")
 			if err != nil {
 				pterm.Error.Println("failed to determine what RollApp to run for:", err)
 				return

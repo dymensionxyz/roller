@@ -18,7 +18,7 @@ import (
 // when no roller configuration file is present, it prompts the user for the
 // necessary information and returns the RollApp ID, Hub Data, keyring backend to use
 // and error, if any.
-func GetRollappToRunFor(home string) (string, *consts.HubData, string, error) {
+func GetRollappToRunFor(home, component string) (string, *consts.HubData, string, error) {
 	rollerConfigFilePath := roller.GetConfigPath(home)
 	rollerConfigExists, err := filesystem.DoesFileExist(rollerConfigFilePath)
 	if err != nil {
@@ -36,9 +36,10 @@ func GetRollappToRunFor(home string) (string, *consts.HubData, string, error) {
 		}
 
 		msg := fmt.Sprintf(
-			"the retrieved rollapp ID is: %s, would you like to initialize the relayer for this rollapp?",
+			"the retrieved rollapp ID is: %s, would you like to initialize the %s for this rollapp?",
 			pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 				Sprint(rollerData.RollappID),
+			component,
 		)
 		runForRollappFromRollerConfig, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(msg).
 			Show()
