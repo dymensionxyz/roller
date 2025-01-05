@@ -3,7 +3,7 @@ package oracle
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/roller/cmd/oracle/deploy"
+	"github.com/dymensionxyz/roller/cmd/oracle/setup"
 )
 
 func Cmd() *cobra.Command {
@@ -12,7 +12,7 @@ func Cmd() *cobra.Command {
 		Short: "Commands related to RollApp's component observability",
 	}
 
-	cmd.AddCommand(deploy.Cmd())
+	cmd.AddCommand(setup.Cmd())
 
 	return cmd
 }
