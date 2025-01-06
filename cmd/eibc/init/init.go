@@ -395,7 +395,7 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 	pterm.Info.Println("initializing for environment")
 	var hd consts.HubData
 
-	envs := []string{"playground", "blumbus", "custom"}
+	envs := []string{"playground", "blumbus", "custom", "mainnet"}
 	env, _ := pterm.DefaultInteractiveSelect.
 		WithDefaultText(
 			"select the environment you want to initialize eibc client for",

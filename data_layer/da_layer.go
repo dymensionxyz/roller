@@ -65,6 +65,12 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 		} else {
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
+	case "mainnet":
+		if daBackend == string(consts.Celestia) {
+			daNetwork = string(consts.CelestiaMainnet)
+		} else {
+			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
+		}
 	case "custom":
 		if daBackend == string(consts.Celestia) {
 			daNetwork = string(consts.CelestiaTestnet)

@@ -21,6 +21,11 @@ func KeyringBackendFromEnv(env string) consts.SupportedKeyringBackend {
 	switch env {
 	case "mock", "playground", "blumbus":
 		return consts.SupportedKeyringBackends.Test
+	case "mainnet":
+		if runtime.GOOS != "darwin" {
+			return consts.SupportedKeyringBackends.OS
+		}
+		return consts.SupportedKeyringBackends.Test
 	case "custom":
 		krBackends := []string{"test"}
 		if runtime.GOOS != "darwin" {
