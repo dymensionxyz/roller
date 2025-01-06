@@ -2,7 +2,11 @@ package setup
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -15,6 +19,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
+
+//go:embed configs/*
+var configFiles embed.FS
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -45,6 +52,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
 			oracle := NewOracle(rollerData)
 			err = oracle.SetKey(rollerData)
 			if err != nil {
@@ -133,8 +141,42 @@ func Cmd() *cobra.Command {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return
 			}
+
+			pterm.Info.Println("copying config file")
+			if err := copyConfigFile(rollerData.RollappVMType, cd); err != nil {
+				pterm.Error.Printf("failed to copy config file: %v\n", err)
+				return
+			}
 		},
 	}
 
 	return cmd
+}
+
+func copyConfigFile(rollappType consts.VMType, destDir string) error {
+	var configFile string
+	switch rollappType {
+	case consts.EVM_ROLLAPP:
+		configFile = "configs/evm-config.yaml"
+	case consts.WASM_ROLLAPP:
+		configFile = "configs/wasm-config.yaml"
+	default:
+		return fmt.Errorf("unsupported rollapp type: %s", rollappType)
+	}
+
+	data, err := configFiles.ReadFile(configFile)
+	if err != nil {
+		return fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	configPath := filepath.Join(destDir, "config.toml")
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	if err := os.WriteFile(configPath, data, 0o644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	return nil
 }
