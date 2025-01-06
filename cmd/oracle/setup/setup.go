@@ -15,8 +15,10 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -84,6 +86,11 @@ func Cmd() *cobra.Command {
 			}
 
 			oracle.CodeID = codeID
+			raData, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
+			if err != nil {
+				pterm.Error.Printf("failed to get rollapp metadata: %v\n", err)
+				return
+			}
 
 			pterm.Info.Printfln("code ID: %s", oracle.CodeID)
 
@@ -142,9 +149,30 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Println("copying config file")
+			pterm.Info.Printfln("copying config file into %s", cd)
 			if err := copyConfigFile(rollerData.RollappVMType, cd); err != nil {
 				pterm.Error.Printf("failed to copy config file: %v\n", err)
+				return
+			}
+			pterm.Info.Println("config file copied successfully")
+			pterm.Info.Println("updating config values")
+
+			updates := map[string]any{
+				"chainClient.oracleContractAddress": oracle.ContractAddress,
+				"chainClient.fee":                   consts.DefaultTxFee,
+				"chainClient.gasLimit":              consts.DefaultMinGasPrice,
+				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
+				"chainClient.chainId":               raData.Rollapp.RollappId,
+				"chainClient.privateKey":            oracle.ContractAddress,
+				"chainClient.ssl":                   false,
+				"chainClient.chainGrpcHost":         "http://localhost:9090",
+				"grpc_port":                         9093,
+			}
+
+			cfp := filepath.Join(cd, "config.yaml")
+			err = yamlconfig.UpdateNestedYAML(cfp, updates)
+			if err != nil {
+				pterm.Error.Printf("failed to update config file: %v\n", err)
 				return
 			}
 		},
@@ -169,7 +197,7 @@ func copyConfigFile(rollappType consts.VMType, destDir string) error {
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	configPath := filepath.Join(destDir, "config.toml")
+	configPath := filepath.Join(destDir, "config.yaml")
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
