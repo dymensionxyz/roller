@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"time"
 
+	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -160,13 +161,15 @@ func Cmd() *cobra.Command {
 			updates := map[string]any{
 				"chainClient.oracleContractAddress": oracle.ContractAddress,
 				"chainClient.fee":                   consts.DefaultTxFee,
-				"chainClient.gasLimit":              consts.DefaultMinGasPrice,
-				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
-				"chainClient.chainId":               raData.Rollapp.RollappId,
-				"chainClient.privateKey":            "oracle",
-				"chainClient.ssl":                   false,
-				"chainClient.chainGrpcHost":         "http://localhost:9090",
-				"grpc_port":                         9093,
+				"chainClient.gasLimit": cosmossdkmath.NewUintFromString(
+					consts.DefaultMinGasPrice,
+				),
+				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
+				"chainClient.chainId":       raData.Rollapp.RollappId,
+				"chainClient.privateKey":    "oracle",
+				"chainClient.ssl":           false,
+				"chainClient.chainGrpcHost": "http://localhost:9090",
+				"grpc_port":                 9093,
 			}
 
 			cfp := filepath.Join(cd, "config.yaml")
