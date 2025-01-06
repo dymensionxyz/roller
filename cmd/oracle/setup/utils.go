@@ -373,6 +373,8 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		"-y",
 	)
 
+	fmt.Println(cmd.String())
+
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate contract: %v, output: %s", err, output)
