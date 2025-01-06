@@ -63,7 +63,7 @@ var KeysIds = struct {
 	RollappSequencerPrivValidator: "rollapp_sequencer_priv_validator",
 	RollappRelayer:                "relayer-rollapp-key",
 	HubRelayer:                    "relayer-hub-key",
-	Celestia:                      "my_celes_key", // my_celes_key
+	Celestia:                      "my_celes_key",
 	Eibc:                          "whale",
 	Da:                            "da_key",
 }
