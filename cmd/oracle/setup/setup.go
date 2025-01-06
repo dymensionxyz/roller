@@ -163,7 +163,7 @@ func Cmd() *cobra.Command {
 				"chainClient.gasLimit":              consts.DefaultMinGasPrice,
 				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
 				"chainClient.chainId":               raData.Rollapp.RollappId,
-				"chainClient.privateKey":            oracle.ContractAddress,
+				"chainClient.privateKey":            "oracle",
 				"chainClient.ssl":                   false,
 				"chainClient.chainGrpcHost":         "http://localhost:9090",
 				"grpc_port":                         9093,
