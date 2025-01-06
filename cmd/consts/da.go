@@ -66,9 +66,10 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://api-celestia.mzonder.com",
 		ID:               CelestiaMainnet,
 		RpcUrl:           "https://rpc-celestia.mzonder.com:443",
-		CurrentStateNode: "",
+		CurrentStateNode: "rpc.celestia.pops.one",
 		StateNodes: []string{
-			"",
+			"rpc-celestia.alphab.ai",
+			"celestia.rpc.kjnodes.com",
 		},
 		GasPrice: "0.002",
 	},
