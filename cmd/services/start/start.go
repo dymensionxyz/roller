@@ -53,13 +53,12 @@ func RollappCmd() *cobra.Command {
 
 				err = migrations.RequireRollappMigrateIfNeeded(
 					raUpgrade.CurrentVersionCommit[:6],
-					// rollappConfig.RollappBinaryVersion[:6],
-					"main",
+					rollappConfig.RollappBinaryVersion[:6],
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
 					pterm.Error.Println(err)
-					// return
+					return
 				}
 			}
 

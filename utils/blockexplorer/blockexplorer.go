@@ -10,7 +10,7 @@ import (
 // this configuration is used by the block-explorer to index the locally running
 // chain
 func GenerateChainsYAML(chainID, beRpcEndpoint string) string {
-	template := `local:
+	template := `explorer:
   chain_id: %s
   be_json_rpc_urls: [ "%s" ]
   # disable: true

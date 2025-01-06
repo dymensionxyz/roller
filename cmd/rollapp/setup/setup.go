@@ -524,12 +524,12 @@ RollApp's IRO time: %v`,
 				}
 			}
 
-			// DA
 			damanager := datalayer.NewDAManager(
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
 				rollappConfig.KeyringBackend,
 			)
+
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,
@@ -675,7 +675,6 @@ RollApp's IRO time: %v`,
 			case "sequencer":
 				pterm.Info.Println("checking DA account balance")
 				insufficientBalances, err := damanager.CheckDABalance()
-				fmt.Printf("insufficientBalances setupppppppppp: %v\n", insufficientBalances)
 				if err != nil {
 					pterm.Error.Println("failed to check balance", err)
 				}
@@ -752,20 +751,27 @@ RollApp's IRO time: %v`,
 					pterm.Error.Println("failed to retrieve da namespace id")
 					return
 				}
+
+				_ = tomlconfig.UpdateFieldInFile(
+					dymintConfigPath,
+					"namespace_id",
+					daNamespace,
+				)
 			}
 
 			pterm.Info.Println("updating dymint configuration")
-
-			// _ = tomlconfig.UpdateFieldInFile(
-			// 	dymintConfigPath,
-			// 	"namespace_id",
-			// 	daNamespace, // TODO: change it to daNamespace if da is celestia
-			// )
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",
 				daConfig,
 			)
+
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"da_layer",
+				rollappConfig.DA.Backend,
+			)
+
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"max_proof_time",

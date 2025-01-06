@@ -6,9 +6,8 @@ var MainnetHubData = HubData{
 	ID:            MainnetHubID,
 	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io",
 	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io",
-	GasPrice:      "20000000000",
-	// DaNetwork:      string(CelestiaMainnet),
-	DaNetwork: AvailMainnet,
+	GasPrice:      "7000000000",
+	DaNetwork:     AvailMainnet,
 }
 
 var BlumbusHubData = HubData{

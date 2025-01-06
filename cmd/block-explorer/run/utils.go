@@ -71,17 +71,17 @@ func createBlockExplorerContainers(home, hostAddress string) error {
 		},
 		"frontend": {
 			Name:  "be-frontend",
-			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:latest",
+			Image: "public.ecr.aws/a3d4b9r3/block-explorer-frontend:next",
 			Port:  "3000",
 			Envs: []string{
-				fmt.Sprintf("DATABASE_URL=postgresql://be:psw@%s:5432/blockexplorer", domain),
+				"DATABASE_URL=postgresql://be:psw@be-postgresql:5432/blockexplorer",
 				fmt.Sprintf("HOST_ADDRESS=%s", domain),
 			},
 			Mounts: []mount.Mount{},
 		},
 		"indexer": {
 			Name:  "be-indexer",
-			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:latest",
+			Image: "public.ecr.aws/a3d4b9r3/block-explorer-indexer:next",
 			Port:  "8080",
 			Envs: []string{
 				fmt.Sprintf("HOST_ADDRESS=%s", domain),

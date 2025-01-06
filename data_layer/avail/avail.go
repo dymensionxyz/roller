@@ -10,7 +10,7 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	bip39 "github.com/cosmos/go-bip39"
+	"github.com/cosmos/go-bip39"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -58,7 +58,6 @@ func NewAvail(root string) *Avail {
 			panic(err)
 		}
 
-		// availConfig.Mnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice"
 		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
 		availConfig.AppID = AppID
 
