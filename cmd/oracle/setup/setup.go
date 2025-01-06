@@ -157,19 +157,20 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("config file copied successfully")
 			pterm.Info.Println("updating config values")
+			gl, _ := cosmossdkmath.NewIntFromString(
+				consts.DefaultMinGasPrice,
+			)
 
 			updates := map[string]any{
 				"chainClient.oracleContractAddress": oracle.ContractAddress,
 				"chainClient.fee":                   consts.DefaultTxFee,
-				"chainClient.gasLimit": cosmossdkmath.NewUintFromString(
-					consts.DefaultMinGasPrice,
-				),
-				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
-				"chainClient.chainId":       raData.Rollapp.RollappId,
-				"chainClient.privateKey":    "oracle",
-				"chainClient.ssl":           false,
-				"chainClient.chainGrpcHost": "http://localhost:9090",
-				"grpc_port":                 9093,
+				"chainClient.gasLimit":              gl,
+				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
+				"chainClient.chainId":               raData.Rollapp.RollappId,
+				"chainClient.privateKey":            "oracle",
+				"chainClient.ssl":                   false,
+				"chainClient.chainGrpcHost":         "http://localhost:9090",
+				"grpc_port":                         9093,
 			}
 
 			cfp := filepath.Join(cd, "config.yaml")
