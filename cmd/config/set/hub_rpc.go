@@ -7,7 +7,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -20,13 +19,6 @@ func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 	rlpCfg.HubData.RpcUrl = value
 	rlpCfg.HubData.ArchiveRpcUrl = value
 	if err := roller.WriteConfig(rlpCfg); err != nil {
-		return err
-	}
-
-	if err := relayer.UpdateRlyConfigValue(
-		rlpCfg, []string{"chains", rlpCfg.HubData.ID, "value", "rpc-addr"},
-		value,
-	); err != nil {
 		return err
 	}
 
