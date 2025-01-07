@@ -270,7 +270,6 @@ func PrintOutput(
 
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
-		fmt.Println("Sequencer Address:", seqAddrData[0].Address, seqAddrData[0].Balance.String())
 		if withBalance && rlpCfg.NodeType == "sequencer" {
 			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 		}

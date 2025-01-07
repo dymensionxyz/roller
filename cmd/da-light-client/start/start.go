@@ -156,7 +156,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", "http://localhost:8000", "The DA rpc endpoint to connect to.") // TODO : change the DA rpc if required
+		StringP(rpcEndpointFlag, "", "mocha-4-consensus.mesa.newmetric.xyz", "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

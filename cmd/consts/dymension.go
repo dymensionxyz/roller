@@ -7,7 +7,7 @@ var MainnetHubData = HubData{
 	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io",
 	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io",
 	GasPrice:      "7000000000",
-	DaNetwork:     AvailMainnet,
+	DaNetwork:     CelestiaMainnet,
 }
 
 var BlumbusHubData = HubData{
@@ -17,8 +17,7 @@ var BlumbusHubData = HubData{
 	RpcUrl:        "https://rpc-blumbus.mzonder.com:443",
 	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com:443",
 	GasPrice:      "20000000000",
-	DaNetwork:     AvailTestnet,
-	// DaNetwork:      string(CelestiaTestnet),
+	DaNetwork:     CelestiaTestnet,
 }
 
 var LocalHubData = HubData{
@@ -43,12 +42,12 @@ var MockHubData = HubData{
 
 var PlaygroundHubData = HubData{
 	Environment:   "playground",
-	ApiUrl:        "http://localhost:1318", // "https://api-dym-migration-test-2.mzonder.com:443",
+	ApiUrl:        "https://api-dym-migration-test-2.mzonder.com:443",
 	ID:            PlaygroundHubID,
-	RpcUrl:        "http://localhost:36657", //  "https://rpc-dym-migration-test-2.mzonder.com:443",
-	ArchiveRpcUrl: "http://localhost:36657", // "https://rpc-dym-migration-test-2.mzonder.com:443",
+	RpcUrl:        "https://rpc-dym-migration-test-2.mzonder.com:443",
+	ArchiveRpcUrl: "https://rpc-dym-migration-test-2.mzonder.com:443",
 	GasPrice:      "2000000000",
-	DaNetwork:     AvailTestnet,
+	DaNetwork:     CelestiaTestnet,
 }
 
 // TODO(#112): The available hub networks should be read from YAML file
@@ -71,7 +70,7 @@ const (
 const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
-	PlaygroundHubID = "dymension_100-1"
+	PlaygroundHubID = "dymension_1405-1"
 	BlumbusHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"
 )

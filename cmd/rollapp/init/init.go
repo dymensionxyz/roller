@@ -165,8 +165,7 @@ func Cmd() *cobra.Command {
 					RpcUrl:        chd.RpcUrl,
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
-					// DaNetwork:     consts.CelestiaTestnet,
-					DaNetwork: consts.AvailTestnet,
+					DaNetwork:     consts.CelestiaTestnet,
 				}
 
 				rollerConfig, _ := roller.LoadConfig(home)
