@@ -24,7 +24,7 @@ func PromptRaID() string {
 }
 
 func PromptEnvironment() string {
-	envs := []string{"playground", "blumbus", "custom"}
+	envs := []string{"playground", "blumbus", "custom", "mainnet"}
 	env, _ := pterm.DefaultInteractiveSelect.
 		WithDefaultText(
 			"select the environment you want to initialize relayer for",

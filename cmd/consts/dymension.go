@@ -2,10 +2,10 @@ package consts
 
 var MainnetHubData = HubData{
 	Environment:   "mainnet",
-	ApiUrl:        "https://dymension-mainnet-rest.public.blastapi.io",
+	ApiUrl:        "https://dymension-mainnet-rest.public.blastapi.io:443",
 	ID:            MainnetHubID,
-	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io",
-	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io",
+	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io:443",
+	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io:443",
 	GasPrice:      "7000000000",
 	DaNetwork:     CelestiaMainnet,
 }
