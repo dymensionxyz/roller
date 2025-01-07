@@ -34,7 +34,7 @@ func Cmd() *cobra.Command {
 			for {
 				// Prompt the user for the RPC URL
 				beRpcEndpoint, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"rollapp block explorer rpc endpoint that you will provide (example: be.rollapp.dym.xyz)",
+					"rollapp block explorer rpc endpoint that you will provide (example: be.rollapp.dym.xyz), this endpoint should point to port 11100 of node",
 				).Show()
 
 				if strings.HasPrefix(beRpcEndpoint, "http://") {
