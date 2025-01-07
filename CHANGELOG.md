@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.1-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.12.0-alpha-rc02...v1.12.1-alpha-rc02) (2025-01-07)
+
+
+### Bug Fixes
+
+* **be:** clarify block explorer endpoint ([9340b15](https://github.com/dymensionxyz/roller/commit/9340b1551e8ba70d38918f5d5c9c4cf7c8675635))
+* block explorer phrasing ([5cb9ed3](https://github.com/dymensionxyz/roller/commit/5cb9ed331680b9c3360d12a9b1508325464a7138))
+* mainnet gas prices for dym and tia ([#1220](https://github.com/dymensionxyz/roller/issues/1220)) ([0ff7ff1](https://github.com/dymensionxyz/roller/commit/0ff7ff1a004c369af43a23e0bad0918ddef962a2))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
