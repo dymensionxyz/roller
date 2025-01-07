@@ -236,7 +236,6 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		// No specific action needed for MockHubID
 	case string(consts.Celestia):
 		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
-	// case string(consts.Avail):
 	default:
 		DA = consts.DaNetworks[string(consts.AvailTestnet)]
 	}

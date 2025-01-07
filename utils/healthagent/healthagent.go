@@ -45,7 +45,7 @@ func Start(home string, l *log.Logger) {
 			healthy = false
 		}
 
-		// // TODO: improve the node swapping, add health checks before swapping etc.
+		// TODO: improve the node swapping, add health checks before swapping etc.
 		if !healthy {
 			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
@@ -122,8 +122,6 @@ func IsAvailNodeHealthy(url string) (bool, any) {
 	} else {
 		return false, "invalid json"
 	}
-
-	fmt.Println("avail node health status....", response)
 
 	if response.BlockNumber != 0 {
 		return true, "not healthy"

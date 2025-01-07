@@ -194,7 +194,6 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) {
 	genesisPath := GetGenesisFilePath(root)
 	downloadedGenesisHash, err := calculateSHA256(genesisPath)
-	fmt.Println("here gesis hash and downloadedGenesisHash.........", genesisPath, downloadedGenesisHash)
 	if err != nil {
 		pterm.Error.Println("failed to calculate hash of genesis file: ", err)
 		return false, err

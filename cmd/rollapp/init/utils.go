@@ -96,12 +96,6 @@ func runInit(
 		// Initialize DAManager for Avail
 		damanager := datalayer.NewDAManager(consts.Avail, home, kb)
 
-		// Initialize the light node configuration
-		_, err := damanager.InitializeLightNodeConfig()
-		if err != nil {
-			return fmt.Errorf("failed to initialize Avail light node config: %w", err)
-		}
-
 		// Retrieve DA account address
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {

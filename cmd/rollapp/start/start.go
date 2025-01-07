@@ -97,7 +97,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 					string(rollappConfig.RollappVMType),
 				)
 				if err != nil {
-					pterm.Info.Println(err)
+					pterm.Error.Println(err)
 					return
 				}
 			}
@@ -263,7 +263,6 @@ func PrintOutput(
 			return
 		}
 
-		fmt.Println("DA address::", daAddrData)
 		if errCel != nil {
 			pterm.Error.Println("failed to retrieve DA address") // here check
 			return
