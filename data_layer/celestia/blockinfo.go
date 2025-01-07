@@ -68,6 +68,8 @@ func GetBlockByHeight(h string, raCfg roller.RollappConfig) (string, string, err
 		"q", "block", h, "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),
 	)
 
+	fmt.Println(cmd.String())
+
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", "", err
