@@ -151,22 +151,28 @@ func UpdateRlyConfigValue(
 		"config",
 		"config.yaml",
 	)
+
 	data, err := os.ReadFile(rlyConfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to load %s: %v", rlyConfigPath, err)
 	}
+
 	var rlyCfg map[interface{}]interface{}
+
 	err = yaml.Unmarshal(data, &rlyCfg)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal yaml: %v", err)
 	}
+
 	if err := utils.SetNestedValue(rlyCfg, keyPath, newValue); err != nil {
 		return err
 	}
+
 	newData, err := yaml.Marshal(rlyCfg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal updated config: %v", err)
 	}
+
 	// nolint:gofumpt
 	return os.WriteFile(rlyConfigPath, newData, 0o644)
 }
