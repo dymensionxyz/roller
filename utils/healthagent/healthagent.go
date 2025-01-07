@@ -27,9 +27,9 @@ func Start(home string, l *log.Logger) {
 		var healthy bool
 		localEndpoint := "localhost"
 		defaultRaMetricPort := "2112"
-		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "8000") // Change the endpoint if it's different than local rpc
+		localDaRpcEndpoint := fmt.Sprintf("http://%s:%s", localEndpoint, "26658")
 
-		isDaNodeHealthy, _ := IsAvailNodeHealthy(localDaRpcEndpoint)
+		isDaNodeHealthy, _ := IsEndpointHealthy(localDaRpcEndpoint)
 		healthy = isDaNodeHealthy
 
 		submissions, err := QueryPromMetric(
@@ -59,8 +59,6 @@ func Start(home string, l *log.Logger) {
 			} else {
 				nodeIndex = 0
 			}
-
-			fmt.Println("ROLLER DATA.......", rollerData.DA.StateNodes)
 
 			pterm.Warning.Printf(
 				"detected problems with DA, hotswapping node to %s\n",
