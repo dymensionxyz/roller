@@ -35,8 +35,6 @@ To run Roller, use:
 ./build/roller
 ```
 
-NOTE : If you are working with avail as a DA, please follow [these steps](./Avail.md) to ensure proper DA configuration
-
 ## Testing
 
 To run all the tests, run from the root directory:
