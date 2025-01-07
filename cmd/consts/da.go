@@ -54,7 +54,6 @@ var DaNetworks = map[string]DaData{
 		StateNodes: []string{
 			"mocha-4-consensus.mesa.newmetric.xyz",
 			"public-celestia-mocha4-consensus.numia.xyz",
-			"mocha-4-consensus.mesa.newmetric.xyz",
 			"full.consensus.mocha-4.celestia-mocha.com",
 			"consensus-full-mocha-4.celestia-mocha.com",
 			"rpc-mocha.pops.one",

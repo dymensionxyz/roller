@@ -1,6 +1,8 @@
 package lightclient
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,6 +30,9 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		hd := rollerData.HubData
 		raID := rollerData.RollappID
 		kb := rollerData.KeyringBackend
+
+		j, _ := json.Marshal(rollerData)
+		fmt.Println(string(j))
 
 		pterm.Info.Println("initializing da light node configuration")
 		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb)
