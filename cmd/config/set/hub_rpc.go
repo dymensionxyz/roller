@@ -16,12 +16,14 @@ import (
 
 // setHubRPC function  
 func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
+	pterm.Info.Println("updating roller config file with the new hub rpc endpoint")
 	rlpCfg.HubData.RpcUrl = value
 	rlpCfg.HubData.ArchiveRpcUrl = value
 	if err := roller.WriteConfig(rlpCfg); err != nil {
 		return err
 	}
 
+	pterm.Info.Println("updating relayer config file with the new hub rpc endpoint")
 	updates := map[string]interface{}{
 		fmt.Sprintf("chains.%s.value.rpc-addr", rlpCfg.HubData.ID): value,
 	}
@@ -38,11 +40,13 @@ func setHubRPC(rlpCfg roller.RollappConfig, value string) error {
 		return err
 	}
 
+	pterm.Info.Println("updating dymint config file with the new hub rpc endpoint")
 	dymintTomlPath := sequencer.GetDymintFilePath(rlpCfg.Home)
 	err = tomlconfig.UpdateFieldInFile(dymintTomlPath, "settlement_node_address", value)
 	if err != nil {
 		return err
 	}
 
+	pterm.Info.Println("restarting system services to apply the changes")
 	return servicemanager.RestartSystemServices([]string{"rollapp", "relayer"}, rlpCfg.Home)
 }
