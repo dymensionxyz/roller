@@ -233,6 +233,8 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	switch hd.ID {
 	case consts.MockHubID:
+	case consts.MainnetHubID:
+		DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
 	default:
 		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
 	}
