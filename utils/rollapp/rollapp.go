@@ -83,6 +83,7 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 func IsRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
 	_, err := bashutils.ExecCommandWithStdout(cmd)
+	fmt.Println("cmddd.........", cmd, err)
 	if err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
 			return false, errors.New("rollapp not found ")
@@ -224,20 +225,35 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		} else {
 			kb = rollerData.KeyringBackend
 		}
+		cfg = rollerData
 	} else {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
+
+		// if rollerConfigExists not exists, default DA is celestia to get DA details below
+		if cfg.DA.Backend == "" {
+			cfg.DA.Backend = consts.Celestia
+		}
 	}
 
 	var DA consts.DaData
 
 	switch hd.ID {
 	case consts.MockHubID:
-		// No specific action needed for MockHubID
-	case string(consts.Celestia):
-		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+	case consts.MainnetHubID:
+		if cfg.DA.Backend == consts.Celestia {
+			DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+		}
+		if cfg.DA.Backend == consts.Avail {
+			DA = consts.DaNetworks[string(consts.AvailMainnet)]
+		}
 	default:
-		DA = consts.DaNetworks[string(consts.AvailTestnet)]
+		if cfg.DA.Backend == consts.Celestia {
+			DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+		}
+		if cfg.DA.Backend == consts.Avail {
+			DA = consts.DaNetworks[string(consts.AvailTestnet)]
+		}
 	}
 
 	var baseDenom string
