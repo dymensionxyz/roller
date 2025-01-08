@@ -83,7 +83,6 @@ func IsInitialSequencer(addr, raID string, hd consts.HubData) (bool, error) {
 func IsRegistered(raID string, hd consts.HubData) (bool, error) {
 	cmd := GetShowRollappCmd(raID, hd)
 	_, err := bashutils.ExecCommandWithStdout(cmd)
-	fmt.Println("cmddd.........", cmd, err)
 	if err != nil {
 		if strings.Contains(err.Error(), "NotFound") {
 			return false, errors.New("rollapp not found ")
