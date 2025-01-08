@@ -31,7 +31,6 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// ok, msg := healthagent.IsEndpointHealthy("http://localhost:36657/health") //TODO : change this node url if required
 			health := fmt.Sprintf(consts.PlaygroundHubData.RpcUrl+"%s", "/health")
 			ok, msg := healthagent.IsEndpointHealthy(health)
 			if !ok {

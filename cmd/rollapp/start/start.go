@@ -257,14 +257,14 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend) // avail as a da
+		daManager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend)
 		daAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return
 		}
 
 		if errCel != nil {
-			pterm.Error.Println("failed to retrieve DA address") // here check
+			pterm.Error.Println("failed to retrieve DA address")
 			return
 		}
 
