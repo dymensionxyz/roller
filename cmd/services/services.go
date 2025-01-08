@@ -12,6 +12,5 @@ func Cmd(loadCmd, startCmd, restartCmd, stopCmd *cobra.Command) *cobra.Command {
 	cmd.AddCommand(startCmd)
 	cmd.AddCommand(restartCmd)
 	cmd.AddCommand(stopCmd)
-	// cmd.AddCommand(logsCmd)
 	return cmd
 }

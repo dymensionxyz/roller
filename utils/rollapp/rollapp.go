@@ -224,9 +224,15 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		} else {
 			kb = rollerData.KeyringBackend
 		}
+		cfg = rollerData
 	} else {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
+
+		// if rollerConfigExists not exists, default DA is celestia to get DA details below
+		if cfg.DA.Backend == "" {
+			cfg.DA.Backend = consts.Celestia
+		}
 	}
 
 	var DA consts.DaData
@@ -234,9 +240,19 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	switch hd.ID {
 	case consts.MockHubID:
 	case consts.MainnetHubID:
-		DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+		if cfg.DA.Backend == consts.Celestia {
+			DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
+		}
+		if cfg.DA.Backend == consts.Avail {
+			DA = consts.DaNetworks[string(consts.AvailMainnet)]
+		}
 	default:
-		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+		if cfg.DA.Backend == consts.Celestia {
+			DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+		}
+		if cfg.DA.Backend == consts.Avail {
+			DA = consts.DaNetworks[string(consts.AvailTestnet)]
+		}
 	}
 
 	var baseDenom string

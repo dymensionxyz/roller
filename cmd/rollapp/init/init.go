@@ -168,6 +168,11 @@ func Cmd() *cobra.Command {
 					DaNetwork:     consts.CelestiaTestnet,
 				}
 
+				rollerConfig, _ := roller.LoadConfig(home)
+				if rollerConfig.DA.ID != "" {
+					hd.DaNetwork = rollerConfig.DA.ID
+				}
+
 				if err != nil {
 					pterm.Info.Println("failed to create custom hub data", err)
 					return
