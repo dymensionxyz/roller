@@ -291,7 +291,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Denom:                baseDenom,
 		Decimals:             18,
 		HubData:              hd,
-		DA:                   DA,
+		DA:                   DA, // FIXNE: DA should be populated from chain genesis
 		RollerVersion:        version.BuildCommit,
 		Environment:          hd.ID,
 		RollappBinaryVersion: version.BuildVersion,

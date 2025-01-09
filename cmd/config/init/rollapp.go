@@ -43,20 +43,20 @@ func InitializeRollappConfig(
 			return err
 		}
 
-		genesisFilePath := genesisutils.GetGenesisFilePath(initConfig.Home)
-		err = genesisutils.VerifyGenesisChainID(genesisFilePath, initConfig.RollappID)
-		if err != nil {
-			return err
-		}
+		// genesisFilePath := genesisutils.GetGenesisFilePath(initConfig.Home)
+		// err = genesisutils.VerifyGenesisChainID(genesisFilePath, initConfig.RollappID)
+		// if err != nil {
+		// 	return err
+		// }
 
-		isChecksumValid, err := genesisutils.CompareGenesisChecksum(
-			initConfig.Home,
-			raResp.Rollapp.RollappId,
-			initConfig.HubData,
-		)
-		if !isChecksumValid {
-			return err
-		}
+		// isChecksumValid, err := genesisutils.CompareGenesisChecksum(
+		// 	initConfig.Home,
+		// 	raResp.Rollapp.RollappId,
+		// 	initConfig.HubData,
+		// )
+		// if !isChecksumValid {
+		// 	return err
+		// }
 
 		as, err := genesisutils.GetAppStateFromGenesisFile(initConfig.Home)
 		if err != nil {

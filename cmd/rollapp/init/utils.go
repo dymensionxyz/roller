@@ -170,6 +170,8 @@ func initRollapp(
 		return err
 	}
 
+	// FIXME: populate rollapp config as well?
+
 	err = initConfig.ValidateConfig()
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
