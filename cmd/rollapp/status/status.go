@@ -31,8 +31,8 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			health := fmt.Sprintf(consts.PlaygroundHubData.RpcUrl+"%s", "/health")
-			ok, msg := healthagent.IsEndpointHealthy(health)
+			healthURL := fmt.Sprintf(consts.PlaygroundHubData.RpcUrl+"%s", "/health")
+			ok, msg := healthagent.IsEndpointHealthy(healthURL)
 			if !ok {
 				// TODO: use options pattern, this is ugly af
 				start.PrintOutput(rollerConfig, true, false, true, false, nodeID)

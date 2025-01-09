@@ -7,7 +7,6 @@ var MainnetHubData = HubData{
 	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io:443",
 	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io:443",
 	GasPrice:      "7000000000",
-	DaNetwork:     CelestiaMainnet,
 }
 
 var BlumbusHubData = HubData{
@@ -17,7 +16,6 @@ var BlumbusHubData = HubData{
 	RpcUrl:        "https://rpc-blumbus.mzonder.com:443",
 	ArchiveRpcUrl: "https://rpc-blumbus-archive.mzonder.com:443",
 	GasPrice:      "20000000000",
-	DaNetwork:     CelestiaTestnet,
 }
 
 var LocalHubData = HubData{
@@ -27,7 +25,6 @@ var LocalHubData = HubData{
 	RpcUrl:        "http://localhost:36657",
 	ArchiveRpcUrl: "http://localhost:36657",
 	GasPrice:      "100000000",
-	DaNetwork:     MockDA,
 }
 
 var MockHubData = HubData{
@@ -37,7 +34,6 @@ var MockHubData = HubData{
 	RpcUrl:        "",
 	ArchiveRpcUrl: "",
 	GasPrice:      "",
-	DaNetwork:     MockDA,
 }
 
 var PlaygroundHubData = HubData{
@@ -47,7 +43,6 @@ var PlaygroundHubData = HubData{
 	RpcUrl:        "https://rpc-dym-migration-test-2.mzonder.com:443",
 	ArchiveRpcUrl: "https://rpc-dym-migration-test-2.mzonder.com:443",
 	GasPrice:      "2000000000",
-	DaNetwork:     CelestiaTestnet,
 }
 
 // TODO(#112): The available hub networks should be read from YAML file

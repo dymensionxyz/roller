@@ -98,7 +98,6 @@ func promptForRaAndHd() (string, *consts.HubData, string, error) {
 			RpcUrl:        chd.RpcUrl,
 			ArchiveRpcUrl: chd.RpcUrl,
 			GasPrice:      "2000000000",
-			DaNetwork:     consts.CelestiaTestnet,
 		}
 		if err != nil {
 			return "", nil, "", err

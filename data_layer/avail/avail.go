@@ -21,10 +21,9 @@ const (
 	ConfigFileName            = "avail.toml"
 	mnemonicEntropySize       = 256
 	keyringNetworkID    uint8 = 42
-	// DefaultRPCEndpoint     = "wss://goldberg.avail.tools/ws"
-	DefaultRPCEndpoint = "ws://127.0.0.1:9944" // change the avail rpc if it's different
-	requiredAVL        = 1
-	AppID              = 1
+	DefaultRPCEndpoint        = "wss://turing-rpc.avail.so/ws"
+	requiredAVL               = 1
+	AppID                     = 1
 )
 
 type Avail struct {
