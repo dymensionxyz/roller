@@ -189,6 +189,7 @@ func GetMetadataFromChain(
 	return &raResponse, nil
 }
 
+// FIXME: this is config related! move it from here
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -207,6 +208,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		return nil, err
 	}
 
+	// FIXME: can't we return here if rollerConfigExists? or at least check if it needs to be populated
 	if rollerConfigExists {
 		pterm.Info.Println(
 			"existing roller configuration found, retrieving keyring backend from it",
@@ -228,31 +230,38 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	} else {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
-
-		// if rollerConfigExists not exists, default DA is celestia to get DA details below
-		if cfg.DA.Backend == "" {
-			cfg.DA.Backend = consts.Celestia
-		}
 	}
 
-	var DA consts.DaData
+	genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
+	if err != nil {
+		return nil, err
+	}
+	// nolint: errcheck
+	defer os.RemoveAll(genesisTmpDir)
 
-	switch hd.ID {
-	case consts.MockHubID:
-	case consts.MainnetHubID:
-		if cfg.DA.Backend == consts.Celestia {
-			DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
-		}
-		if cfg.DA.Backend == consts.Avail {
-			DA = consts.DaNetworks[string(consts.AvailMainnet)]
-		}
-	default:
-		if cfg.DA.Backend == consts.Celestia {
-			DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
-		}
-		if cfg.DA.Backend == consts.Avail {
-			DA = consts.DaNetworks[string(consts.AvailTestnet)]
-		}
+	err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
+	if err != nil {
+		pterm.Error.Println("failed to download genesis file: ", err)
+		return nil, err
+	}
+	as, err := GetAppStateFromGenesisFile(genesisTmpDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// rollappBaseDenom := as.Staking.Params.BondDenom
+	// var rollappDenom string
+	// if strings.HasPrefix(as.Staking.Params.BondDenom, "ibc/") {
+	// 	rollappDenom = as.Staking.Params.BondDenom
+	// } else {
+	// 	rollappDenom = rollappBaseDenom[1:]
+	// }
+	// cfg.BaseDenom = rollappBaseDenom
+	// cfg.Denom = rollappDenom
+
+	DAData, ok := consts.DaNetworks[as.RollappParams.Params.Da]
+	if !ok {
+		return nil, errors.New("DA backend not found")
 	}
 
 	var baseDenom string
@@ -261,43 +270,28 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		baseDenom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
 	} else {
 		pterm.Info.Println("no native denom found, assuming token-less rollapp and using the staking denom")
-		genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
-		if err != nil {
-			return nil, err
-		}
-		// nolint: errcheck
-		defer os.RemoveAll(genesisTmpDir)
-
-		err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
-		if err != nil {
-			pterm.Error.Println("failed to download genesis file: ", err)
-			return nil, err
-		}
-		as, err := GetAppStateFromGenesisFile(genesisTmpDir)
-		if err != nil {
-			return nil, err
-		}
 		baseDenom = as.Staking.Params.BondDenom
 	}
 
 	cfg = roller.RollappConfig{
 		Home:                 home,
+		RollerVersion:        version.BuildCommit,
 		KeyringBackend:       kb,
 		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
 		RollappID:            raResponse.Rollapp.RollappId,
-		RollappBinary:        consts.Executables.RollappEVM,
-		RollappVMType:        vmt,
-		Denom:                baseDenom,
-		Decimals:             18,
-		HubData:              hd,
-		DA:                   DA, // FIXNE: DA should be populated from chain genesis
-		RollerVersion:        version.BuildCommit,
 		Environment:          hd.ID,
+		RollappVMType:        vmt,
+		RollappBinary:        consts.Executables.RollappEVM,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 		BaseDenom:            baseDenom,
+		Denom:                baseDenom,
+		Decimals:             18,
 		MinGasPrices:         "0",
+		HubData:              hd,
+		DA:                   DAData,
+		HealthAgent:          roller.HealthAgentConfig{},
 	}
 
 	return &cfg, nil

@@ -12,11 +12,12 @@ import (
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
+
+// FIXME: move to utils/rollapp
 
 func runInit(
 	cmd *cobra.Command,
@@ -25,13 +26,14 @@ func runInit(
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
 ) error {
-	raID := raResp.Rollapp.RollappId
 
 	home, err := filesystem.ExpandHomePath(cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String())
 	if err != nil {
 		pterm.Error.Println("failed to expand home directory")
 		return err
 	}
+
+	raID := raResp.Rollapp.RollappId
 
 	var hd consts.HubData
 	if env != "custom" {
@@ -40,13 +42,14 @@ func runInit(
 		hd = customHubData
 	}
 
+	// FIXME: should get keyring as well
 	ic, err := prepareConfig(env, home, raID, hd, raResp)
 	if err != nil {
 		return err
 	}
 
 	/* --------------------------- Initialize Rollapp -------------------------- */
-	err = initRollapp(ic, raResp, env, home, raID, hd, kb)
+	err = initRollapp(ic, kb)
 	if err != nil {
 		return err
 	}
@@ -59,22 +62,7 @@ func runInit(
 		return err
 	}
 
-	if env == "mock" {
-		err = genesisutils.InitializeRollappGenesis(ic)
-		if err != nil {
-			return err
-		}
-	}
-
 	addresses = append(addresses, sequencerKeys...)
-
-	/* ------------------------------ Initialize Local Hub ---------------------------- */
-	// TODO: local hub is out of scope, implement as the last step
-	// hub := cmd.Flag(FlagNames.HubID).Value.String()
-	// if hub == consts.LocalHubName {
-	// 	err := initLocalHub(initConfig)
-	// 	utils.PrettifyErrorIfExists(err)
-	// }
 
 	/* ------------------------ Initialize DA light node ------------------------ */
 
@@ -134,11 +122,6 @@ func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys
 
 func initRollapp(
 	initConfig roller.RollappConfig,
-	raResp rollapp.ShowRollappResponse,
-	env string,
-	home string,
-	raID string,
-	hd consts.HubData,
 	kb consts.SupportedKeyringBackend,
 ) error {
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
@@ -146,31 +129,19 @@ func initRollapp(
 		return err
 	}
 
-	err = initconfig.InitializeRollappConfig(&initConfig, raResp)
+	err = InitializeRollappNode(&initConfig)
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")
 		return err
 	}
 
-	as, err := genesisutils.GetGenesisAppState(home)
+	pterm.Info.Println(fmt.Sprintf("DA backend: %s", initConfig.DA))
+
+	// FIXME: what's that? actualy writing to disk? worst naming ever
+	err = roller.WriteConfigToDisk(initConfig, kb)
 	if err != nil {
 		return err
 	}
-
-	daBackend := as.RollappParams.Params.Da
-	pterm.Info.Println("DA backend: ", daBackend)
-
-	daData, err := datalayer.GetDaInfo(env, daBackend)
-	if err != nil {
-		return err
-	}
-
-	err = roller.PopulateConfig(home, raID, hd, *daData, string(initConfig.RollappVMType), kb)
-	if err != nil {
-		return err
-	}
-
-	// FIXME: populate rollapp config as well?
 
 	err = initConfig.ValidateConfig()
 	if err != nil {
@@ -189,33 +160,30 @@ func prepareConfig(
 	hd consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 ) (roller.RollappConfig, error) {
-	var initConfig roller.RollappConfig
+	var (
+		ic  *roller.RollappConfig
+		err error
+	)
 
 	if env == consts.MockHubName {
-		ic, err := roller.GetMockRollappMetadata(
+		ic, err = roller.GetMockRollappMetadata(
 			home,
 			raID,
 			&hd,
 			raResp.Rollapp.VmType,
 		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return roller.RollappConfig{}, err
-		}
-		initConfig = *ic
 	} else {
-		ic, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+		ic, err = rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 			home,
 			raID,
 			hd,
 		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return roller.RollappConfig{}, err
-		}
-		initConfig = *ic
 	}
-	return initConfig, nil
+	if err != nil {
+		errorhandling.PrettifyErrorIfExists(err)
+		return roller.RollappConfig{}, err
+	}
+	return *ic, nil
 }
 
 func PrintInitOutput(

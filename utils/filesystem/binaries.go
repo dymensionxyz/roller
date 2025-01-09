@@ -1,4 +1,4 @@
-package binaries
+package filesystem
 
 import (
 	"os/exec"
