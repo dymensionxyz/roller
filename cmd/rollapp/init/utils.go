@@ -9,6 +9,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
+	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -43,6 +44,12 @@ func runInit(
 	}
 
 	err = roller.WriteConfigToDisk(ic)
+	if err != nil {
+		return err
+	}
+
+	// save the genesis file in the rollapp directory
+	err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
 	if err != nil {
 		return err
 	}
