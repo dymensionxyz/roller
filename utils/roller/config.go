@@ -77,6 +77,10 @@ func WriteConfigToDisk(
 		"DA.state_nodes":        c.DA.StateNodes,
 		"DA.gas_price":          c.DA.GasPrice,
 	}
+	err := tomlconfig.DumpConfigToTOML(c, rollerConfigFilePath2)
+	if err != nil {
+		return fmt.Errorf("failed to dump config to TOML: %w", err)
+	}
 
 	for key, value := range rollerTomlData {
 		err := tomlconfig.UpdateFieldInFile(
@@ -88,11 +92,6 @@ func WriteConfigToDisk(
 			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
 			return err
 		}
-	}
-
-	err := tomlconfig.DumpConfigToTOML(rollerTomlData, rollerConfigFilePath2)
-	if err != nil {
-		return fmt.Errorf("failed to dump config to TOML: %w", err)
 	}
 
 	return nil

@@ -135,7 +135,8 @@ func initRollapp(
 		return err
 	}
 
-	pterm.Info.Println(fmt.Sprintf("DA backend: %s", initConfig.DA))
+	pterm.Info.Println(fmt.Sprintf("Config: %v", initConfig))
+	fmt.Printf("config: %v\n", initConfig)
 
 	err = roller.WriteConfigToDisk(initConfig, kb)
 	if err != nil {
