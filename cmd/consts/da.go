@@ -21,7 +21,7 @@ type DAType string
 const (
 	Local    DAType = "mock"
 	Celestia DAType = "celestia"
-	Avail    DAType = "avail"
+	Avail    DAType = "Avail"
 )
 
 type DaNetwork string
