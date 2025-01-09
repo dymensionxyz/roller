@@ -84,6 +84,7 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 }
 
 func DefaultRollappPrebuiltDependencies() map[string]types.Dependency {
+	// FIXME: should be DA depencendy, not rollapps
 	deps := map[string]types.Dependency{
 		"celestia-app": {
 			DependencyName: "celestia-app",

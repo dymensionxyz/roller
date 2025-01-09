@@ -44,11 +44,6 @@ func InitializeRollappConfig(
 		}
 
 		// genesisFilePath := genesisutils.GetGenesisFilePath(initConfig.Home)
-		// err = genesisutils.VerifyGenesisChainID(genesisFilePath, initConfig.RollappID)
-		// if err != nil {
-		// 	return err
-		// }
-
 		// isChecksumValid, err := genesisutils.CompareGenesisChecksum(
 		// 	initConfig.Home,
 		// 	raResp.Rollapp.RollappId,
@@ -62,6 +57,7 @@ func InitializeRollappConfig(
 		if err != nil {
 			return err
 		}
+		da := as.RollappParams.Params.Da
 
 		rollappBaseDenom := as.Staking.Params.BondDenom
 		var rollappDenom string
@@ -74,6 +70,7 @@ func InitializeRollappConfig(
 
 		initConfig.BaseDenom = rollappBaseDenom
 		initConfig.Denom = rollappDenom
+		initConfig.DA.Backend = consts.DAType(da)
 	}
 
 	err = setRollappConfig(*initConfig)

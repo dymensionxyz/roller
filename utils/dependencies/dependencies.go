@@ -62,10 +62,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			return nil, nil, err
 		}
 
-		if err != nil {
-			return nil, nil, err
-		}
-
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
 		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
@@ -108,9 +104,9 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 	goreleaserDeps := map[string]types.Dependency{}
 
-	if !withMockDA {
-		goreleaserDeps = DefaultRollappPrebuiltDependencies()
-	}
+	// if !withMockDA {
+	// 	goreleaserDeps = DefaultRollappPrebuiltDependencies()
+	// }
 
 	if withMockDA {
 		// @20240913 libwasm is necessary on the host VM to be able to run the prebuilt rollapp binary
