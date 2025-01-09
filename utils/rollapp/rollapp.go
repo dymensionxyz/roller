@@ -14,6 +14,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -190,6 +191,7 @@ func GetMetadataFromChain(
 }
 
 // FIXME: this is config related! move it from here
+// it also called when we already have response, which is redundent
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -259,9 +261,9 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	// cfg.BaseDenom = rollappBaseDenom
 	// cfg.Denom = rollappDenom
 
-	DAData, ok := consts.DaNetworks[as.RollappParams.Params.Da]
-	if !ok {
-		return nil, errors.New("DA backend not found")
+	DAData, err := datalayer.GetDaInfo(hd.Environment, as.RollappParams.Params.Da)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DA info: %w", err)
 	}
 
 	var baseDenom string
@@ -290,7 +292,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Decimals:             18,
 		MinGasPrices:         "0",
 		HubData:              hd,
-		DA:                   DAData,
+		DA:                   *DAData,
 		HealthAgent:          roller.HealthAgentConfig{},
 	}
 

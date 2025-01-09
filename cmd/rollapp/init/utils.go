@@ -137,7 +137,6 @@ func initRollapp(
 
 	pterm.Info.Println(fmt.Sprintf("DA backend: %s", initConfig.DA))
 
-	// FIXME: what's that? actualy writing to disk? worst naming ever
 	err = roller.WriteConfigToDisk(initConfig, kb)
 	if err != nil {
 		return err
