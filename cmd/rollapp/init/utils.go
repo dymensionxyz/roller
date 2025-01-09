@@ -4,14 +4,11 @@ import (
 	"fmt"
 
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -20,19 +17,11 @@ import (
 // FIXME: move to utils/rollapp
 
 func runInit(
-	cmd *cobra.Command,
-	env string,
+	home, env string,
 	customHubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
 ) error {
-
-	home, err := filesystem.ExpandHomePath(cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String())
-	if err != nil {
-		pterm.Error.Println("failed to expand home directory")
-		return err
-	}
-
 	raID := raResp.Rollapp.RollappId
 
 	var hd consts.HubData

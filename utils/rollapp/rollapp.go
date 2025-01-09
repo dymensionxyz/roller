@@ -251,16 +251,6 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		return nil, err
 	}
 
-	// rollappBaseDenom := as.Staking.Params.BondDenom
-	// var rollappDenom string
-	// if strings.HasPrefix(as.Staking.Params.BondDenom, "ibc/") {
-	// 	rollappDenom = as.Staking.Params.BondDenom
-	// } else {
-	// 	rollappDenom = rollappBaseDenom[1:]
-	// }
-	// cfg.BaseDenom = rollappBaseDenom
-	// cfg.Denom = rollappDenom
-
 	DAData, err := datalayer.GetDaInfo(hd.Environment, as.RollappParams.Params.Da)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DA info: %w", err)

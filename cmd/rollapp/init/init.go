@@ -194,7 +194,7 @@ func Cmd() *cobra.Command {
 				}
 
 				err := runInit(
-					cmd,
+					home,
 					env,
 					consts.HubData{},
 					raRespMock,
@@ -282,7 +282,8 @@ func Cmd() *cobra.Command {
 			}
 
 			// FIXME: all above should be "dependencies", init should be from here approximately
-			err = runInit(cmd, env, hd, *raResponse, kb)
+
+			err = runInit(home, env, hd, *raResponse, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
