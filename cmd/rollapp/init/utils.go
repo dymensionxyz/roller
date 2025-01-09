@@ -48,18 +48,17 @@ func runInit(
 		return err
 	}
 
-	// save the genesis file in the rollapp directory
-	err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
-	if err != nil {
-		return err
-	}
-
 	/* --------------------------- Initialize Rollapp -------------------------- */
 	err = initRollapp(ic)
 	if err != nil {
 		return err
 	}
 
+	// save the genesis file in the rollapp directory
+	err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
+	if err != nil {
+		return err
+	}
 	/* ------------------------------ Generate keys ----------------------------- */
 	var addresses []keys.KeyInfo
 
@@ -139,9 +138,6 @@ func initRollapp(
 		raSpinner.Fail("failed to initialize rollapp client")
 		return err
 	}
-
-	pterm.Info.Println(fmt.Sprintf("Config: %v", initConfig))
-	fmt.Printf("config: %v\n", initConfig)
 
 	raSpinner.Success("rollapp initialized successfully")
 	return nil
