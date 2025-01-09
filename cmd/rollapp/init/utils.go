@@ -48,8 +48,18 @@ func runInit(
 		return err
 	}
 
+	err = ic.ValidateConfig()
+	if err != nil {
+		return err
+	}
+
+	err = roller.WriteConfigToDisk(ic)
+	if err != nil {
+		return err
+	}
+
 	/* --------------------------- Initialize Rollapp -------------------------- */
-	err = initRollapp(ic, kb)
+	err = initRollapp(ic)
 	if err != nil {
 		return err
 	}
@@ -122,14 +132,13 @@ func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys
 
 func initRollapp(
 	initConfig roller.RollappConfig,
-	kb consts.SupportedKeyringBackend,
 ) error {
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
 	if err != nil {
 		return err
 	}
 
-	err = InitializeRollappNode(&initConfig)
+	err = InitializeRollappNode(initConfig)
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")
 		return err
@@ -137,17 +146,6 @@ func initRollapp(
 
 	pterm.Info.Println(fmt.Sprintf("Config: %v", initConfig))
 	fmt.Printf("config: %v\n", initConfig)
-
-	err = roller.WriteConfigToDisk(initConfig, kb)
-	if err != nil {
-		return err
-	}
-
-	err = initConfig.ValidateConfig()
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
-		return err
-	}
 
 	raSpinner.Success("rollapp initialized successfully")
 	return nil

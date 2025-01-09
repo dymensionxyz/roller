@@ -11,7 +11,7 @@ import (
 )
 
 func InitializeRollappNode(
-	initConfig *roller.RollappConfig,
+	initConfig roller.RollappConfig,
 ) error {
 	raHomeDir := filepath.Join(initConfig.Home, consts.ConfigDirName.Rollapp)
 
@@ -30,7 +30,7 @@ func InitializeRollappNode(
 		return err
 	}
 
-	err = writeConfigFilesForRollapp(*initConfig)
+	err = writeConfigFilesForRollapp(initConfig)
 	if err != nil {
 		return err
 	}

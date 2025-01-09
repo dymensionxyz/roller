@@ -47,51 +47,13 @@ func addCommasToNum(number string) string {
 	return result.String()
 }
 
-// FIXME: WTF? why it's not struct's method)
 func WriteConfigToDisk(
 	c RollappConfig,
-	kb consts.SupportedKeyringBackend,
 ) error {
 	rollerConfigFilePath := filepath.Join(c.Home, consts.RollerConfigFileName)
-	rollerConfigFilePath2 := filepath.Join(c.Home, "test.toml")
-
-	rollerTomlData := map[string]any{
-		"rollapp_id":      c.RollappID,
-		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
-		"rollapp_vm_type": c.RollappVMType,
-		"home":            c.Home,
-		"keyring_backend": string(kb),
-
-		"HubData.environment":     c.HubData.Environment,
-		"HubData.id":              c.HubData.ID,
-		"HubData.api_url":         c.HubData.ApiUrl,
-		"HubData.rpc_url":         c.HubData.RpcUrl,
-		"HubData.archive_rpc_url": c.HubData.ArchiveRpcUrl,
-		"HubData.gas_price":       c.HubData.GasPrice,
-
-		"DA.backend":            string(c.DA.Backend),
-		"DA.id":                 c.DA.ID,
-		"DA.api_url":            c.DA.ApiUrl,
-		"DA.rpc_url":            c.DA.RpcUrl,
-		"DA.current_state_node": c.DA.CurrentStateNode,
-		"DA.state_nodes":        c.DA.StateNodes,
-		"DA.gas_price":          c.DA.GasPrice,
-	}
-	err := tomlconfig.DumpConfigToTOML(c, rollerConfigFilePath2)
+	err := tomlconfig.DumpConfigToTOML(c, rollerConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to dump config to TOML: %w", err)
-	}
-
-	for key, value := range rollerTomlData {
-		err := tomlconfig.UpdateFieldInFile(
-			rollerConfigFilePath,
-			key,
-			value,
-		)
-		if err != nil {
-			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-			return err
-		}
 	}
 
 	return nil
