@@ -48,7 +48,7 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
-		panic("Unknown data layer type")
+		panic("Unknown data layer type " + string(datype))
 	}
 
 	return &DAManager{
