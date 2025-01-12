@@ -171,27 +171,27 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				if !raResponse.Rollapp.GenesisInfo.Sealed {
-					gvSpinner, err := pterm.DefaultSpinner.Start(
-						"validating genesis (this can take several minutes for large genesis files)",
-					)
-					if err != nil {
-						pterm.Error.Println("failed to validate genesis: ", err)
-					}
-					err = genesis.ValidateGenesis(
-						localRollerConfig,
-						localRollerConfig.RollappID,
-						localRollerConfig.HubData,
-					)
-					// nolint:errcheck
-					gvSpinner.Stop()
-					if err != nil {
-						pterm.Error.Println("failed to validate genesis: ", err)
-						return
-					}
-					gvSpinner.Success("genesis successfully validated")
-					fmt.Println()
-				}
+				// if !raResponse.Rollapp.GenesisInfo.Sealed {
+				// 	gvSpinner, err := pterm.DefaultSpinner.Start(
+				// 		"validating genesis (this can take several minutes for large genesis files)",
+				// 	)
+				// 	if err != nil {
+				// 		pterm.Error.Println("failed to validate genesis: ", err)
+				// 	}
+				// 	err = genesis.ValidateGenesis(
+				// 		localRollerConfig,
+				// 		localRollerConfig.RollappID,
+				// 		localRollerConfig.HubData,
+				// 	)
+				// 	// nolint:errcheck
+				// 	gvSpinner.Stop()
+				// 	if err != nil {
+				// 		pterm.Error.Println("failed to validate genesis: ", err)
+				// 		return
+				// 	}
+				// 	gvSpinner.Success("genesis successfully validated")
+				// 	fmt.Println()
+				// }
 
 				pterm.Info.Println("getting the existing sequencer address ")
 				hubSeqKC := keys.KeyConfig{
