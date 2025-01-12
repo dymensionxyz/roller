@@ -4,14 +4,11 @@ import (
 	"fmt"
 
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 
-	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	genesisutils "github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -19,19 +16,12 @@ import (
 )
 
 func runInit(
-	cmd *cobra.Command,
-	env string,
+	home, env string,
 	customHubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
 ) error {
 	raID := raResp.Rollapp.RollappId
-
-	home, err := filesystem.ExpandHomePath(cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String())
-	if err != nil {
-		pterm.Error.Println("failed to expand home directory")
-		return err
-	}
 
 	var hd consts.HubData
 	if env != "custom" {
@@ -40,17 +30,33 @@ func runInit(
 		hd = customHubData
 	}
 
+	// TODO: should set keyring as well
 	ic, err := prepareConfig(env, home, raID, hd, raResp)
 	if err != nil {
 		return err
 	}
 
-	/* --------------------------- Initialize Rollapp -------------------------- */
-	err = initRollapp(ic, raResp, env, home, raID, hd, kb)
+	err = ic.ValidateConfig()
 	if err != nil {
 		return err
 	}
 
+	err = roller.WriteConfigToDisk(ic)
+	if err != nil {
+		return err
+	}
+
+	/* --------------------------- Initialize Rollapp -------------------------- */
+	err = initRollapp(ic)
+	if err != nil {
+		return err
+	}
+
+	// save the genesis file in the rollapp directory
+	err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
+	if err != nil {
+		return err
+	}
 	/* ------------------------------ Generate keys ----------------------------- */
 	var addresses []keys.KeyInfo
 
@@ -59,31 +65,44 @@ func runInit(
 		return err
 	}
 
-	if env == "mock" {
-		err = genesisutils.InitializeRollappGenesis(ic)
-		if err != nil {
-			return err
-		}
-	}
-
 	addresses = append(addresses, sequencerKeys...)
 
-	/* ------------------------------ Initialize Local Hub ---------------------------- */
-	// TODO: local hub is out of scope, implement as the last step
-	// hub := cmd.Flag(FlagNames.HubID).Value.String()
-	// if hub == consts.LocalHubName {
-	// 	err := initLocalHub(initConfig)
-	// 	utils.PrettifyErrorIfExists(err)
-	// }
-
 	/* ------------------------ Initialize DA light node ------------------------ */
-	daKeyInfo, err := celestialightclient.Initialize(env, ic)
-	if err != nil {
-		return err
-	}
 
-	if daKeyInfo != nil {
-		addresses = append(addresses, *daKeyInfo)
+	// Generalize DA initialization logic
+	switch ic.DA.Backend {
+	case consts.Celestia:
+		// Initialize Celestia light client
+		daKeyInfo, err := celestialightclient.Initialize(env, ic)
+		if err != nil {
+			return fmt.Errorf("failed to initialize Celestia light client: %w", err)
+		}
+
+		// Append DA account address if available
+		if daKeyInfo != nil {
+			addresses = append(addresses, *daKeyInfo)
+		}
+
+	case consts.Avail:
+		// Initialize DAManager for Avail
+		damanager := datalayer.NewDAManager(consts.Avail, home, kb)
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Avail account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
+
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
 
 	/* ------------------------------ Print output ------------------------------ */
@@ -106,45 +125,15 @@ func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys
 
 func initRollapp(
 	initConfig roller.RollappConfig,
-	raResp rollapp.ShowRollappResponse,
-	env string,
-	home string,
-	raID string,
-	hd consts.HubData,
-	kb consts.SupportedKeyringBackend,
 ) error {
 	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
 	if err != nil {
 		return err
 	}
 
-	err = initconfig.InitializeRollappConfig(&initConfig, raResp)
+	err = InitializeRollappNode(initConfig)
 	if err != nil {
 		raSpinner.Fail("failed to initialize rollapp client")
-		return err
-	}
-
-	as, err := genesisutils.GetGenesisAppState(home)
-	if err != nil {
-		return err
-	}
-
-	daBackend := as.RollappParams.Params.Da
-	pterm.Info.Println("DA backend: ", daBackend)
-
-	daData, err := datalayer.GetDaInfo(env, daBackend)
-	if err != nil {
-		return err
-	}
-
-	err = roller.PopulateConfig(home, raID, hd, *daData, string(initConfig.RollappVMType), kb)
-	if err != nil {
-		return err
-	}
-
-	err = initConfig.ValidateConfig()
-	if err != nil {
-		errorhandling.PrettifyErrorIfExists(err)
 		return err
 	}
 
@@ -159,33 +148,30 @@ func prepareConfig(
 	hd consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 ) (roller.RollappConfig, error) {
-	var initConfig roller.RollappConfig
+	var (
+		ic  *roller.RollappConfig
+		err error
+	)
 
 	if env == consts.MockHubName {
-		ic, err := roller.GetMockRollappMetadata(
+		ic, err = roller.GetMockRollappMetadata(
 			home,
 			raID,
 			&hd,
 			raResp.Rollapp.VmType,
 		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return roller.RollappConfig{}, err
-		}
-		initConfig = *ic
 	} else {
-		ic, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+		ic, err = rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 			home,
 			raID,
 			hd,
 		)
-		if err != nil {
-			errorhandling.PrettifyErrorIfExists(err)
-			return roller.RollappConfig{}, err
-		}
-		initConfig = *ic
 	}
-	return initConfig, nil
+	if err != nil {
+		errorhandling.PrettifyErrorIfExists(err)
+		return roller.RollappConfig{}, err
+	}
+	return *ic, nil
 }
 
 func PrintInitOutput(

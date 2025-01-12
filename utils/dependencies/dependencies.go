@@ -62,10 +62,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			return nil, nil, err
 		}
 
-		if err != nil {
-			return nil, nil, err
-		}
-
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
 		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)

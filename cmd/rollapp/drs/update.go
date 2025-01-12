@@ -1,4 +1,4 @@
-package update
+package drs
 
 import (
 	"os"
@@ -21,7 +21,7 @@ import (
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
-func Cmd() *cobra.Command {
+func UpdateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update the drs(Dymension RollApp Standard).",

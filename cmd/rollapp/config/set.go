@@ -1,4 +1,4 @@
-package set
+package config
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
-func Cmd() *cobra.Command {
+func SetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "set <key> <new-value>",
 		Args: cobra.ExactArgs(2),

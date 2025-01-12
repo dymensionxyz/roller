@@ -32,7 +32,6 @@ func Cmd() *cobra.Command {
 			startservices.RelayerCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
-			// logservices.RelayerCmd(),
 		),
 	)
 
