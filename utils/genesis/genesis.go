@@ -155,6 +155,7 @@ func VerifyGenesisChainID(genesisPath, raID string) error {
 	return nil
 }
 
+// FIXME: review this change
 func calculateSHA256(filepath string) (string, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {

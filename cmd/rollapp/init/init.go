@@ -281,7 +281,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// FIXME: all above should be "dependencies", init should be from here approximately
+			// TODO: all above should be wrapped in "InitDependencies"
 
 			err = runInit(home, env, hd, *raResponse, kb)
 			if err != nil {

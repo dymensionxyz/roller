@@ -22,7 +22,7 @@ type DaData = struct {
 	ID      DaNetwork `toml:"id"`
 	ApiUrl  string    `toml:"api_url"`
 	RpcUrl  string    `toml:"rpc_url"`
-	// FIXME: combine CurrentStateNode and StateNodes
+	// TODO: combine CurrentStateNode and StateNodes
 	CurrentStateNode string   `toml:"current_state_node"`
 	StateNodes       []string `toml:"state_nodes"`
 	GasPrice         string   `toml:"gas_price"`

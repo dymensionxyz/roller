@@ -190,8 +190,7 @@ func GetMetadataFromChain(
 	return &raResponse, nil
 }
 
-// FIXME: this is config related! move it from here
-// it also called when we already have response, which is redundent
+// TODO: should be refactored into multiple functions
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -210,7 +209,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		return nil, err
 	}
 
-	// FIXME: can't we return here if rollerConfigExists? or at least check if it needs to be populated
+	// TODO: not sure why we overpopulate existing config
 	if rollerConfigExists {
 		pterm.Info.Println(
 			"existing roller configuration found, retrieving keyring backend from it",

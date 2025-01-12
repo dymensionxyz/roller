@@ -15,8 +15,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-// FIXME: move to utils/rollapp
-
 func runInit(
 	home, env string,
 	customHubData consts.HubData,
@@ -32,7 +30,7 @@ func runInit(
 		hd = customHubData
 	}
 
-	// FIXME: should get keyring as well
+	// TODO: should set keyring as well
 	ic, err := prepareConfig(env, home, raID, hd, raResp)
 	if err != nil {
 		return err

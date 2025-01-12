@@ -104,9 +104,9 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 	goreleaserDeps := map[string]types.Dependency{}
 
-	// if !withMockDA {
-	// 	goreleaserDeps = DefaultRollappPrebuiltDependencies()
-	// }
+	if !withMockDA {
+		goreleaserDeps = DefaultRollappPrebuiltDependencies()
+	}
 
 	if withMockDA {
 		// @20240913 libwasm is necessary on the host VM to be able to run the prebuilt rollapp binary

@@ -13,8 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-// FIXME: move to relayer package
-
 // TODO: this should be a method on Relayer.Relayer in `relayer_manager`
 func InitializeRelayer(home string, rollerData roller.RollappConfig) error {
 	// at this point it is safe to assume that
