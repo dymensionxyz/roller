@@ -14,7 +14,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
-	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -116,6 +115,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			// get environment data
 			if shouldUseMockBackend {
 				env = "mock"
 			} else {
@@ -126,34 +126,6 @@ func Cmd() *cobra.Command {
 					Show()
 			}
 
-			// TODO: move to consts
-			// TODO(v2):  move to roller config
-			if !shouldUseMockBackend && env != "custom" {
-				dymdBinaryOptions := dependencies.DefaultDymdDependency()
-				pterm.Info.Println("installing dependencies")
-				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
-				if err != nil {
-					pterm.Error.Println("failed to install dymd: ", err)
-					return
-				}
-			}
-
-			if len(args) != 0 {
-				raID = args[0]
-			} else {
-				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"provide a rollapp ID that you want to run the node for",
-				).Show()
-			}
-			raID = strings.TrimSpace(raID)
-			_, err = rollapp.ValidateChainID(raID)
-			if err != nil {
-				pterm.Error.Println("failed to validate chain id: ", err)
-				return
-			}
-
-			// env handling
-			kb := keys.KeyringBackendFromEnv(env)
 			switch env {
 			case "custom":
 				chd, err := config.CreateCustomHubData()
@@ -170,52 +142,44 @@ func Cmd() *cobra.Command {
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
 				}
-
-				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
-				if err != nil {
-					pterm.Info.Println("failed to install dymd", err)
-					return
-				}
 			case "mock":
-				vmType := config.PromptVmType()
-				raRespMock := rollapp.ShowRollappResponse{
-					Rollapp: rollapp.Rollapp{
-						RollappId: raID,
-						VmType:    vmType,
-					},
-				}
-
-				if !shouldSkipBinaryInstallation {
-					_, _, err = dependencies.InstallBinaries(true, raRespMock)
-					if err != nil {
-						pterm.Error.Println("failed to install binaries: ", err)
-						return
-					}
-				}
-
-				err := runInit(
-					home,
-					env,
-					consts.HubData{},
-					raRespMock,
-					kb,
-				)
-				if err != nil {
-					fmt.Println("failed to run init: ", err)
-					return
-				}
+				// FIXME: handle mock (why it need custom handling? it's in consts)
 				return
 			default:
 				hd = consts.Hubs[env]
+			}
 
-				if shouldSkipBinaryInstallation {
-					dymdDep := dependencies.DefaultDymdDependency()
-					err = dependencies.InstallBinaryFromRelease(dymdDep)
-					if err != nil {
-						pterm.Error.Println("failed to install dymd: ", err)
-						return
-					}
+			kb := keys.KeyringBackendFromEnv(env)
+
+			// if roller has not been initialized or it was reset
+			// set the versions to the current version
+			if isFirstInitialization {
+				rollerConfigFilePath := roller.GetConfigPath(home)
+
+				fieldsToUpdate := map[string]any{
+					"roller_version":  version.BuildVersion,
+					"keyring_backend": string(kb),
 				}
+				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+				if err != nil {
+					pterm.Error.Println("failed to update roller config file: ", err)
+					return
+				}
+			}
+
+			// get rollapp data
+			if len(args) != 0 {
+				raID = args[0]
+			} else {
+				raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"provide a rollapp ID that you want to run the node for",
+				).Show()
+			}
+			raID = strings.TrimSpace(raID)
+			_, err = rollapp.ValidateChainID(raID)
+			if err != nil {
+				pterm.Error.Println("failed to validate chain id: ", err)
+				return
 			}
 
 			// default flow
@@ -230,59 +194,45 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to retrieve rollapp information: ", err)
 				return
 			}
+			ra := raResponse.Rollapp
 
-			if raResponse.Rollapp.GenesisInfo.Bech32Prefix == "" {
+			if ra.GenesisInfo.Bech32Prefix == "" {
 				pterm.Error.Println(
 					"RollApp does not contain Bech32Prefix, which is mandatory to continue",
 				)
 				return
 			}
 
-			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse)
-			if err != nil {
-				pterm.Error.Println("failed to install binaries: ", err)
-				return
-			}
-			elapsed := time.Since(start)
-
-			pterm.Info.Println("all dependencies installed in: ", elapsed)
-
-			// if roller has not been initialized or it was reset
-			// set the versions to the current version
-			if isFirstInitialization {
-				rollerConfigFilePath := roller.GetConfigPath(home)
-
-				fieldsToUpdate := map[string]any{
-					"roller_version":         version.BuildVersion,
-					"rollapp_binary_version": builtDeps["rollapp"].Release,
-					"keyring_backend":        string(kb),
-				}
-				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+			if !shouldSkipBinaryInstallation {
+				start := time.Now()
+				err := installDependencies(home, env, ra)
 				if err != nil {
-					pterm.Error.Println("failed to update roller config file: ", err)
+					pterm.Error.Println("failed to install dependencies: ", err)
 					return
 				}
+				elapsed := time.Since(start)
+				pterm.Info.Println("all dependencies installed in: ", elapsed)
 			}
 
+			// validate bech32 prefix in the installed binary
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
-				strings.ToLower(raResponse.Rollapp.VmType),
+				strings.ToLower(ra.VmType),
 			)
 			if err != nil {
 				pterm.Error.Println("failed to extract bech32 prefix from binary", err)
+				return
 			}
 
-			if raResponse.Rollapp.GenesisInfo.Bech32Prefix != bp {
+			if ra.GenesisInfo.Bech32Prefix != bp {
 				pterm.Error.Printf(
 					"rollapp bech32 prefix does not match, want: %s, have: %s",
-					raResponse.Rollapp.GenesisInfo.Bech32Prefix,
+					ra.GenesisInfo.Bech32Prefix,
 					bp,
 				)
 				return
 			}
 
-			// TODO: all above should be wrapped in "InitDependencies"
-
+			// initialize rollapp node
 			err = runInit(home, env, hd, *raResponse, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)

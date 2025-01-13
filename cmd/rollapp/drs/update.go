@@ -97,6 +97,7 @@ func UpdateCmd() *cobra.Command {
 				raResp.Rollapp.GenesisInfo.Bech32Prefix,
 				raCommit,
 				strings.ToLower(raResp.Rollapp.VmType),
+				"",
 			)
 
 			raDep := dependencies.DefaultRollappDependency(rbi)

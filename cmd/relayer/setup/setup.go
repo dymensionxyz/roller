@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -17,8 +16,6 @@ import (
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
-	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -73,7 +70,14 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
+			raResponse, err := rollapp.Show(raData.ID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve rollapp information: ", err)
+				return
+			}
+			ra := raResponse.Rollapp
+
+			err = installRelayerDependencies(ra)
 			if err != nil {
 				pterm.Error.Println("failed to install relayer dependencies: ", err)
 				return
@@ -276,74 +280,26 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 	return &raData, hd, kb, nil
 }
 
-func getDrsVersionFromGenesis(
-	home string,
-	raResp *rollapputils.ShowRollappResponse,
-) (string, error) {
-	err := genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
-	if err != nil {
-		return "", err
-	}
-
-	as, err := genesis.GetAppStateFromGenesisFile(home)
-	if err != nil {
-		pterm.Error.Println("failed to get genesis app state: ", err)
-		return "", err
-	}
-	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
-
-	pterm.Info.Println("DRS version: ", drsVersion)
-	return drsVersion, nil
-}
-
-func installRelayerDependencies(
-	home string,
-	raID string,
-	hd consts.HubData,
-) error {
-	raResp, err := rollapp.GetMetadataFromChain(raID, hd)
+func installRelayerDependencies(ra rollapp.Rollapp) error {
+	// install rollapp binary
+	raInfo, err := dependencies.GetRollappBinaryInfo(ra)
 	if err != nil {
 		return err
 	}
-
-	drsVersion, err := getDrsVersionFromGenesis(home, raResp)
-	if err != nil {
-		pterm.Error.Println("failed to get drs version from genesis: ", err)
-		return err
-	}
-
-	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
-	if err != nil {
-		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
-		return err
-	}
-
-	var raCommit string
-	switch strings.ToLower(raResp.Rollapp.VmType) {
-	case "evm":
-		raCommit = drsInfo.EvmCommit
-	case "wasm":
-		raCommit = drsInfo.WasmCommit
-	}
-
-	rbi := dependencies.NewRollappBinaryInfo(
-		raResp.Rollapp.GenesisInfo.Bech32Prefix,
-		raCommit,
-		strings.ToLower(raResp.Rollapp.VmType),
-	)
-
-	raDep := dependencies.DefaultRollappDependency(rbi)
+	raDep := dependencies.DefaultRollappDependency(raInfo)
 	err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
 	if err != nil {
 		return err
 	}
 
+	// install relayer
 	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
 	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 	if err != nil {
 		return err
 	}
 
+	// install dymd
 	dymdDep := dependencies.DefaultDymdDependency()
 	err = dependencies.InstallBinaryFromRelease(dymdDep)
 	if err != nil {
