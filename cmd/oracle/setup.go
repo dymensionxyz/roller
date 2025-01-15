@@ -24,7 +24,7 @@ import (
 //go:embed setup/configs/*
 var configFiles embed.FS
 
-func SetupCmd() *cobra.Command {
+func DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploys an oracle to the RollApp",
@@ -153,8 +153,8 @@ func SetupCmd() *cobra.Command {
 			updates := map[string]any{
 				"chainClient.oracleContractAddress": contractAddr,
 				"chainClient.fee": fmt.Sprintf(
-					"%d%s",
-					consts.DefaultTxFee,
+					"%s%s",
+					"40000000000000000000",
 					feeDenom,
 				),
 				"chainClient.gasLimit":      gl.Uint64(),
