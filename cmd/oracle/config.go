@@ -77,11 +77,9 @@ func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
 		return "", fmt.Errorf("invalid mnemonic")
 	}
 
-	// Generate seed from mnemonic
 	seed := bip39.NewSeed(mnemonic, "")
 
-	// Use Cosmos SDK's HD path for key derivation (optional)
-	hdPath := "m/44'/118'/0'/0/0"
+	hdPath := "m/44'/60'/0'/0/0"
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
 	if err != nil {
