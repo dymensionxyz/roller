@@ -6,8 +6,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/dymensionxyz/roller/utils/roller"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -22,20 +20,6 @@ func Cmd(services []string) *cobra.Command {
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
-			}
-
-			rollappConfig, err := roller.LoadConfig(home)
-			if err != nil {
-				pterm.Error.Println("failed to load roller config: ", err)
-				return
-			}
-
-			if rollappConfig.NodeType == "sequencer" {
-				err = sequencerutils.CheckBalance(rollappConfig)
-				if err != nil {
-					pterm.Error.Println("failed to check sequencer balance: ", err)
-					return
-				}
 			}
 
 			err = servicemanager.RestartSystemServices(services, home)
