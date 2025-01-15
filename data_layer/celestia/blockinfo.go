@@ -20,6 +20,7 @@ func GetLatestBlock(raCfg roller.RollappConfig) (string, string, error) {
 		consts.Executables.CelestiaApp,
 		"q", "block", "--node", raCfg.DA.RpcUrl, "--chain-id", string(raCfg.DA.ID),
 	)
+	fmt.Println(cmd.String())
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
