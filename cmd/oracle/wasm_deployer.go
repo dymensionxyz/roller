@@ -35,6 +35,10 @@ func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
 	}, nil
 }
 
+func (w *WasmDeployer) Config() *OracleConfig {
+	return w.config
+}
+
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
 func (w *WasmDeployer) DownloadContract(url string) error {
 	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")

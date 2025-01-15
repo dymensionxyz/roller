@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	cosmossdkmath "cosmossdk.io/math"
+	"github.com/cosmos/go-bip39"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -22,6 +24,7 @@ import (
 )
 
 type OracleConfig struct {
+	PrivateKey      *secp256k1.PrivateKey
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -56,9 +59,22 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
+	privKey := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
+	o.PrivateKey = privKey
 	return nil
+}
+
+func GetSecp256k1PrivateKey(mnemonic string) *secp256k1.PrivateKey {
+	// Generate seed from mnemonic
+	seed := bip39.NewSeed(mnemonic, "")
+
+	// Generate private key from seed
+	privKey := secp256k1.PrivKeyFromBytes(seed[:32])
+
+	return privKey
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {

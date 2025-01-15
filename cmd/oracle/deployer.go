@@ -16,4 +16,6 @@ type ContractDeployer interface {
 		privateKey *ecdsa.PrivateKey,
 		contractCode []byte,
 	) (string, error)
+
+	Config() *OracleConfig
 }

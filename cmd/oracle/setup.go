@@ -149,7 +149,7 @@ func SetupCmd() *cobra.Command {
 				"chainClient.gasLimit":              gl.Uint64(),
 				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
 				"chainClient.chainId":               raData.Rollapp.RollappId,
-				"chainClient.privateKey":            "oracle",
+				"chainClient.privateKey":            deployer.Config().PrivateKey,
 				"chainClient.ssl":                   false,
 				"chainClient.chainGrpcHost":         "http://localhost:9090",
 				"grpc_port":                         9093,

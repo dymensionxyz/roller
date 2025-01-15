@@ -35,6 +35,10 @@ func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 	}, nil
 }
 
+func (e *EVMDeployer) Config() *OracleConfig {
+	return e.config
+}
+
 // DownloadContract implements ContractDeployer.DownloadContract for EVM
 func (e *EVMDeployer) DownloadContract(url string) error {
 	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
