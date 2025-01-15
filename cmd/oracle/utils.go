@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 )
 
-func getOracleKeyConfig() []keys.KeyConfig {
+func getOracleKeyConfig() ([]keys.KeyConfig, error) {
 	kc := keys.KeyConfig{
 		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
@@ -14,5 +14,22 @@ func getOracleKeyConfig() []keys.KeyConfig {
 		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
-	return []keys.KeyConfig{kc}
+	res, err := keys.NewKeyConfig(
+		kc.Dir,
+		kc.ID,
+		kc.ChainBinary,
+		kc.Type,
+		kc.KeyringBackend,
+		keys.WithCustomAlgo("secp256k1"),
+	)
+
+	var keys []keys.KeyConfig
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys = append(keys, *res)
+
+	return keys, nil
 }

@@ -87,7 +87,12 @@ func GetSecp256k1PrivateKey(mnemonic string) string {
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	kc := getOracleKeyConfig()[0]
+	oracleKeys, err := getOracleKeyConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	kc := oracleKeys[0]
 	ok, err := kc.IsInKeyring(home)
 	if err != nil {
 		return nil, err
@@ -125,10 +130,14 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	OracleKeys := getOracleKeyConfig()
+	oracleKeys, err := getOracleKeyConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	addresses := make([]keys.KeyInfo, 0)
 
-	for _, key := range OracleKeys {
+	for _, key := range oracleKeys {
 		var address *keys.KeyInfo
 		var err error
 		address, err = key.Create(rollerData.Home)
@@ -202,7 +211,12 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			kc := getOracleKeyConfig()[0]
+			oracleKeys, err := getOracleKeyConfig()
+			if err != nil {
+				return fmt.Errorf("failed to get oracle keys: %v", err)
+			}
+			kc := oracleKeys[0]
+
 			ki, err := kc.Info(rollerData.Home)
 			if err != nil {
 				return fmt.Errorf("failed to get key info: %v", err)
@@ -305,7 +319,12 @@ func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			kc := getOracleKeyConfig()[0]
+			oracleKeys, err := getOracleKeyConfig()
+			if err != nil {
+				return fmt.Errorf("failed to get oracle keys: %v", err)
+			}
+
+			kc := oracleKeys[0]
 			ki, err := kc.Info(rollerData.Home)
 			if err != nil {
 				return fmt.Errorf("failed to get key info: %v", err)
