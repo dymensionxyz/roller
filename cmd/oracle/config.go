@@ -3,6 +3,7 @@ package oracle
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -25,7 +26,7 @@ import (
 )
 
 type OracleConfig struct {
-	PrivateKey      *secp256k1.PrivateKey
+	PrivateKey      string
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -60,15 +61,15 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	privKey := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	hexKey := GetSecp256k1PrivateKey(addr[0].Mnemonic)
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
-	o.PrivateKey = privKey
+	o.PrivateKey = hexKey
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string) *secp256k1.PrivateKey {
+func GetSecp256k1PrivateKey(mnemonic string) string {
 	fmt.Println(mnemonic)
 
 	// Generate seed from mnemonic
@@ -78,8 +79,11 @@ func GetSecp256k1PrivateKey(mnemonic string) *secp256k1.PrivateKey {
 	// Generate private key from seed
 	privKey := secp256k1.PrivKeyFromBytes(seed[:32])
 
-	fmt.Println(string(privKey.Serialize()))
-	return privKey
+	// Convert private key bytes to hex string
+	hexKey := hex.EncodeToString(privKey.Serialize())
+	fmt.Println(hexKey)
+
+	return hexKey
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
