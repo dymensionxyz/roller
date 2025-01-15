@@ -18,11 +18,11 @@ func Cmd() *cobra.Command {
 
 	cmd.AddCommand(DeployCmd())
 
-	sl := []string{"oracle-client"}
+	sl := []string{"oracle"}
 	cmd.AddCommand(
 		services.Cmd(
 			loadservices.Cmd(sl, "oracle"),
-			startservices.RollappCmd(),
+			startservices.OracleCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
 			// logservices.RollappCmd(),
