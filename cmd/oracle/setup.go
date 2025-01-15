@@ -143,16 +143,27 @@ func SetupCmd() *cobra.Command {
 				return
 			}
 
+			var feeDenom string
+			if raData.Rollapp.GenesisInfo.NativeDenom == nil {
+				feeDenom = consts.Denoms.HubIbcOnRollapp
+			} else {
+				feeDenom = raData.Rollapp.GenesisInfo.NativeDenom.Base
+			}
+
 			updates := map[string]any{
 				"chainClient.oracleContractAddress": contractAddr,
-				"chainClient.fee":                   consts.DefaultTxFee,
-				"chainClient.gasLimit":              gl.Uint64(),
-				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
-				"chainClient.chainId":               raData.Rollapp.RollappId,
-				"chainClient.privateKey":            deployer.Config().PrivateKey,
-				"chainClient.ssl":                   false,
-				"chainClient.chainGrpcHost":         "http://localhost:9090",
-				"grpc_port":                         9093,
+				"chainClient.fee": fmt.Sprintf(
+					"%d%s",
+					consts.DefaultTxFee,
+					feeDenom,
+				),
+				"chainClient.gasLimit":      gl.Uint64(),
+				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
+				"chainClient.chainId":       raData.Rollapp.RollappId,
+				"chainClient.privateKey":    deployer.Config().PrivateKey,
+				"chainClient.ssl":           false,
+				"chainClient.chainGrpcHost": "localhost:9090",
+				"grpc_port":                 9093,
 			}
 
 			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
