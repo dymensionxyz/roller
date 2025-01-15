@@ -8,12 +8,15 @@ import (
 	"path/filepath"
 	"runtime"
 
+	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -132,28 +135,34 @@ func SetupCmd() *cobra.Command {
 			}
 			pterm.Info.Println("config file copied successfully")
 			pterm.Info.Println("updating config values")
-			// gl, _ := cosmossdkmath.NewIntFromString(
-			// 	consts.DefaultMinGasPrice,
-			// )
+			gl, _ := cosmossdkmath.NewIntFromString(
+				consts.DefaultMinGasPrice,
+			)
 
-			// updates := map[string]any{
-			// 	"chainClient.oracleContractAddress": contractAddr,
-			// 	"chainClient.fee":                   consts.DefaultTxFee,
-			// 	"chainClient.gasLimit":              gl.Uint64(),
-			// 	"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
-			// 	"chainClient.chainId":               raData.Rollapp.RollappId,
-			// 	"chainClient.privateKey":            "oracle",
-			// 	"chainClient.ssl":                   false,
-			// 	"chainClient.chainGrpcHost":         "http://localhost:9090",
-			// 	"grpc_port":                         9093,
-			// }
+			raData, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
+			if err != nil {
+				pterm.Error.Printf("failed to get rollapp metadata: %v\n", err)
+				return
+			}
 
-			// cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
-			// err = yamlconfig.UpdateNestedYAML(cfp, updates)
-			// if err != nil {
-			// 	pterm.Error.Printf("failed to update config file: %v\n", err)
-			// 	return
-			// }
+			updates := map[string]any{
+				"chainClient.oracleContractAddress": contractAddr,
+				"chainClient.fee":                   consts.DefaultTxFee,
+				"chainClient.gasLimit":              gl.Uint64(),
+				"chainClient.bech32Prefix":          raData.Rollapp.GenesisInfo.Bech32Prefix,
+				"chainClient.chainId":               raData.Rollapp.RollappId,
+				"chainClient.privateKey":            "oracle",
+				"chainClient.ssl":                   false,
+				"chainClient.chainGrpcHost":         "http://localhost:9090",
+				"grpc_port":                         9093,
+			}
+
+			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
+			err = yamlconfig.UpdateNestedYAML(cfp, updates)
+			if err != nil {
+				pterm.Error.Printf("failed to update config file: %v\n", err)
+				return
+			}
 		},
 	}
 
