@@ -55,10 +55,10 @@ func SetupCmd() *cobra.Command {
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
 				deployer, err = NewEVMDeployer(rollerData)
-				contractUrl = "https://storage.cloud.google.com/dymension-roller/price_oracle_contract.sol"
+				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
 			case consts.WASM_ROLLAPP:
 				deployer, err = NewWasmDeployer(rollerData)
-				contractUrl = "https://storage.cloud.google.com/dymension-roller/price_oracle_contract.wasm"
+				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
 				return
