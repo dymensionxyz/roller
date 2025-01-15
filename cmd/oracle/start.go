@@ -82,7 +82,7 @@ func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 	}
 
 	cmd := exec.Command(
-		consts.Executables.RollappEVM, args...,
+		consts.Executables.Oracle, args...,
 	)
 	return cmd
 }

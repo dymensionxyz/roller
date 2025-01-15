@@ -17,6 +17,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(DeployCmd())
+	cmd.AddCommand(StartCmd())
 
 	sl := []string{"oracle"}
 	cmd.AddCommand(
