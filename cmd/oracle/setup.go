@@ -15,6 +15,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -90,40 +91,37 @@ func SetupCmd() *cobra.Command {
 			}
 			pterm.Success.Printf("Contract deployed successfully at: %s\n", contractAddr)
 
-			// pterm.Info.Println("starting phase 2: oracle client setup")
-			// pterm.Info.Println("downloading oracle binary")
+			pterm.Info.Println("starting phase 2: oracle client setup")
+			pterm.Info.Println("downloading oracle binary")
 
-			// obvi, err := dependencies.GetOracleBinaryVersion(rollerData.RollappVMType)
-			// if err != nil {
-			// 	pterm.Error.Printf("failed to get oracle binary version: %v\n", err)
-			// 	return
-			// }
+			obvi, err := dependencies.GetOracleBinaryVersion(rollerData.RollappVMType)
+			if err != nil {
+				pterm.Error.Printf("failed to get oracle binary version: %v\n", err)
+				return
+			}
 
-			// var v string
-			// switch rollerData.RollappVMType {
-			// case consts.EVM_ROLLAPP:
-			// 	v = obvi.EvmOracle
-			// case consts.WASM_ROLLAPP:
-			// 	v = obvi.WasmOracle
-			// default:
-			// 	pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
-			// 	return
-			// }
+			var v string
+			switch rollerData.RollappVMType {
+			case consts.EVM_ROLLAPP:
+				v = obvi.EvmOracle
+			case consts.WASM_ROLLAPP:
+				v = obvi.WasmOracle
+			default:
+				pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
+				return
+			}
 
-			// bc := dependencies.BinaryInstallConfig{
-			// 	RollappType: rollerData.RollappVMType,
-			// 	Version:     v,
-			// 	InstallDir:  consts.Executables.Oracle,
-			// }
+			bc := dependencies.BinaryInstallConfig{
+				RollappType: rollerData.RollappVMType,
+				Version:     v,
+				InstallDir:  consts.Executables.Oracle,
+			}
 
-			// j, _ := json.MarshalIndent(bc, "", "  ")
-			// pterm.Info.Printfln("installing oracle binary:\n%s", string(j))
-
-			// err = dependencies.InstallBinary(context.Background(), bc)
-			// if err != nil {
-			// 	pterm.Error.Printf("failed to install oracle binary: %v\n", err)
-			// 	return
-			// }
+			err = dependencies.InstallBinary(context.Background(), bc)
+			if err != nil {
+				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
+				return
+			}
 
 			pterm.Info.Printfln(
 				"copying config file into %s",
