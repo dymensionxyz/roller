@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/cosmos/go-bip39"
@@ -448,6 +449,8 @@ func (o *OracleConfig) InstantiateContract(rollerData roller.RollappConfig) erro
 	if err != nil {
 		return fmt.Errorf("failed to instantiate contract: %v, output: %s", err, output)
 	}
+
+	time.Sleep(time.Second * 2)
 
 	txHash, err := bash.ExtractTxHash(output.String())
 	if err != nil {
