@@ -138,6 +138,10 @@ const RollerConfigFileName = "roller.toml"
 
 type VMType string
 
+func (v VMType) String() string {
+	return string(v)
+}
+
 const (
 	SDK_ROLLAPP  VMType = "sdk"
 	EVM_ROLLAPP  VMType = "evm"

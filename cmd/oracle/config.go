@@ -1,12 +1,10 @@
-package setup
+package oracle
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,30 +21,32 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-type Oracle struct {
+type OracleConfig struct {
+	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
-	ContractAddr    string
 	KeyName         string
 	KeyAddress      string
 	ContractAddress string
 }
 
-func NewOracle(rollerData roller.RollappConfig) *Oracle {
+func NewOracle(rollerData roller.RollappConfig) *OracleConfig {
 	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
-	return &Oracle{
+	ovt := rollerData.RollappVMType
+	return &OracleConfig{
 		ConfigDirPath: cd,
+		OracleVmType:  ovt.String(),
 	}
 }
 
-func (o *Oracle) ConfigDir(rollerData roller.RollappConfig) string {
+func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
 	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
 	o.ConfigDirPath = cd
 
 	return o.ConfigDirPath
 }
 
-func (o *Oracle) SetKey(rollerData roller.RollappConfig) error {
+func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
@@ -58,42 +58,6 @@ func (o *Oracle) SetKey(rollerData roller.RollappConfig) error {
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
-	return nil
-}
-
-func (o *Oracle) DownloadContractCode() error {
-	contractURL := "https://storage.googleapis.com/dymension-roller/centralized_oracle.wasm"
-	contractPath := filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm")
-
-	// Create config directory if it doesn't exist
-	if err := os.MkdirAll(o.ConfigDirPath, 0o755); err != nil {
-		return fmt.Errorf("failed to create config directory: %v", err)
-	}
-
-	// Create the file
-	out, err := os.Create(contractPath)
-	if err != nil {
-		return fmt.Errorf("failed to create contract file: %v", err)
-	}
-	defer out.Close()
-
-	// Get the data
-	resp, err := http.Get(contractURL)
-	if err != nil {
-		return fmt.Errorf("failed to download contract: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to download contract, status: %s", resp.Status)
-	}
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to save contract: %v", err)
-	}
-
 	return nil
 }
 
@@ -159,19 +123,7 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 	return addresses, nil
 }
 
-func getOracleKeyConfig() []keys.KeyConfig {
-	kc := keys.KeyConfig{
-		Dir:            consts.ConfigDirName.Oracle,
-		ID:             consts.KeysIds.Oracle,
-		ChainBinary:    consts.Executables.RollappEVM,
-		Type:           consts.SDK_ROLLAPP,
-		KeyringBackend: consts.SupportedKeyringBackends.Test,
-	}
-
-	return []keys.KeyConfig{kc}
-}
-
-func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
+func (o *OracleConfig) StoreContract(rollerData roller.RollappConfig) error {
 	var cmd *exec.Cmd
 
 	var balanceDenom string
@@ -276,7 +228,7 @@ func (o *Oracle) StoreContract(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func (o *Oracle) GetCodeID() (string, error) {
+func (o *OracleConfig) GetCodeID() (string, error) {
 	// Calculate SHA256 hash of the contract file
 	contractPath := filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm")
 	contractData, err := os.ReadFile(contractPath)
@@ -320,7 +272,7 @@ func (o *Oracle) GetCodeID() (string, error) {
 	return "", nil
 }
 
-func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
+func (o *OracleConfig) InstantiateContract(rollerData roller.RollappConfig) error {
 	instantiateMsg := struct {
 		Config struct {
 			Updater             string `json:"updater"`
@@ -373,6 +325,8 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 		"-y",
 	)
 
+	fmt.Println(cmd.String())
+
 	output, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate contract: %v, output: %s", err, output)
@@ -388,7 +342,7 @@ func (o *Oracle) InstantiateContract(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func (o *Oracle) ListContracts(rollerData roller.RollappConfig) ([]string, error) {
+func (o *OracleConfig) ListContracts(rollerData roller.RollappConfig) ([]string, error) {
 	cmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"query", "wasm", "list-contracts-by-creator",
