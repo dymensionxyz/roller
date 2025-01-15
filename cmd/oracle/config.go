@@ -69,12 +69,16 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 }
 
 func GetSecp256k1PrivateKey(mnemonic string) *secp256k1.PrivateKey {
+	fmt.Println(mnemonic)
+
 	// Generate seed from mnemonic
 	seed := bip39.NewSeed(mnemonic, "")
 
+	fmt.Println(seed)
 	// Generate private key from seed
 	privKey := secp256k1.PrivKeyFromBytes(seed[:32])
 
+	fmt.Println(string(privKey.Serialize()))
 	return privKey
 }
 
