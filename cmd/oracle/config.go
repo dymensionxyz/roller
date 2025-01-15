@@ -90,6 +90,7 @@ func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
 
 	// Convert private key bytes to hex string
 	hexKey := hex.EncodeToString(privKey)
+	fmt.Println(hexKey)
 
 	return hexKey, nil
 }
