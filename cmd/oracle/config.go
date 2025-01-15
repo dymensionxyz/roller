@@ -13,8 +13,8 @@ import (
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -61,7 +61,10 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	hexKey := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
+	}
 
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
@@ -69,21 +72,26 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string) string {
-	fmt.Println(mnemonic)
+func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return "", fmt.Errorf("invalid mnemonic")
+	}
 
 	// Generate seed from mnemonic
 	seed := bip39.NewSeed(mnemonic, "")
 
-	fmt.Println(seed)
-	// Generate private key from seed
-	privKey := secp256k1.PrivKeyFromBytes(seed[:32])
+	// Use Cosmos SDK's HD path for key derivation (optional)
+	hdPath := "m/44'/118'/0'/0/0"
+	master, ch := hd.ComputeMastersFromSeed(seed)
+	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
+	if err != nil {
+		return "", err
+	}
 
 	// Convert private key bytes to hex string
-	hexKey := hex.EncodeToString(privKey.Serialize())
-	fmt.Println(hexKey)
+	hexKey := hex.EncodeToString(privKey)
 
-	return hexKey
+	return hexKey, nil
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
