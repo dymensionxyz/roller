@@ -1,6 +1,7 @@
 package oracle
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"os"
@@ -78,14 +79,13 @@ func SetupCmd() *cobra.Command {
 			// Get private key for deployment
 			// TODO: Implement private key retrieval from rollerData or config
 
-			// // Deploy the contract
-			// contractAddr, err := deployer.DeployContract(context.Background(), nil, contractCode)
-			// if err != nil {
-			// 	pterm.Error.Printf("failed to deploy contract: %v\n", err)
-			// 	return
-			// }
-
-			// pterm.Success.Printf("Contract deployed successfully at: %s\n", contractAddr)
+			// Deploy the contract
+			contractAddr, err := deployer.DeployContract(context.Background(), nil, nil)
+			if err != nil {
+				pterm.Error.Printf("failed to deploy contract: %v\n", err)
+				return
+			}
+			pterm.Success.Printf("Contract deployed successfully at: %s\n", contractAddr)
 
 			// pterm.Info.Println("starting phase 2: oracle client setup")
 			// pterm.Info.Println("downloading oracle binary")

@@ -79,7 +79,7 @@ func (w *WasmDeployer) DeployContract(
 	contractCode []byte,
 ) (string, error) {
 	// Store the contract
-	if err := w.config.StoreContract(w.rollerData); err != nil {
+	if err := w.config.StoreWasmContract(w.rollerData); err != nil {
 		return "", fmt.Errorf("failed to store contract: %w", err)
 	}
 

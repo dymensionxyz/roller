@@ -123,7 +123,7 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 	return addresses, nil
 }
 
-func (o *OracleConfig) StoreContract(rollerData roller.RollappConfig) error {
+func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error {
 	var cmd *exec.Cmd
 
 	var balanceDenom string
@@ -155,8 +155,109 @@ func (o *OracleConfig) StoreContract(rollerData roller.RollappConfig) error {
 			"--home", o.ConfigDirPath,
 			"-y",
 		)
-	case consts.EVM_ROLLAPP:
-		return fmt.Errorf("EVM rollapp type does not support oracle deployment")
+	default:
+		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
+	}
+
+	fmt.Println(cmd.String())
+
+	for {
+		balance, err := keys.QueryBalance(
+			keys.ChainQueryConfig{
+				Denom:  balanceDenom,
+				RPC:    "http://localhost:26657",
+				Binary: consts.Executables.RollappEVM,
+			}, o.KeyAddress,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to query balance: %v", err)
+		}
+
+		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		isAddrFunded := balance.Amount.GTE(one)
+
+		if !isAddrFunded {
+			kc := getOracleKeyConfig()[0]
+			ki, err := kc.Info(rollerData.Home)
+			if err != nil {
+				return fmt.Errorf("failed to get key info: %v", err)
+			}
+
+			pterm.DefaultSection.WithIndentCharacter("🔔").
+				Println("Please fund the addresses below be able to deploy an oracle")
+			ki.Print(keys.WithName())
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
+			if !proceed {
+				return fmt.Errorf("cancelled by user")
+			}
+		} else {
+			break
+		}
+	}
+
+	output, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return fmt.Errorf("failed to store contract: %v, output: %s", err, output)
+	}
+
+	tob := bytes.NewBufferString(output.String())
+	err = tx_utils.CheckTxYamlStdOut(*tob)
+	if err != nil {
+		return err
+	}
+
+	// Extract transaction hash
+	txHash, err := bash.ExtractTxHash(output.String())
+	if err != nil {
+		return fmt.Errorf("failed to extract transaction hash: %v", err)
+	}
+
+	pterm.Info.Printfln("transaction hash: %s", txHash)
+
+	// // Monitor transaction
+	// wsURL := "http://localhost:26657"
+	// if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
+	// 	return fmt.Errorf("failed to monitor transaction: %v", err)
+	// }
+
+	return nil
+}
+
+func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
+	var cmd *exec.Cmd
+
+	var balanceDenom string
+	raResp, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
+	if err != nil {
+		return fmt.Errorf("failed to get rollapp metadata: %v", err)
+	}
+
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+		balanceDenom = consts.Denoms.HubIbcOnRollapp
+	} else {
+		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
+	}
+
+	switch rollerData.RollappVMType {
+	case consts.WASM_ROLLAPP:
+		cmd = exec.Command(
+			consts.Executables.RollappEVM,
+			"tx", "wasm", "store",
+			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
+			"--instantiate-anyof-addresses", o.KeyAddress,
+			"--from", o.KeyName,
+			"--gas", "auto",
+			"--gas-adjustment", "1.3",
+			"--fees", fmt.Sprintf("40000000000000000%s", balanceDenom),
+			"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
+			"--chain-id", rollerData.RollappID,
+			"--broadcast-mode", "sync",
+			"--home", o.ConfigDirPath,
+			"-y",
+		)
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
 	}
