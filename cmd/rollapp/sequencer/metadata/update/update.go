@@ -135,12 +135,16 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			var seqMetadata sequencerutils.Metadata
+			var seqMetadata struct {
+				GasPrice string `json:"gas_price"`
+			}
+
 			b, err := os.ReadFile(metadataFilePath)
 			if err != nil {
 				pterm.Error.Println("failed to read metadata file: ", err)
 				return
 			}
+
 			err = json.Unmarshal(b, &seqMetadata)
 			if err != nil {
 				pterm.Error.Println("failed to unmarshal metadata file: ", err)
