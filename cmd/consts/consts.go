@@ -19,6 +19,7 @@ var (
 	AllServices            = []string{"rollapp", "da-light-client", "relayer", "eibc"}
 	RollappSystemdServices = []string{"rollapp", "da-light-client"}
 	RelayerSystemdServices = []string{"relayer"}
+	OracleSystemdServices  = []string{"oracle"}
 	EibcSystemdServices    = []string{"eibc"}
 )
 
@@ -32,6 +33,7 @@ var Executables = struct {
 	Simd        string
 	Eibc        string
 	CelestiaApp string
+	Oracle      string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -42,6 +44,7 @@ var Executables = struct {
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
+	Oracle:      fmt.Sprintf("%s/oracle", InternalBinsDir),
 }
 
 var KeysIds = struct {
@@ -55,6 +58,7 @@ var KeysIds = struct {
 	Celestia                      string
 	Eibc                          string
 	Da                            string
+	Oracle                        string
 }{
 	HubSequencer:                  "hub_sequencer",
 	HubGenesis:                    "hub_genesis",
@@ -66,6 +70,7 @@ var KeysIds = struct {
 	Celestia:                      "my_celes_key",
 	Eibc:                          "whale",
 	Da:                            "da_key",
+	Oracle:                        "oracle",
 }
 
 var AddressPrefixes = struct {
@@ -83,6 +88,7 @@ var ConfigDirName = struct {
 	LocalHub             string
 	Eibc                 string
 	BlockExplorer        string
+	Oracle               string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -92,16 +98,19 @@ var ConfigDirName = struct {
 	LocalHub:             "local-hub",
 	Eibc:                 ".eibc-client",
 	BlockExplorer:        "block-explorer",
+	Oracle:               "oracle",
 }
 
 var Denoms = struct {
-	Hub      string
-	Celestia string
-	Avail    string
+	Hub             string
+	HubIbcOnRollapp string
+	Celestia        string
+	Avail           string
 }{
-	Hub:      "adym",
-	Celestia: "utia",
-	Avail:    "aAVL",
+	Hub:             "adym",
+	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
+	Celestia:        "utia",
+	Avail:           "aAVL",
 }
 
 const (
@@ -129,6 +138,10 @@ var NodeType = struct {
 const RollerConfigFileName = "roller.toml"
 
 type VMType string
+
+func (v VMType) String() string {
+	return string(v)
+}
 
 const (
 	SDK_ROLLAPP  VMType = "sdk"

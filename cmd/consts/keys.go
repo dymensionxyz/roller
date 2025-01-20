@@ -2,6 +2,10 @@ package consts
 
 type SupportedKeyringBackend string
 
+func (s SupportedKeyringBackend) String() string {
+	return string(s)
+}
+
 var SupportedKeyringBackends = struct {
 	OS   SupportedKeyringBackend
 	Test SupportedKeyringBackend
