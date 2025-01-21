@@ -94,11 +94,13 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	// Deploy contract using rollappd tx evm raw
-	deployCmd := exec.Command("rollappd", "tx", "evm", "raw",
+	deployCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"tx",
+		"evm",
+		"raw",
 		bytecode,
 		"--from", consts.KeysIds.Oracle,
-		"--gas-limit", "2000000",
-		"--gas-price", "20000000000",
 		"--chain-id", e.rollerData.RollappID,
 		"--broadcast", "true",
 		"-y",
