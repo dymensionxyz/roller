@@ -389,7 +389,6 @@ func DownloadRelease(
 }
 
 func DownloadBinary(url, destination string) error {
-	fmt.Println(url)
 	// Create a new HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -408,7 +407,8 @@ func DownloadBinary(url, destination string) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
+	tempName := f.Name()
+	defer os.Remove(tempName) // Clean up in case of failure
 
 	// Create a progress bar
 	bar := progressbar.DefaultBytes(
@@ -422,8 +422,13 @@ func DownloadBinary(url, destination string) error {
 		return err
 	}
 
+	// Important: Close the file handle before moving it
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
 	// Move the file into place and make it executable
-	err = archives.MoveBinaryIntoPlaceAndMakeExecutable(f.Name(), destination)
+	err = archives.MoveBinaryIntoPlaceAndMakeExecutable(tempName, destination)
 	if err != nil {
 		return err
 	}
