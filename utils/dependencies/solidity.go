@@ -47,7 +47,7 @@ func InstallSolidityDependencies() error {
 	)
 
 	// Download the binary
-	cmd := exec.Command("curl", "-L", downloadURL, "-o", solcPath)
+	cmd := exec.Command("sudo", "curl", "-L", downloadURL, "-o", solcPath)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return fmt.Errorf("failed to download solc: %w", err)
 	}
