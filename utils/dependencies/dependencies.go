@@ -389,6 +389,7 @@ func DownloadRelease(
 }
 
 func DownloadBinary(url, destination string) error {
+	fmt.Println(url)
 	// Create a new HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
