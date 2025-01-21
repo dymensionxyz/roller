@@ -10,10 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -95,42 +93,10 @@ func (e *EVMDeployer) DeployContract(
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
-	// Get account address from private key
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return "", fmt.Errorf("error casting public key to ECDSA")
-	}
-
-	// Get the account address
-	address := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	// Get account sequence (nonce)
-	cmd := exec.Command("rollappd", "query", "auth", "account", address.Hex(), "-o", "json")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get account info: %w", err)
-	}
-
-	var accountInfo struct {
-		Account struct {
-			Sequence string `json:"sequence"`
-		} `json:"account"`
-	}
-	if err := json.Unmarshal(output, &accountInfo); err != nil {
-		return "", fmt.Errorf("failed to parse account info: %w", err)
-	}
-
-	nonce, err := strconv.ParseUint(accountInfo.Account.Sequence, 10, 64)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse sequence number: %w", err)
-	}
-
 	// Deploy contract using rollappd tx evm raw
 	deployCmd := exec.Command("rollappd", "tx", "evm", "raw",
 		bytecode,
 		"--from", consts.KeysIds.Oracle,
-		"--nonce", strconv.FormatUint(nonce, 10),
 		"--gas-limit", "2000000",
 		"--gas-price", "20000000000",
 		"--chain-id", e.rollerData.RollappID,
