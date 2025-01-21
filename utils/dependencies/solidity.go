@@ -57,11 +57,14 @@ func installSolcFromRelease(dep types.Dependency) error {
 	)
 
 	url := fmt.Sprintf(
-		"%s/releases/download/%s/%s",
+		"%s/releases/download/v%s/%s",
 		dep.RepositoryUrl,
 		dep.Release,
 		dep.Binaries[0].Binary,
 	)
+
+	// https://github.com/ethereum/solidity/releases/download/v0.8.28/solc-macos
+	// https://github.com/ethereum/solidity/releases/download/0.8.20/solc-static-linux
 
 	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
 	err := DownloadBinary(url, consts.Executables.Solc)
