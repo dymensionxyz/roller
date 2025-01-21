@@ -60,6 +60,12 @@ func DeployCmd() *cobra.Command {
 			case consts.EVM_ROLLAPP:
 				deployer, err = NewEVMDeployer(rollerData)
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
+
+				err := dependencies.InstallSolidityDependencies()
+				if err != nil {
+					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
+					return
+				}
 			case consts.WASM_ROLLAPP:
 				deployer, err = NewWasmDeployer(rollerData)
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"

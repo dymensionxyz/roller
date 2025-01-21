@@ -8,10 +8,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -81,6 +86,15 @@ func (e *EVMDeployer) DeployContract(
 	privateKey *ecdsa.PrivateKey,
 	contractCode []byte,
 ) (string, error) {
+	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
+	bytecode, runtimecode, err := compileContract(contractPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to compile contract: %w", err)
+	}
+
+	fmt.Println("bytecode: " + bytecode)
+	fmt.Println("runtimecode: " + runtimecode)
+
 	return "", errors.New("not implemented")
 	// chainID, err := e.client.ChainID(ctx)
 	// if err != nil {
@@ -139,3 +153,97 @@ func (e *EVMDeployer) DeployContract(
 
 	// return address.Hex(), nil
 }
+
+func compileContract(contractPath string) (string, string, error) {
+	// Ensure solc is installed
+	if err := dependencies.InstallSolidityDependencies(); err != nil {
+		return "", "", fmt.Errorf("failed to install solidity compiler: %w", err)
+	}
+
+	// Create build directory
+	buildDir := filepath.Join(filepath.Dir(contractPath), "build")
+	if err := os.MkdirAll(buildDir, 0o755); err != nil {
+		return "", "", fmt.Errorf("failed to create build directory: %w", err)
+	}
+
+	solcPath := filepath.Join(consts.InternalBinsDir, "solc")
+
+	// Compile contract to get bytecode
+	cmd := exec.Command(solcPath, "--bin", contractPath, "-o", buildDir)
+	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
+		return "", "", fmt.Errorf("failed to compile contract (bytecode): %w", err)
+	}
+
+	// Compile contract to get ABI
+	cmd = exec.Command(solcPath, "--abi", contractPath, "-o", buildDir)
+	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
+		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
+	}
+
+	// Get contract name from file
+	contractName := strings.TrimSuffix(filepath.Base(contractPath), ".sol")
+
+	// Read the compiled bytecode
+	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", contractName))
+	bytecode, err := os.ReadFile(binPath)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read bytecode: %w", err)
+	}
+
+	// Read the runtime bytecode (we'll use the same bytecode for runtime since solc doesn't generate it separately)
+	runtimeBytecode := bytecode
+
+	// Clean up build directory
+	os.RemoveAll(buildDir)
+
+	return string(bytecode), string(runtimeBytecode), nil
+}
+
+// func deployContract() {
+// 	// Connect to RollApp EVM RPC endpoint
+// 	client, err := ethclient.Dial("http://YOUR_ROLLAPP_IP:8545")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Load private key
+// 	privateKey, err := crypto.HexToECDSA("your_private_key_here")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	publicKey := privateKey.Public()
+// 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+// 	if !ok {
+// 		panic("invalid key")
+// 	}
+
+// 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+// 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Create auth transaction
+// 	chainID, err := client.ChainID(context.Background())
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	auth.Nonce = big.NewInt(int64(nonce))
+// 	auth.GasLimit = uint64(3000000)
+// 	auth.GasPrice = big.NewInt(1000000000)
+
+// 	// Deploy contract
+// 	address, tx, instance, err := DeployStorage(auth, client)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	fmt.Printf("Contract deployed to: %s\n", address.Hex())
+// 	fmt.Printf("Transaction hash: %s\n", tx.Hash().Hex())
+// }
