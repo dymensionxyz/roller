@@ -3,14 +3,17 @@ package oracle
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -85,72 +88,112 @@ func (e *EVMDeployer) DeployContract(
 	privateKey *ecdsa.PrivateKey,
 	contractCode []byte,
 ) (string, error) {
+	// Compile the contract
 	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
-	bytecode, runtimecode, err := compileContract(contractPath)
+	bytecode, _, err := compileContract(contractPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
-	fmt.Println("bytecode: " + bytecode)
-	fmt.Println("runtimecode: " + runtimecode)
+	// Get account address from private key
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return "", fmt.Errorf("error casting public key to ECDSA")
+	}
 
-	return "", errors.New("not implemented")
-	// chainID, err := e.client.ChainID(ctx)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to get chain ID: %w", err)
-	// }
+	// Get the account address
+	address := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	// auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to create transactor: %w", err)
-	// }
+	// Get account sequence (nonce)
+	cmd := exec.Command("rollappd", "query", "auth", "account", address.Hex(), "-o", "json")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get account info: %w", err)
+	}
 
-	// // Get the next nonce for the sender address
-	// nonce, err := e.client.PendingNonceAt(ctx, auth.From)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to get nonce: %w", err)
-	// }
+	var accountInfo struct {
+		Account struct {
+			Sequence string `json:"sequence"`
+		} `json:"account"`
+	}
+	if err := json.Unmarshal(output, &accountInfo); err != nil {
+		return "", fmt.Errorf("failed to parse account info: %w", err)
+	}
 
-	// // Get gas price
-	// gasPrice, err := e.client.SuggestGasPrice(ctx)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to get gas price: %w", err)
-	// }
+	nonce, err := strconv.ParseUint(accountInfo.Account.Sequence, 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse sequence number: %w", err)
+	}
 
-	// // Set up transaction options
-	// auth.Nonce = big.NewInt(int64(nonce))
-	// auth.Value = big.NewInt(0) // No ETH value to send
-	// auth.GasPrice = gasPrice
-	// auth.GasLimit = uint64(3000000) // You might want to estimate this
+	// Deploy contract using rollappd tx evm raw
+	deployCmd := exec.Command("rollappd", "tx", "evm", "raw",
+		bytecode,
+		"--from", consts.KeysIds.Oracle,
+		"--nonce", strconv.FormatUint(nonce, 10),
+		"--gas-limit", "2000000",
+		"--gas-price", "20000000000",
+		"--chain-id", e.rollerData.RollappID,
+		"--broadcast", "true",
+		"-y",
+		"--output", "json",
+		"--home", e.config.ConfigDirPath,
+	)
 
-	// // Create and sign the transaction
-	// tx := &bind.TransactOpts{
-	// 	From:     auth.From,
-	// 	Nonce:    auth.Nonce,
-	// 	Signer:   auth.Signer,
-	// 	Value:    auth.Value,
-	// 	GasPrice: auth.GasPrice,
-	// 	GasLimit: auth.GasLimit,
-	// 	Context:  ctx,
-	// }
+	deployOutput, err := bash.ExecCommandWithStdout(deployCmd)
+	if err != nil {
+		return "", fmt.Errorf("failed to deploy contract: %w", err)
+	}
 
-	// // Deploy the contract
-	// address, tx, _, err := bind.DeployContract(tx, bind.NewBoundContract(common.Address{}, nil, e.client, e.client, e.client), contractCode)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to deploy contract: %w", err)
-	// }
+	var txResult struct {
+		TxHash string `json:"txhash"`
+	}
+	if err := json.Unmarshal(deployOutput.Bytes(), &txResult); err != nil {
+		return "", fmt.Errorf("failed to parse deployment result: %w", err)
+	}
 
-	// // Wait for the transaction to be mined
-	// receipt, err := bind.WaitMined(ctx, e.client, tx)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to wait for contract deployment: %w", err)
-	// }
+	// Wait a bit for the transaction to be mined
+	time.Sleep(5 * time.Second)
 
-	// if receipt.Status == 0 {
-	// 	return "", fmt.Errorf("contract deployment failed")
-	// }
+	// Query the transaction to get the contract address
+	queryCmd := exec.Command("rollappd", "query", "tx", txResult.TxHash, "-o", "json")
+	queryOutput, err := bash.ExecCommandWithStdout(queryCmd)
+	if err != nil {
+		return "", fmt.Errorf("failed to query transaction: %w", err)
+	}
 
-	// return address.Hex(), nil
+	var txReceipt struct {
+		Logs []struct {
+			Events []struct {
+				Attributes []struct {
+					Key   string `json:"key"`
+					Value string `json:"value"`
+				} `json:"attributes"`
+			} `json:"events"`
+		} `json:"logs"`
+	}
+	if err := json.Unmarshal(queryOutput.Bytes(), &txReceipt); err != nil {
+		return "", fmt.Errorf("failed to parse transaction receipt: %w", err)
+	}
+
+	// Find contract address in the logs
+	var contractAddress string
+	for _, log := range txReceipt.Logs {
+		for _, event := range log.Events {
+			for _, attr := range event.Attributes {
+				if attr.Key == "contract_address" {
+					contractAddress = attr.Value
+					break
+				}
+			}
+		}
+	}
+
+	if contractAddress == "" {
+		return "", fmt.Errorf("contract address not found in transaction receipt")
+	}
+
+	return contractAddress, nil
 }
 
 func compileContract(contractPath string) (string, string, error) {
@@ -194,52 +237,3 @@ func compileContract(contractPath string) (string, string, error) {
 
 	return string(bytecode), string(runtimeBytecode), nil
 }
-
-// func deployContract() {
-// 	// Connect to RollApp EVM RPC endpoint
-// 	client, err := ethclient.Dial("http://YOUR_ROLLAPP_IP:8545")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	// Load private key
-// 	privateKey, err := crypto.HexToECDSA("your_private_key_here")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	publicKey := privateKey.Public()
-// 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-// 	if !ok {
-// 		panic("invalid key")
-// 	}
-
-// 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-// 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	// Create auth transaction
-// 	chainID, err := client.ChainID(context.Background())
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	auth.Nonce = big.NewInt(int64(nonce))
-// 	auth.GasLimit = uint64(3000000)
-// 	auth.GasPrice = big.NewInt(1000000000)
-
-// 	// Deploy contract
-// 	address, tx, instance, err := DeployStorage(auth, client)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	fmt.Printf("Contract deployed to: %s\n", address.Hex())
-// 	fmt.Printf("Transaction hash: %s\n", tx.Hash().Hex())
-// }
