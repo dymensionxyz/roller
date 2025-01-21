@@ -53,7 +53,7 @@ func InstallSolidityDependencies() error {
 	}
 
 	// Make binary executable
-	cmd = exec.Command("chmod", "+x", solcPath)
+	cmd = exec.Command("sudo", "chmod", "+x", solcPath)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return fmt.Errorf("failed to make solc executable: %w", err)
 	}
