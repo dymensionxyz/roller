@@ -402,12 +402,12 @@ func DownloadBinary(url, destination string) error {
 	}
 	defer resp.Body.Close()
 
-	// Create destination file
-	out, err := os.Create(destination)
+	// Create a temporary file
+	f, err := os.CreateTemp("", "binary-")
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer os.Remove(f.Name())
 
 	// Create a progress bar
 	bar := progressbar.DefaultBytes(
@@ -415,8 +415,14 @@ func DownloadBinary(url, destination string) error {
 		"Downloading",
 	)
 
-	// Copy the response body to the destination file while updating the progress bar
-	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
+	// Copy the response body to the temporary file while updating the progress bar
+	_, err = io.Copy(io.MultiWriter(f, bar), resp.Body)
+	if err != nil {
+		return err
+	}
+
+	// Move the file into place and make it executable
+	err = archives.MoveBinaryIntoPlaceAndMakeExecutable(f.Name(), destination)
 	if err != nil {
 		return err
 	}
