@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/pterm/pterm"
 
@@ -180,21 +179,18 @@ func compileContract(contractPath string) (string, string, error) {
 		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
 	}
 
-	// Get contract name from file
-	contractName := strings.TrimSuffix(filepath.Base(contractPath), ".sol")
+	contractName := "PriceOracle"
 
-	// Read the compiled bytecode
 	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", contractName))
 	bytecode, err := os.ReadFile(binPath)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read bytecode: %w", err)
 	}
 
-	// Read the runtime bytecode (we'll use the same bytecode for runtime since solc doesn't generate it separately)
 	runtimeBytecode := bytecode
 
-	// Clean up build directory
-	os.RemoveAll(buildDir)
+	// nolint: errcheck
+	defer os.RemoveAll(buildDir)
 
 	return string(bytecode), string(runtimeBytecode), nil
 }
