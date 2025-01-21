@@ -99,12 +99,38 @@ func (e *EVMDeployer) DeployContract(
 		bytecode = "0x" + bytecode
 	}
 
-	// Deploy contract using rollappd tx evm raw
-	deployCmd := exec.Command(
+	// First, get account nonce
+	accountCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"query",
+		"auth",
+		"account",
+		consts.KeysIds.Oracle,
+		"-o", "json",
+		"--home", e.config.ConfigDirPath,
+	)
+
+	accountOutput, err := bash.ExecCommandWithStdout(accountCmd)
+	if err != nil {
+		return "", fmt.Errorf("failed to get account info: %w", err)
+	}
+
+	var accountInfo struct {
+		Account struct {
+			AccountNumber string `json:"account_number"`
+			Sequence      string `json:"sequence"`
+		} `json:"account"`
+	}
+	if err := json.Unmarshal(accountOutput.Bytes(), &accountInfo); err != nil {
+		return "", fmt.Errorf("failed to parse account info: %w", err)
+	}
+
+	// Create the transaction
+	txCmd := exec.Command(
 		consts.Executables.RollappEVM,
 		"tx",
 		"evm",
-		"raw",
+		"deploy",
 		bytecode,
 		"--from", consts.KeysIds.Oracle,
 		"--chain-id", e.rollerData.RollappID,
@@ -113,9 +139,9 @@ func (e *EVMDeployer) DeployContract(
 		"--home", e.config.ConfigDirPath,
 	)
 
-	pterm.Debug.Printf("Executing command: %s\n", deployCmd.String())
+	pterm.Debug.Printf("Executing command: %s\n", txCmd.String())
 
-	deployOutput, err := bash.ExecCommandWithStdout(deployCmd)
+	deployOutput, err := bash.ExecCommandWithStdout(txCmd)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
 	}
