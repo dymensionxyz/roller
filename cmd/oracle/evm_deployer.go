@@ -102,7 +102,6 @@ func (e *EVMDeployer) DeployContract(
 		bytecode,
 		"--from", consts.KeysIds.Oracle,
 		"--chain-id", e.rollerData.RollappID,
-		"--broadcast", "true",
 		"-y",
 		"--output", "json",
 		"--home", e.config.ConfigDirPath,
