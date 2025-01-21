@@ -387,3 +387,39 @@ func DownloadRelease(
 
 	return nil
 }
+
+func DownloadBinary(url, destination string) error {
+	// Create a new HTTP request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create destination file
+	out, err := os.Create(destination)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Create a progress bar
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"Downloading",
+	)
+
+	// Copy the response body to the destination file while updating the progress bar
+	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -1,8 +1,11 @@
 package dependencies
 
 import (
+	"fmt"
 	"os/exec"
 	"runtime"
+
+	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -39,9 +42,35 @@ func InstallSolidityDependencies() error {
 		},
 	}
 
-	if err := InstallBinaryFromRelease(dep); err != nil {
+	if err := installSolcFromRelease(dep); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// since solc doesn't follow the release artifact naming scheme, these
+// are separate implementations for their binaries
+func installSolcFromRelease(dep types.Dependency) error {
+	spinner, _ := pterm.DefaultSpinner.Start(
+		fmt.Sprintf("[%s] installing", dep.DependencyName),
+	)
+
+	url := fmt.Sprintf(
+		"%s/releases/download/%s/%s",
+		dep.RepositoryUrl,
+		dep.Release,
+		dep.Binaries[0].Binary,
+	)
+
+	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
+	err := DownloadBinary(url, consts.Executables.Solc)
+	if err != nil {
+		spinner.Fail("failed to download release")
+		return err
+	}
+	spinner.UpdateText(fmt.Sprintf("[%s] downloaded successfully", dep.DependencyName))
+
+	spinner.Success(fmt.Sprintf("[%s] installed\n", dep.DependencyName))
 	return nil
 }
