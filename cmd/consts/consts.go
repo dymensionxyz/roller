@@ -34,6 +34,7 @@ var Executables = struct {
 	Eibc        string
 	CelestiaApp string
 	Oracle      string
+	Solc        string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -45,6 +46,7 @@ var Executables = struct {
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
 	Oracle:      fmt.Sprintf("%s/oracle", InternalBinsDir),
+	Solc:        fmt.Sprintf("%s/solc", InternalBinsDir),
 }
 
 var KeysIds = struct {

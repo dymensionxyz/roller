@@ -1,14 +1,11 @@
 package dependencies
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
 const (
@@ -25,37 +22,25 @@ func getSolcBinaryName() string {
 
 // InstallSolidityDependencies installs the solc binary for Solidity contract compilation
 func InstallSolidityDependencies() error {
+	b := getSolcBinaryName()
+
 	// Create bin directory if it doesn't exist
-	if err := os.MkdirAll(consts.InternalBinsDir, 0o755); err != nil {
-		return fmt.Errorf("failed to create bin directory: %w", err)
+	dep := types.Dependency{
+		DependencyName: "solc",
+		RepositoryUrl:  "https://github.com/ethereum/solidity",
+		RepositoryName: "solidity",
+		Release:        solcVersion,
+		Binaries: []types.BinaryPathPair{
+			{
+				Binary:            b,
+				BinaryDestination: consts.Executables.Solc,
+				BuildCommand:      exec.Command("make", "build"),
+			},
+		},
 	}
 
-	solcPath := filepath.Join(consts.InternalBinsDir, "solc")
-
-	// Check if solc is already installed
-	if _, err := os.Stat(solcPath); err == nil {
-		// Already installed
-		return nil
-	}
-
-	// Download solc based on OS
-	binaryName := getSolcBinaryName()
-	downloadURL := fmt.Sprintf(
-		"https://github.com/ethereum/solidity/releases/download/v%s/%s",
-		solcVersion,
-		binaryName,
-	)
-
-	// Download the binary
-	cmd := exec.Command("sudo", "curl", "-L", downloadURL, "-o", solcPath)
-	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
-		return fmt.Errorf("failed to download solc: %w", err)
-	}
-
-	// Make binary executable
-	cmd = exec.Command("sudo", "chmod", "+x", solcPath)
-	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
-		return fmt.Errorf("failed to make solc executable: %w", err)
+	if err := InstallBinaryFromRelease(dep); err != nil {
+		return err
 	}
 
 	return nil
