@@ -77,6 +77,8 @@ func PopulateConfig(
 		"DA.current_state_node": daData.CurrentStateNode,
 		"DA.state_nodes":        daData.StateNodes,
 		"DA.gas_price":          daData.GasPrice,
+
+		"HealthAgent.enabled": true,
 	}
 
 	for key, value := range rollerTomlData {
