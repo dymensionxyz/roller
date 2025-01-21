@@ -99,32 +99,6 @@ func (e *EVMDeployer) DeployContract(
 		bytecode = "0x" + bytecode
 	}
 
-	// First, get account nonce
-	accountCmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"query",
-		"auth",
-		"account",
-		consts.KeysIds.Oracle,
-		"-o", "json",
-		"--home", e.config.ConfigDirPath,
-	)
-
-	accountOutput, err := bash.ExecCommandWithStdout(accountCmd)
-	if err != nil {
-		return "", fmt.Errorf("failed to get account info: %w", err)
-	}
-
-	var accountInfo struct {
-		Account struct {
-			AccountNumber string `json:"account_number"`
-			Sequence      string `json:"sequence"`
-		} `json:"account"`
-	}
-	if err := json.Unmarshal(accountOutput.Bytes(), &accountInfo); err != nil {
-		return "", fmt.Errorf("failed to parse account info: %w", err)
-	}
-
 	// Create the transaction
 	txCmd := exec.Command(
 		consts.Executables.RollappEVM,
