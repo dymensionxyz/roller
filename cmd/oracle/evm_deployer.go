@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -93,6 +94,11 @@ func (e *EVMDeployer) DeployContract(
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
+	// Add 0x prefix to bytecode if not present
+	if !strings.HasPrefix(bytecode, "0x") {
+		bytecode = "0x" + bytecode
+	}
+
 	// Deploy contract using rollappd tx evm raw
 	deployCmd := exec.Command(
 		consts.Executables.RollappEVM,
@@ -106,6 +112,8 @@ func (e *EVMDeployer) DeployContract(
 		"--output", "json",
 		"--home", e.config.ConfigDirPath,
 	)
+
+	pterm.Debug.Printf("Executing command: %s\n", deployCmd.String())
 
 	deployOutput, err := bash.ExecCommandWithStdout(deployCmd)
 	if err != nil {
@@ -123,7 +131,15 @@ func (e *EVMDeployer) DeployContract(
 	time.Sleep(5 * time.Second)
 
 	// Query the transaction to get the contract address
-	queryCmd := exec.Command("rollappd", "query", "tx", txResult.TxHash, "-o", "json")
+	queryCmd := exec.Command(
+		consts.Executables.RollappEVM,
+		"query",
+		"tx",
+		txResult.TxHash,
+		"-o", "json",
+		"--home", e.config.ConfigDirPath,
+	)
+
 	queryOutput, err := bash.ExecCommandWithStdout(queryCmd)
 	if err != nil {
 		return "", fmt.Errorf("failed to query transaction: %w", err)
