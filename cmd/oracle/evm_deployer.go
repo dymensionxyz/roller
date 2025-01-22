@@ -1,11 +1,14 @@
 package oracle
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,6 +16,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -94,89 +102,132 @@ func (e *EVMDeployer) DeployContract(
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
-	// Add 0x prefix to bytecode if not present
-	if !strings.HasPrefix(bytecode, "0x") {
-		bytecode = "0x" + bytecode
-	}
-
-	// Create the transaction
-	txCmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"tx",
-		"evm",
-		"deploy",
-		bytecode,
-		"--from", consts.KeysIds.Oracle,
-		"--chain-id", e.rollerData.RollappID,
-		"-y",
-		"--output", "json",
-		"--home", e.config.ConfigDirPath,
-	)
-
-	pterm.Debug.Printf("Executing command: %s\n", txCmd.String())
-
-	deployOutput, err := bash.ExecCommandWithStdout(txCmd)
+	// Deploy the contract using deployEvmContract
+	contractAddress, err := deployEvmContract(bytecode, privateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
 	}
 
-	var txResult struct {
-		TxHash string `json:"txhash"`
+	return contractAddress.Hex(), nil
+}
+
+// contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
+
+func deployEvmContract(bytecode string, privateKey *ecdsa.PrivateKey) (*common.Address, error) {
+	ethClient8545, _ := ethclient.Dial("http://localhost:8545")
+	if ethClient8545 == nil {
+		return nil, errors.New("failed to connect to local evm rpc endpoint")
 	}
-	if err := json.Unmarshal(deployOutput.Bytes(), &txResult); err != nil {
-		return "", fmt.Errorf("failed to parse deployment result: %w", err)
-	}
 
-	// Wait a bit for the transaction to be mined
-	time.Sleep(5 * time.Second)
+	// Convert the private key to hex string
+	privateKeyBytes := crypto.FromECDSA(privateKey)
+	privateKeyHex := hexutil.Encode(privateKeyBytes)
 
-	// Query the transaction to get the contract address
-	queryCmd := exec.Command(
-		consts.Executables.RollappEVM,
-		"query",
-		"tx",
-		txResult.TxHash,
-		"-o", "json",
-		"--home", e.config.ConfigDirPath,
-	)
-
-	queryOutput, err := bash.ExecCommandWithStdout(queryCmd)
+	_, ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(privateKeyHex)
 	if err != nil {
-		return "", fmt.Errorf("failed to query transaction: %w", err)
+		return nil, fmt.Errorf("failed to get secret evm account: %w", err)
 	}
 
-	var txReceipt struct {
-		Logs []struct {
-			Events []struct {
-				Attributes []struct {
-					Key   string `json:"key"`
-					Value string `json:"value"`
-				} `json:"attributes"`
-			} `json:"events"`
-		} `json:"logs"`
-	}
-	if err := json.Unmarshal(queryOutput.Bytes(), &txReceipt); err != nil {
-		return "", fmt.Errorf("failed to parse transaction receipt: %w", err)
+	nonce, err := ethClient8545.NonceAt(context.Background(), *from, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce: %w", err)
 	}
 
-	// Find contract address in the logs
-	var contractAddress string
-	for _, log := range txReceipt.Logs {
-		for _, event := range log.Events {
-			for _, attr := range event.Attributes {
-				if attr.Key == "contract_address" {
-					contractAddress = attr.Value
-					break
-				}
-			}
+	chainId, err := ethClient8545.ChainID(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chain ID: %w", err)
+	}
+
+	bytecode = strings.TrimSuffix(bytecode, "0x")
+
+	deploymentBytes, err := hex.DecodeString(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
+	}
+
+	txData := ethtypes.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: big.NewInt(20_000_000_000),
+		Gas:      4_000_000,
+		To:       nil,
+		Data:     deploymentBytes,
+		Value:    common.Big0,
+	}
+	tx := ethtypes.NewTx(&txData)
+
+	newContractAddress := crypto.CreateAddress(*from, nonce)
+
+	fmt.Println("Deploying new contract using account", from)
+
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign tx: %w", err)
+	}
+
+	var buf bytes.Buffer
+	err = signedTx.EncodeRLP(&buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode tx: %w", err)
+	}
+
+	fmt.Println("Tx hash", signedTx.Hash())
+
+	err = ethClient8545.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send tx: %w", err)
+	}
+
+	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
+		fmt.Println("New contract deployed at:")
+	} else {
+		fmt.Println("Timed-out waiting for tx to be mined, contract may have been deployed.")
+		fmt.Println("Expected contract address:")
+	}
+	fmt.Println(newContractAddress)
+
+	return &newContractAddress, nil
+}
+
+func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
+	for try := 1; try <= 6; try++ {
+		tx, _, err := ethClient8545.TransactionByHash(context.Background(), txHash)
+		if err == nil && tx != nil {
+			return tx
 		}
+
+		time.Sleep(time.Second)
 	}
 
-	if contractAddress == "" {
-		return "", fmt.Errorf("contract address not found in transaction receipt")
+	return nil
+}
+
+func mustSecretEvmAccount(
+	privateKey string,
+) (privKey string, ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
+	var ok bool
+
+	privKey = strings.TrimPrefix(privateKey, "0x")
+
+	pKeyBytes, err := hexutil.Decode("0x" + privKey)
+	if err != nil {
+		return "", nil, nil, nil, err
 	}
 
-	return contractAddress, nil
+	ecdsaPrivateKey, err = crypto.ToECDSA(pKeyBytes)
+	if err != nil {
+		return "", nil, nil, nil, err
+	}
+
+	publicKey := ecdsaPrivateKey.Public()
+	ecdsaPubKey, ok = publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return "", nil, nil, nil, fmt.Errorf("failed to convert secret public key to ECDSA")
+	}
+
+	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
+	account = &fromAddress
+
+	return
 }
 
 func compileContract(contractPath string) (string, string, error) {
