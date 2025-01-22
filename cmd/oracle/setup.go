@@ -151,20 +151,43 @@ func DeployCmd() *cobra.Command {
 				feeDenom = raData.Rollapp.GenesisInfo.NativeDenom.Base
 			}
 
-			updates := map[string]any{
-				"chainClient.oracleContractAddress": contractAddr,
-				"chainClient.fee": fmt.Sprintf(
-					"%s%s",
-					"40000000000000000000",
-					feeDenom,
-				),
-				"chainClient.gasLimit":      gl.Uint64(),
-				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
-				"chainClient.chainId":       raData.Rollapp.RollappId,
-				"chainClient.privateKey":    "NOT IMPLEMENTED, WAS REFACTORED DURING EVM INTEGRATION",
-				"chainClient.ssl":           false,
-				"chainClient.chainGrpcHost": "localhost:9090",
-				"grpc_port":                 9093,
+			var updates map[string]any
+
+			switch rollerData.RollappVMType {
+			case consts.EVM_ROLLAPP:
+				networkID, err := extractNetworkID(rollerData.RollappID)
+				if err != nil {
+					pterm.Error.Printf("failed to extract network ID: %v\n", err)
+					return
+				}
+
+				updates = map[string]any{
+					"chainClient.rpcEndpoint":     "http://127.0.0.1:8545/",
+					"chainClient.chainId":         networkID,
+					"chainClient.privateKey":      deployer.PrivateKey(),
+					"chainClient.contractAddress": contractAddr,
+					// gasLimit: 250000
+					// maxGasPrice: "100000000000"
+				}
+			case consts.WASM_ROLLAPP:
+				updates = map[string]any{
+					"chainClient.oracleContractAddress": contractAddr,
+					"chainClient.fee": fmt.Sprintf(
+						"%s%s",
+						"40000000000000000000",
+						feeDenom,
+					),
+					"chainClient.gasLimit":      gl.Uint64(),
+					"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
+					"chainClient.chainId":       raData.Rollapp.RollappId,
+					"chainClient.privateKey":    deployer.PrivateKey(),
+					"chainClient.ssl":           false,
+					"chainClient.chainGrpcHost": "localhost:9090",
+					"grpc_port":                 9093,
+				}
+			default:
+				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
+				return
 			}
 
 			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")

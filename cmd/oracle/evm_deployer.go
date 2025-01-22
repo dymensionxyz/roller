@@ -63,8 +63,8 @@ func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 	return d, nil
 }
 
-func (e *EVMDeployer) PrivateKey() *ecdsa.PrivateKey {
-	return e.KeyData.PrivateKey
+func (e *EVMDeployer) PrivateKey() string {
+	return hex.EncodeToString(e.KeyData.PrivateKey.D.Bytes())
 }
 
 func (e *EVMDeployer) SetKey() error {

@@ -15,4 +15,5 @@ type ContractDeployer interface {
 	) (string, error)
 
 	Config() *OracleConfig
+	PrivateKey() string
 }
