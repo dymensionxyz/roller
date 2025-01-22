@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -201,16 +202,9 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 func mustSecretEvmAccount(
 	privateKey string,
 ) (privKey string, ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
-	privKey = strings.TrimPrefix(privateKey, "0x")
+	fmt.Println("private key in transformation func:", privateKey)
 
-	if len(privKey) != 64 {
-		return "", nil, nil, nil, fmt.Errorf(
-			"invalid private key length: need 64 hex characters (256 bits), got %d",
-			len(privKey),
-		)
-	}
-
-	pKeyBytes, err := hex.DecodeString(privKey)
+	pKeyBytes, err := hex.DecodeString(privateKey)
 	if err != nil {
 		return "", nil, nil, nil, fmt.Errorf("failed to decode private key: %w", err)
 	}
@@ -228,6 +222,9 @@ func mustSecretEvmAccount(
 
 	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
 	account = &fromAddress
+
+	j, _ := json.Marshal(fromAddress)
+	fmt.Println("from address:", string(j))
 
 	return privKey, ecdsaPrivateKey, ecdsaPubKey, account, nil
 }

@@ -61,7 +61,7 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic, rollerData.RollappVMType)
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
 	if err != nil {
 		return err
 	}
@@ -72,13 +72,15 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string, vmType consts.VMType) (string, error) {
+func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
 	if !bip39.IsMnemonicValid(mnemonic) {
 		return "", fmt.Errorf("invalid mnemonic")
 	}
 
-	// Generate seed from mnemonic
-	seed := bip39.NewSeed(mnemonic, "")
+	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	if err != nil {
+		return "", err
+	}
 
 	hdPath := "m/44'/60'/0'/0/0"
 	master, ch := hd.ComputeMastersFromSeed(seed)
