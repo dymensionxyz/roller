@@ -21,7 +21,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	goethcommon "github.com/ethereum/go-ethereum/common"
@@ -249,27 +248,9 @@ func deployEvmContract(
 	if !ok {
 		return nil, fmt.Errorf("failed to parse gas price")
 	}
-	// Create message call for gas estimation
-	msg := ethereum.CallMsg{
-		From:     *from,
-		To:       nil,
-		Gas:      0,
-		GasPrice: gasPrice,
-		Value:    big.NewInt(0),
-		Data:     deploymentBytes,
-	}
-
-	gasLimit, err := ethClient8545.EstimateGas(context.Background(), msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to estimate gas: %w", err)
-	}
-
-	gasLimit = uint64(float64(gasLimit) * 1.3)
-
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: gasPrice,
-		Gas:      gasLimit,
 		To:       nil,
 		Data:     deploymentBytes,
 		Value:    goethcommon.Big0,
