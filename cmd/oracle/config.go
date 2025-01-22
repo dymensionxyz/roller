@@ -15,6 +15,7 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -72,12 +73,21 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string, vmTypre consts.VMType) (string, error) {
+func GetSecp256k1PrivateKey(mnemonic string, vmType consts.VMType) (string, error) {
 	if !bip39.IsMnemonicValid(mnemonic) {
 		return "", fmt.Errorf("invalid mnemonic")
 	}
 
+	// Generate seed from mnemonic
 	seed := bip39.NewSeed(mnemonic, "")
+
+	if vmType == consts.EVM_ROLLAPP {
+		// For EVM, generate private key from seed
+		privateKey := crypto.Keccak256(seed)[:32] // Take first 32 bytes as private key
+		return hex.EncodeToString(privateKey), nil
+	}
+
+	// For non-EVM chains, use Cosmos SDK key derivation
 
 	hdPath := "m/44'/60'/0'/0/0"
 
@@ -87,10 +97,7 @@ func GetSecp256k1PrivateKey(mnemonic string, vmTypre consts.VMType) (string, err
 		return "", err
 	}
 
-	// Convert private key bytes to hex string
 	hexKey := hex.EncodeToString(privKey)
-	fmt.Println("private key: ", hexKey)
-
 	return hexKey, nil
 }
 
@@ -358,25 +365,14 @@ func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("failed to store contract: %v, output: %s", err, output)
 	}
 
-	tob := bytes.NewBufferString(output.String())
-	err = tx_utils.CheckTxYamlStdOut(*tob)
-	if err != nil {
-		return err
-	}
+	time.Sleep(time.Second * 2)
 
-	// Extract transaction hash
 	txHash, err := bash.ExtractTxHash(output.String())
 	if err != nil {
 		return fmt.Errorf("failed to extract transaction hash: %v", err)
 	}
 
 	pterm.Info.Printfln("transaction hash: %s", txHash)
-
-	// // Monitor transaction
-	// wsURL := "http://localhost:26657"
-	// if err := tx.MonitorTransaction(wsURL, txHash); err != nil {
-	// 	return fmt.Errorf("failed to monitor transaction: %v", err)
-	// }
 
 	return nil
 }
