@@ -244,14 +244,10 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
 	}
 
-	gasPrice, ok := new(big.Int).SetString("40000000000000000", 10)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse gas price")
-	}
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
-		GasPrice: gasPrice,
-		Gas:      4_000_000,
+		GasPrice: big.NewInt(20_000_000_000),
+		Gas:      5_000_000,
 		To:       nil,
 		Data:     deploymentBytes,
 		Value:    goethcommon.Big0,
