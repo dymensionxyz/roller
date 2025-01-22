@@ -243,6 +243,11 @@ func deployEvmContract(
 	}
 
 	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
+	rawTxFilePath := filepath.Join("rawtx.hex")
+	if err := os.WriteFile(rawTxFilePath, []byte(rawTxRLPHex), 0o644); err != nil {
+		return nil, fmt.Errorf("failed to write raw transaction to file: %w", err)
+	}
+	fmt.Printf("Raw transaction written to: %s\n", rawTxFilePath)
 	fmt.Printf("RawTx: 0x%s\n", rawTxRLPHex)
 
 	fmt.Println("Tx hash", signedTx.Hash())
