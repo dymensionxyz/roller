@@ -175,7 +175,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 				Denom:  balanceDenom,
 				RPC:    "http://localhost:26657",
 				Binary: consts.Executables.RollappEVM,
-			}, e.config.KeyAddress,
+			}, e.KeyData.Address,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to query balance: %v", err)
