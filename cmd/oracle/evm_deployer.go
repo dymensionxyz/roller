@@ -245,12 +245,16 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
 	}
 
+	gasPrice, ok := new(big.Int).SetString("40000000000000000", 10)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse gas price")
+	}
 	// Create message call for gas estimation
 	msg := ethereum.CallMsg{
 		From:     *from,
 		To:       nil,
 		Gas:      0,
-		GasPrice: big.NewInt(1),
+		GasPrice: gasPrice,
 		Value:    big.NewInt(0),
 		Data:     deploymentBytes,
 	}
@@ -261,11 +265,6 @@ func deployEvmContract(
 	}
 
 	gasLimit = uint64(float64(gasLimit) * 1.3)
-
-	gasPrice, ok := new(big.Int).SetString("40000000000000000", 10)
-	if !ok {
-		return nil, fmt.Errorf("failed to parse gas price")
-	}
 
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
