@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -15,6 +16,7 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -27,6 +29,7 @@ import (
 
 type OracleConfig struct {
 	PrivateKey      string
+	EcdsaPrivateKey *ecdsa.PrivateKey
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -61,7 +64,7 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	hexKey, ecdsaPrivateKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
 	if err != nil {
 		return err
 	}
@@ -69,27 +72,33 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 	o.KeyAddress = addr[0].Address
 	o.KeyName = addr[0].Name
 	o.PrivateKey = hexKey
+	o.EcdsaPrivateKey = ecdsaPrivateKey
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
+func GetSecp256k1PrivateKey(mnemonic string) (string, *ecdsa.PrivateKey, error) {
 	if !bip39.IsMnemonicValid(mnemonic) {
-		return "", fmt.Errorf("invalid mnemonic")
+		return "", nil, fmt.Errorf("invalid mnemonic")
 	}
 
 	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	hdPath := "m/44'/60'/0'/0/0"
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return hex.EncodeToString(privKey), nil
+	edcsaPrivateKey, err := crypto.ToECDSA(privKey)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return hex.EncodeToString(privKey), edcsaPrivateKey, nil
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {

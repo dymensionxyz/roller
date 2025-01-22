@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -103,7 +102,11 @@ func (e *EVMDeployer) DeployContract(
 	// Convert string private key to ECDSA private key
 	pterm.Info.Printfln("deploying contract with private key: %s", e.config.PrivateKey)
 	// Deploy the contract using deployEvmContract
-	contractAddress, err := deployEvmContract(bytecode, e.config.PrivateKey)
+	contractAddress, err := deployEvmContract(
+		bytecode,
+		e.config.PrivateKey,
+		e.config.EcdsaPrivateKey,
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
 	}
@@ -113,7 +116,11 @@ func (e *EVMDeployer) DeployContract(
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
 
-func deployEvmContract(bytecode string, privateKey string) (*common.Address, error) {
+func deployEvmContract(
+	bytecode string,
+	privateKey string,
+	ecdsaPrivateKey *ecdsa.PrivateKey,
+) (*common.Address, error) {
 	ethClient8545, _ := ethclient.Dial("http://localhost:8545")
 	if ethClient8545 == nil {
 		return nil, errors.New("failed to connect to local evm rpc endpoint")
@@ -121,12 +128,18 @@ func deployEvmContract(bytecode string, privateKey string) (*common.Address, err
 
 	// Convert the private key to hex string
 	pterm.Warning.Println("private key received:" + privateKey)
-	_, ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(privateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get secret evm account: %w", err)
+	pterm.Warning.Println("ecdsa private key received:" + ecdsaPrivateKey.D.String())
+
+	pterm.Warning.Println("public key received:" + ecdsaPrivateKey.PublicKey.X.String())
+	publicKey := ecdsaPrivateKey.Public()
+	ecdsaPubKey, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, errors.New("failed to convert secret public key to ECDSA")
 	}
 
-	nonce, err := ethClient8545.NonceAt(context.Background(), *from, nil)
+	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
+
+	nonce, err := ethClient8545.NonceAt(context.Background(), fromAddress, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nonce: %w", err)
 	}
@@ -153,9 +166,9 @@ func deployEvmContract(bytecode string, privateKey string) (*common.Address, err
 	}
 	tx := ethtypes.NewTx(&txData)
 
-	newContractAddress := crypto.CreateAddress(*from, nonce)
+	newContractAddress := crypto.CreateAddress(fromAddress, nonce)
 
-	fmt.Println("Deploying new contract using account", from)
+	fmt.Println("Deploying new contract using account", fromAddress)
 
 	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
 	if err != nil {
@@ -197,36 +210,6 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 	}
 
 	return nil
-}
-
-func mustSecretEvmAccount(
-	privateKey string,
-) (privKey string, ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
-	fmt.Println("private key in transformation func:", privateKey)
-
-	pKeyBytes, err := hex.DecodeString(privateKey)
-	if err != nil {
-		return "", nil, nil, nil, fmt.Errorf("failed to decode private key: %w", err)
-	}
-
-	ecdsaPrivateKey, err = crypto.ToECDSA(pKeyBytes)
-	if err != nil {
-		return "", nil, nil, nil, fmt.Errorf("failed to convert to ECDSA: %w", err)
-	}
-
-	publicKey := ecdsaPrivateKey.Public()
-	ecdsaPubKey, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return "", nil, nil, nil, fmt.Errorf("failed to convert secret public key to ECDSA")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
-	account = &fromAddress
-
-	j, _ := json.Marshal(fromAddress)
-	fmt.Println("from address:", string(j))
-
-	return privKey, ecdsaPrivateKey, ecdsaPubKey, account, nil
 }
 
 func compileContract(contractPath string) (string, string, error) {
