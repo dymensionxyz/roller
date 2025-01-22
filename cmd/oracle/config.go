@@ -52,27 +52,6 @@ func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
 	return o.ConfigDirPath
 }
 
-func (w *WasmDeployer) SetKey(rollerData roller.RollappConfig) error {
-	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
-	}
-
-	if len(addr) == 0 {
-		return fmt.Errorf("no oracle keys generated")
-	}
-
-	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
-	if err != nil {
-		return err
-	}
-
-	w.KeyData.Address = addr[0].Address
-	w.KeyData.Name = addr[0].Name
-	w.KeyData.PrivateKey = hexKey
-	return nil
-}
-
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
 	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {

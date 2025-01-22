@@ -50,19 +50,25 @@ type EVMDeployer struct {
 // NewEVMDeployer creates a new EVMDeployer instance
 func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 	config := NewOracleConfig(rollerData)
-
-	return &EVMDeployer{
+	d := &EVMDeployer{
 		config:     config,
 		rollerData: rollerData,
-	}, nil
+	}
+
+	err := d.SetKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }
 
 func (e *EVMDeployer) PrivateKey() *ecdsa.PrivateKey {
 	return e.KeyData.PrivateKey
 }
 
-func (e *EVMDeployer) SetKey(rollerData roller.RollappConfig) error {
-	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
+func (e *EVMDeployer) SetKey() error {
+	addr, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}

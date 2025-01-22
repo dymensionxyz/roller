@@ -34,11 +34,37 @@ func (w *WasmDeployer) PrivateKey() string {
 // NewWasmDeployer creates a new WasmDeployer instance
 func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
 	config := NewOracleConfig(rollerData)
-
-	return &WasmDeployer{
+	d := &WasmDeployer{
 		config:     config,
 		rollerData: rollerData,
-	}, nil
+	}
+
+	err := d.SetKey()
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (w *WasmDeployer) SetKey() error {
+	addr, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
+	}
+
+	if len(addr) == 0 {
+		return fmt.Errorf("no oracle keys generated")
+	}
+
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
+	}
+
+	w.KeyData.Address = addr[0].Address
+	w.KeyData.Name = addr[0].Name
+	w.KeyData.PrivateKey = hexKey
+	return nil
 }
 
 func (w *WasmDeployer) Config() *OracleConfig {
