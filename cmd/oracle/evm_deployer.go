@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -243,10 +242,6 @@ func deployEvmContract(
 	}
 	tx := ethtypes.NewTx(&txData)
 
-	j, _ := json.Marshal(txData)
-	fmt.Println("Tx data:")
-	fmt.Println(string(j))
-
 	newContractAddress := crypto.CreateAddress(ethAddr, nonce)
 
 	fmt.Println("Deploying new contract using account", ethAddr)
@@ -264,9 +259,10 @@ func deployEvmContract(
 
 	fmt.Println("Tx hash", signedTx.Hash())
 
+	j, _ := signedTx.MarshalJSON()
+	fmt.Println("Tx json", string(j))
+
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
-	fmt.Println(signedTx.ChainId())
-	fmt.Println(string(signedTx.Data()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send tx: %w", err)
 	}
