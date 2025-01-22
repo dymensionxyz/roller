@@ -20,7 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
+	goethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -160,10 +160,8 @@ func (e *EVMDeployer) DeployContract(
 		}
 	}
 
-	// Deploy the contract using deployEvmContract
 	contractAddress, err := deployEvmContract(
 		bytecode,
-		e.config.PrivateKey,
 		e.config.EcdsaPrivateKey,
 	)
 	if err != nil {
@@ -177,19 +175,13 @@ func (e *EVMDeployer) DeployContract(
 
 func deployEvmContract(
 	bytecode string,
-	privateKey string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
-) (*common.Address, error) {
+) (*goethcommon.Address, error) {
 	ethClient8545, _ := ethclient.Dial("http://localhost:8545")
 	if ethClient8545 == nil {
 		return nil, errors.New("failed to connect to local evm rpc endpoint")
 	}
 
-	// Convert the private key to hex string
-	pterm.Warning.Println("private key received:" + privateKey)
-	pterm.Warning.Println("ecdsa private key received:" + ecdsaPrivateKey.D.String())
-
-	pterm.Warning.Println("public key received:" + ecdsaPrivateKey.PublicKey.X.String())
 	publicKey := ecdsaPrivateKey.Public()
 	ecdsaPubKey, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
@@ -206,7 +198,7 @@ func deployEvmContract(
 	fromAddress := sdk.AccAddress(pubKey.Address())
 
 	// Convert to Ethereum address format
-	ethAddr := common.BytesToAddress(fromAddress.Bytes())
+	ethAddr := goethcommon.BytesToAddress(fromAddress.Bytes())
 
 	nonce, err := ethClient8545.NonceAt(context.Background(), ethAddr, nil)
 	if err != nil {
@@ -238,7 +230,7 @@ func deployEvmContract(
 		Gas:      4_000_000,
 		To:       nil,
 		Data:     deploymentBytes,
-		Value:    common.Big0,
+		Value:    goethcommon.Big0,
 	}
 	tx := ethtypes.NewTx(&txData)
 
@@ -246,7 +238,7 @@ func deployEvmContract(
 
 	fmt.Println("Deploying new contract using account", ethAddr)
 
-	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign tx: %w", err)
 	}
@@ -258,9 +250,6 @@ func deployEvmContract(
 	}
 
 	fmt.Println("Tx hash", signedTx.Hash())
-
-	j, _ := signedTx.MarshalJSON()
-	fmt.Println("Tx json", string(j))
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -278,7 +267,7 @@ func deployEvmContract(
 	return &newContractAddress, nil
 }
 
-func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
+func waitForEthTx(ethClient8545 *ethclient.Client, txHash goethcommon.Hash) *ethtypes.Transaction {
 	for try := 1; try <= 6; try++ {
 		tx, _, err := ethClient8545.TransactionByHash(context.Background(), txHash)
 		if err == nil && tx != nil {
