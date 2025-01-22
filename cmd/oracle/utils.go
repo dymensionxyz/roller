@@ -10,7 +10,7 @@ func getOracleKeyConfig() ([]keys.KeyConfig, error) {
 		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
 		ChainBinary:    consts.Executables.RollappEVM,
-		Type:           consts.SDK_ROLLAPP,
+		Type:           consts.EVM_ROLLAPP,
 		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
