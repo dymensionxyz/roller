@@ -83,14 +83,19 @@ func GetSecp256k1PrivateKey(mnemonic string, vmType consts.VMType) (string, erro
 
 	if vmType == consts.EVM_ROLLAPP {
 		// For EVM, generate private key from seed
-		privateKey := crypto.Keccak256(seed)[:32] // Take first 32 bytes as private key
-		return hex.EncodeToString(privateKey), nil
+		hash := crypto.Keccak256(seed)
+		privateKey, err := crypto.ToECDSA(hash[:32])
+		if err != nil {
+			return "", fmt.Errorf("failed to convert to ECDSA: %w", err)
+		}
+
+		// Get the hex representation of the private key
+		privateKeyBytes := crypto.FromECDSA(privateKey)
+		return hex.EncodeToString(privateKeyBytes), nil
 	}
 
 	// For non-EVM chains, use Cosmos SDK key derivation
-
 	hdPath := "m/44'/60'/0'/0/0"
-
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
 	if err != nil {
