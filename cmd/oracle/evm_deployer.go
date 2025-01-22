@@ -266,7 +266,7 @@ func deployEvmContract(
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	fmt.Println(signedTx.ChainId())
-	fmt.Println(signedTx.Data())
+	fmt.Println(string(signedTx.Data()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send tx: %w", err)
 	}
