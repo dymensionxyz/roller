@@ -15,7 +15,6 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -81,20 +80,6 @@ func GetSecp256k1PrivateKey(mnemonic string, vmType consts.VMType) (string, erro
 	// Generate seed from mnemonic
 	seed := bip39.NewSeed(mnemonic, "")
 
-	if vmType == consts.EVM_ROLLAPP {
-		// For EVM, generate private key from seed
-		hash := crypto.Keccak256(seed)
-		privateKey, err := crypto.ToECDSA(hash[:32])
-		if err != nil {
-			return "", fmt.Errorf("failed to convert to ECDSA: %w", err)
-		}
-
-		// Get the hex representation of the private key
-		privateKeyBytes := crypto.FromECDSA(privateKey)
-		return hex.EncodeToString(privateKeyBytes), nil
-	}
-
-	// For non-EVM chains, use Cosmos SDK key derivation
 	hdPath := "m/44'/60'/0'/0/0"
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
@@ -102,8 +87,7 @@ func GetSecp256k1PrivateKey(mnemonic string, vmType consts.VMType) (string, erro
 		return "", err
 	}
 
-	hexKey := hex.EncodeToString(privKey)
-	return hexKey, nil
+	return hex.EncodeToString(privKey), nil
 }
 
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {

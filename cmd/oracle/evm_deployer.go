@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -101,13 +100,9 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	// Convert string private key to ECDSA private key
-	_, ecdsaPrivKey, _, _, err := mustSecretEvmAccount(e.config.PrivateKey)
-	if err != nil {
-		return "", fmt.Errorf("failed to convert private key: %w", err)
-	}
-
+	pterm.Info.Printfln("deploying contract with private key: %s", e.config.PrivateKey)
 	// Deploy the contract using deployEvmContract
-	contractAddress, err := deployEvmContract(bytecode, ecdsaPrivKey)
+	contractAddress, err := deployEvmContract(bytecode, e.config.PrivateKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
 	}
@@ -117,17 +112,15 @@ func (e *EVMDeployer) DeployContract(
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
 
-func deployEvmContract(bytecode string, privateKey *ecdsa.PrivateKey) (*common.Address, error) {
+func deployEvmContract(bytecode string, privateKey string) (*common.Address, error) {
 	ethClient8545, _ := ethclient.Dial("http://localhost:8545")
 	if ethClient8545 == nil {
 		return nil, errors.New("failed to connect to local evm rpc endpoint")
 	}
 
 	// Convert the private key to hex string
-	privateKeyBytes := crypto.FromECDSA(privateKey)
-	privateKeyHex := hexutil.Encode(privateKeyBytes)
-
-	_, ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(privateKeyHex)
+	pterm.Warning.Println("private key received:" + privateKey)
+	_, ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secret evm account: %w", err)
 	}
