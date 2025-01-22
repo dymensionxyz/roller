@@ -1,6 +1,8 @@
 package oracle
 
 import (
+	"encoding/json"
+
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/keys"
 )
@@ -35,6 +37,9 @@ func getOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
 			kc.KeyringBackend,
 		)
 	}
+
+	j, _ := json.Marshal(res)
+	println(string(j))
 
 	var keys []keys.KeyConfig
 
