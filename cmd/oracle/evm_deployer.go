@@ -289,8 +289,30 @@ func deployEvmContract(
 
 func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
 	for try := 1; try <= 6; try++ {
-		tx, _, err := ethClient8545.TransactionByHash(context.Background(), txHash)
-		if err == nil && tx != nil {
+		// Get transaction receipt instead of just the transaction
+		receipt, err := ethClient8545.TransactionReceipt(context.Background(), txHash)
+		if err == nil && receipt != nil {
+			// Check if transaction was successful
+			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				fmt.Printf("Transaction failed with status: %d\n", receipt.Status)
+				return nil
+			}
+
+			// For contract creation, verify code exists
+			if receipt.ContractAddress != (common.Address{}) {
+				code, err := ethClient8545.CodeAt(
+					context.Background(),
+					receipt.ContractAddress,
+					nil,
+				)
+				if err != nil || len(code) == 0 {
+					fmt.Println("No contract code found at deployed address")
+					return nil
+				}
+			}
+
+			// Get the transaction details
+			tx, _, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
 			return tx
 		}
 
