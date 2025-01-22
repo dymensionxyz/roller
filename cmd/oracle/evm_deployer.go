@@ -269,6 +269,9 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to send tx: %w", err)
 	}
 
+	fmt.Println(signedTx.ChainId())
+	fmt.Println(signedTx.Data())
+
 	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
 		fmt.Println("New contract deployed at:")
 	} else {
