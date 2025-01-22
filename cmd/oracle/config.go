@@ -2,9 +2,7 @@ package oracle
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,9 +12,6 @@ import (
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/go-bip39"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -28,8 +23,6 @@ import (
 )
 
 type OracleConfig struct {
-	PrivateKey      string
-	EcdsaPrivateKey *ecdsa.PrivateKey
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -38,7 +31,12 @@ type OracleConfig struct {
 	ContractAddress string
 }
 
-func NewOracle(rollerData roller.RollappConfig) *OracleConfig {
+type KeyData struct {
+	Name    string
+	Address string
+}
+
+func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
 	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
 	ovt := rollerData.RollappVMType
 	return &OracleConfig{
@@ -54,7 +52,7 @@ func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
 	return o.ConfigDirPath
 }
 
-func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
+func (w *WasmDeployer) SetKey(rollerData roller.RollappConfig) error {
 	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
@@ -64,45 +62,19 @@ func (o *OracleConfig) SetKey(rollerData roller.RollappConfig) error {
 		return fmt.Errorf("no oracle keys generated")
 	}
 
-	hexKey, ecdsaPrivateKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
 	if err != nil {
 		return err
 	}
 
-	o.KeyAddress = addr[0].Address
-	o.KeyName = addr[0].Name
-	o.PrivateKey = hexKey
-	o.EcdsaPrivateKey = ecdsaPrivateKey
+	w.KeyData.Address = addr[0].Address
+	w.KeyData.Name = addr[0].Name
+	w.KeyData.PrivateKey = hexKey
 	return nil
 }
 
-func GetSecp256k1PrivateKey(mnemonic string) (string, *ecdsa.PrivateKey, error) {
-	if !bip39.IsMnemonicValid(mnemonic) {
-		return "", nil, fmt.Errorf("invalid mnemonic")
-	}
-
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
-	if err != nil {
-		return "", nil, err
-	}
-
-	hdPath := "m/44'/60'/0'/0/0"
-	master, ch := hd.ComputeMastersFromSeed(seed)
-	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
-	if err != nil {
-		return "", nil, err
-	}
-
-	edcsaPrivateKey, err := crypto.ToECDSA(privKey)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return hex.EncodeToString(privKey), edcsaPrivateKey, nil
-}
-
 func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	oracleKeys, err := getOracleKeyConfig()
+	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +117,7 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	oracleKeys, err := getOracleKeyConfig()
+	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +198,7 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig()
+			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
@@ -334,7 +306,7 @@ func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig()
+			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}

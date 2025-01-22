@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 )
 
-func getOracleKeyConfig() ([]keys.KeyConfig, error) {
+func getOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
 	kc := keys.KeyConfig{
 		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
@@ -14,14 +14,27 @@ func getOracleKeyConfig() ([]keys.KeyConfig, error) {
 		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 
-	res, err := keys.NewKeyConfig(
-		kc.Dir,
-		kc.ID,
-		kc.ChainBinary,
-		kc.Type,
-		kc.KeyringBackend,
-		keys.WithCustomAlgo("secp256k1"),
-	)
+	var res *keys.KeyConfig
+	var err error
+
+	if a == consts.WASM_ROLLAPP {
+		res, err = keys.NewKeyConfig(
+			kc.Dir,
+			kc.ID,
+			kc.ChainBinary,
+			kc.Type,
+			kc.KeyringBackend,
+			keys.WithCustomAlgo("secp256k1"),
+		)
+	} else {
+		res, err = keys.NewKeyConfig(
+			kc.Dir,
+			kc.ID,
+			kc.ChainBinary,
+			kc.Type,
+			kc.KeyringBackend,
+		)
+	}
 
 	var keys []keys.KeyConfig
 

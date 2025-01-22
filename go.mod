@@ -10,11 +10,14 @@ require (
 
 require (
 	cloud.google.com/go/firestore v1.17.0
+	cosmossdk.io/api v0.7.0
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BurntSushi/toml v1.4.0
 	github.com/briandowns/spinner v1.23.0
+	github.com/btcsuite/btcd v0.23.4
+	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.37.5
 	github.com/cosmos/cosmos-sdk v0.47.13
@@ -59,7 +62,6 @@ require (
 	cloud.google.com/go/iam v1.2.0 // indirect
 	cloud.google.com/go/longrunning v0.6.0 // indirect
 	cloud.google.com/go/storage v1.43.0 // indirect
-	cosmossdk.io/api v0.7.0 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.10.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
@@ -79,6 +81,7 @@ require (
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

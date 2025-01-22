@@ -161,7 +161,7 @@ func DeployCmd() *cobra.Command {
 				"chainClient.gasLimit":      gl.Uint64(),
 				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
 				"chainClient.chainId":       raData.Rollapp.RollappId,
-				"chainClient.privateKey":    deployer.Config().PrivateKey,
+				"chainClient.privateKey":    "NOT IMPLEMENTED, WAS REFACTORED DURING EVM INTEGRATION",
 				"chainClient.ssl":           false,
 				"chainClient.chainGrpcHost": "localhost:9090",
 				"grpc_port":                 9093,

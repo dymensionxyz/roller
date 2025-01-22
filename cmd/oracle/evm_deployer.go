@@ -17,9 +17,12 @@ import (
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/chaincfg"
+	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/go-bip39"
+	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/common"
 	goethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -38,20 +41,45 @@ import (
 type EVMDeployer struct {
 	config     *OracleConfig
 	rollerData roller.RollappConfig
+	KeyData    struct {
+		KeyData
+		PrivateKey *ecdsa.PrivateKey
+	}
 }
 
 // NewEVMDeployer creates a new EVMDeployer instance
 func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
-	config := NewOracle(rollerData)
-
-	if err := config.SetKey(rollerData); err != nil {
-		return nil, fmt.Errorf("failed to set oracle key: %w", err)
-	}
+	config := NewOracleConfig(rollerData)
 
 	return &EVMDeployer{
 		config:     config,
 		rollerData: rollerData,
 	}, nil
+}
+
+func (e *EVMDeployer) PrivateKey() *ecdsa.PrivateKey {
+	return e.KeyData.PrivateKey
+}
+
+func (e *EVMDeployer) SetKey(rollerData roller.RollappConfig) error {
+	addr, err := generateRaOracleKeys(rollerData.Home, rollerData)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
+	}
+
+	if len(addr) == 0 {
+		return fmt.Errorf("no oracle keys generated")
+	}
+
+	ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
+	}
+
+	e.KeyData.Address = addr[0].Address
+	e.KeyData.Name = addr[0].Name
+	e.KeyData.PrivateKey = ecdsaPrivKey
+	return nil
 }
 
 func (e *EVMDeployer) Config() *OracleConfig {
@@ -106,12 +134,29 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	// Convert string private key to ECDSA private key
-	pterm.Info.Printfln("deploying contract with private key: %s", e.config.PrivateKey)
+	pterm.Info.Printfln("deploying contract with private key: %s", e.KeyData.PrivateKey)
 	raResp, err := rollapp.GetMetadataFromChain(e.rollerData.RollappID, e.rollerData.HubData)
 	if err != nil {
 		return "", fmt.Errorf("failed to get rollapp metadata: %v", err)
 	}
 
+	err = ensureBalance(raResp, e)
+	if err != nil {
+		return "", err
+	}
+
+	contractAddress, err := deployEvmContract(
+		bytecode,
+		e.KeyData.PrivateKey,
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to deploy contract: %w", err)
+	}
+
+	return contractAddress.Hex(), nil
+}
+
+func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 	var balanceDenom string
 	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
 		balanceDenom = consts.Denoms.HubIbcOnRollapp
@@ -127,22 +172,22 @@ func (e *EVMDeployer) DeployContract(
 			}, e.config.KeyAddress,
 		)
 		if err != nil {
-			return "", fmt.Errorf("failed to query balance: %v", err)
+			return fmt.Errorf("failed to query balance: %v", err)
 		}
 
 		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig()
+			oracleKeys, err := getOracleKeyConfig(e.rollerData.RollappVMType)
 			if err != nil {
-				return "", fmt.Errorf("failed to get oracle keys: %v", err)
+				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
 			kc := oracleKeys[0]
 
 			ki, err := kc.Info(e.rollerData.Home)
 			if err != nil {
-				return "", fmt.Errorf("failed to get key info: %v", err)
+				return fmt.Errorf("failed to get key info: %v", err)
 			}
 
 			pterm.DefaultSection.WithIndentCharacter("🔔").
@@ -153,22 +198,14 @@ func (e *EVMDeployer) DeployContract(
 					"press 'y' when the wallets are funded",
 				).Show()
 			if !proceed {
-				return "", fmt.Errorf("cancelled by user")
+				return fmt.Errorf("cancelled by user")
 			}
 		} else {
 			break
 		}
 	}
 
-	contractAddress, err := deployEvmContract(
-		bytecode,
-		e.config.EcdsaPrivateKey,
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to deploy contract: %w", err)
-	}
-
-	return contractAddress.Hex(), nil
+	return nil
 }
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
@@ -177,32 +214,19 @@ func deployEvmContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 ) (*goethcommon.Address, error) {
-	ethClient8545, _ := ethclient.Dial("http://localhost:8545")
-	if ethClient8545 == nil {
-		return nil, errors.New("failed to connect to local evm rpc endpoint")
-	}
-
-	publicKey := ecdsaPrivateKey.Public()
-	ecdsaPubKey, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, errors.New("failed to convert secret public key to ECDSA")
-	}
-
-	// Convert ECDSA public key to compressed pubkey bytes
-	pubKeyBytes := crypto.CompressPubkey(ecdsaPubKey)
-
-	// Create Cosmos SDK public key
-	var pubKey cryptotypes.PubKey = &secp256k1.PubKey{Key: pubKeyBytes}
-
-	// Get Cosmos SDK address
-	fromAddress := sdk.AccAddress(pubKey.Address())
-
-	// Convert to Ethereum address format
-	ethAddr := goethcommon.BytesToAddress(fromAddress.Bytes())
-
-	nonce, err := ethClient8545.NonceAt(context.Background(), ethAddr, nil)
+	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get nonce: %w", err)
+		return nil, fmt.Errorf("failed to dial eth client: %w", err)
+	}
+
+	ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(ecdsaPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := ethClient8545.NonceAt(context.Background(), *from, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce of sender: %w", err)
 	}
 
 	chainId, err := ethClient8545.ChainID(context.Background())
@@ -210,8 +234,7 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to get chain ID: %w", err)
 	}
 
-	bytecode = strings.TrimSuffix(bytecode, "0x")
-
+	bytecode = strings.TrimPrefix(bytecode, "0x")
 	deploymentBytes, err := hex.DecodeString(bytecode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
@@ -223,15 +246,15 @@ func deployEvmContract(
 		Gas:      4_000_000,
 		To:       nil,
 		Data:     deploymentBytes,
-		Value:    goethcommon.Big0,
+		Value:    common.Big0,
 	}
 	tx := ethtypes.NewTx(&txData)
 
-	newContractAddress := crypto.CreateAddress(ethAddr, nonce)
+	newContractAddress := crypto.CreateAddress(*from, nonce)
 
-	fmt.Println("Deploying new contract using account", ethAddr)
+	fmt.Println("Deploying new contract using account", from)
 
-	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign tx: %w", err)
 	}
@@ -242,26 +265,7 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to encode tx: %w", err)
 	}
 
-	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
-	rawTxFilePath := filepath.Join("rawtx.hex")
-	if err := os.WriteFile(rawTxFilePath, []byte(rawTxRLPHex), 0o644); err != nil {
-		return nil, fmt.Errorf("failed to write raw transaction to file: %w", err)
-	}
-	fmt.Printf("Raw transaction written to: %s\n", rawTxFilePath)
-	fmt.Printf("RawTx: 0x%s\n", rawTxRLPHex)
-
 	fmt.Println("Tx hash", signedTx.Hash())
-
-	balance, err := ethClient8545.BalanceAt(context.Background(), ethAddr, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get balance: %w", err)
-	}
-
-	minBalance := big.NewInt(2000000000000000000)
-	if balance.Cmp(minBalance) < 0 {
-		return nil, fmt.Errorf("insufficient balance for deployment: have %s, need %s",
-			balance.String(), minBalance.String())
-	}
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -279,7 +283,7 @@ func deployEvmContract(
 	return &newContractAddress, nil
 }
 
-func waitForEthTx(ethClient8545 *ethclient.Client, txHash goethcommon.Hash) *ethtypes.Transaction {
+func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
 	for try := 1; try <= 6; try++ {
 		tx, _, err := ethClient8545.TransactionByHash(context.Background(), txHash)
 		if err == nil && tx != nil {
@@ -332,4 +336,63 @@ func compileContract(contractPath string) (string, string, error) {
 	defer os.RemoveAll(buildDir)
 
 	return string(bytecode), string(runtimeBytecode), nil
+}
+
+func GetEcdsaPrivateKey(mnemonic string) (*ecdsa.PrivateKey, error) {
+	hdPathStr := cosmoshd.CreateHDPath(60, 0, 0).String()
+	hdPath, err := accounts.ParseDerivationPath(hdPathStr)
+	if err != nil {
+		return nil, err
+	}
+
+	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// create a BTC-utils hd-derivation key chain
+	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
+	if err != nil {
+		return nil, err
+	}
+
+	key := masterKey
+	for _, n := range hdPath {
+		key, err = key.Derive(n)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// btc-utils representation of a secp256k1 private key
+	privateKey, err := key.ECPrivKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// cast private key to a convertible form (single scalar field element of secp256k1)
+	// and then load into ethcrypto private key format.
+	return privateKey.ToECDSA(), nil
+}
+
+func mustSecretEvmAccount(
+	pk *ecdsa.PrivateKey,
+) (ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
+	var inputSource string
+	var ok bool
+
+	ecdsaPrivateKey = pk
+
+	publicKey := ecdsaPrivateKey.Public()
+	ecdsaPubKey, ok = publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, nil, nil, errors.New("failed to cast public key to ecdsa")
+	}
+
+	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
+	account = &fromAddress
+
+	fmt.Println("Account Address:", account.Hex(), "(from", inputSource, ")")
+
+	return
 }

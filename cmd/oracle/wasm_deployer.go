@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/go-bip39"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -18,15 +21,19 @@ import (
 type WasmDeployer struct {
 	config     *OracleConfig
 	rollerData roller.RollappConfig
+	KeyData    struct {
+		KeyData
+		PrivateKey string
+	}
+}
+
+func (w *WasmDeployer) PrivateKey() string {
+	return w.KeyData.PrivateKey
 }
 
 // NewWasmDeployer creates a new WasmDeployer instance
 func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
-	config := NewOracle(rollerData)
-
-	if err := config.SetKey(rollerData); err != nil {
-		return nil, fmt.Errorf("failed to set oracle key: %w", err)
-	}
+	config := NewOracleConfig(rollerData)
 
 	return &WasmDeployer{
 		config:     config,
@@ -128,4 +135,24 @@ func (w *WasmDeployer) DeployContract(
 
 	w.config.ContractAddress = contracts[0]
 	return contracts[0], nil
+}
+
+func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return "", fmt.Errorf("invalid mnemonic")
+	}
+
+	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to generate seed: %w", err)
+	}
+
+	hdPath := "m/44'/60'/0'/0/0"
+	master, ch := hd.ComputeMastersFromSeed(seed)
+	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to derive private key: %w", err)
+	}
+
+	return hex.EncodeToString(privKey), nil
 }
