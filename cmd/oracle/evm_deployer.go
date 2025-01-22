@@ -17,6 +17,9 @@ import (
 	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -193,9 +196,19 @@ func deployEvmContract(
 		return nil, errors.New("failed to convert secret public key to ECDSA")
 	}
 
-	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
+	// Convert ECDSA public key to compressed pubkey bytes
+	pubKeyBytes := crypto.CompressPubkey(ecdsaPubKey)
 
-	nonce, err := ethClient8545.NonceAt(context.Background(), fromAddress, nil)
+	// Create Cosmos SDK public key
+	var pubKey cryptotypes.PubKey = &secp256k1.PubKey{Key: pubKeyBytes}
+
+	// Get Cosmos SDK address
+	fromAddress := sdk.AccAddress(pubKey.Address())
+
+	// Convert to Ethereum address format
+	ethAddr := common.BytesToAddress(fromAddress.Bytes())
+
+	nonce, err := ethClient8545.NonceAt(context.Background(), ethAddr, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nonce: %w", err)
 	}
@@ -222,9 +235,9 @@ func deployEvmContract(
 	}
 	tx := ethtypes.NewTx(&txData)
 
-	newContractAddress := crypto.CreateAddress(fromAddress, nonce)
+	newContractAddress := crypto.CreateAddress(ethAddr, nonce)
 
-	fmt.Println("Deploying new contract using account", fromAddress)
+	fmt.Println("Deploying new contract using account", ethAddr)
 
 	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
 	if err != nil {
