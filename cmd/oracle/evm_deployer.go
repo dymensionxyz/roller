@@ -251,6 +251,7 @@ func deployEvmContract(
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: gasPrice,
+		Gas:      0,
 		To:       nil,
 		Data:     deploymentBytes,
 		Value:    goethcommon.Big0,
