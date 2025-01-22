@@ -269,7 +269,7 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to encode tx: %w", err)
 	}
 
-	fmt.Println("Tx hash", signedTx.Hash())
+	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -277,14 +277,11 @@ func deployEvmContract(
 	}
 
 	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
-		fmt.Println("New contract deployed at:")
-	} else {
-		fmt.Println("Timed-out waiting for tx to be mined, contract may have been deployed.")
-		fmt.Println("Expected contract address:")
+		fmt.Printf("Contract deployed successfully at: %s\n", newContractAddress.Hex())
+		return &newContractAddress, nil
 	}
-	fmt.Println(newContractAddress)
 
-	return &newContractAddress, nil
+	return nil, fmt.Errorf("contract deployment failed - transaction was not successful")
 }
 
 func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
@@ -295,6 +292,24 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 			// Check if transaction was successful
 			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
 				fmt.Printf("Transaction failed with status: %d\n", receipt.Status)
+
+				// Get transaction details for debugging
+				tx, isPending, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
+				if tx != nil {
+					fmt.Printf("Transaction details:\n")
+					fmt.Printf("  Gas Limit: %d\n", tx.Gas())
+					fmt.Printf("  Gas Price: %s\n", tx.GasPrice().String())
+					fmt.Printf("  Nonce: %d\n", tx.Nonce())
+					fmt.Printf("  Value: %s\n", tx.Value().String())
+					fmt.Printf("  Is Pending: %v\n", isPending)
+				}
+
+				// Get latest block for gas info
+				header, _ := ethClient8545.HeaderByNumber(context.Background(), nil)
+				if header != nil {
+					fmt.Printf("Current block gas limit: %d\n", header.GasLimit)
+				}
+
 				return nil
 			}
 
@@ -306,9 +321,14 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 					nil,
 				)
 				if err != nil || len(code) == 0 {
-					fmt.Println("No contract code found at deployed address")
+					fmt.Printf(
+						"No contract code found at deployed address: %s\n",
+						receipt.ContractAddress.Hex(),
+					)
+					fmt.Printf("Gas used: %d\n", receipt.GasUsed)
 					return nil
 				}
+				fmt.Printf("Contract code size: %d bytes\n", len(code))
 			}
 
 			// Get the transaction details
