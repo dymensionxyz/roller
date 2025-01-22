@@ -225,6 +225,13 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
 	}
 
+	balance, err := ethClient8545.BalanceAt(context.Background(), ethAddr, nil)
+	if err != nil {
+		fmt.Printf("Error getting balance: %v\n", err)
+	} else {
+		fmt.Printf("Balance: %s wei\n", balance.String())
+	}
+
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: big.NewInt(20_000_000_000),
