@@ -270,6 +270,12 @@ func deployEvmContract(
 	}
 
 	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
+	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
+	rawTxFile := filepath.Join("raw_tx.hex")
+	if err := os.WriteFile(rawTxFile, []byte("0x"+rawTxRLPHex), 0o644); err != nil {
+		return nil, fmt.Errorf("failed to write raw tx to file: %w", err)
+	}
+	fmt.Printf("RawTx written to: %s\n", rawTxFile)
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
