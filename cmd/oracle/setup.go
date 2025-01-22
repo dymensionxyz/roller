@@ -166,6 +166,7 @@ func DeployCmd() *cobra.Command {
 					"chainClient.chainId":         networkID,
 					"chainClient.privateKey":      deployer.PrivateKey(),
 					"chainClient.contractAddress": contractAddr,
+					"grpc_port":                   9093,
 					// gasLimit: 250000
 					// maxGasPrice: "100000000000"
 				}

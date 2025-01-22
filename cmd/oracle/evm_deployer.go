@@ -139,8 +139,6 @@ func (e *EVMDeployer) DeployContract(
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
-	// Convert string private key to ECDSA private key
-	pterm.Info.Printfln("deploying contract with private key: %s", e.KeyData.PrivateKey)
 	raResp, err := rollapp.GetMetadataFromChain(e.rollerData.RollappID, e.rollerData.HubData)
 	if err != nil {
 		return "", fmt.Errorf("failed to get rollapp metadata: %v", err)
@@ -337,9 +335,6 @@ func compileContract(contractPath string) (string, string, error) {
 	}
 
 	runtimeBytecode := bytecode
-
-	// nolint: errcheck
-	defer os.RemoveAll(buildDir)
 
 	return string(bytecode), string(runtimeBytecode), nil
 }
