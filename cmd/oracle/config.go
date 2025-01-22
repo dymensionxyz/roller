@@ -80,9 +80,6 @@ func GetSecp256k1PrivateKey(mnemonic string, vmTypre consts.VMType) (string, err
 	seed := bip39.NewSeed(mnemonic, "")
 
 	hdPath := "m/44'/60'/0'/0/0"
-	if vmTypre == consts.EVM_ROLLAPP {
-		hdPath = "m/44'/118'/0'/0/0"
-	}
 
 	master, ch := hd.ComputeMastersFromSeed(seed)
 	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
@@ -92,7 +89,7 @@ func GetSecp256k1PrivateKey(mnemonic string, vmTypre consts.VMType) (string, err
 
 	// Convert private key bytes to hex string
 	hexKey := hex.EncodeToString(privKey)
-	fmt.Println(hexKey)
+	fmt.Println("private key: ", hexKey)
 
 	return hexKey, nil
 }
