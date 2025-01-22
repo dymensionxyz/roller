@@ -258,7 +258,7 @@ func deployEvmContract(
 
 	fmt.Println("Deploying new contract using account", from)
 
-	signedTx, err := ethtypes.SignTx(tx, ethtypes.LatestSignerForChainID(chainId), ecdsaPrivateKey)
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign tx: %w", err)
 	}
@@ -413,7 +413,6 @@ func GetEcdsaPrivateKey(mnemonic string) (*ecdsa.PrivateKey, error) {
 		}
 	}
 
-	// btc-utils representation of a secp256k1 private key
 	privateKey, err := key.ECPrivKey()
 	if err != nil {
 		return nil, err
