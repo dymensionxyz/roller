@@ -208,8 +208,6 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 func mustSecretEvmAccount(
 	privateKey string,
 ) (privKey string, ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
-	var ok bool
-
 	privKey = strings.TrimPrefix(privateKey, "0x")
 
 	if len(privKey) != 64 {
@@ -219,7 +217,7 @@ func mustSecretEvmAccount(
 		)
 	}
 
-	pKeyBytes, err := hexutil.Decode("0x" + privKey)
+	pKeyBytes, err := hex.DecodeString(privKey)
 	if err != nil {
 		return "", nil, nil, nil, fmt.Errorf("failed to decode private key: %w", err)
 	}
@@ -230,7 +228,7 @@ func mustSecretEvmAccount(
 	}
 
 	publicKey := ecdsaPrivateKey.Public()
-	ecdsaPubKey, ok = publicKey.(*ecdsa.PublicKey)
+	ecdsaPubKey, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
 		return "", nil, nil, nil, fmt.Errorf("failed to convert secret public key to ECDSA")
 	}
@@ -238,7 +236,7 @@ func mustSecretEvmAccount(
 	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
 	account = &fromAddress
 
-	return
+	return privKey, ecdsaPrivateKey, ecdsaPubKey, account, nil
 }
 
 func compileContract(contractPath string) (string, string, error) {
