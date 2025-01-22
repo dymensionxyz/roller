@@ -242,6 +242,9 @@ func deployEvmContract(
 		return nil, fmt.Errorf("failed to encode tx: %w", err)
 	}
 
+	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
+	fmt.Printf("RawTx: 0x%s\n", rawTxRLPHex)
+
 	fmt.Println("Tx hash", signedTx.Hash())
 
 	balance, err := ethClient8545.BalanceAt(context.Background(), ethAddr, nil)
