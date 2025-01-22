@@ -79,18 +79,13 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			// Download and store contract
 			err = deployer.DownloadContract(contractUrl)
 			if err != nil {
 				pterm.Error.Printf("failed to download contract: %v\n", err)
 				return
 			}
 
-			// Get private key for deployment
-			// TODO: Implement private key retrieval from rollerData or config
-
-			// Deploy the contract
-			contractAddr, err := deployer.DeployContract(context.Background(), nil, nil)
+			contractAddr, err := deployer.DeployContract(context.Background())
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return

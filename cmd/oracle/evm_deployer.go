@@ -45,7 +45,7 @@ func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 
 	return &EVMDeployer{
 		config:     config,
-		rollerData: roller.RollappConfig{},
+		rollerData: rollerData,
 	}, nil
 }
 
@@ -92,8 +92,6 @@ func (e *EVMDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for EVM
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
-	privateKey *ecdsa.PrivateKey,
-	contractCode []byte,
 ) (string, error) {
 	// Compile the contract
 	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
@@ -102,8 +100,14 @@ func (e *EVMDeployer) DeployContract(
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
 
+	// Convert string private key to ECDSA private key
+	_, ecdsaPrivKey, _, _, err := mustSecretEvmAccount(e.config.PrivateKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert private key: %w", err)
+	}
+
 	// Deploy the contract using deployEvmContract
-	contractAddress, err := deployEvmContract(bytecode, privateKey)
+	contractAddress, err := deployEvmContract(bytecode, ecdsaPrivKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
 	}
@@ -208,14 +212,21 @@ func mustSecretEvmAccount(
 
 	privKey = strings.TrimPrefix(privateKey, "0x")
 
+	if len(privKey) != 64 {
+		return "", nil, nil, nil, fmt.Errorf(
+			"invalid private key length: need 64 hex characters (256 bits), got %d",
+			len(privKey),
+		)
+	}
+
 	pKeyBytes, err := hexutil.Decode("0x" + privKey)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, fmt.Errorf("failed to decode private key: %w", err)
 	}
 
 	ecdsaPrivateKey, err = crypto.ToECDSA(pKeyBytes)
 	if err != nil {
-		return "", nil, nil, nil, err
+		return "", nil, nil, nil, fmt.Errorf("failed to convert to ECDSA: %w", err)
 	}
 
 	publicKey := ecdsaPrivateKey.Public()

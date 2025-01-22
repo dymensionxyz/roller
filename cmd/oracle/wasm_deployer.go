@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 	"io"
 	"net/http"
@@ -79,8 +78,6 @@ func (w *WasmDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for WASM
 func (w *WasmDeployer) DeployContract(
 	ctx context.Context,
-	privateKey *ecdsa.PrivateKey,
-	contractCode []byte,
 ) (string, error) {
 	// Store the contract
 	if err := w.config.StoreWasmContract(w.rollerData); err != nil {
