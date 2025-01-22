@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	cosmossdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -25,6 +26,8 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/keys"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -101,6 +104,59 @@ func (e *EVMDeployer) DeployContract(
 
 	// Convert string private key to ECDSA private key
 	pterm.Info.Printfln("deploying contract with private key: %s", e.config.PrivateKey)
+	raResp, err := rollapp.GetMetadataFromChain(e.rollerData.RollappID, e.rollerData.HubData)
+	if err != nil {
+		return "", fmt.Errorf("failed to get rollapp metadata: %v", err)
+	}
+
+	var balanceDenom string
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+		balanceDenom = consts.Denoms.HubIbcOnRollapp
+	} else {
+		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
+	}
+	for {
+		balance, err := keys.QueryBalance(
+			keys.ChainQueryConfig{
+				Denom:  balanceDenom,
+				RPC:    "http://localhost:26657",
+				Binary: consts.Executables.RollappEVM,
+			}, e.config.KeyAddress,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to query balance: %v", err)
+		}
+
+		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		isAddrFunded := balance.Amount.GTE(one)
+
+		if !isAddrFunded {
+			oracleKeys, err := getOracleKeyConfig()
+			if err != nil {
+				return "", fmt.Errorf("failed to get oracle keys: %v", err)
+			}
+			kc := oracleKeys[0]
+
+			ki, err := kc.Info(e.rollerData.Home)
+			if err != nil {
+				return "", fmt.Errorf("failed to get key info: %v", err)
+			}
+
+			pterm.DefaultSection.WithIndentCharacter("🔔").
+				Println("Please fund the addresses below be able to deploy an oracle")
+			ki.Print(keys.WithName())
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
+			if !proceed {
+				return "", fmt.Errorf("cancelled by user")
+			}
+		} else {
+			break
+		}
+	}
+
 	// Deploy the contract using deployEvmContract
 	contractAddress, err := deployEvmContract(
 		bytecode,
