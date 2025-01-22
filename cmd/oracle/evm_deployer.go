@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -241,6 +242,10 @@ func deployEvmContract(
 		Value:    common.Big0,
 	}
 	tx := ethtypes.NewTx(&txData)
+
+	j, _ := json.Marshal(txData)
+	fmt.Println("Tx data:")
+	fmt.Println(string(j))
 
 	newContractAddress := crypto.CreateAddress(ethAddr, nonce)
 
