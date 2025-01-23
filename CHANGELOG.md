@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.13.0](https://github.com/dymensionxyz/roller/compare/v1.12.0...v1.13.0) (2025-01-23)
+
+
+### Features
+
+* add evm price oracle ([#1235](https://github.com/dymensionxyz/roller/issues/1235)) ([5f6f3b5](https://github.com/dymensionxyz/roller/commit/5f6f3b5de8e69a8f070bab80a9c58e5f53a6338a))
+* add wasm price oracle ([#1230](https://github.com/dymensionxyz/roller/issues/1230)) ([33a53b3](https://github.com/dymensionxyz/roller/commit/33a53b3a0056e85027dff27f76640d22af698326))
+
+
+### Bug Fixes
+
+* enable health agent by default ([5f252c8](https://github.com/dymensionxyz/roller/commit/5f252c8cea02090b58964c77cb0696c5904b7fdb))
+* sequencer metadata update when snapshot is added ([#1231](https://github.com/dymensionxyz/roller/issues/1231)) ([ee938fe](https://github.com/dymensionxyz/roller/commit/ee938fe4f362edaeb43763bb307c1ab8f9635a29))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
