@@ -87,31 +87,36 @@ func (e *EVMDeployer) ClientConfigPath() string {
 }
 
 func (e *EVMDeployer) IsContractDeployed() (string, bool) {
+	pterm.Info.Println("checking for already deployed contracts")
 	configDir := filepath.Dir(e.config.ConfigDirPath)
 	configFilePath := e.ClientConfigPath()
 
-	if _, err := os.Stat(configDir); err == nil {
-		if _, err := os.Stat(configFilePath); err == nil {
-			configData, err := os.ReadFile(configFilePath)
-			if err != nil {
-				return "", false
-			}
+	if _, err := os.Stat(configDir); err != nil {
+		return "", false
+	}
 
-			var config struct {
-				ChainClient struct {
-					ContractAddress string `yaml:"contractAddress"`
-				} `yaml:"chainClient"`
-			}
+	if _, err := os.Stat(configFilePath); err != nil {
+		return "", false
+	}
 
-			if err := yaml.Unmarshal(configData, &config); err != nil {
-				return "", false
-			}
+	var config struct {
+		ChainClient struct {
+			ContractAddress string `yaml:"contractAddress"`
+		} `yaml:"chainClient"`
+	}
 
-			if config.ChainClient.ContractAddress != "" {
-				e.config.ContractAddress = config.ChainClient.ContractAddress
-				return e.config.ContractAddress, true
-			}
-		}
+	configData, err := os.ReadFile(configFilePath)
+	if err != nil {
+		return "", false
+	}
+
+	if err := yaml.Unmarshal(configData, &config); err != nil {
+		return "", false
+	}
+
+	if config.ChainClient.ContractAddress != "" {
+		e.config.ContractAddress = config.ChainClient.ContractAddress
+		return e.config.ContractAddress, true
 	}
 
 	return "", false
