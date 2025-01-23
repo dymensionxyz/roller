@@ -1,7 +1,6 @@
 package oracle
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,9 +39,6 @@ func getOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
 			kc.KeyringBackend,
 		)
 	}
-
-	j, _ := json.Marshal(res)
-	println(string(j))
 
 	var keys []keys.KeyConfig
 

@@ -3,7 +3,6 @@ package oracle
 import (
 	"context"
 	"embed"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -82,9 +81,6 @@ func DeployCmd() *cobra.Command {
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
 				return
 			}
-
-			j, _ := json.MarshalIndent(deployer, "", "  ")
-			fmt.Println(string(j))
 
 			contractAddress, isDeployed := deployer.IsContractDeployed()
 			if isDeployed {
