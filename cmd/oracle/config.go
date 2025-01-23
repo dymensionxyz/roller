@@ -52,16 +52,22 @@ func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
 	return o.ConfigDirPath
 }
 
-func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
+// generateRaOracleKeys generates a new key or retrieves an existing one from the keyring
+// as the second return value it returns whether the key was generated or retrieved where
+// true is retrieved and false is new generated key
+func generateRaOracleKeys(
+	home string,
+	rollerData roller.RollappConfig,
+) ([]keys.KeyInfo, bool, error) {
 	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	kc := oracleKeys[0]
 	ok, err := kc.IsInKeyring(home)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if ok {
@@ -69,9 +75,9 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 		ki, err := kc.Info(home)
 		ki.Mnemonic = "not available for already existing keys"
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		return []keys.KeyInfo{*ki}, nil
+		return []keys.KeyInfo{*ki}, true, nil
 	}
 
 	shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -83,17 +89,17 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 	if shouldImportWallet {
 		ki, err := kc.Create(home)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		addr = append(addr, *ki)
 	} else {
 		addr, err = createOraclesKeys(rollerData)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	}
 
-	return addr, nil
+	return addr, false, nil
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
