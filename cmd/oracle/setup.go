@@ -60,6 +60,10 @@ func DeployCmd() *cobra.Command {
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
 				deployer, err = NewEVMDeployer(rollerData)
+				if err != nil {
+					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
+					return
+				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
 
 				err := dependencies.InstallSolidityDependencies()
@@ -69,6 +73,10 @@ func DeployCmd() *cobra.Command {
 				}
 			case consts.WASM_ROLLAPP:
 				deployer, err = NewWasmDeployer(rollerData)
+				if err != nil {
+					pterm.Error.Printf("failed to create wasm deployer: %v\n", err)
+					return
+				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
