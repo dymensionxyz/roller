@@ -40,8 +40,9 @@ import (
 
 // AssetInfo represents the asset information structure matching the contract's constructor
 type AssetInfo struct {
-	AssetSymbol   string
-	AssetDecimals uint8
+	LocalNetworkName      common.Address
+	OracleNetworkName     string
+	LocalNetworkPrecision *big.Int
 }
 
 // EVMDeployer implements ContractDeployer for EVM chains
@@ -161,12 +162,18 @@ func (e *EVMDeployer) DeployContract(
 		big.NewInt(3),
 		[]AssetInfo{
 			{
-				AssetSymbol:   "USDT",
-				AssetDecimals: 6,
+				LocalNetworkName: common.HexToAddress(
+					"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+				), // Example WBTC address
+				OracleNetworkName:     "WBTC",
+				LocalNetworkPrecision: big.NewInt(8),
 			},
 			{
-				AssetSymbol:   "USDC",
-				AssetDecimals: 6,
+				LocalNetworkName: common.HexToAddress(
+					"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+				), // Example USDC address
+				OracleNetworkName:     "USDC",
+				LocalNetworkPrecision: big.NewInt(6),
 			},
 		},
 		big.NewInt(1000000000000000000), // 1 ETH bound threshold
