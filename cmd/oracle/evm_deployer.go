@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -87,6 +88,9 @@ func (e *EVMDeployer) ClientConfigPath() string {
 }
 
 func (e *EVMDeployer) IsContractDeployed() (string, bool) {
+	j, _ := json.MarshalIndent(e.config, "", "  ")
+	fmt.Println(string(j))
+
 	pterm.Info.Println("checking for already deployed contracts")
 	configDir := filepath.Dir(e.config.ConfigDirPath)
 	configFilePath := e.ClientConfigPath()
