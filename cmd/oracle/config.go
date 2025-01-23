@@ -67,6 +67,7 @@ func generateRaOracleKeys(home string, rollerData roller.RollappConfig) ([]keys.
 	if ok {
 		pterm.Info.Printfln("existing oracle key found, using it")
 		ki, err := kc.Info(home)
+		ki.Mnemonic = "not available for already existing keys"
 		if err != nil {
 			return nil, err
 		}
