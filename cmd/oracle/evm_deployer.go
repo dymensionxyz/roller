@@ -22,6 +22,7 @@ import (
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	goethcommon "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -36,6 +37,12 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
+
+// AssetInfo represents the asset information structure matching the contract's constructor
+type AssetInfo struct {
+	AssetSymbol   string
+	AssetDecimals uint8
+}
 
 // EVMDeployer implements ContractDeployer for EVM chains
 type EVMDeployer struct {
@@ -132,9 +139,8 @@ func (e *EVMDeployer) DownloadContract(url string) error {
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
 ) (string, error) {
-	// Compile the contract
 	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
-	bytecode, _, err := compileContract(contractPath)
+	bytecode, contractABI, err := compileContract(contractPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
@@ -152,6 +158,19 @@ func (e *EVMDeployer) DeployContract(
 	contractAddress, err := deployEvmContract(
 		bytecode,
 		e.KeyData.PrivateKey,
+		big.NewInt(3),
+		[]AssetInfo{
+			{
+				AssetSymbol:   "USDT",
+				AssetDecimals: 6,
+			},
+			{
+				AssetSymbol:   "USDC",
+				AssetDecimals: 6,
+			},
+		},
+		big.NewInt(1000000000000000000), // 1 ETH bound threshold
+		contractABI,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to deploy contract: %w", err)
@@ -213,10 +232,13 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 }
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
-
 func deployEvmContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
+	expirationOffset *big.Int,
+	assetInfos []AssetInfo,
+	boundThreshold *big.Int,
+	contractABI string,
 ) (*goethcommon.Address, error) {
 	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
 	if err != nil {
@@ -243,6 +265,16 @@ func deployEvmContract(
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
 	}
+
+	// Encode constructor arguments
+	constructorInput := []interface{}{expirationOffset, assetInfos, boundThreshold}
+	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
+	}
+
+	// Append encoded constructor arguments to deployment bytecode
+	deploymentBytes = append(deploymentBytes, constructorArgs...)
 
 	txData := ethtypes.LegacyTx{
 		Nonce:    nonce,
@@ -290,62 +322,19 @@ func deployEvmContract(
 	return nil, fmt.Errorf("contract deployment failed - transaction was not successful")
 }
 
-func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
-	for try := 1; try <= 6; try++ {
-		// Get transaction receipt instead of just the transaction
-		receipt, err := ethClient8545.TransactionReceipt(context.Background(), txHash)
-		if err == nil && receipt != nil {
-			// Check if transaction was successful
-			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
-				fmt.Printf("Transaction failed with status: %d\n", receipt.Status)
-
-				// Get transaction details for debugging
-				tx, isPending, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
-				if tx != nil {
-					fmt.Printf("Transaction details:\n")
-					fmt.Printf("  Gas Limit: %d\n", tx.Gas())
-					fmt.Printf("  Gas Price: %s\n", tx.GasPrice().String())
-					fmt.Printf("  Nonce: %d\n", tx.Nonce())
-					fmt.Printf("  Value: %s\n", tx.Value().String())
-					fmt.Printf("  Is Pending: %v\n", isPending)
-				}
-
-				// Get latest block for gas info
-				header, _ := ethClient8545.HeaderByNumber(context.Background(), nil)
-				if header != nil {
-					fmt.Printf("Current block gas limit: %d\n", header.GasLimit)
-				}
-
-				return nil
-			}
-
-			// For contract creation, verify code exists
-			if receipt.ContractAddress != (common.Address{}) {
-				code, err := ethClient8545.CodeAt(
-					context.Background(),
-					receipt.ContractAddress,
-					nil,
-				)
-				if err != nil || len(code) == 0 {
-					fmt.Printf(
-						"No contract code found at deployed address: %s\n",
-						receipt.ContractAddress.Hex(),
-					)
-					fmt.Printf("Gas used: %d\n", receipt.GasUsed)
-					return nil
-				}
-				fmt.Printf("Contract code size: %d bytes\n", len(code))
-			}
-
-			// Get the transaction details
-			tx, _, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
-			return tx
-		}
-
-		time.Sleep(time.Second)
+// encodeConstructorArgs encodes the constructor arguments according to the types
+func encodeConstructorArgs(args []interface{}, contractABI string) ([]byte, error) {
+	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse constructor ABI: %w", err)
 	}
 
-	return nil
+	encoded, err := parsedABI.Pack("", args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack constructor arguments: %w", err)
+	}
+
+	return encoded, nil
 }
 
 func compileContract(contractPath string) (string, string, error) {
@@ -382,9 +371,13 @@ func compileContract(contractPath string) (string, string, error) {
 		return "", "", fmt.Errorf("failed to read bytecode: %w", err)
 	}
 
-	runtimeBytecode := bytecode
+	abiPath := filepath.Join(buildDir, fmt.Sprintf("%s.abi", contractName))
+	abiBytes, err := os.ReadFile(abiPath)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read ABI: %w", err)
+	}
 
-	return string(bytecode), string(runtimeBytecode), nil
+	return string(bytecode), string(abiBytes), nil
 }
 
 func GetEcdsaPrivateKey(mnemonic string) (*ecdsa.PrivateKey, error) {
@@ -443,4 +436,62 @@ func mustSecretEvmAccount(
 	fmt.Println("Account Address:", account.Hex(), "(from", inputSource, ")")
 
 	return
+}
+
+func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes.Transaction {
+	for try := 1; try <= 6; try++ {
+		// Get transaction receipt instead of just the transaction
+		receipt, err := ethClient8545.TransactionReceipt(context.Background(), txHash)
+		if err == nil && receipt != nil {
+			// Check if transaction was successful
+			if receipt.Status != ethtypes.ReceiptStatusSuccessful {
+				fmt.Printf("Transaction failed with status: %d\n", receipt.Status)
+
+				// Get transaction details for debugging
+				tx, isPending, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
+				if tx != nil {
+					fmt.Printf("Transaction details:\n")
+					fmt.Printf("  Gas Limit: %d\n", tx.Gas())
+					fmt.Printf("  Gas Price: %s\n", tx.GasPrice().String())
+					fmt.Printf("  Nonce: %d\n", tx.Nonce())
+					fmt.Printf("  Value: %s\n", tx.Value().String())
+					fmt.Printf("  Is Pending: %v\n", isPending)
+				}
+
+				// Get latest block for gas info
+				header, _ := ethClient8545.HeaderByNumber(context.Background(), nil)
+				if header != nil {
+					fmt.Printf("Current block gas limit: %d\n", header.GasLimit)
+				}
+
+				return nil
+			}
+
+			// For contract creation, verify code exists
+			if receipt.ContractAddress != (common.Address{}) {
+				code, err := ethClient8545.CodeAt(
+					context.Background(),
+					receipt.ContractAddress,
+					nil,
+				)
+				if err != nil || len(code) == 0 {
+					fmt.Printf(
+						"No contract code found at deployed address: %s\n",
+						receipt.ContractAddress.Hex(),
+					)
+					fmt.Printf("Gas used: %d\n", receipt.GasUsed)
+					return nil
+				}
+				fmt.Printf("Contract code size: %d bytes\n", len(code))
+			}
+
+			// Get the transaction details
+			tx, _, _ := ethClient8545.TransactionByHash(context.Background(), txHash)
+			return tx
+		}
+
+		time.Sleep(time.Second)
+	}
+
+	return nil
 }
