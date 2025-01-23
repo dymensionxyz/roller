@@ -14,6 +14,18 @@ type ContractDeployer interface {
 		ctx context.Context,
 	) (string, error)
 
+	// Config returns the OracleConfig
 	Config() *OracleConfig
+
+	// PrivateKey returns the private key used to deploy the contract
 	PrivateKey() string
+
+	// IsContractDeployed returns whether the contract has been deployed to the chain
+	IsContractDeployed() (string, bool) // address, bool
+
+	// ContractPath returns the path to the contract file on the local machine
+	ContractPath() string
+
+	// ClientConfigPath returns the filepath to the client config file
+	ClientConfigPath() string
 }

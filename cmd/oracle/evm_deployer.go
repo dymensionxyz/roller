@@ -29,6 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pterm/pterm"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -73,6 +74,47 @@ func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 
 func (e *EVMDeployer) PrivateKey() string {
 	return hex.EncodeToString(e.KeyData.PrivateKey.D.Bytes())
+}
+
+func (e *EVMDeployer) ContractPath() string {
+	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
+
+	return contractPath
+}
+
+func (e *EVMDeployer) ClientConfigPath() string {
+	return filepath.Join(e.config.ConfigDirPath, "config.yaml")
+}
+
+func (e *EVMDeployer) IsContractDeployed() (string, bool) {
+	configDir := filepath.Dir(e.config.ConfigDirPath)
+	configFilePath := e.ClientConfigPath()
+
+	if _, err := os.Stat(configDir); err == nil {
+		if _, err := os.Stat(configFilePath); err == nil {
+			configData, err := os.ReadFile(configFilePath)
+			if err != nil {
+				return "", false
+			}
+
+			var config struct {
+				ChainClient struct {
+					ContractAddress string `yaml:"contractAddress"`
+				} `yaml:"chainClient"`
+			}
+
+			if err := yaml.Unmarshal(configData, &config); err != nil {
+				return "", false
+			}
+
+			if config.ChainClient.ContractAddress != "" {
+				e.config.ContractAddress = config.ChainClient.ContractAddress
+				return e.config.ContractAddress, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func (e *EVMDeployer) SetKey() error {
@@ -140,7 +182,8 @@ func (e *EVMDeployer) DownloadContract(url string) error {
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
 ) (string, error) {
-	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
+	contractPath := e.ContractPath()
+
 	bytecode, contractABI, err := compileContract(contractPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
@@ -164,14 +207,14 @@ func (e *EVMDeployer) DeployContract(
 			{
 				LocalNetworkName: common.HexToAddress(
 					"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-				), // Example WBTC address
+				),
 				OracleNetworkName:     "WBTC",
 				LocalNetworkPrecision: big.NewInt(8),
 			},
 			{
 				LocalNetworkName: common.HexToAddress(
 					"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-				), // Example USDC address
+				),
 				OracleNetworkName:     "USDC",
 				LocalNetworkPrecision: big.NewInt(6),
 			},

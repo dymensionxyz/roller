@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/go-bip39"
 	"github.com/pterm/pterm"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -25,10 +26,6 @@ type WasmDeployer struct {
 		KeyData
 		PrivateKey string
 	}
-}
-
-func (w *WasmDeployer) PrivateKey() string {
-	return w.KeyData.PrivateKey
 }
 
 // NewWasmDeployer creates a new WasmDeployer instance
@@ -44,6 +41,51 @@ func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
 		return nil, err
 	}
 	return d, nil
+}
+
+func (w *WasmDeployer) PrivateKey() string {
+	return w.KeyData.PrivateKey
+}
+
+func (w *WasmDeployer) ContractPath() string {
+	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
+
+	return contractPath
+}
+
+func (w *WasmDeployer) ClientConfigPath() string {
+	return filepath.Join(w.config.ConfigDirPath, "config.yaml")
+}
+
+func (w *WasmDeployer) IsContractDeployed() (string, bool) {
+	configDir := filepath.Dir(w.config.ConfigDirPath)
+	configFilePath := w.ClientConfigPath()
+
+	if _, err := os.Stat(configDir); err == nil {
+		if _, err := os.Stat(configFilePath); err == nil {
+			configData, err := os.ReadFile(configFilePath)
+			if err != nil {
+				return "", false
+			}
+
+			var config struct {
+				ChainClient struct {
+					OracleContractAddress string `yaml:"oracleContractAddress"`
+				} `yaml:"chainClient"`
+			}
+
+			if err := yaml.Unmarshal(configData, &config); err != nil {
+				return "", false
+			}
+
+			if config.ChainClient.OracleContractAddress != "" {
+				w.config.ContractAddress = config.ChainClient.OracleContractAddress
+				return w.config.ContractAddress, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func (w *WasmDeployer) SetKey() error {
@@ -73,7 +115,7 @@ func (w *WasmDeployer) Config() *OracleConfig {
 
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
 func (w *WasmDeployer) DownloadContract(url string) error {
-	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
+	contractPath := w.ContractPath()
 
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(w.config.ConfigDirPath, 0o755); err != nil {

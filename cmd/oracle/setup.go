@@ -74,6 +74,12 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
+			contractAddress, isDeployed := deployer.IsContractDeployed()
+			if isDeployed {
+				pterm.Info.Printf("contract already deployed at: %s\n", contractAddress)
+				return
+			}
+
 			if err != nil {
 				pterm.Error.Printf("failed to create deployer: %v\n", err)
 				return
