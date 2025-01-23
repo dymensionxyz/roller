@@ -66,7 +66,7 @@ func NewKeyConfig(
 	shouldRecover := options.recover
 	withCustomAlgo := options.customAlgo
 
-	keyAlgo := "secp256k1"
+	keyAlgo := "eth_secp256k1"
 	if withCustomAlgo != "" {
 		keyAlgo = withCustomAlgo
 	}

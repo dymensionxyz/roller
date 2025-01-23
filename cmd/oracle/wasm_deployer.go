@@ -2,7 +2,7 @@ package oracle
 
 import (
 	"context"
-	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/go-bip39"
 	"github.com/pterm/pterm"
+	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -19,20 +22,97 @@ import (
 type WasmDeployer struct {
 	config     *OracleConfig
 	rollerData roller.RollappConfig
+	KeyData    struct {
+		KeyData
+		PrivateKey string
+	}
 }
 
 // NewWasmDeployer creates a new WasmDeployer instance
 func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
-	config := NewOracle(rollerData)
-
-	if err := config.SetKey(rollerData); err != nil {
-		return nil, fmt.Errorf("failed to set oracle key: %w", err)
-	}
-
-	return &WasmDeployer{
+	config := NewOracleConfig(rollerData)
+	d := &WasmDeployer{
 		config:     config,
 		rollerData: rollerData,
-	}, nil
+	}
+
+	err := d.SetKey()
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+func (w *WasmDeployer) PrivateKey() string {
+	return w.KeyData.PrivateKey
+}
+
+func (w *WasmDeployer) ContractPath() string {
+	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
+
+	return contractPath
+}
+
+func (w *WasmDeployer) ClientConfigPath() string {
+	return filepath.Join(w.config.ConfigDirPath, "config.yaml")
+}
+
+func (w *WasmDeployer) IsContractDeployed() (string, bool) {
+	configDir := filepath.Dir(w.config.ConfigDirPath)
+	configFilePath := w.ClientConfigPath()
+
+	if _, err := os.Stat(configDir); err == nil {
+		if _, err := os.Stat(configFilePath); err == nil {
+			configData, err := os.ReadFile(configFilePath)
+			if err != nil {
+				return "", false
+			}
+
+			var config struct {
+				ChainClient struct {
+					OracleContractAddress string `yaml:"oracleContractAddress"`
+				} `yaml:"chainClient"`
+			}
+
+			if err := yaml.Unmarshal(configData, &config); err != nil {
+				return "", false
+			}
+
+			if config.ChainClient.OracleContractAddress != "" {
+				w.config.ContractAddress = config.ChainClient.OracleContractAddress
+				return w.config.ContractAddress, true
+			}
+		}
+	}
+
+	return "", false
+}
+
+func (w *WasmDeployer) SetKey() error {
+	addr, isExisting, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
+	}
+
+	if len(addr) == 0 {
+		return fmt.Errorf("no oracle keys generated")
+	}
+
+	w.KeyData.Address = addr[0].Address
+	w.KeyData.Name = addr[0].Name
+
+	if !isExisting {
+		hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+		if err != nil {
+			return err
+		}
+
+		w.KeyData.PrivateKey = hexKey
+	} else {
+		w.KeyData.PrivateKey = ""
+	}
+
+	return nil
 }
 
 func (w *WasmDeployer) Config() *OracleConfig {
@@ -41,7 +121,7 @@ func (w *WasmDeployer) Config() *OracleConfig {
 
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
 func (w *WasmDeployer) DownloadContract(url string) error {
-	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
+	contractPath := w.ContractPath()
 
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(w.config.ConfigDirPath, 0o755); err != nil {
@@ -79,8 +159,6 @@ func (w *WasmDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for WASM
 func (w *WasmDeployer) DeployContract(
 	ctx context.Context,
-	privateKey *ecdsa.PrivateKey,
-	contractCode []byte,
 ) (string, error) {
 	// Store the contract
 	if err := w.config.StoreWasmContract(w.rollerData); err != nil {
@@ -131,4 +209,24 @@ func (w *WasmDeployer) DeployContract(
 
 	w.config.ContractAddress = contracts[0]
 	return contracts[0], nil
+}
+
+func GetSecp256k1PrivateKey(mnemonic string) (string, error) {
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return "", fmt.Errorf("invalid mnemonic")
+	}
+
+	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to generate seed: %w", err)
+	}
+
+	hdPath := "m/44'/60'/0'/0/0"
+	master, ch := hd.ComputeMastersFromSeed(seed)
+	privKey, err := hd.DerivePrivateKeyForPath(master, ch, hdPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to derive private key: %w", err)
+	}
+
+	return hex.EncodeToString(privKey), nil
 }

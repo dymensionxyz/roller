@@ -387,3 +387,51 @@ func DownloadRelease(
 
 	return nil
 }
+
+func DownloadBinary(url, destination string) error {
+	// Create a new HTTP request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create a temporary file
+	f, err := os.CreateTemp("", "binary-")
+	if err != nil {
+		return err
+	}
+	tempName := f.Name()
+	defer os.Remove(tempName) // Clean up in case of failure
+
+	// Create a progress bar
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"Downloading",
+	)
+
+	// Copy the response body to the temporary file while updating the progress bar
+	_, err = io.Copy(io.MultiWriter(f, bar), resp.Body)
+	if err != nil {
+		return err
+	}
+
+	// Important: Close the file handle before moving it
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
+	// Move the file into place and make it executable
+	err = archives.MoveBinaryIntoPlaceAndMakeExecutable(tempName, destination)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

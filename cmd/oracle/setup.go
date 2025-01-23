@@ -59,12 +59,32 @@ func DeployCmd() *cobra.Command {
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
 				deployer, err = NewEVMDeployer(rollerData)
+				if err != nil {
+					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
+					return
+				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
+
+				err := dependencies.InstallSolidityDependencies()
+				if err != nil {
+					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
+					return
+				}
 			case consts.WASM_ROLLAPP:
 				deployer, err = NewWasmDeployer(rollerData)
+				if err != nil {
+					pterm.Error.Printf("failed to create wasm deployer: %v\n", err)
+					return
+				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
+				return
+			}
+
+			contractAddress, isDeployed := deployer.IsContractDeployed()
+			if isDeployed {
+				pterm.Info.Printf("contract already deployed at: %s\n", contractAddress)
 				return
 			}
 
@@ -73,18 +93,13 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			// Download and store contract
 			err = deployer.DownloadContract(contractUrl)
 			if err != nil {
 				pterm.Error.Printf("failed to download contract: %v\n", err)
 				return
 			}
 
-			// Get private key for deployment
-			// TODO: Implement private key retrieval from rollerData or config
-
-			// Deploy the contract
-			contractAddr, err := deployer.DeployContract(context.Background(), nil, nil)
+			contractAddr, err := deployer.DeployContract(context.Background())
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return
@@ -150,20 +165,44 @@ func DeployCmd() *cobra.Command {
 				feeDenom = raData.Rollapp.GenesisInfo.NativeDenom.Base
 			}
 
-			updates := map[string]any{
-				"chainClient.oracleContractAddress": contractAddr,
-				"chainClient.fee": fmt.Sprintf(
-					"%s%s",
-					"40000000000000000000",
-					feeDenom,
-				),
-				"chainClient.gasLimit":      gl.Uint64(),
-				"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
-				"chainClient.chainId":       raData.Rollapp.RollappId,
-				"chainClient.privateKey":    deployer.Config().PrivateKey,
-				"chainClient.ssl":           false,
-				"chainClient.chainGrpcHost": "localhost:9090",
-				"grpc_port":                 9093,
+			var updates map[string]any
+
+			switch rollerData.RollappVMType {
+			case consts.EVM_ROLLAPP:
+				networkID, err := extractNetworkID(rollerData.RollappID)
+				if err != nil {
+					pterm.Error.Printf("failed to extract network ID: %v\n", err)
+					return
+				}
+
+				updates = map[string]any{
+					"chainClient.rpcEndpoint":     "http://127.0.0.1:8545/",
+					"chainClient.chainId":         networkID,
+					"chainClient.privateKey":      deployer.PrivateKey(),
+					"chainClient.contractAddress": contractAddr,
+					"grpc_port":                   9093,
+					// gasLimit: 250000
+					// maxGasPrice: "100000000000"
+				}
+			case consts.WASM_ROLLAPP:
+				updates = map[string]any{
+					"chainClient.oracleContractAddress": contractAddr,
+					"chainClient.fee": fmt.Sprintf(
+						"%s%s",
+						"40000000000000000000",
+						feeDenom,
+					),
+					"chainClient.gasLimit":      gl.Uint64(),
+					"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
+					"chainClient.chainId":       raData.Rollapp.RollappId,
+					"chainClient.privateKey":    deployer.PrivateKey(),
+					"chainClient.ssl":           false,
+					"chainClient.chainGrpcHost": "localhost:9090",
+					"grpc_port":                 9093,
+				}
+			default:
+				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
+				return
 			}
 
 			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")

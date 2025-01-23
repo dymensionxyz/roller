@@ -50,9 +50,8 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           DefaultCelestiaRestApiEndpoint,
 		ID:               CelestiaTestnet,
 		RpcUrl:           DefaultCelestiaRPC,
-		CurrentStateNode: "mocha-4-consensus.mesa.newmetric.xyz",
+		CurrentStateNode: "rpc-mocha.pops.one",
 		StateNodes: []string{
-			"mocha-4-consensus.mesa.newmetric.xyz",
 			"public-celestia-mocha4-consensus.numia.xyz",
 			"full.consensus.mocha-4.celestia-mocha.com",
 			"consensus-full-mocha-4.celestia-mocha.com",
