@@ -1,4 +1,4 @@
-package oracle
+package priceoracle
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Starts an oracle client",
+		Short: "Starts the price oracle client",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {

@@ -1,4 +1,4 @@
-package oracle
+package oracleutils
 
 import (
 	"bytes"
@@ -59,7 +59,7 @@ func generateRaOracleKeys(
 	home string,
 	rollerData roller.RollappConfig,
 ) ([]keys.KeyInfo, bool, error) {
-	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
 		return nil, false, err
 	}
@@ -103,7 +103,7 @@ func generateRaOracleKeys(
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
@@ -292,7 +292,7 @@ func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}

@@ -1,4 +1,4 @@
-package oracle
+package oracleutils
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 )
 
-func getOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
+func GetOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
 	kc := keys.KeyConfig{
 		Dir:            consts.ConfigDirName.Oracle,
 		ID:             consts.KeysIds.Oracle,
@@ -51,7 +51,7 @@ func getOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
 	return keys, nil
 }
 
-func extractNetworkID(rollappID string) (int, error) {
+func ExtractNetworkID(rollappID string) (int, error) {
 	parts := strings.Split(rollappID, "_")
 	if len(parts) != 2 {
 		return 0, fmt.Errorf("invalid rollapp ID format")

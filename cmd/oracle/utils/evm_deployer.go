@@ -1,4 +1,4 @@
-package oracle
+package oracleutils
 
 import (
 	"bytes"
@@ -263,7 +263,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(e.rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(e.rollerData.RollappVMType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
