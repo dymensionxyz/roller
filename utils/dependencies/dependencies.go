@@ -49,7 +49,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 	var drsVersion string
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	if !withMockDA {
-		// TODO refactor, this genesis file fetch is redundand and will slow the process down
+		// TODO refactor, this genesis file fetch is redundant and will slow the process down
 		// when the genesis file is big
 		err = genesisutils.DownloadGenesis(genesisTmpDir, raResp.Rollapp.Metadata.GenesisUrl)
 		if err != nil {
