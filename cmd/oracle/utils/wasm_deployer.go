@@ -156,7 +156,7 @@ func (w *WasmDeployer) DeployContract(
 	contractName string,
 ) (string, error) {
 	// Store the contract
-	if err := w.config.StoreWasmContract(w.rollerData); err != nil {
+	if err := w.config.StoreWasmContract(w.rollerData, contractName); err != nil {
 		return "", fmt.Errorf("failed to store contract: %w", err)
 	}
 
@@ -164,7 +164,7 @@ func (w *WasmDeployer) DeployContract(
 	time.Sleep(time.Second * 2)
 
 	// Get the code ID
-	codeID, err := w.config.GetCodeID()
+	codeID, err := w.config.GetCodeID(contractName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get code ID: %w", err)
 	}

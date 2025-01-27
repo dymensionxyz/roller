@@ -76,12 +76,6 @@ func (e *EVMDeployer) PrivateKey() string {
 	return hex.EncodeToString(e.KeyData.PrivateKey.D.Bytes())
 }
 
-func (e *EVMDeployer) ContractPath() string {
-	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
-
-	return contractPath
-}
-
 func (e *EVMDeployer) ClientConfigPath() string {
 	return filepath.Join(e.config.ConfigDirPath, "config.yaml")
 }
@@ -194,7 +188,7 @@ func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
 	contractName string,
 ) (string, error) {
-	contractPath := e.ContractPath()
+	contractPath := filepath.Join(e.config.ConfigDirPath, contractName)
 
 	bytecode, contractABI, err := compileContract(contractPath, contractName)
 	if err != nil {
