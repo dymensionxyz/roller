@@ -394,6 +394,8 @@ func encodeConstructorArgs(args []interface{}, contractABI string) ([]byte, erro
 }
 
 func compileContract(contractPath string, contractName string) (string, string, error) {
+	tContractName := strings.TrimSuffix(contractName, ".sol")
+
 	// Ensure solc is installed
 	if err := dependencies.InstallSolidityDependencies(); err != nil {
 		return "", "", fmt.Errorf("failed to install solidity compiler: %w", err)
@@ -419,13 +421,13 @@ func compileContract(contractPath string, contractName string) (string, string, 
 		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
 	}
 
-	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", contractName))
+	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", tContractName))
 	bytecode, err := os.ReadFile(binPath)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read bytecode: %w", err)
 	}
 
-	abiPath := filepath.Join(buildDir, fmt.Sprintf("%s.abi", contractName))
+	abiPath := filepath.Join(buildDir, fmt.Sprintf("%s.abi", tContractName))
 	abiBytes, err := os.ReadFile(abiPath)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read ABI: %w", err)
