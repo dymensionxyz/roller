@@ -154,8 +154,8 @@ func (e *EVMDeployer) Config() *OracleConfig {
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for EVM
-func (e *EVMDeployer) DownloadContract(url string) error {
-	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
+func (e *EVMDeployer) DownloadContract(url string, outputName string) error {
+	contractPath := filepath.Join(e.config.ConfigDirPath, outputName)
 
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(e.config.ConfigDirPath, 0o755); err != nil {
@@ -211,7 +211,7 @@ func (e *EVMDeployer) DeployContract(
 		return "", err
 	}
 
-	contractAddress, err := deployEvmContract(
+	contractAddress, err := deployPriceOracleContract(
 		bytecode,
 		e.KeyData.PrivateKey,
 		big.NewInt(3),
@@ -294,7 +294,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 }
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
-func deployEvmContract(
+func deployPriceOracleContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	expirationOffset *big.Int,

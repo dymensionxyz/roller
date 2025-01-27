@@ -71,6 +71,12 @@ func DeployCmd() *cobra.Command {
 					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
 					return
 				}
+
+				err = deployer.DownloadContract(contractUrl, "PriceOracle.sol")
+				if err != nil {
+					pterm.Error.Printf("failed to download contract: %v\n", err)
+					return
+				}
 			case consts.WASM_ROLLAPP:
 				deployer, err = oracleutils.NewWasmDeployer(rollerData)
 				if err != nil {
@@ -78,6 +84,12 @@ func DeployCmd() *cobra.Command {
 					return
 				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
+
+				err = deployer.DownloadContract(contractUrl, "PriceOracle.wasm")
+				if err != nil {
+					pterm.Error.Printf("failed to download contract: %v\n", err)
+					return
+				}
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
 				return
@@ -91,12 +103,6 @@ func DeployCmd() *cobra.Command {
 
 			if err != nil {
 				pterm.Error.Printf("failed to create deployer: %v\n", err)
-				return
-			}
-
-			err = deployer.DownloadContract(contractUrl)
-			if err != nil {
-				pterm.Error.Printf("failed to download contract: %v\n", err)
 				return
 			}
 

@@ -54,7 +54,6 @@ func DeployCmd() *cobra.Command {
 
 			// Create the appropriate deployer based on RollApp type
 			var deployer oracleutils.ContractDeployer
-			var contractUrl string
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
 				deployer, err = oracleutils.NewEVMDeployer(rollerData)
@@ -62,7 +61,6 @@ func DeployCmd() *cobra.Command {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
 				}
-				contractUrl = "https://storage.googleapis.com/dymension-roller/rng_oracle_contract.sol"
 
 				err := dependencies.InstallSolidityDependencies()
 				if err != nil {
@@ -85,13 +83,32 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			err = deployer.DownloadContract(contractUrl)
-			if err != nil {
-				pterm.Error.Printf("failed to download contract: %v\n", err)
-				return
+			contracts := []struct {
+				Name string
+				Url  string
+			}{
+				{
+					Name: "EventManager.sol",
+					Url:  "https://storage.googleapis.com/dymension-roller/rng_EventManager.sol",
+				},
+				{
+					Name: "RandomnessGenerator.sol",
+					Url:  "https://storage.googleapis.com/dymension-roller/rng_RandomnessGenerator.sol",
+				},
 			}
 
-			contractAddr, err := deployer.DeployContract(context.Background(), "RngOracle")
+			for _, contract := range contracts {
+				err = deployer.DownloadContract(contract.Url, contract.Name)
+				if err != nil {
+					pterm.Error.Printf("failed to download contract: %v\n", err)
+					return
+				}
+			}
+
+			contractAddr, err := deployer.DeployContract(
+				context.Background(),
+				"RandomnessGenerator",
+			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return

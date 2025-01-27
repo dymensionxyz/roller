@@ -47,12 +47,6 @@ func (w *WasmDeployer) PrivateKey() string {
 	return w.KeyData.PrivateKey
 }
 
-func (w *WasmDeployer) ContractPath() string {
-	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
-
-	return contractPath
-}
-
 func (w *WasmDeployer) ClientConfigPath() string {
 	return filepath.Join(w.config.ConfigDirPath, "config.yaml")
 }
@@ -120,8 +114,8 @@ func (w *WasmDeployer) Config() *OracleConfig {
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
-func (w *WasmDeployer) DownloadContract(url string) error {
-	contractPath := w.ContractPath()
+func (w *WasmDeployer) DownloadContract(url string, outputName string) error {
+	contractPath := filepath.Join(w.config.ConfigDirPath, outputName)
 
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(w.config.ConfigDirPath, 0o755); err != nil {
