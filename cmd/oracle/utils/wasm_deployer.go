@@ -159,6 +159,7 @@ func (w *WasmDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for WASM
 func (w *WasmDeployer) DeployContract(
 	ctx context.Context,
+	contractName string,
 ) (string, error) {
 	// Store the contract
 	if err := w.config.StoreWasmContract(w.rollerData); err != nil {

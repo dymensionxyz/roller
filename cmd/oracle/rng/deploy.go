@@ -1,4 +1,4 @@
-package priceoracle
+package rngoracle
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	cosmossdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -64,20 +62,13 @@ func DeployCmd() *cobra.Command {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
 				}
-				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
+				contractUrl = "https://storage.googleapis.com/dymension-roller/rng_oracle_contract.sol"
 
 				err := dependencies.InstallSolidityDependencies()
 				if err != nil {
 					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
 					return
 				}
-			case consts.WASM_ROLLAPP:
-				deployer, err = oracleutils.NewWasmDeployer(rollerData)
-				if err != nil {
-					pterm.Error.Printf("failed to create wasm deployer: %v\n", err)
-					return
-				}
-				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
 				return
@@ -100,7 +91,7 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			contractAddr, err := deployer.DeployContract(context.Background(), "PriceOracle")
+			contractAddr, err := deployer.DeployContract(context.Background(), "RngOracle")
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return
@@ -120,8 +111,6 @@ func DeployCmd() *cobra.Command {
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
 				v = obvi.EvmOracle
-			case consts.WASM_ROLLAPP:
-				v = obvi.WasmOracle
 			default:
 				pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
 				return
@@ -149,57 +138,14 @@ func DeployCmd() *cobra.Command {
 			}
 			pterm.Info.Println("config file copied successfully")
 			pterm.Info.Println("updating config values")
-			gl, _ := cosmossdkmath.NewIntFromString(
-				consts.DefaultMinGasPrice,
-			)
-
-			raData, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
-			if err != nil {
-				pterm.Error.Printf("failed to get rollapp metadata: %v\n", err)
-				return
-			}
-
-			var feeDenom string
-			if raData.Rollapp.GenesisInfo.NativeDenom == nil {
-				feeDenom = consts.Denoms.HubIbcOnRollapp
-			} else {
-				feeDenom = raData.Rollapp.GenesisInfo.NativeDenom.Base
-			}
-
 			var updates map[string]any
 
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				networkID, err := oracleutils.ExtractNetworkID(rollerData.RollappID)
-				if err != nil {
-					pterm.Error.Printf("failed to extract network ID: %v\n", err)
-					return
-				}
-
 				updates = map[string]any{
-					"chainClient.rpcEndpoint":     "http://127.0.0.1:8545/",
-					"chainClient.chainId":         networkID,
-					"chainClient.privateKey":      deployer.PrivateKey(),
-					"chainClient.contractAddress": contractAddr,
-					"grpc_port":                   9093,
-					// gasLimit: 250000
-					// maxGasPrice: "100000000000"
-				}
-			case consts.WASM_ROLLAPP:
-				updates = map[string]any{
-					"chainClient.oracleContractAddress": contractAddr,
-					"chainClient.fee": fmt.Sprintf(
-						"%s%s",
-						"40000000000000000000",
-						feeDenom,
-					),
-					"chainClient.gasLimit":      gl.Uint64(),
-					"chainClient.bech32Prefix":  raData.Rollapp.GenesisInfo.Bech32Prefix,
-					"chainClient.chainId":       raData.Rollapp.RollappId,
-					"chainClient.privateKey":    deployer.PrivateKey(),
-					"chainClient.ssl":           false,
-					"chainClient.chainGrpcHost": "localhost:9090",
-					"grpc_port":                 9093,
+					"contract.node_url":         "http://127.0.0.1:8545",
+					"contract.contract_address": contractAddr,
+					"contract.mnemonic":         contractAddr,
 				}
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
@@ -222,9 +168,7 @@ func copyConfigFile(rollappType consts.VMType, destDir string) error {
 	var configFile string
 	switch rollappType {
 	case consts.EVM_ROLLAPP:
-		configFile = "setup/configs/evm-config.yaml"
-	case consts.WASM_ROLLAPP:
-		configFile = "setup/configs/wasm-config.yaml"
+		configFile = "setup/configs/evm-config.json"
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollappType)
 	}
@@ -234,7 +178,7 @@ func copyConfigFile(rollappType consts.VMType, destDir string) error {
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	configPath := filepath.Join(destDir, "config.yaml")
+	configPath := filepath.Join(destDir, "config.json")
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}

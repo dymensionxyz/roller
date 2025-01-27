@@ -12,6 +12,7 @@ type ContractDeployer interface {
 	// DeployContract deploys the contract on chain and returns its address
 	DeployContract(
 		ctx context.Context,
+		contractName string,
 	) (string, error)
 
 	// Config returns the OracleConfig

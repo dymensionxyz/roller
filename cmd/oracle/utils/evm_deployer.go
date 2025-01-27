@@ -192,10 +192,11 @@ func (e *EVMDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for EVM
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
+	contractName string,
 ) (string, error) {
 	contractPath := e.ContractPath()
 
-	bytecode, contractABI, err := compileContract(contractPath)
+	bytecode, contractABI, err := compileContract(contractPath, contractName)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
@@ -398,7 +399,7 @@ func encodeConstructorArgs(args []interface{}, contractABI string) ([]byte, erro
 	return encoded, nil
 }
 
-func compileContract(contractPath string) (string, string, error) {
+func compileContract(contractPath string, contractName string) (string, string, error) {
 	// Ensure solc is installed
 	if err := dependencies.InstallSolidityDependencies(); err != nil {
 		return "", "", fmt.Errorf("failed to install solidity compiler: %w", err)
@@ -423,8 +424,6 @@ func compileContract(contractPath string) (string, string, error) {
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
 	}
-
-	contractName := "PriceOracle"
 
 	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", contractName))
 	bytecode, err := os.ReadFile(binPath)
