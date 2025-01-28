@@ -189,6 +189,7 @@ func (e *EVMDeployer) DeployContract(
 	contractName string,
 ) (string, error) {
 	contractPath := filepath.Join(e.config.ConfigDirPath, contractName)
+	tContractName := strings.TrimSuffix(contractName, ".sol")
 
 	bytecode, contractABI, err := compileContract(contractPath, contractName)
 	if err != nil {
@@ -205,31 +206,48 @@ func (e *EVMDeployer) DeployContract(
 		return "", err
 	}
 
-	contractAddress, err := deployPriceOracleContract(
-		bytecode,
-		e.KeyData.PrivateKey,
-		big.NewInt(3),
-		[]AssetInfo{
-			{
-				LocalNetworkName: common.HexToAddress(
-					"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-				),
-				OracleNetworkName:     "WBTC",
-				LocalNetworkPrecision: big.NewInt(8),
+	var contractAddress *goethcommon.Address
+
+	switch tContractName {
+	case "PriceOracle":
+		contractAddress, err = deployPriceOracleContract(
+			bytecode,
+			e.KeyData.PrivateKey,
+			big.NewInt(3),
+			[]AssetInfo{
+				{
+					LocalNetworkName: common.HexToAddress(
+						"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+					),
+					OracleNetworkName:     "WBTC",
+					LocalNetworkPrecision: big.NewInt(8),
+				},
+				{
+					LocalNetworkName: common.HexToAddress(
+						"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+					),
+					OracleNetworkName:     "USDC",
+					LocalNetworkPrecision: big.NewInt(6),
+				},
 			},
-			{
-				LocalNetworkName: common.HexToAddress(
-					"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-				),
-				OracleNetworkName:     "USDC",
-				LocalNetworkPrecision: big.NewInt(6),
-			},
-		},
-		big.NewInt(1000000000000000000), // 1 ETH bound threshold
-		contractABI,
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to deploy contract: %w", err)
+			big.NewInt(1000000000000000000), // 1 ETH bound threshold
+			contractABI,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to deploy contract: %w", err)
+		}
+	case "RandomnessGenerator":
+		contractAddress, err = deployRngOracleContract(
+			bytecode,
+			e.KeyData.PrivateKey,
+			e.KeyData.Address,
+			contractABI,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to deploy contract: %w", err)
+		}
+	default:
+		return "", fmt.Errorf("unknown contract name: %s", tContractName)
 	}
 
 	return contractAddress.Hex(), nil
@@ -341,6 +359,94 @@ func deployPriceOracleContract(
 
 	// Encode constructor arguments
 	constructorInput := []interface{}{expirationOffset, assetInfos, boundThreshold}
+	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
+	}
+
+	// Append encoded constructor arguments to deployment bytecode
+	deploymentBytes = append(deploymentBytes, constructorArgs...)
+
+	txData := ethtypes.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: big.NewInt(20_000_000_000),
+		Gas:      400_000_000,
+		To:       nil,
+		Data:     deploymentBytes,
+		Value:    goethcommon.Big0,
+	}
+	tx := ethtypes.NewTx(&txData)
+
+	newContractAddress := crypto.CreateAddress(*from, nonce)
+
+	fmt.Println("Deploying new contract using account", from)
+
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign tx: %w", err)
+	}
+
+	var buf bytes.Buffer
+	err = signedTx.EncodeRLP(&buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode tx: %w", err)
+	}
+
+	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
+	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
+	rawTxFile := filepath.Join("raw_tx.hex")
+	if err := os.WriteFile(rawTxFile, []byte("0x"+rawTxRLPHex), 0o644); err != nil {
+		return nil, fmt.Errorf("failed to write raw tx to file: %w", err)
+	}
+	fmt.Printf("RawTx written to: %s\n", rawTxFile)
+
+	err = ethClient8545.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send tx: %w", err)
+	}
+
+	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
+		fmt.Printf("Contract deployed successfully at: %s\n", newContractAddress.Hex())
+		return &newContractAddress, nil
+	}
+
+	return nil, fmt.Errorf("contract deployment failed - transaction was not successful")
+}
+
+func deployRngOracleContract(
+	bytecode string,
+	ecdsaPrivateKey *ecdsa.PrivateKey,
+	deployer string,
+	contractABI string,
+) (*goethcommon.Address, error) {
+	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial eth client: %w", err)
+	}
+
+	ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(ecdsaPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := ethClient8545.NonceAt(context.Background(), *from, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce of sender: %w", err)
+	}
+
+	chainId, err := ethClient8545.ChainID(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chain ID: %w", err)
+	}
+
+	bytecode = strings.TrimPrefix(bytecode, "0x")
+	deploymentBytes, err := hex.DecodeString(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
+	}
+
+	// Encode constructor arguments
+	constructorInput := []interface{}{deployer}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
