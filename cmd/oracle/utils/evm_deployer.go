@@ -257,8 +257,18 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 
 		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 		pterm.Info.Println(
-			"checking the balance of the oracle address, expected: ",
-			fmt.Sprintf(">= %s%s", one.String(), balanceDenom),
+			"checking the balance of the oracle address",
+		)
+
+		pterm.Info.Printf(
+			"required balance: %s%s\n",
+			one.String(),
+			balanceDenom,
+		)
+
+		pterm.Info.Printf(
+			"current balance: %s\n",
+			balance.String(),
 		)
 
 		isAddrFunded := balance.Amount.GTE(one)
