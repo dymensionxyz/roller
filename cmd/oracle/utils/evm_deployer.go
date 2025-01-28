@@ -242,6 +242,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 	} else {
 		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
 	}
+
 	for {
 		balance, err := keys.QueryBalance(
 			keys.ChainQueryConfig{
@@ -255,6 +256,11 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 		}
 
 		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		pterm.Info.Println(
+			"checking the balance of the oracle address, expected: ",
+			fmt.Sprintf(">= %s%s", one.String(), balanceDenom),
+		)
+
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
