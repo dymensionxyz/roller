@@ -247,7 +247,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 
 	for {
 		balances, sc, err := keys.QueryErc20Balance(
-			"localhost:1317",
+			"http://localhost:1317",
 		)
 		if err != nil {
 			return fmt.Errorf("failed to query balance: %v", err)
