@@ -237,7 +237,8 @@ func (e *EVMDeployer) DeployContract(
 
 func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 	var balanceDenom string
-	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil ||
+		raResp.Rollapp.GenesisInfo.NativeDenom.Base == "" {
 		pterm.Info.Println("no native denom on rollapp, using DYM IBC denom")
 		balanceDenom = consts.Denoms.HubIbcOnRollapp
 	} else {
