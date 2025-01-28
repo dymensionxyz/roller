@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -17,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	cosmossdkmath "cosmossdk.io/math"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
 	cosmoshd "github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -239,31 +239,40 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 	var balanceDenom string
 	if raResp.Rollapp.GenesisInfo.NativeDenom == nil ||
 		raResp.Rollapp.GenesisInfo.NativeDenom.Base == "" {
-		pterm.Info.Println("no native denom on rollapp, using DYM IBC denom")
 		balanceDenom = consts.Denoms.HubIbcOnRollapp
 	} else {
-		pterm.Info.Println("native rollapp denom found, using native denom")
-		pterm.Info.Println("native denom: ", raResp.Rollapp.GenesisInfo.NativeDenom.Base)
 		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
 	}
 
-	fmt.Println("balance denom: ", balanceDenom)
-
 	for {
-		balances, sc, err := keys.QueryErc20Balance(
-			"http://localhost:1317",
+		balance, err := keys.QueryBalance(
+			keys.ChainQueryConfig{
+				Denom:  balanceDenom,
+				RPC:    "http://localhost:26657",
+				Binary: consts.Executables.RollappEVM,
+			}, e.KeyData.Address,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to query balance: %v", err)
 		}
 
-		j, _ := json.MarshalIndent(balances, "", "  ")
-		fmt.Println(string(j))
+		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		pterm.Info.Println(
+			"checking the balance of the oracle address",
+		)
 
-		fmt.Println("status code: ", sc)
+		pterm.Info.Printf(
+			"required balance: %s%s\n",
+			one.String(),
+			balanceDenom,
+		)
 
-		// isAddrFunded := balance.Amount.GTE(one)
-		isAddrFunded := false
+		pterm.Info.Printf(
+			"current balance: %s\n",
+			balance.String(),
+		)
+
+		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
 			oracleKeys, err := GetOracleKeyConfig(e.rollerData.RollappVMType)
