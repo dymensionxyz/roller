@@ -107,6 +107,14 @@ func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]Ke
 			return nil, err
 		}
 
+		if rollerData.KeyringBackend == consts.SupportedKeyringBackends.OS {
+			pterm.Info.Printfln(
+				"use the os keyring password from %s",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprint(filepath.Join(rollerData.Home, string(consts.OsKeyringPwdFileNames.RollApp))),
+			)
+		}
+
 		ki, err := kc.Create(home)
 		if err != nil {
 			return nil, err
