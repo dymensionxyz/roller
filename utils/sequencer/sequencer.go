@@ -2,6 +2,7 @@ package sequencer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -88,6 +89,24 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	psw, err := filesystem.ReadFromFile(fp)
 	if err != nil {
 		return err
+	}
+
+	newHeader := pterm.HeaderPrinter{
+		TextStyle:       pterm.NewStyle(pterm.FgBlack),
+		BackgroundStyle: pterm.NewStyle(pterm.BgRed),
+		Margin:          20,
+	}
+
+	// Print the custom header using the new HeaderPrinter.
+	newHeader.WithFullWidth().
+		Println("The moment you bond the sequencer, you have to ensure it’s uptime, otherwise you will get slashed.")
+
+	proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"would you like to proceed with bonding the sequencer?",
+	).Show()
+
+	if !proceed {
+		return errors.New("user declined to bond the sequencer")
 	}
 
 	automaticPrompts := map[string]string{
