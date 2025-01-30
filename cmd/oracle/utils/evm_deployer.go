@@ -534,16 +534,14 @@ func compileContract(contractPath string, contractName string) (string, string, 
 		return "", "", fmt.Errorf("failed to create build directory: %w", err)
 	}
 
-	solcPath := filepath.Join(consts.InternalBinsDir, "solc")
-
 	// Compile contract to get bytecode
-	cmd := exec.Command(solcPath, "--bin", contractPath, "-o", buildDir)
+	cmd := exec.Command(consts.Executables.Solc, "--bin", contractPath, "-o", buildDir)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return "", "", fmt.Errorf("failed to compile contract (bytecode): %w", err)
 	}
 
 	// Compile contract to get ABI
-	cmd = exec.Command(solcPath, "--abi", contractPath, "-o", buildDir)
+	cmd = exec.Command(consts.Executables.Solc, "--abi", contractPath, "-o", buildDir)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
 	}
