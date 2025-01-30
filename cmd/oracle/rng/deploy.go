@@ -3,6 +3,7 @@ package rngoracle
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	oracleutils "github.com/dymensionxyz/roller/cmd/oracle/utils"
-	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -22,6 +22,30 @@ import (
 
 //go:embed configs/*
 var configFiles embed.FS
+
+type Config struct {
+	External struct {
+		RandomnessServerBaseURL string `json:"randomness_server_base_url"`
+		PollRetryCount          int    `json:"poll_retry_count"`
+		PollRetryWaitTime       int64  `json:"poll_retry_wait_time"`
+		PollRetryMaxWaitTime    int64  `json:"poll_retry_max_wait_time"`
+	} `json:"external"`
+	Agent struct {
+		HTTPServerAddress string `json:"http_server_address"`
+	} `json:"agent"`
+	DB struct {
+		DBPath string `json:"db_path"`
+	} `json:"db"`
+	Contract struct {
+		PollInterval    int64  `json:"poll_interval"`
+		NodeURL         string `json:"node_url"`
+		Mnemonic        string `json:"mnemonic"`
+		ContractAddress string `json:"contract_address"`
+		DerivationPath  string `json:"derivation_path"`
+		GasLimit        int64  `json:"gas_limit"`
+		GasFeeCap       int64  `json:"gas_fee_cap"`
+	} `json:"contract"`
+}
 
 func DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -155,24 +179,35 @@ func DeployCmd() *cobra.Command {
 			}
 			pterm.Info.Println("config file copied successfully")
 			pterm.Info.Println("updating config values")
-			var updates map[string]any
 
-			switch rollerData.RollappVMType {
-			case consts.EVM_ROLLAPP:
-				updates = map[string]any{
-					"contract.node_url":         "http://127.0.0.1:8545",
-					"contract.contract_address": contractAddr,
-					"contract.mnemonic":         contractAddr,
-				}
-			default:
-				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
+			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.json")
+			// Read the existing config
+			configData, err := os.ReadFile(cfp)
+			if err != nil {
+				pterm.Error.Printf("failed to read config file: %v\n", err)
 				return
 			}
 
-			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.json")
-			err = yamlconfig.UpdateNestedYAML(cfp, updates)
+			var config Config
+			if err := json.Unmarshal(configData, &config); err != nil {
+				pterm.Error.Printf("failed to parse config file: %v\n", err)
+				return
+			}
+
+			// Update the values
+			config.Contract.NodeURL = "http://127.0.0.1:8545"
+			config.Contract.ContractAddress = contractAddr
+			config.Contract.Mnemonic = contractAddr
+
+			// Write back the updated config
+			updatedConfig, err := json.MarshalIndent(config, "", "  ")
 			if err != nil {
-				pterm.Error.Printf("failed to update config file: %v\n", err)
+				pterm.Error.Printf("failed to marshal updated config: %v\n", err)
+				return
+			}
+
+			if err := os.WriteFile(cfp, updatedConfig, 0o644); err != nil {
+				pterm.Error.Printf("failed to write updated config: %v\n", err)
 				return
 			}
 		},
