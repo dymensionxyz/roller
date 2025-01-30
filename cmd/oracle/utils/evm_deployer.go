@@ -447,8 +447,10 @@ func deployRngOracleContract(
 		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
 	}
 
+	// Convert deployer string to Ethereum address
+	deployerAddr := goethcommon.HexToAddress(deployer)
 	// Encode constructor arguments
-	constructorInput := []interface{}{deployer}
+	constructorInput := []interface{}{deployerAddr}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
