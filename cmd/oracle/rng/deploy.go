@@ -169,7 +169,7 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
+			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.json")
 			err = yamlconfig.UpdateNestedYAML(cfp, updates)
 			if err != nil {
 				pterm.Error.Printf("failed to update config file: %v\n", err)
