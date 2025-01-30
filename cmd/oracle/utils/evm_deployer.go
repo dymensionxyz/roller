@@ -331,6 +331,7 @@ func deployPriceOracleContract(
 	boundThreshold *big.Int,
 	contractABI string,
 ) (*goethcommon.Address, error) {
+	pterm.Info.Println("deploying Oracle contract")
 	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial eth client: %w", err)
@@ -419,6 +420,7 @@ func deployRngOracleContract(
 	deployer string,
 	contractABI string,
 ) (*goethcommon.Address, error) {
+	pterm.Info.Println("deploying RandomnessGenerator contract")
 	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial eth client: %w", err)
