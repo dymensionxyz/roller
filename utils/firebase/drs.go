@@ -20,7 +20,9 @@ type DrsVersionInfo struct {
 // GetLatestDrsVersionCommit
 // Fetch DRS version information using the nested collection path
 // Path format: versions/{version}/revisions/{revision}
-func GetLatestDrsVersionCommit(drsVersion string) (*DrsVersionInfo, error) {
+// Path format: /testnets/versions/{version}/revisions/{revision}/version-info
+// Path format: /mainnet/versions/{version}/revisions/{revision}/version-info
+func GetLatestDrsVersionCommit(drsVersion string, env string) (*DrsVersionInfo, error) {
 	ctx := context.Background()
 	conf := &firebase.Config{ProjectID: "drs-metadata"}
 	app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
@@ -34,9 +36,16 @@ func GetLatestDrsVersionCommit(drsVersion string) (*DrsVersionInfo, error) {
 	}
 	defer client.Close()
 
+	var rootCollection string
+	if env == "mainnet" {
+		rootCollection = "mainnet"
+	} else {
+		rootCollection = "testnets"
+	}
+
 	// Fetch DRS version information using the nested collection path
 	// Path format: versions/{version}/revisions/{revision}
-	drsDoc := client.Collection("versions").
+	drsDoc := client.Collection(rootCollection).
 		Doc(drsVersion).
 		Collection("revisions").
 		OrderBy("timestamp", firestore.Desc).

@@ -312,7 +312,7 @@ func installRelayerDependencies(
 		return err
 	}
 
-	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, hd.Environment)
 	if err != nil {
 		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
 		return err

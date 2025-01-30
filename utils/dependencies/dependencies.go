@@ -26,7 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
+func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env string) (
 	map[string]types.Dependency,
 	map[string]types.Dependency,
 	error,
@@ -68,7 +68,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
-		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, env)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -62,7 +62,10 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println("Installing the latest version", err)
 			}
 
-			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(
+				drsVersion,
+				rollerData.HubData.Environment,
+			)
 			if err != nil {
 				pterm.Error.Println("Failed to get the latest commit:", err)
 				return
