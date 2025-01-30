@@ -79,6 +79,11 @@ func Cmd() *cobra.Command {
 				raCommit = drsInfo.WasmCommit
 			}
 
+			if raCommit == "UNRELEASED" {
+				pterm.Error.Println("rollapp does not support drs version: " + drsVersion)
+				return
+			}
+
 			// if doesn't match, take latest as the reference
 			// download the latest, build into ~/.roller/tmp
 			if raCommit[:6] == cv {

@@ -6,7 +6,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
-	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -43,27 +42,34 @@ func GetLatestDrsVersionCommit(drsVersion string, env string) (*DrsVersionInfo, 
 		rootCollection = "testnets"
 	}
 
-	// Fetch DRS version information using the nested collection path
-	// Path format: versions/{version}/revisions/{revision}
-	drsDoc := client.Collection(rootCollection).
-		Doc(drsVersion).
-		Collection("revisions").
-		OrderBy("timestamp", firestore.Desc).
-		Limit(1).
-		Documents(ctx)
+	// Get the path to revisions
+	versionsDoc := client.Collection(rootCollection).Doc("versions")
+	drsVersionColl := versionsDoc.Collection(drsVersion)
+	revisionsDoc := drsVersionColl.Doc("revisions")
 
-	doc, err := drsDoc.Next()
-	if err == iterator.Done {
-		return nil, err
-	}
-	if err != nil {
-		return nil, err
+	fmt.Println(revisionsDoc.Path)
+
+	// Find the highest revision number by trying incrementing numbers
+	var latestDoc *firestore.DocumentSnapshot
+	for i := 1; ; i++ {
+		doc, err := drsVersionColl.Doc("revisions").
+			Collection(fmt.Sprintf("%d", i)).
+			Doc("version-info").
+			Get(ctx)
+		if err != nil {
+			// If we get an error, we've gone past the last valid revision
+			break
+		}
+		latestDoc = doc
 	}
 
-	var drsInfo DrsVersionInfo
-	if err := doc.DataTo(&drsInfo); err != nil {
+	if latestDoc == nil {
+		return nil, fmt.Errorf("no version-info documents found for version %s", drsVersion)
+	}
+
+	var info DrsVersionInfo
+	if err := latestDoc.DataTo(&info); err != nil {
 		return nil, fmt.Errorf("failed to parse DRS version info: %v", err)
 	}
-
-	return &drsInfo, nil
+	return &info, nil
 }

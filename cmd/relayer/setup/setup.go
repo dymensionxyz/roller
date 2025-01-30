@@ -326,6 +326,10 @@ func installRelayerDependencies(
 		raCommit = drsInfo.WasmCommit
 	}
 
+	if raCommit == "UNRELEASED" {
+		return fmt.Errorf("rollapp does not support drs version: %s", drsVersion)
+	}
+
 	rbi := dependencies.NewRollappBinaryInfo(
 		raResp.Rollapp.GenesisInfo.Bech32Prefix,
 		raCommit,
