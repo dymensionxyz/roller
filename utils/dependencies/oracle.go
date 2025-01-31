@@ -91,20 +91,17 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig, oracleType s
 	goos := runtime.GOOS
 	version := fmt.Sprintf("%s-%s", config.Version, arch)
 
-	fullPath := fmt.Sprintf("%s:%s:%s/%s-%s-%s",
+	binaryName := fmt.Sprintf("%s-%s-%s", oraclePlatform, goos, arch)
+
+	fullPath := fmt.Sprintf("%s/%s/%s/%s",
 		oraclePlatform, // package name (cosmos-oracle)
 		version,        // version (1.0.0-amd64)
 		oraclePath,     // path (price/cosmos or rng/cosmos)
-		goos,           // os (linux)
-		arch,           // architecture (amd64)
-		oraclePlatform, // binary name (cosmos-oracle)
+		binaryName,     // binary name (evm-oracle-linux-amd64)
 	)
 
 	downloadURL := fmt.Sprintf(
-		"https://artifactregistry.googleapis.com/download/v1/projects/%s/locations/%s/repositories/%s/files/%s:download?alt=media",
-		projectID,
-		location,
-		repository,
+		"https://europe-central2-generic.pkg.dev/dymension-ops/oracle-clients/%s",
 		fullPath,
 	)
 
