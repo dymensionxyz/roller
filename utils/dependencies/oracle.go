@@ -108,6 +108,7 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig, oracleType s
 		fullPath,
 	)
 
+	fmt.Println("Downloading", downloadURL)
 	// Create the HTTP request
 	req, err := http.NewRequestWithContext(ctx, "GET", downloadURL, nil)
 	if err != nil {
