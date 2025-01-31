@@ -125,9 +125,9 @@ func DeployCmd() *cobra.Command {
 			var v string
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				v = obvi.EvmOracle
+				v = obvi.PriceEvmOracle
 			case consts.WASM_ROLLAPP:
-				v = obvi.WasmOracle
+				v = obvi.PriceWasmOracle
 			default:
 				pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
 				return
@@ -139,7 +139,7 @@ func DeployCmd() *cobra.Command {
 				InstallDir:  consts.Executables.Oracle,
 			}
 
-			err = dependencies.InstallBinary(context.Background(), bc)
+			err = dependencies.InstallBinary(context.Background(), bc, "price")
 			if err != nil {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return

@@ -31,8 +31,9 @@ type BinaryInstallConfig struct {
 }
 
 type OracleBinaryVersionInfo struct {
-	EvmOracle  string `firestore:"evm-oracle"`
-	WasmOracle string `firestore:"wasm-oracle"`
+	PriceEvmOracle  string `firestore:"price-evm"`
+	PriceWasmOracle string `firestore:"price-wasm"`
+	RngEvmOracle    string `firestore:"rng-evm"`
 }
 
 func GetOracleBinaryVersion(vmt consts.VMType) (*OracleBinaryVersionInfo, error) {
@@ -52,7 +53,7 @@ func GetOracleBinaryVersion(vmt consts.VMType) (*OracleBinaryVersionInfo, error)
 	// Fetch DRS version information using the nested collection path
 	// Path format: versions/{version}/revisions/{revision}
 	drsDoc := client.Collection("tool-versions").
-		Doc("latest")
+		Doc("oracle-client-binaries")
 
 	docSnapshot, err := drsDoc.Get(ctx)
 	if err != nil {
@@ -67,25 +68,36 @@ func GetOracleBinaryVersion(vmt consts.VMType) (*OracleBinaryVersionInfo, error)
 	return &bvi, nil
 }
 
-func InstallBinary(ctx context.Context, config BinaryInstallConfig) error {
+func InstallBinary(ctx context.Context, config BinaryInstallConfig, oracleType string) error {
 	// Determine oracle type based on rollapp type
-	oracleType := "evm-oracle"
-	if config.RollappType == consts.WASM_ROLLAPP {
-		oracleType = "cosmos-oracle"
+	var oraclePlatform, oraclePath string
+	switch {
+	case config.RollappType == consts.WASM_ROLLAPP && oracleType == "price":
+		oraclePlatform = "cosmos-oracle"
+		oraclePath = "price/cosmos"
+	case config.RollappType == consts.WASM_ROLLAPP && oracleType == "rng":
+		oraclePlatform = "cosmos-oracle"
+		oraclePath = "rng/cosmos"
+	case config.RollappType == consts.EVM_ROLLAPP && oracleType == "price":
+		oraclePlatform = "evm-oracle"
+		oraclePath = "price/evm"
+	case config.RollappType == consts.EVM_ROLLAPP && oracleType == "rng":
+		oraclePlatform = "evm-oracle"
+		oraclePath = "rng/evm"
 	}
 
 	// Build the artifact path
 	arch := runtime.GOARCH
 	goos := runtime.GOOS
-
 	version := fmt.Sprintf("%s-%s", config.Version, arch)
 
-	fullPath := fmt.Sprintf("%s:%s:%s-%s-%s",
-		oracleType, // cosmos-oracle
-		version,    // 1.0.0-amd64
-		oracleType, // cosmos-oracle
-		goos,       // linux
-		arch,       // amd64
+	fullPath := fmt.Sprintf("%s:%s:%s/%s-%s-%s",
+		oraclePlatform, // package name (cosmos-oracle)
+		version,        // version (1.0.0-amd64)
+		oraclePath,     // path (price/cosmos or rng/cosmos)
+		goos,           // os (linux)
+		arch,           // architecture (amd64)
+		oraclePlatform, // binary name (cosmos-oracle)
 	)
 
 	downloadURL := fmt.Sprintf(
