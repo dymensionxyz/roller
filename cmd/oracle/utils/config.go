@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -67,13 +68,7 @@ func generateRaOracleKeys(
 	}
 
 	if ok {
-		pterm.Info.Printfln("existing oracle key found, using it")
-		ki, err := kc.Info(home)
-		ki.Mnemonic = "not available for already existing keys"
-		if err != nil {
-			return nil, err
-		}
-		return []keys.KeyInfo{*ki}, nil
+		return nil, errors.New("existing oracle key found, deployment will not be done")
 	}
 
 	// shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
