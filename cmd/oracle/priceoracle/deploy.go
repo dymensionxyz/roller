@@ -245,9 +245,9 @@ func copyConfigFile(rollappType consts.VMType, destDir string) error {
 	var configFile string
 	switch rollappType {
 	case consts.EVM_ROLLAPP:
-		configFile = "setup/configs/evm-config.yaml"
+		configFile = "configs/evm-config.yaml"
 	case consts.WASM_ROLLAPP:
-		configFile = "setup/configs/wasm-config.yaml"
+		configFile = "configs/wasm-config.yaml"
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollappType)
 	}
