@@ -122,7 +122,7 @@ func DeployCmd() *cobra.Command {
 			}
 
 			for _, contract := range contracts {
-				err = deployer.DownloadContract(contract.Url, contract.Name)
+				err = deployer.DownloadContract(contract.Url, contract.Name, "rng")
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return

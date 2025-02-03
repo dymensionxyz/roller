@@ -114,8 +114,8 @@ func (w *WasmDeployer) Config() *OracleConfig {
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
-func (w *WasmDeployer) DownloadContract(url string, outputName string) error {
-	contractPath := filepath.Join(w.config.ConfigDirPath, outputName)
+func (w *WasmDeployer) DownloadContract(url string, outputName string, oracleType string) error {
+	contractPath := filepath.Join(w.config.ConfigDirPath, oracleType, outputName)
 
 	// Create config directory if it doesn't exist
 	if err := os.MkdirAll(w.config.ConfigDirPath, 0o755); err != nil {

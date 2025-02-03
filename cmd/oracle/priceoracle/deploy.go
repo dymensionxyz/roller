@@ -72,7 +72,7 @@ func DeployCmd() *cobra.Command {
 					return
 				}
 
-				err = deployer.DownloadContract(contractUrl, "PriceOracle.sol")
+				err = deployer.DownloadContract(contractUrl, "PriceOracle.sol", "price")
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return
@@ -85,7 +85,7 @@ func DeployCmd() *cobra.Command {
 				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 
-				err = deployer.DownloadContract(contractUrl, "PriceOracle.wasm")
+				err = deployer.DownloadContract(contractUrl, "PriceOracle.wasm", "price")
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return
