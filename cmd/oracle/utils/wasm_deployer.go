@@ -83,7 +83,7 @@ func (w *WasmDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (w *WasmDeployer) SetKey() error {
-	addr, isExisting, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
+	addr, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -95,16 +95,12 @@ func (w *WasmDeployer) SetKey() error {
 	w.KeyData.Address = addr[0].Address
 	w.KeyData.Name = addr[0].Name
 
-	if !isExisting {
-		hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
-		if err != nil {
-			return err
-		}
-
-		w.KeyData.PrivateKey = hexKey
-	} else {
-		w.KeyData.PrivateKey = ""
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
 	}
+
+	w.KeyData.PrivateKey = hexKey
 
 	return nil
 }

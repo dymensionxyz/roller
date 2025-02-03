@@ -102,11 +102,6 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			if err != nil {
-				pterm.Error.Printf("failed to create deployer: %v\n", err)
-				return
-			}
-
 			contracts := []struct {
 				Name string
 				Url  string

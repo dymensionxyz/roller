@@ -117,7 +117,7 @@ func (e *EVMDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (e *EVMDeployer) SetKey() error {
-	addr, isExisting, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData)
+	addr, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -129,16 +129,12 @@ func (e *EVMDeployer) SetKey() error {
 	e.KeyData.Address = addr[0].Address
 	e.KeyData.Name = addr[0].Name
 
-	if !isExisting {
-		ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
-		if err != nil {
-			return err
-		}
-
-		e.KeyData.PrivateKey = ecdsaPrivKey
-	} else {
-		e.KeyData.PrivateKey = nil
+	ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
 	}
+
+	e.KeyData.PrivateKey = ecdsaPrivKey
 
 	return nil
 }

@@ -51,16 +51,16 @@ func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
 func generateRaOracleKeys(
 	home string,
 	rollerData roller.RollappConfig,
-) ([]keys.KeyInfo, bool, error) {
+) ([]keys.KeyInfo, error) {
 	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	kc := oracleKeys[0]
 	ok, err := kc.IsInKeyring(home)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	if ok {
@@ -68,9 +68,9 @@ func generateRaOracleKeys(
 		ki, err := kc.Info(home)
 		ki.Mnemonic = "not available for already existing keys"
 		if err != nil {
-			return nil, false, err
+			return nil, err
 		}
-		return []keys.KeyInfo{*ki}, true, nil
+		return []keys.KeyInfo{*ki}, nil
 	}
 
 	// shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -88,11 +88,11 @@ func generateRaOracleKeys(
 	// } else {
 	addr, err = createOraclesKeys(rollerData)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	// }
 
-	return addr, false, nil
+	return addr, nil
 }
 
 func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
