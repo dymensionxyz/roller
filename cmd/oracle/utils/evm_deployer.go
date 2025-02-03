@@ -57,8 +57,8 @@ type EVMDeployer struct {
 }
 
 // NewEVMDeployer creates a new EVMDeployer instance
-func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
-	config := NewOracleConfig(rollerData)
+func NewEVMDeployer(rollerData roller.RollappConfig, oracleType string) (*EVMDeployer, error) {
+	config := NewOracleConfig(rollerData, oracleType)
 	d := &EVMDeployer{
 		config:     config,
 		rollerData: rollerData,
@@ -117,7 +117,7 @@ func (e *EVMDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (e *EVMDeployer) SetKey() error {
-	addr, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData)
+	addr, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData, e.config.OracleType)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -300,7 +300,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := GetOracleKeyConfig(e.rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(e.rollerData.RollappVMType, e.config.OracleType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}

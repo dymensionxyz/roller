@@ -59,7 +59,7 @@ func DeployCmd() *cobra.Command {
 			var contractUrl string
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				deployer, err = oracleutils.NewEVMDeployer(rollerData)
+				deployer, err = oracleutils.NewEVMDeployer(rollerData, consts.Oracles.Price)
 				if err != nil {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
@@ -82,7 +82,7 @@ func DeployCmd() *cobra.Command {
 					return
 				}
 			case consts.WASM_ROLLAPP:
-				deployer, err = oracleutils.NewWasmDeployer(rollerData)
+				deployer, err = oracleutils.NewWasmDeployer(rollerData, consts.Oracles.Price)
 				if err != nil {
 					pterm.Error.Printf("failed to create wasm deployer: %v\n", err)
 					return

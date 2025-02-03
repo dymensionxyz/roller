@@ -29,8 +29,8 @@ type WasmDeployer struct {
 }
 
 // NewWasmDeployer creates a new WasmDeployer instance
-func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
-	config := NewOracleConfig(rollerData)
+func NewWasmDeployer(rollerData roller.RollappConfig, oracleType string) (*WasmDeployer, error) {
+	config := NewOracleConfig(rollerData, oracleType)
 	d := &WasmDeployer{
 		config:     config,
 		rollerData: rollerData,
@@ -83,7 +83,7 @@ func (w *WasmDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (w *WasmDeployer) SetKey() error {
-	addr, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
+	addr, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData, w.config.OracleType)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -154,7 +154,7 @@ func (w *WasmDeployer) DeployContract(
 	oracleType string,
 ) (string, error) {
 	// Store the contract
-	if err := w.config.StoreWasmContract(w.rollerData, contractName); err != nil {
+	if err := w.config.StoreWasmContract(w.rollerData, contractName, oracleType); err != nil {
 		return "", fmt.Errorf("failed to store contract: %w", err)
 	}
 

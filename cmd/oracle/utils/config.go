@@ -23,6 +23,7 @@ import (
 )
 
 type OracleConfig struct {
+	OracleType      string
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -36,12 +37,13 @@ type KeyData struct {
 	Address string
 }
 
-func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
+func NewOracleConfig(rollerData roller.RollappConfig, oracleType string) *OracleConfig {
 	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
 	ovt := rollerData.RollappVMType
 	return &OracleConfig{
 		ConfigDirPath: cd,
 		OracleVmType:  ovt.String(),
+		OracleType:    oracleType,
 	}
 }
 
@@ -51,8 +53,9 @@ func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
 func generateRaOracleKeys(
 	home string,
 	rollerData roller.RollappConfig,
+	oracleType string,
 ) ([]keys.KeyInfo, error) {
-	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,7 @@ func generateRaOracleKeys(
 	// 	}
 	// 	addr = append(addr, *ki)
 	// } else {
-	addr, err = createOraclesKeys(rollerData)
+	addr, err = createOraclesKeys(rollerData, oracleType)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +98,8 @@ func generateRaOracleKeys(
 	return addr, nil
 }
 
-func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
+func createOraclesKeys(rollerData roller.RollappConfig, oracleType string) ([]keys.KeyInfo, error) {
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +129,7 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 func (o *OracleConfig) StoreWasmContract(
 	rollerData roller.RollappConfig,
 	contractName string,
+	oracleType string,
 ) error {
 	var cmd *exec.Cmd
 
@@ -180,7 +184,7 @@ func (o *OracleConfig) StoreWasmContract(
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}

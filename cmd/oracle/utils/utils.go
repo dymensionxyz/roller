@@ -2,6 +2,7 @@ package oracleutils
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -9,9 +10,9 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 )
 
-func GetOracleKeyConfig(a consts.VMType) ([]keys.KeyConfig, error) {
+func GetOracleKeyConfig(a consts.VMType, ot string) ([]keys.KeyConfig, error) {
 	kc := keys.KeyConfig{
-		Dir:            consts.ConfigDirName.Oracle,
+		Dir:            filepath.Join(consts.ConfigDirName.Oracle, ot),
 		ID:             consts.KeysIds.Oracle,
 		ChainBinary:    consts.Executables.RollappEVM,
 		Type:           consts.EVM_ROLLAPP,
