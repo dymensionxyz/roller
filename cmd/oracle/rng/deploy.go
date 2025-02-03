@@ -80,7 +80,7 @@ func DeployCmd() *cobra.Command {
 			var deployer oracleutils.ContractDeployer
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				deployer, err = oracleutils.NewEVMDeployer(rollerData, consts.Oracles.Price)
+				deployer, err = oracleutils.NewEVMDeployer(rollerData, consts.Oracles.Rng)
 				if err != nil {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
