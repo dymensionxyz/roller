@@ -45,13 +45,6 @@ func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
 	}
 }
 
-func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
-	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
-	o.ConfigDirPath = cd
-
-	return o.ConfigDirPath
-}
-
 // generateRaOracleKeys generates a new key or retrieves an existing one from the keyring
 // as the second return value it returns whether the key was generated or retrieved where
 // true is retrieved and false is new generated key

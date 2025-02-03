@@ -169,18 +169,19 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
+			oracleConfigDir := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "rng")
 			pterm.Info.Printfln(
 				"copying config file into %s",
-				filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle),
+				oracleConfigDir,
 			)
-			if err := copyConfigFile(rollerData.RollappVMType, filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)); err != nil {
+			if err := copyConfigFile(rollerData.RollappVMType, oracleConfigDir); err != nil {
 				pterm.Error.Printf("failed to copy config file: %v\n", err)
 				return
 			}
 			pterm.Info.Println("config file copied successfully")
 			pterm.Info.Println("updating config values")
 
-			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.json")
+			cfp := filepath.Join(oracleConfigDir, "config.json")
 			// Read the existing config
 			configData, err := os.ReadFile(cfp)
 			if err != nil {

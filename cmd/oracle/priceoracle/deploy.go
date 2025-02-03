@@ -145,11 +145,12 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
+			oracleConfigDir := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "price")
 			pterm.Info.Printfln(
 				"copying config file into %s",
-				filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle),
+				oracleConfigDir,
 			)
-			if err := copyConfigFile(rollerData.RollappVMType, filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)); err != nil {
+			if err := copyConfigFile(rollerData.RollappVMType, oracleConfigDir); err != nil {
 				pterm.Error.Printf("failed to copy config file: %v\n", err)
 				return
 			}
@@ -212,7 +213,7 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
+			cfp := filepath.Join(oracleConfigDir, "config.yaml")
 			err = yamlconfig.UpdateNestedYAML(cfp, updates)
 			if err != nil {
 				pterm.Error.Printf("failed to update config file: %v\n", err)
