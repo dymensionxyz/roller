@@ -17,6 +17,7 @@ type ContractDeployer interface {
 	DeployContract(
 		ctx context.Context,
 		contractName string,
+		oracleType string,
 	) (string, error)
 
 	// Config returns the OracleConfig

@@ -192,8 +192,10 @@ func (e *EVMDeployer) DownloadContract(
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
 	contractName string,
+	oracleType string,
 ) (string, error) {
-	contractPath := filepath.Join(e.config.ConfigDirPath, contractName)
+	configDirPath := filepath.Join(e.config.ConfigDirPath, oracleType)
+	contractPath := filepath.Join(configDirPath, contractName)
 	tContractName := strings.TrimSuffix(contractName, ".sol")
 
 	bytecode, contractABI, err := compileContract(contractPath, contractName)

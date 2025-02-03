@@ -106,7 +106,11 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			contractAddr, err := deployer.DeployContract(context.Background(), "PriceOracle")
+			contractAddr, err := deployer.DeployContract(
+				context.Background(),
+				"PriceOracle",
+				"price",
+			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return

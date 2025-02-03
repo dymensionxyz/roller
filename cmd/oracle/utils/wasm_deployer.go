@@ -155,6 +155,7 @@ func (w *WasmDeployer) DownloadContract(url string, outputName string, oracleTyp
 func (w *WasmDeployer) DeployContract(
 	ctx context.Context,
 	contractName string,
+	oracleType string,
 ) (string, error) {
 	// Store the contract
 	if err := w.config.StoreWasmContract(w.rollerData, contractName); err != nil {

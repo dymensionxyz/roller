@@ -132,6 +132,7 @@ func DeployCmd() *cobra.Command {
 			contractAddr, err := deployer.DeployContract(
 				context.Background(),
 				"RandomnessGenerator.sol",
+				"rng",
 			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
