@@ -73,24 +73,24 @@ func generateRaOracleKeys(
 		return []keys.KeyInfo{*ki}, true, nil
 	}
 
-	shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like to import an existing Oracle key?",
-	).Show()
+	// shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+	// 	"would you like to import an existing Oracle key?",
+	// ).Show()
 
 	var addr []keys.KeyInfo
 
-	if shouldImportWallet {
-		ki, err := kc.Create(home)
-		if err != nil {
-			return nil, false, err
-		}
-		addr = append(addr, *ki)
-	} else {
-		addr, err = createOraclesKeys(rollerData)
-		if err != nil {
-			return nil, false, err
-		}
+	// if shouldImportWallet {
+	// 	ki, err := kc.Create(home)
+	// 	if err != nil {
+	// 		return nil, false, err
+	// 	}
+	// 	addr = append(addr, *ki)
+	// } else {
+	addr, err = createOraclesKeys(rollerData)
+	if err != nil {
+		return nil, false, err
 	}
+	// }
 
 	return addr, false, nil
 }

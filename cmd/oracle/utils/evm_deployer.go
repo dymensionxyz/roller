@@ -198,6 +198,10 @@ func (e *EVMDeployer) DeployContract(
 	contractPath := filepath.Join(configDirPath, contractName)
 	tContractName := strings.TrimSuffix(contractName, ".sol")
 
+	fmt.Println("compiling contract...")
+	fmt.Println("contract path: " + contractPath)
+	fmt.Println("contract name: " + contractName)
+
 	bytecode, contractABI, err := compileContract(contractPath, contractName)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
