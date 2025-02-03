@@ -122,7 +122,7 @@ func DeployCmd() *cobra.Command {
 			}
 
 			for _, contract := range contracts {
-				err = deployer.DownloadContract(contract.Url, contract.Name, "rng")
+				err = deployer.DownloadContract(contract.Url, contract.Name, consts.Oracles.Rng)
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return
@@ -132,7 +132,7 @@ func DeployCmd() *cobra.Command {
 			contractAddr, err := deployer.DeployContract(
 				context.Background(),
 				"RandomnessGenerator.sol",
-				"rng",
+				consts.Oracles.Rng,
 			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
@@ -161,16 +161,20 @@ func DeployCmd() *cobra.Command {
 			bc := dependencies.BinaryInstallConfig{
 				RollappType: rollerData.RollappVMType,
 				Version:     v,
-				InstallDir:  consts.Executables.Oracle,
+				InstallDir:  consts.Executables.RngOracle,
 			}
 
-			err = dependencies.InstallBinary(context.Background(), bc, "rng")
+			err = dependencies.InstallBinary(context.Background(), bc, consts.Oracles.Rng)
 			if err != nil {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return
 			}
 
-			oracleConfigDir := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "rng")
+			oracleConfigDir := filepath.Join(
+				rollerData.Home,
+				consts.ConfigDirName.Oracle,
+				consts.Oracles.Rng,
+			)
 			pterm.Info.Printfln(
 				"copying config file into %s",
 				oracleConfigDir,

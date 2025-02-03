@@ -33,7 +33,8 @@ var Executables = struct {
 	Simd        string
 	Eibc        string
 	CelestiaApp string
-	Oracle      string
+	PriceOracle string
+	RngOracle   string
 	Solc        string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
@@ -45,7 +46,8 @@ var Executables = struct {
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
-	Oracle:      fmt.Sprintf("%s/oracle", InternalBinsDir),
+	PriceOracle: fmt.Sprintf("%s/price-oracle", InternalBinsDir),
+	RngOracle:   fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
 	Solc:        fmt.Sprintf("%s/solc", InternalBinsDir),
 }
 
@@ -73,6 +75,14 @@ var KeysIds = struct {
 	Eibc:                          "whale",
 	Da:                            "da_key",
 	Oracle:                        "oracle",
+}
+
+var Oracles = struct {
+	Rng   string
+	Price string
+}{
+	Rng:   "rng",
+	Price: "price",
 }
 
 var AddressPrefixes = struct {

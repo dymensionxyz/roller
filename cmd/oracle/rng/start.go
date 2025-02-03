@@ -74,7 +74,12 @@ func StartCmd() *cobra.Command {
 }
 
 func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
-	cfgPath := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "rng", "config.yaml")
+	cfgPath := filepath.Join(
+		rollerData.Home,
+		consts.ConfigDirName.Oracle,
+		consts.Oracles.Rng,
+		"config.yaml",
+	)
 
 	args := []string{
 		"start",
@@ -82,7 +87,7 @@ func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 	}
 
 	cmd := exec.Command(
-		consts.Executables.Oracle, args...,
+		consts.Executables.RngOracle, args...,
 	)
 	return cmd
 }

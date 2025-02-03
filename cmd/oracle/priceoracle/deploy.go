@@ -72,7 +72,11 @@ func DeployCmd() *cobra.Command {
 					return
 				}
 
-				err = deployer.DownloadContract(contractUrl, "PriceOracle.sol", "price")
+				err = deployer.DownloadContract(
+					contractUrl,
+					"PriceOracle.sol",
+					consts.Oracles.Price,
+				)
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return
@@ -85,7 +89,11 @@ func DeployCmd() *cobra.Command {
 				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
 
-				err = deployer.DownloadContract(contractUrl, "PriceOracle.wasm", "price")
+				err = deployer.DownloadContract(
+					contractUrl,
+					"PriceOracle.wasm",
+					consts.Oracles.Price,
+				)
 				if err != nil {
 					pterm.Error.Printf("failed to download contract: %v\n", err)
 					return
@@ -109,7 +117,7 @@ func DeployCmd() *cobra.Command {
 			contractAddr, err := deployer.DeployContract(
 				context.Background(),
 				"PriceOracle",
-				"price",
+				consts.Oracles.Price,
 			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
@@ -140,16 +148,20 @@ func DeployCmd() *cobra.Command {
 			bc := dependencies.BinaryInstallConfig{
 				RollappType: rollerData.RollappVMType,
 				Version:     v,
-				InstallDir:  consts.Executables.Oracle,
+				InstallDir:  consts.Executables.PriceOracle,
 			}
 
-			err = dependencies.InstallBinary(context.Background(), bc, "price")
+			err = dependencies.InstallBinary(context.Background(), bc, consts.Oracles.Price)
 			if err != nil {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return
 			}
 
-			oracleConfigDir := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "price")
+			oracleConfigDir := filepath.Join(
+				rollerData.Home,
+				consts.ConfigDirName.Oracle,
+				consts.Oracles.Price,
+			)
 			pterm.Info.Printfln(
 				"copying config file into %s",
 				oracleConfigDir,
