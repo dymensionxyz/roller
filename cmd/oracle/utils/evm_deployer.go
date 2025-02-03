@@ -148,11 +148,16 @@ func (e *EVMDeployer) Config() *OracleConfig {
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for EVM
-func (e *EVMDeployer) DownloadContract(url string, outputName string, oracleType string) error {
-	contractPath := filepath.Join(e.config.ConfigDirPath, oracleType, outputName)
+func (e *EVMDeployer) DownloadContract(
+	url string,
+	outputName string,
+	oracleType string,
+) error {
+	configDirPath := filepath.Join(e.config.ConfigDirPath, oracleType)
+	contractPath := filepath.Join(configDirPath, outputName)
 
 	// Create config directory if it doesn't exist
-	if err := os.MkdirAll(e.config.ConfigDirPath, 0o755); err != nil {
+	if err := os.MkdirAll(configDirPath, 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
