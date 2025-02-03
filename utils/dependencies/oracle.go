@@ -96,6 +96,11 @@ func InstallBinary(ctx context.Context, config BinaryInstallConfig, oracleType s
 	// Make the request
 	httpClient := &http.Client{}
 	httpResp, err := httpClient.Do(req)
+
+	if httpResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad status: %s", httpResp.Status)
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to download file: %w", err)
 	}
