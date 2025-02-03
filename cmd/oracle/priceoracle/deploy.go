@@ -116,7 +116,7 @@ func DeployCmd() *cobra.Command {
 
 			contractAddr, err := deployer.DeployContract(
 				context.Background(),
-				"PriceOracle",
+				"PriceOracle.sol",
 				consts.Oracles.Price,
 			)
 			if err != nil {
