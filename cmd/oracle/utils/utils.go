@@ -11,6 +11,7 @@ import (
 )
 
 func GetOracleKeyConfig(a consts.VMType, ot string) ([]keys.KeyConfig, error) {
+	fmt.Println("oracle type for key config", ot)
 	kc := keys.KeyConfig{
 		Dir:            filepath.Join(consts.ConfigDirName.Oracle, ot),
 		ID:             consts.KeysIds.Oracle,
