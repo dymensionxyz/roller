@@ -28,6 +28,10 @@ type WasmDeployer struct {
 	}
 }
 
+func (w *WasmDeployer) Mnemonic() string {
+	return w.KeyData.Mnemonic
+}
+
 // NewWasmDeployer creates a new WasmDeployer instance
 func NewWasmDeployer(rollerData roller.RollappConfig, oracleType string) (*WasmDeployer, error) {
 	config := NewOracleConfig(rollerData, oracleType)

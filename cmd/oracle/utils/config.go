@@ -34,8 +34,9 @@ type OracleConfig struct {
 }
 
 type KeyData struct {
-	Name    string
-	Address string
+	Name     string
+	Address  string
+	Mnemonic string
 }
 
 func NewOracleConfig(rollerData roller.RollappConfig, oracleType string) *OracleConfig {

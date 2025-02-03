@@ -198,7 +198,7 @@ func DeployCmd() *cobra.Command {
 			// Update the values
 			config.Contract.NodeURL = "http://127.0.0.1:8545"
 			config.Contract.ContractAddress = contractAddr
-			config.Contract.Mnemonic = contractAddr
+			config.Contract.Mnemonic = deployer.Mnemonic()
 
 			// Write back the updated config
 			updatedConfig, err := json.MarshalIndent(config, "", "  ")

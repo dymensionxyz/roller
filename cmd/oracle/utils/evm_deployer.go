@@ -128,6 +128,7 @@ func (e *EVMDeployer) SetKey() error {
 
 	e.KeyData.Address = addr[0].Address
 	e.KeyData.Name = addr[0].Name
+	e.KeyData.Mnemonic = addr[0].Mnemonic
 
 	ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
 	if err != nil {
@@ -141,6 +142,14 @@ func (e *EVMDeployer) SetKey() error {
 
 func (e *EVMDeployer) Config() *OracleConfig {
 	return e.config
+}
+
+func (e *EVMDeployer) Mnemonic() string {
+	return e.KeyData.Mnemonic
+}
+
+func (e *EVMDeployer) Address() string {
+	return e.KeyData.Address
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for EVM

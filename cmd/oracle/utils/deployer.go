@@ -23,6 +23,9 @@ type ContractDeployer interface {
 	// Config returns the OracleConfig
 	Config() *OracleConfig
 
+	// KeyConfig sets the key used to deploy the contract
+	Mnemonic() string
+
 	// PrivateKey returns the private key used to deploy the contract
 	PrivateKey() string
 
