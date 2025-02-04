@@ -60,7 +60,7 @@ func StartCmd() *cobra.Command {
 				err := bash.ExecCmdFollow(
 					done,
 					ctx,
-					getStartRandomServiceCmd(),
+					getStartRandomServiceCmd(rollerData),
 					nil,
 				)
 
@@ -102,9 +102,20 @@ func getStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 	return cmd
 }
 
-func getStartRandomServiceCmd() *exec.Cmd {
+func getStartRandomServiceCmd(rollerData roller.RollappConfig) *exec.Cmd {
+	cfgPath := filepath.Join(
+		rollerData.Home,
+		consts.ConfigDirName.Oracle,
+		consts.Oracles.Rng,
+		"db_randomness_service",
+	)
+
+	args := []string{
+		"-dbpath", cfgPath,
+	}
+
 	cmd := exec.Command(
-		consts.Executables.RngOracleRandomService,
+		consts.Executables.RngOracleRandomService, args...,
 	)
 	return cmd
 }
