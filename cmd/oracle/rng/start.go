@@ -88,7 +88,7 @@ func getStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 		rollerData.Home,
 		consts.ConfigDirName.Oracle,
 		consts.Oracles.Rng,
-		"config.yaml",
+		"config.json",
 	)
 
 	args := []string{
