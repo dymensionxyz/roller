@@ -41,8 +41,6 @@ func StartCmd() *cobra.Command {
 				return
 			}
 
-			c := GetStartCmd(rollerData)
-
 			ctx, cancel := context.WithCancel(cmd.Context())
 			defer cancel()
 
@@ -51,12 +49,24 @@ func StartCmd() *cobra.Command {
 				err := bash.ExecCmdFollow(
 					done,
 					ctx,
-					c,
-					nil, // No need for printOutput since we configured output above
+					getStartCmd(rollerData),
+					nil,
 				)
 
 				done <- err
 			}()
+
+			go func() {
+				err := bash.ExecCmdFollow(
+					done,
+					ctx,
+					getStartRandomServiceCmd(),
+					nil,
+				)
+
+				done <- err
+			}()
+
 			select {
 			case err := <-done:
 				if err != nil {
@@ -73,7 +83,7 @@ func StartCmd() *cobra.Command {
 	return cmd
 }
 
-func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
+func getStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 	cfgPath := filepath.Join(
 		rollerData.Home,
 		consts.ConfigDirName.Oracle,
@@ -88,6 +98,13 @@ func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
 
 	cmd := exec.Command(
 		consts.Executables.RngOracle, args...,
+	)
+	return cmd
+}
+
+func getStartRandomServiceCmd() *exec.Cmd {
+	cmd := exec.Command(
+		consts.Executables.RngOracleRandomService,
 	)
 	return cmd
 }

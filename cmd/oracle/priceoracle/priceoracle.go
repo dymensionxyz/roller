@@ -12,18 +12,18 @@ import (
 
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "price-oracle",
+		Use:   "price",
 		Short: "Commands related to Price Oracle smart contract deployment and client operation",
 	}
 
 	cmd.AddCommand(DeployCmd())
 	cmd.AddCommand(StartCmd())
 
-	sl := []string{"oracle"}
+	sl := []string{"price"}
 	cmd.AddCommand(
 		services.Cmd(
-			loadservices.Cmd(sl, "oracle"),
-			startservices.OracleCmd(),
+			loadservices.Cmd(sl, "price"),
+			startservices.OracleCmd("price"),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
 			// logservices.RollappCmd(),

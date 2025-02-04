@@ -16,11 +16,12 @@ const (
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var (
-	AllServices            = []string{"rollapp", "da-light-client", "relayer", "eibc"}
-	RollappSystemdServices = []string{"rollapp", "da-light-client"}
-	RelayerSystemdServices = []string{"relayer"}
-	OracleSystemdServices  = []string{"oracle"}
-	EibcSystemdServices    = []string{"eibc"}
+	AllServices                = []string{"rollapp", "da-light-client", "relayer", "eibc"}
+	RollappSystemdServices     = []string{"rollapp", "da-light-client"}
+	RelayerSystemdServices     = []string{"relayer"}
+	PriceOracleSystemdServices = []string{"price"}
+	RngOracleSystemdServices   = []string{"rng"}
+	EibcSystemdServices        = []string{"eibc"}
 )
 
 var Executables = struct {
