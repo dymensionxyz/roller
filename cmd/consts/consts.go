@@ -16,25 +16,28 @@ const (
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var (
-	AllServices            = []string{"rollapp", "da-light-client", "relayer", "eibc"}
-	RollappSystemdServices = []string{"rollapp", "da-light-client"}
-	RelayerSystemdServices = []string{"relayer"}
-	OracleSystemdServices  = []string{"oracle"}
-	EibcSystemdServices    = []string{"eibc"}
+	AllServices                = []string{"rollapp", "da-light-client", "relayer", "eibc"}
+	RollappSystemdServices     = []string{"rollapp", "da-light-client"}
+	RelayerSystemdServices     = []string{"relayer"}
+	PriceOracleSystemdServices = []string{"price"}
+	RngOracleSystemdServices   = []string{"rng"}
+	EibcSystemdServices        = []string{"eibc"}
 )
 
 var Executables = struct {
-	Celestia    string
-	RollappEVM  string
-	Relayer     string
-	Dymension   string
-	CelKey      string
-	Roller      string
-	Simd        string
-	Eibc        string
-	CelestiaApp string
-	Oracle      string
-	Solc        string
+	Celestia               string
+	RollappEVM             string
+	Relayer                string
+	Dymension              string
+	CelKey                 string
+	Roller                 string
+	Simd                   string
+	Eibc                   string
+	CelestiaApp            string
+	PriceOracle            string
+	RngOracle              string
+	RngOracleRandomService string
+	Solc                   string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -45,8 +48,11 @@ var Executables = struct {
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
-	Oracle:      fmt.Sprintf("%s/oracle", InternalBinsDir),
-	Solc:        fmt.Sprintf("%s/solc", InternalBinsDir),
+	// oracles
+	PriceOracle:            fmt.Sprintf("%s/price-oracle", InternalBinsDir),
+	RngOracle:              fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
+	RngOracleRandomService: fmt.Sprintf("%s/rng-oracle-random-service", InternalBinsDir),
+	Solc:                   fmt.Sprintf("%s/solc", InternalBinsDir),
 }
 
 var KeysIds = struct {
@@ -73,6 +79,14 @@ var KeysIds = struct {
 	Eibc:                          "whale",
 	Da:                            "da_key",
 	Oracle:                        "oracle",
+}
+
+var Oracles = struct {
+	Rng   string
+	Price string
+}{
+	Rng:   "rng",
+	Price: "price",
 }
 
 var AddressPrefixes = struct {

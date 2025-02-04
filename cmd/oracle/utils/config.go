@@ -1,9 +1,10 @@
-package oracle
+package oracleutils
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,6 +24,7 @@ import (
 )
 
 type OracleConfig struct {
+	OracleType      string
 	OracleVmType    string
 	ConfigDirPath   string
 	CodeID          string
@@ -32,24 +34,19 @@ type OracleConfig struct {
 }
 
 type KeyData struct {
-	Name    string
-	Address string
+	Name     string
+	Address  string
+	Mnemonic string
 }
 
-func NewOracleConfig(rollerData roller.RollappConfig) *OracleConfig {
+func NewOracleConfig(rollerData roller.RollappConfig, oracleType string) *OracleConfig {
 	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
 	ovt := rollerData.RollappVMType
 	return &OracleConfig{
 		ConfigDirPath: cd,
 		OracleVmType:  ovt.String(),
+		OracleType:    oracleType,
 	}
-}
-
-func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
-	cd := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)
-	o.ConfigDirPath = cd
-
-	return o.ConfigDirPath
 }
 
 // generateRaOracleKeys generates a new key or retrieves an existing one from the keyring
@@ -58,52 +55,47 @@ func (o *OracleConfig) ConfigDir(rollerData roller.RollappConfig) string {
 func generateRaOracleKeys(
 	home string,
 	rollerData roller.RollappConfig,
-) ([]keys.KeyInfo, bool, error) {
-	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+	oracleType string,
+) ([]keys.KeyInfo, error) {
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	kc := oracleKeys[0]
 	ok, err := kc.IsInKeyring(home)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	if ok {
-		pterm.Info.Printfln("existing oracle key found, using it")
-		ki, err := kc.Info(home)
-		ki.Mnemonic = "not available for already existing keys"
-		if err != nil {
-			return nil, false, err
-		}
-		return []keys.KeyInfo{*ki}, true, nil
+		return nil, errors.New("existing oracle key found, deployment will not be done")
 	}
 
-	shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like to import an existing Oracle key?",
-	).Show()
+	// shouldImportWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+	// 	"would you like to import an existing Oracle key?",
+	// ).Show()
 
 	var addr []keys.KeyInfo
 
-	if shouldImportWallet {
-		ki, err := kc.Create(home)
-		if err != nil {
-			return nil, false, err
-		}
-		addr = append(addr, *ki)
-	} else {
-		addr, err = createOraclesKeys(rollerData)
-		if err != nil {
-			return nil, false, err
-		}
+	// if shouldImportWallet {
+	// 	ki, err := kc.Create(home)
+	// 	if err != nil {
+	// 		return nil, false, err
+	// 	}
+	// 	addr = append(addr, *ki)
+	// } else {
+	addr, err = createOraclesKeys(rollerData, oracleType)
+	if err != nil {
+		return nil, err
 	}
+	// }
 
-	return addr, false, nil
+	return addr, nil
 }
 
-func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) {
-	oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+func createOraclesKeys(rollerData roller.RollappConfig, oracleType string) ([]keys.KeyInfo, error) {
+	oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +122,11 @@ func createOraclesKeys(rollerData roller.RollappConfig) ([]keys.KeyInfo, error) 
 	return addresses, nil
 }
 
-func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error {
+func (o *OracleConfig) StoreWasmContract(
+	rollerData roller.RollappConfig,
+	contractName string,
+	oracleType string,
+) error {
 	var cmd *exec.Cmd
 
 	var balanceDenom string
@@ -150,7 +146,7 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 		cmd = exec.Command(
 			consts.Executables.RollappEVM,
 			"tx", "wasm", "store",
-			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
+			filepath.Join(o.ConfigDirPath, contractName),
 			"--instantiate-anyof-addresses", o.KeyAddress,
 			"--from", o.KeyName,
 			"--gas", "auto",
@@ -184,7 +180,7 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(rollerData.RollappVMType, oracleType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
@@ -238,106 +234,9 @@ func (o *OracleConfig) StoreWasmContract(rollerData roller.RollappConfig) error 
 	return nil
 }
 
-func (o *OracleConfig) StoreEvmContract(rollerData roller.RollappConfig) error {
-	var cmd *exec.Cmd
-
-	var balanceDenom string
-	raResp, err := rollapp.GetMetadataFromChain(rollerData.RollappID, rollerData.HubData)
-	if err != nil {
-		return fmt.Errorf("failed to get rollapp metadata: %v", err)
-	}
-
-	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
-		balanceDenom = consts.Denoms.HubIbcOnRollapp
-	} else {
-		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
-	}
-
-	switch rollerData.RollappVMType {
-	case consts.WASM_ROLLAPP:
-		cmd = exec.Command(
-			consts.Executables.RollappEVM,
-			"tx", "wasm", "store",
-			filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm"),
-			"--instantiate-anyof-addresses", o.KeyAddress,
-			"--from", o.KeyName,
-			"--gas", "auto",
-			"--gas-adjustment", "1.3",
-			"--fees", fmt.Sprintf("40000000000000000%s", balanceDenom),
-			"--keyring-backend", consts.SupportedKeyringBackends.Test.String(),
-			"--chain-id", rollerData.RollappID,
-			"--broadcast-mode", "sync",
-			"--home", o.ConfigDirPath,
-			"-y",
-		)
-	default:
-		return fmt.Errorf("unsupported rollapp type: %s", rollerData.RollappVMType)
-	}
-
-	fmt.Println(cmd.String())
-
-	for {
-		balance, err := keys.QueryBalance(
-			keys.ChainQueryConfig{
-				Denom:  balanceDenom,
-				RPC:    "http://localhost:26657",
-				Binary: consts.Executables.RollappEVM,
-			}, o.KeyAddress,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to query balance: %v", err)
-		}
-
-		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
-		isAddrFunded := balance.Amount.GTE(one)
-
-		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(rollerData.RollappVMType)
-			if err != nil {
-				return fmt.Errorf("failed to get oracle keys: %v", err)
-			}
-
-			kc := oracleKeys[0]
-			ki, err := kc.Info(rollerData.Home)
-			if err != nil {
-				return fmt.Errorf("failed to get key info: %v", err)
-			}
-
-			pterm.DefaultSection.WithIndentCharacter("🔔").
-				Println("Please fund the addresses below be able to deploy an oracle")
-			ki.Print(keys.WithName())
-			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-				WithDefaultText(
-					"press 'y' when the wallets are funded",
-				).Show()
-			if !proceed {
-				return fmt.Errorf("cancelled by user")
-			}
-		} else {
-			break
-		}
-	}
-
-	output, err := bash.ExecCommandWithStdout(cmd)
-	if err != nil {
-		return fmt.Errorf("failed to store contract: %v, output: %s", err, output)
-	}
-
-	time.Sleep(time.Second * 2)
-
-	txHash, err := bash.ExtractTxHash(output.String())
-	if err != nil {
-		return fmt.Errorf("failed to extract transaction hash: %v", err)
-	}
-
-	pterm.Info.Printfln("transaction hash: %s", txHash)
-
-	return nil
-}
-
-func (o *OracleConfig) GetCodeID() (string, error) {
+func (o *OracleConfig) GetCodeID(contractName string) (string, error) {
 	// Calculate SHA256 hash of the contract file
-	contractPath := filepath.Join(o.ConfigDirPath, "centralized_oracle.wasm")
+	contractPath := filepath.Join(o.ConfigDirPath, contractName)
 	contractData, err := os.ReadFile(contractPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read contract file: %v", err)

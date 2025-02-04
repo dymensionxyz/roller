@@ -1,4 +1,4 @@
-package oracle
+package priceoracle
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	oracleutils "github.com/dymensionxyz/roller/cmd/oracle/utils"
 	"github.com/dymensionxyz/roller/utils/config/yamlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -21,13 +22,13 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-//go:embed setup/configs/*
+//go:embed configs/*
 var configFiles embed.FS
 
 func DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
-		Short: "Deploys an oracle to the RollApp",
+		Short: "Deploys a price oracle to the RollApp",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := initconfig.AddFlags(cmd); err != nil {
 				pterm.Error.Printf("failed to add flags: %v\n", err)
@@ -54,11 +55,11 @@ func DeployCmd() *cobra.Command {
 			}
 
 			// Create the appropriate deployer based on RollApp type
-			var deployer ContractDeployer
+			var deployer oracleutils.ContractDeployer
 			var contractUrl string
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				deployer, err = NewEVMDeployer(rollerData)
+				deployer, err = oracleutils.NewEVMDeployer(rollerData, consts.Oracles.Price)
 				if err != nil {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
@@ -70,13 +71,33 @@ func DeployCmd() *cobra.Command {
 					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
 					return
 				}
+
+				err = deployer.DownloadContract(
+					contractUrl,
+					"PriceOracle.sol",
+					consts.Oracles.Price,
+				)
+				if err != nil {
+					pterm.Error.Printf("failed to download contract: %v\n", err)
+					return
+				}
 			case consts.WASM_ROLLAPP:
-				deployer, err = NewWasmDeployer(rollerData)
+				deployer, err = oracleutils.NewWasmDeployer(rollerData, consts.Oracles.Price)
 				if err != nil {
 					pterm.Error.Printf("failed to create wasm deployer: %v\n", err)
 					return
 				}
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.wasm"
+
+				err = deployer.DownloadContract(
+					contractUrl,
+					"PriceOracle.wasm",
+					consts.Oracles.Price,
+				)
+				if err != nil {
+					pterm.Error.Printf("failed to download contract: %v\n", err)
+					return
+				}
 			default:
 				pterm.Error.Printf("unsupported rollapp type: %s\n", rollerData.RollappVMType)
 				return
@@ -93,13 +114,11 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			err = deployer.DownloadContract(contractUrl)
-			if err != nil {
-				pterm.Error.Printf("failed to download contract: %v\n", err)
-				return
-			}
-
-			contractAddr, err := deployer.DeployContract(context.Background())
+			contractAddr, err := deployer.DeployContract(
+				context.Background(),
+				"PriceOracle.sol",
+				consts.Oracles.Price,
+			)
 			if err != nil {
 				pterm.Error.Printf("failed to deploy contract: %v\n", err)
 				return
@@ -118,9 +137,9 @@ func DeployCmd() *cobra.Command {
 			var v string
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				v = obvi.EvmOracle
+				v = obvi.PriceEvmOracle
 			case consts.WASM_ROLLAPP:
-				v = obvi.WasmOracle
+				v = obvi.PriceWasmOracle
 			default:
 				pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
 				return
@@ -129,20 +148,25 @@ func DeployCmd() *cobra.Command {
 			bc := dependencies.BinaryInstallConfig{
 				RollappType: rollerData.RollappVMType,
 				Version:     v,
-				InstallDir:  consts.Executables.Oracle,
+				InstallDir:  consts.Executables.PriceOracle,
 			}
 
-			err = dependencies.InstallBinary(context.Background(), bc)
+			err = dependencies.InstallOracleBinary(context.Background(), bc, consts.Oracles.Price)
 			if err != nil {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return
 			}
 
+			oracleConfigDir := filepath.Join(
+				rollerData.Home,
+				consts.ConfigDirName.Oracle,
+				consts.Oracles.Price,
+			)
 			pterm.Info.Printfln(
 				"copying config file into %s",
-				filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle),
+				oracleConfigDir,
 			)
-			if err := copyConfigFile(rollerData.RollappVMType, filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle)); err != nil {
+			if err := copyConfigFile(rollerData.RollappVMType, oracleConfigDir); err != nil {
 				pterm.Error.Printf("failed to copy config file: %v\n", err)
 				return
 			}
@@ -169,7 +193,7 @@ func DeployCmd() *cobra.Command {
 
 			switch rollerData.RollappVMType {
 			case consts.EVM_ROLLAPP:
-				networkID, err := extractNetworkID(rollerData.RollappID)
+				networkID, err := oracleutils.ExtractNetworkID(rollerData.RollappID)
 				if err != nil {
 					pterm.Error.Printf("failed to extract network ID: %v\n", err)
 					return
@@ -205,7 +229,7 @@ func DeployCmd() *cobra.Command {
 				return
 			}
 
-			cfp := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
+			cfp := filepath.Join(oracleConfigDir, "config.yaml")
 			err = yamlconfig.UpdateNestedYAML(cfp, updates)
 			if err != nil {
 				pterm.Error.Printf("failed to update config file: %v\n", err)
@@ -221,9 +245,9 @@ func copyConfigFile(rollappType consts.VMType, destDir string) error {
 	var configFile string
 	switch rollappType {
 	case consts.EVM_ROLLAPP:
-		configFile = "setup/configs/evm-config.yaml"
+		configFile = "configs/evm-config.yaml"
 	case consts.WASM_ROLLAPP:
-		configFile = "setup/configs/wasm-config.yaml"
+		configFile = "configs/wasm-config.yaml"
 	default:
 		return fmt.Errorf("unsupported rollapp type: %s", rollappType)
 	}

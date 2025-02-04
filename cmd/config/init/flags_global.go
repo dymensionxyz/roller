@@ -8,6 +8,7 @@ import (
 
 func AddGlobalFlags(command *cobra.Command) {
 	home := roller.GetRootDir()
+
 	command.PersistentFlags().StringP(
 		GlobalFlagNames.Home, "", home, "The directory of the roller config files")
 }

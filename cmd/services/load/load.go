@@ -84,12 +84,22 @@ func Cmd(services []string, module string) *cobra.Command {
 
 			defer func() {
 				pterm.Info.Println("next steps:")
-				pterm.Info.Printf(
-					"run %s to start %s on your local machine\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("roller %s services start", module),
-					strings.Join(services, ", "),
-				)
+				switch module {
+				case "rng", "price":
+					pterm.Info.Printf(
+						"run %s to start %s on your local machine\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("roller oracle %s services start", module),
+						strings.Join(services, ", "),
+					)
+				default:
+					pterm.Info.Printf(
+						"run %s to start %s on your local machine\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("roller %s services start", module),
+						strings.Join(services, ", "),
+					)
+				}
 			}()
 		},
 	}
@@ -287,7 +297,33 @@ func generateCustomLaunchctlServiceTemplate(
 }
 
 func generateSystemdServiceTemplate(serviceData ServiceTemplateData) (*bytes.Buffer, error) {
-	tmpl := `[Unit]
+	var tmpl string
+
+	// The difference between the templates are:
+	// for rollapp, the memory limit is higher
+	// for rng and price, the start command is different as it's a subcommand based on the oracle type
+
+	switch serviceData.Name {
+	case "rng", "price":
+		tmpl = `[Unit]
+Description=Roller {{.Name}} service
+After=network.target
+
+[Service]
+Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart={{.ExecPath}} oracle {{.Name}} start
+Restart=on-failure
+RestartSec=10
+MemoryHigh=15%
+MemoryMax=20%
+User={{.UserName}}
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+`
+	case "rollapp":
+		tmpl = `[Unit]
 Description=Roller {{.Name}} service
 After=network.target
 
@@ -304,6 +340,26 @@ LimitNOFILE=65535
 [Install]
 WantedBy=multi-user.target
 `
+	default:
+		tmpl = `[Unit]
+Description=Roller {{.Name}} service
+After=network.target
+
+[Service]
+Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart={{.ExecPath}} {{.Name}} start
+Restart=on-failure
+RestartSec=10
+MemoryHigh=15%
+MemoryMax=20%
+User={{.UserName}}
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+`
+	}
+
 	serviceTemplate, err := template.New("service").Parse(tmpl)
 	if err != nil {
 		return nil, err

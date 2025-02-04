@@ -1,4 +1,4 @@
-package oracle
+package priceoracle
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 func StartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Starts an oracle client",
+		Short: "Starts the price oracle client",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -41,7 +41,7 @@ func StartCmd() *cobra.Command {
 				return
 			}
 
-			c := GetStartCmd(rollerData)
+			c := GetStartCmd(rollerData, consts.Oracles.Price)
 
 			ctx, cancel := context.WithCancel(cmd.Context())
 			defer cancel()
@@ -73,16 +73,32 @@ func StartCmd() *cobra.Command {
 	return cmd
 }
 
-func GetStartCmd(rollerData roller.RollappConfig) *exec.Cmd {
-	cfgPath := filepath.Join(rollerData.Home, consts.ConfigDirName.Oracle, "config.yaml")
+func GetStartCmd(rollerData roller.RollappConfig, oracleType string) *exec.Cmd {
+	cfgPath := filepath.Join(
+		rollerData.Home,
+		consts.ConfigDirName.Oracle,
+		oracleType,
+		"config.yaml",
+	)
 
 	args := []string{
 		"start",
 		"--config-path", cfgPath,
 	}
 
-	cmd := exec.Command(
-		consts.Executables.Oracle, args...,
-	)
+	var cmd *exec.Cmd
+
+	switch oracleType {
+	case consts.Oracles.Price:
+		cmd = exec.Command(
+			consts.Executables.PriceOracle, args...,
+		)
+	case consts.Oracles.Rng:
+		cmd = exec.Command(
+			consts.Executables.RngOracle, args...,
+		)
+	default:
+		panic("unknown oracle type")
+	}
 	return cmd
 }

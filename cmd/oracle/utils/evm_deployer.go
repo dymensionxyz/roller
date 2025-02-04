@@ -1,4 +1,4 @@
-package oracle
+package oracleutils
 
 import (
 	"bytes"
@@ -57,8 +57,8 @@ type EVMDeployer struct {
 }
 
 // NewEVMDeployer creates a new EVMDeployer instance
-func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
-	config := NewOracleConfig(rollerData)
+func NewEVMDeployer(rollerData roller.RollappConfig, oracleType string) (*EVMDeployer, error) {
+	config := NewOracleConfig(rollerData, oracleType)
 	d := &EVMDeployer{
 		config:     config,
 		rollerData: rollerData,
@@ -74,12 +74,6 @@ func NewEVMDeployer(rollerData roller.RollappConfig) (*EVMDeployer, error) {
 
 func (e *EVMDeployer) PrivateKey() string {
 	return hex.EncodeToString(e.KeyData.PrivateKey.D.Bytes())
-}
-
-func (e *EVMDeployer) ContractPath() string {
-	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
-
-	return contractPath
 }
 
 func (e *EVMDeployer) ClientConfigPath() string {
@@ -123,7 +117,7 @@ func (e *EVMDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (e *EVMDeployer) SetKey() error {
-	addr, isExisting, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData)
+	addr, err := generateRaOracleKeys(e.rollerData.Home, e.rollerData, e.config.OracleType)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -134,17 +128,14 @@ func (e *EVMDeployer) SetKey() error {
 
 	e.KeyData.Address = addr[0].Address
 	e.KeyData.Name = addr[0].Name
+	e.KeyData.Mnemonic = addr[0].Mnemonic
 
-	if !isExisting {
-		ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
-		if err != nil {
-			return err
-		}
-
-		e.KeyData.PrivateKey = ecdsaPrivKey
-	} else {
-		e.KeyData.PrivateKey = nil
+	ecdsaPrivKey, err := GetEcdsaPrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
 	}
+
+	e.KeyData.PrivateKey = ecdsaPrivKey
 
 	return nil
 }
@@ -153,12 +144,25 @@ func (e *EVMDeployer) Config() *OracleConfig {
 	return e.config
 }
 
+func (e *EVMDeployer) Mnemonic() string {
+	return e.KeyData.Mnemonic
+}
+
+func (e *EVMDeployer) Address() string {
+	return e.KeyData.Address
+}
+
 // DownloadContract implements ContractDeployer.DownloadContract for EVM
-func (e *EVMDeployer) DownloadContract(url string) error {
-	contractPath := filepath.Join(e.config.ConfigDirPath, "centralized_oracle.sol")
+func (e *EVMDeployer) DownloadContract(
+	url string,
+	outputName string,
+	oracleType string,
+) error {
+	configDirPath := filepath.Join(e.config.ConfigDirPath, oracleType)
+	contractPath := filepath.Join(configDirPath, outputName)
 
 	// Create config directory if it doesn't exist
-	if err := os.MkdirAll(e.config.ConfigDirPath, 0o755); err != nil {
+	if err := os.MkdirAll(configDirPath, 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -192,10 +196,18 @@ func (e *EVMDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for EVM
 func (e *EVMDeployer) DeployContract(
 	ctx context.Context,
+	contractName string,
+	oracleType string,
 ) (string, error) {
-	contractPath := e.ContractPath()
+	configDirPath := filepath.Join(e.config.ConfigDirPath, oracleType)
+	contractPath := filepath.Join(configDirPath, contractName)
+	tContractName := strings.TrimSuffix(contractName, ".sol")
 
-	bytecode, contractABI, err := compileContract(contractPath)
+	fmt.Println("compiling contract...")
+	fmt.Println("contract path: " + contractPath)
+	fmt.Println("contract name: " + contractName)
+
+	bytecode, contractABI, err := compileContract(contractPath, contractName)
 	if err != nil {
 		return "", fmt.Errorf("failed to compile contract: %w", err)
 	}
@@ -210,31 +222,48 @@ func (e *EVMDeployer) DeployContract(
 		return "", err
 	}
 
-	contractAddress, err := deployEvmContract(
-		bytecode,
-		e.KeyData.PrivateKey,
-		big.NewInt(3),
-		[]AssetInfo{
-			{
-				LocalNetworkName: common.HexToAddress(
-					"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-				),
-				OracleNetworkName:     "WBTC",
-				LocalNetworkPrecision: big.NewInt(8),
+	var contractAddress *goethcommon.Address
+
+	switch tContractName {
+	case "PriceOracle":
+		contractAddress, err = deployPriceOracleContract(
+			bytecode,
+			e.KeyData.PrivateKey,
+			big.NewInt(3),
+			[]AssetInfo{
+				{
+					LocalNetworkName: common.HexToAddress(
+						"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+					),
+					OracleNetworkName:     "WBTC",
+					LocalNetworkPrecision: big.NewInt(8),
+				},
+				{
+					LocalNetworkName: common.HexToAddress(
+						"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+					),
+					OracleNetworkName:     "USDC",
+					LocalNetworkPrecision: big.NewInt(6),
+				},
 			},
-			{
-				LocalNetworkName: common.HexToAddress(
-					"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-				),
-				OracleNetworkName:     "USDC",
-				LocalNetworkPrecision: big.NewInt(6),
-			},
-		},
-		big.NewInt(1000000000000000000), // 1 ETH bound threshold
-		contractABI,
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to deploy contract: %w", err)
+			big.NewInt(1000000000000000000), // 1 ETH bound threshold
+			contractABI,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to deploy contract: %w", err)
+		}
+	case "RandomnessGenerator":
+		contractAddress, err = deployRngOracleContract(
+			bytecode,
+			e.KeyData.PrivateKey,
+			e.KeyData.Address,
+			contractABI,
+		)
+		if err != nil {
+			return "", fmt.Errorf("failed to deploy contract: %w", err)
+		}
+	default:
+		return "", fmt.Errorf("unknown contract name: %s", tContractName)
 	}
 
 	return contractAddress.Hex(), nil
@@ -242,11 +271,13 @@ func (e *EVMDeployer) DeployContract(
 
 func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 	var balanceDenom string
-	if raResp.Rollapp.GenesisInfo.NativeDenom == nil {
+	if raResp.Rollapp.GenesisInfo.NativeDenom == nil ||
+		raResp.Rollapp.GenesisInfo.NativeDenom.Base == "" {
 		balanceDenom = consts.Denoms.HubIbcOnRollapp
 	} else {
 		balanceDenom = raResp.Rollapp.GenesisInfo.NativeDenom.Base
 	}
+
 	for {
 		balance, err := keys.QueryBalance(
 			keys.ChainQueryConfig{
@@ -260,10 +291,25 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 		}
 
 		one, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+		pterm.Info.Println(
+			"checking the balance of the oracle address",
+		)
+
+		pterm.Info.Printf(
+			"required balance: %s%s\n",
+			one.String(),
+			balanceDenom,
+		)
+
+		pterm.Info.Printf(
+			"current balance: %s\n",
+			balance.String(),
+		)
+
 		isAddrFunded := balance.Amount.GTE(one)
 
 		if !isAddrFunded {
-			oracleKeys, err := getOracleKeyConfig(e.rollerData.RollappVMType)
+			oracleKeys, err := GetOracleKeyConfig(e.rollerData.RollappVMType, e.config.OracleType)
 			if err != nil {
 				return fmt.Errorf("failed to get oracle keys: %v", err)
 			}
@@ -293,7 +339,7 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 }
 
 // contract deployment code was adapted from https://github.com/bcdevtools/devd/blob/main/cmd/tx/deploy-contract.go
-func deployEvmContract(
+func deployPriceOracleContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	expirationOffset *big.Int,
@@ -301,6 +347,7 @@ func deployEvmContract(
 	boundThreshold *big.Int,
 	contractABI string,
 ) (*goethcommon.Address, error) {
+	pterm.Info.Println("deploying Oracle contract")
 	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial eth client: %w", err)
@@ -349,7 +396,7 @@ func deployEvmContract(
 
 	newContractAddress := crypto.CreateAddress(*from, nonce)
 
-	fmt.Println("Deploying new contract using account", from)
+	pterm.Info.Println("Deploying new contract using account", from)
 
 	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
 	if err != nil {
@@ -363,12 +410,6 @@ func deployEvmContract(
 	}
 
 	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
-	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
-	rawTxFile := filepath.Join("raw_tx.hex")
-	if err := os.WriteFile(rawTxFile, []byte("0x"+rawTxRLPHex), 0o644); err != nil {
-		return nil, fmt.Errorf("failed to write raw tx to file: %w", err)
-	}
-	fmt.Printf("RawTx written to: %s\n", rawTxFile)
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -376,7 +417,89 @@ func deployEvmContract(
 	}
 
 	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
-		fmt.Printf("Contract deployed successfully at: %s\n", newContractAddress.Hex())
+		return &newContractAddress, nil
+	}
+
+	return nil, fmt.Errorf("contract deployment failed - transaction was not successful")
+}
+
+func deployRngOracleContract(
+	bytecode string,
+	ecdsaPrivateKey *ecdsa.PrivateKey,
+	deployer string,
+	contractABI string,
+) (*goethcommon.Address, error) {
+	pterm.Info.Println("deploying RandomnessGenerator contract")
+	ethClient8545, err := ethclient.Dial("http://127.0.0.1:8545")
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial eth client: %w", err)
+	}
+
+	ecdsaPrivateKey, _, from, err := mustSecretEvmAccount(ecdsaPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := ethClient8545.NonceAt(context.Background(), *from, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce of sender: %w", err)
+	}
+
+	chainId, err := ethClient8545.ChainID(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chain ID: %w", err)
+	}
+
+	bytecode = strings.TrimPrefix(bytecode, "0x")
+	deploymentBytes, err := hex.DecodeString(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse deployment bytecode: %w", err)
+	}
+
+	// Convert deployer string to Ethereum address
+	deployerAddr := goethcommon.HexToAddress(deployer)
+	// Encode constructor arguments
+	constructorInput := []interface{}{deployerAddr}
+	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
+	}
+
+	// Append encoded constructor arguments to deployment bytecode
+	deploymentBytes = append(deploymentBytes, constructorArgs...)
+
+	txData := ethtypes.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: big.NewInt(20_000_000_000),
+		Gas:      400_000_000,
+		To:       nil,
+		Data:     deploymentBytes,
+		Value:    goethcommon.Big0,
+	}
+	tx := ethtypes.NewTx(&txData)
+
+	newContractAddress := crypto.CreateAddress(*from, nonce)
+
+	pterm.Info.Println("Deploying new contract using account", from)
+
+	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign tx: %w", err)
+	}
+
+	var buf bytes.Buffer
+	err = signedTx.EncodeRLP(&buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode tx: %w", err)
+	}
+
+	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
+	err = ethClient8545.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send tx: %w", err)
+	}
+
+	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
 		return &newContractAddress, nil
 	}
 
@@ -398,7 +521,9 @@ func encodeConstructorArgs(args []interface{}, contractABI string) ([]byte, erro
 	return encoded, nil
 }
 
-func compileContract(contractPath string) (string, string, error) {
+func compileContract(contractPath string, contractName string) (string, string, error) {
+	tContractName := strings.TrimSuffix(contractName, ".sol")
+
 	// Ensure solc is installed
 	if err := dependencies.InstallSolidityDependencies(); err != nil {
 		return "", "", fmt.Errorf("failed to install solidity compiler: %w", err)
@@ -410,29 +535,25 @@ func compileContract(contractPath string) (string, string, error) {
 		return "", "", fmt.Errorf("failed to create build directory: %w", err)
 	}
 
-	solcPath := filepath.Join(consts.InternalBinsDir, "solc")
-
 	// Compile contract to get bytecode
-	cmd := exec.Command(solcPath, "--bin", contractPath, "-o", buildDir)
+	cmd := exec.Command(consts.Executables.Solc, "--bin", contractPath, "-o", buildDir)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return "", "", fmt.Errorf("failed to compile contract (bytecode): %w", err)
 	}
 
 	// Compile contract to get ABI
-	cmd = exec.Command(solcPath, "--abi", contractPath, "-o", buildDir)
+	cmd = exec.Command(consts.Executables.Solc, "--abi", contractPath, "-o", buildDir)
 	if _, err := bash.ExecCommandWithStdout(cmd); err != nil {
 		return "", "", fmt.Errorf("failed to compile contract (ABI): %w", err)
 	}
 
-	contractName := "PriceOracle"
-
-	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", contractName))
+	binPath := filepath.Join(buildDir, fmt.Sprintf("%s.bin", tContractName))
 	bytecode, err := os.ReadFile(binPath)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read bytecode: %w", err)
 	}
 
-	abiPath := filepath.Join(buildDir, fmt.Sprintf("%s.abi", contractName))
+	abiPath := filepath.Join(buildDir, fmt.Sprintf("%s.abi", tContractName))
 	abiBytes, err := os.ReadFile(abiPath)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to read ABI: %w", err)
@@ -480,7 +601,6 @@ func GetEcdsaPrivateKey(mnemonic string) (*ecdsa.PrivateKey, error) {
 func mustSecretEvmAccount(
 	pk *ecdsa.PrivateKey,
 ) (ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
-	var inputSource string
 	var ok bool
 
 	ecdsaPrivateKey = pk
@@ -494,7 +614,7 @@ func mustSecretEvmAccount(
 	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
 	account = &fromAddress
 
-	fmt.Println("Account Address:", account.Hex(), "(from", inputSource, ")")
+	fmt.Println("Account Address:", account.Hex())
 
 	return
 }

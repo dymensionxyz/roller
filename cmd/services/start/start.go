@@ -205,28 +205,52 @@ func EibcCmd() *cobra.Command {
 	return cmd
 }
 
-func OracleCmd() *cobra.Command {
+func OracleCmd(oracleType string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start the systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			if runtime.GOOS == "linux" {
-				err := startSystemdServices(consts.OracleSystemdServices)
-				if err != nil {
-					pterm.Error.Println("failed to start systemd services:", err)
-					return
+			switch oracleType {
+			case "price":
+				if runtime.GOOS == "linux" {
+					err := startSystemdServices(consts.PriceOracleSystemdServices)
+					if err != nil {
+						pterm.Error.Println("failed to start systemd services:", err)
+						return
+					}
+				} else if runtime.GOOS == "darwin" {
+					err := startLaunchctlServices(consts.PriceOracleSystemdServices)
+					if err != nil {
+						pterm.Error.Println("failed to start launchd services:", err)
+						return
+					}
+				} else {
+					pterm.Error.Printf(
+						"the %s commands currently support only darwin and linux operating systems",
+						cmd.Use,
+					)
 				}
-			} else if runtime.GOOS == "darwin" {
-				err := startLaunchctlServices(consts.OracleSystemdServices)
-				if err != nil {
-					pterm.Error.Println("failed to start launchd services:", err)
-					return
+			case "rng":
+				if runtime.GOOS == "linux" {
+					err := startSystemdServices(consts.RngOracleSystemdServices)
+					if err != nil {
+						pterm.Error.Println("failed to start systemd services:", err)
+						return
+					}
+				} else if runtime.GOOS == "darwin" {
+					err := startLaunchctlServices(consts.RngOracleSystemdServices)
+					if err != nil {
+						pterm.Error.Println("failed to start launchd services:", err)
+						return
+					}
+				} else {
+					pterm.Error.Printf(
+						"the %s commands currently support only darwin and linux operating systems",
+						cmd.Use,
+					)
 				}
-			} else {
-				pterm.Error.Printf(
-					"the %s commands currently support only darwin and linux operating systems",
-					cmd.Use,
-				)
+			default:
+				pterm.Error.Println("invalid oracle type")
 			}
 		},
 	}

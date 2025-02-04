@@ -1,0 +1,24 @@
+{
+  "external": {
+    "randomness_server_base_url": "http://127.0.0.1:8090",
+    "poll_retry_count": 10,
+    "poll_retry_wait_time": 10000000,
+    "poll_retry_max_wait_time": 4000000000
+  },
+  "agent": {
+    "http_server_address": ":8080"
+  },
+  "db": {
+    "db_path": "db"
+  },
+  "contract": {
+    "poll_interval": 10000000000,
+    "node_url": "https://json-rpc.flip.evm.ra.mn.rollapp.network",
+    "mnemonic": "chalk excess welcome pool sea session pencil health region lamp library today",
+    "contract_address": "0x36d33d210522195b0D13247C9Bfe12052E20d760",
+    "derivation_path": "m/44'/60'/0'/0/0",
+    "gas_limit": 373520,
+    "gas_fee_cap": 420210000000,
+    "gas_tip_cap": 1000
+  }
+}

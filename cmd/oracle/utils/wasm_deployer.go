@@ -1,4 +1,4 @@
-package oracle
+package oracleutils
 
 import (
 	"context"
@@ -28,9 +28,13 @@ type WasmDeployer struct {
 	}
 }
 
+func (w *WasmDeployer) Mnemonic() string {
+	return w.KeyData.Mnemonic
+}
+
 // NewWasmDeployer creates a new WasmDeployer instance
-func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
-	config := NewOracleConfig(rollerData)
+func NewWasmDeployer(rollerData roller.RollappConfig, oracleType string) (*WasmDeployer, error) {
+	config := NewOracleConfig(rollerData, oracleType)
 	d := &WasmDeployer{
 		config:     config,
 		rollerData: rollerData,
@@ -45,12 +49,6 @@ func NewWasmDeployer(rollerData roller.RollappConfig) (*WasmDeployer, error) {
 
 func (w *WasmDeployer) PrivateKey() string {
 	return w.KeyData.PrivateKey
-}
-
-func (w *WasmDeployer) ContractPath() string {
-	contractPath := filepath.Join(w.config.ConfigDirPath, "centralized_oracle.wasm")
-
-	return contractPath
 }
 
 func (w *WasmDeployer) ClientConfigPath() string {
@@ -89,7 +87,7 @@ func (w *WasmDeployer) IsContractDeployed() (string, bool) {
 }
 
 func (w *WasmDeployer) SetKey() error {
-	addr, isExisting, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData)
+	addr, err := generateRaOracleKeys(w.rollerData.Home, w.rollerData, w.config.OracleType)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve oracle keys: %v", err)
 	}
@@ -101,16 +99,12 @@ func (w *WasmDeployer) SetKey() error {
 	w.KeyData.Address = addr[0].Address
 	w.KeyData.Name = addr[0].Name
 
-	if !isExisting {
-		hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
-		if err != nil {
-			return err
-		}
-
-		w.KeyData.PrivateKey = hexKey
-	} else {
-		w.KeyData.PrivateKey = ""
+	hexKey, err := GetSecp256k1PrivateKey(addr[0].Mnemonic)
+	if err != nil {
+		return err
 	}
+
+	w.KeyData.PrivateKey = hexKey
 
 	return nil
 }
@@ -120,11 +114,12 @@ func (w *WasmDeployer) Config() *OracleConfig {
 }
 
 // DownloadContract implements ContractDeployer.DownloadContract for WASM
-func (w *WasmDeployer) DownloadContract(url string) error {
-	contractPath := w.ContractPath()
+func (w *WasmDeployer) DownloadContract(url string, outputName string, oracleType string) error {
+	configDirPath := filepath.Join(w.config.ConfigDirPath, oracleType)
+	contractPath := filepath.Join(configDirPath, outputName)
 
 	// Create config directory if it doesn't exist
-	if err := os.MkdirAll(w.config.ConfigDirPath, 0o755); err != nil {
+	if err := os.MkdirAll(configDirPath, 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -159,9 +154,11 @@ func (w *WasmDeployer) DownloadContract(url string) error {
 // DeployContract implements ContractDeployer.DeployContract for WASM
 func (w *WasmDeployer) DeployContract(
 	ctx context.Context,
+	contractName string,
+	oracleType string,
 ) (string, error) {
 	// Store the contract
-	if err := w.config.StoreWasmContract(w.rollerData); err != nil {
+	if err := w.config.StoreWasmContract(w.rollerData, contractName, oracleType); err != nil {
 		return "", fmt.Errorf("failed to store contract: %w", err)
 	}
 
@@ -169,7 +166,7 @@ func (w *WasmDeployer) DeployContract(
 	time.Sleep(time.Second * 2)
 
 	// Get the code ID
-	codeID, err := w.config.GetCodeID()
+	codeID, err := w.config.GetCodeID(contractName)
 	if err != nil {
 		return "", fmt.Errorf("failed to get code ID: %w", err)
 	}
