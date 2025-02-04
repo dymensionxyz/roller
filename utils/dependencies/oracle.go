@@ -87,7 +87,6 @@ func InstallOracleBinary(ctx context.Context, config BinaryInstallConfig, oracle
 		fullPath,
 	)
 
-	fmt.Println("Downloading", downloadURL)
 	// Create the HTTP request
 	req, err := http.NewRequestWithContext(ctx, "GET", downloadURL, nil)
 	if err != nil {
@@ -160,7 +159,6 @@ func InstallRngServiceBinary(
 		fullPath,
 	)
 
-	fmt.Println("Downloading", downloadURL)
 	// Create the HTTP request
 	req, err := http.NewRequestWithContext(ctx, "GET", downloadURL, nil)
 	if err != nil {

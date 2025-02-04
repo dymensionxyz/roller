@@ -82,9 +82,6 @@ func Cmd(services []string, module string) *cobra.Command {
 				}
 			}
 
-			fmt.Println("module:", module)
-			fmt.Println("services:", strings.Join(services, ", "))
-
 			defer func() {
 				pterm.Info.Println("next steps:")
 				switch module {

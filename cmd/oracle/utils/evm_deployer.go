@@ -396,7 +396,7 @@ func deployPriceOracleContract(
 
 	newContractAddress := crypto.CreateAddress(*from, nonce)
 
-	fmt.Println("Deploying new contract using account", from)
+	pterm.Info.Println("Deploying new contract using account", from)
 
 	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
 	if err != nil {
@@ -410,12 +410,6 @@ func deployPriceOracleContract(
 	}
 
 	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
-	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
-	rawTxFile := filepath.Join("raw_tx.hex")
-	if err := os.WriteFile(rawTxFile, []byte("0x"+rawTxRLPHex), 0o644); err != nil {
-		return nil, fmt.Errorf("failed to write raw tx to file: %w", err)
-	}
-	fmt.Printf("RawTx written to: %s\n", rawTxFile)
 
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -423,7 +417,6 @@ func deployPriceOracleContract(
 	}
 
 	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
-		fmt.Printf("Contract deployed successfully at: %s\n", newContractAddress.Hex())
 		return &newContractAddress, nil
 	}
 
@@ -487,7 +480,7 @@ func deployRngOracleContract(
 
 	newContractAddress := crypto.CreateAddress(*from, nonce)
 
-	fmt.Println("Deploying new contract using account", from)
+	pterm.Info.Println("Deploying new contract using account", from)
 
 	signedTx, err := ethtypes.SignTx(tx, ethtypes.NewEIP155Signer(chainId), ecdsaPrivateKey)
 	if err != nil {
@@ -501,20 +494,12 @@ func deployRngOracleContract(
 	}
 
 	fmt.Printf("Tx hash %s\n", signedTx.Hash().Hex())
-	rawTxRLPHex := hex.EncodeToString(buf.Bytes())
-	rawTxFile := filepath.Join("raw_tx.hex")
-	if err := os.WriteFile(rawTxFile, []byte("0x"+rawTxRLPHex), 0o644); err != nil {
-		return nil, fmt.Errorf("failed to write raw tx to file: %w", err)
-	}
-	fmt.Printf("RawTx written to: %s\n", rawTxFile)
-
 	err = ethClient8545.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send tx: %w", err)
 	}
 
 	if tx := waitForEthTx(ethClient8545, signedTx.Hash()); tx != nil {
-		fmt.Printf("Contract deployed successfully at: %s\n", newContractAddress.Hex())
 		return &newContractAddress, nil
 	}
 
@@ -616,7 +601,6 @@ func GetEcdsaPrivateKey(mnemonic string) (*ecdsa.PrivateKey, error) {
 func mustSecretEvmAccount(
 	pk *ecdsa.PrivateKey,
 ) (ecdsaPrivateKey *ecdsa.PrivateKey, ecdsaPubKey *ecdsa.PublicKey, account *common.Address, err error) {
-	var inputSource string
 	var ok bool
 
 	ecdsaPrivateKey = pk
@@ -630,7 +614,7 @@ func mustSecretEvmAccount(
 	fromAddress := crypto.PubkeyToAddress(*ecdsaPubKey)
 	account = &fromAddress
 
-	fmt.Println("Account Address:", account.Hex(), "(from", inputSource, ")")
+	fmt.Println("Account Address:", account.Hex())
 
 	return
 }
