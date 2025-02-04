@@ -87,12 +87,22 @@ func Cmd(services []string, module string) *cobra.Command {
 
 			defer func() {
 				pterm.Info.Println("next steps:")
-				pterm.Info.Printf(
-					"run %s to start %s on your local machine\n",
-					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-						Sprintf("roller %s services start", module),
-					strings.Join(services, ", "),
-				)
+				switch module {
+				case "rng", "price":
+					pterm.Info.Printf(
+						"run %s to start %s on your local machine\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("roller oracle %s services start", module),
+						strings.Join(services, ", "),
+					)
+				default:
+					pterm.Info.Printf(
+						"run %s to start %s on your local machine\n",
+						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+							Sprintf("roller %s services start", module),
+						strings.Join(services, ", "),
+					)
+				}
 			}()
 		},
 	}
