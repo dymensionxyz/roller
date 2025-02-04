@@ -215,6 +215,7 @@ func initRngOracleClient(
 	config.Contract.NodeURL = "http://127.0.0.1:8545"
 	config.Contract.ContractAddress = contractAddr
 	config.Contract.Mnemonic = mnemonic
+	config.DB.DBPath = filepath.Join(oracleConfigDir, "db")
 
 	updatedConfig, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
