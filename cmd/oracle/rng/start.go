@@ -45,7 +45,7 @@ func StartCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(cmd.Context())
 			defer cancel()
 
-			done := make(chan error)
+			done := make(chan error, 2)
 			go func() {
 				err := bash.ExecCmdFollow(
 					done,
