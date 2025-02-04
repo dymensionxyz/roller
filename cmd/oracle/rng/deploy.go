@@ -136,85 +136,96 @@ func DeployCmd() *cobra.Command {
 			pterm.Success.Printf("Contract deployed successfully at: %s\n", contractAddr)
 
 			pterm.Info.Println("starting phase 2: oracle client setup")
-			pterm.Info.Println("downloading oracle binary")
 
 			obvi, err := dependencies.GetOracleBinaryVersion(rollerData.RollappVMType)
 			if err != nil {
-				pterm.Error.Printf("failed to get oracle binary version: %v\n", err)
+				pterm.Error.Printf("failed to get oracle binary version: %v", err)
+				return
+			}
+			pterm.Info.Println("downloading oracle binaries")
+			err = initRngOracleClient(rollerData, contractAddr, deployer.Mnemonic(), obvi)
+			if err != nil {
+				pterm.Error.Printf("failed to initialize oracle client: %v\n", err)
 				return
 			}
 
-			var v string
-			switch rollerData.RollappVMType {
-			case consts.EVM_ROLLAPP:
-				v = obvi.RngEvmOracle
-			default:
-				pterm.Error.Printfln("unsupported rollapp type %s", rollerData.RollappVMType)
-				return
-			}
-
+			pterm.Info.Println("starting phase 3: rng service setup")
 			bc := dependencies.BinaryInstallConfig{
 				RollappType: rollerData.RollappVMType,
-				Version:     v,
-				InstallDir:  consts.Executables.RngOracle,
+				Version:     obvi.RngEvmRandomService,
+				InstallDir:  consts.Executables.RngOracleRandomService,
 			}
-
-			err = dependencies.InstallBinary(context.Background(), bc, consts.Oracles.Rng)
-			if err != nil {
-				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
+			if err := dependencies.InstallRngServiceBinary(context.Background(), bc, consts.Oracles.Rng); err != nil {
+				pterm.Error.Printf("failed to initialize rng service client: %v\n", err)
 				return
 			}
 
-			oracleConfigDir := filepath.Join(
-				rollerData.Home,
-				consts.ConfigDirName.Oracle,
-				consts.Oracles.Rng,
-			)
-			pterm.Info.Printfln(
-				"copying config file into %s",
-				oracleConfigDir,
-			)
-			if err := copyConfigFile(rollerData.RollappVMType, oracleConfigDir); err != nil {
-				pterm.Error.Printf("failed to copy config file: %v\n", err)
-				return
-			}
-			pterm.Info.Println("config file copied successfully")
-			pterm.Info.Println("updating config values")
-
-			cfp := filepath.Join(oracleConfigDir, "config.json")
-			// Read the existing config
-			configData, err := os.ReadFile(cfp)
-			if err != nil {
-				pterm.Error.Printf("failed to read config file: %v\n", err)
-				return
-			}
-
-			var config Config
-			if err := json.Unmarshal(configData, &config); err != nil {
-				pterm.Error.Printf("failed to parse config file: %v\n", err)
-				return
-			}
-
-			// Update the values
-			config.Contract.NodeURL = "http://127.0.0.1:8545"
-			config.Contract.ContractAddress = contractAddr
-			config.Contract.Mnemonic = deployer.Mnemonic()
-
-			// Write back the updated config
-			updatedConfig, err := json.MarshalIndent(config, "", "  ")
-			if err != nil {
-				pterm.Error.Printf("failed to marshal updated config: %v\n", err)
-				return
-			}
-
-			if err := os.WriteFile(cfp, updatedConfig, 0o644); err != nil {
-				pterm.Error.Printf("failed to write updated config: %v\n", err)
-				return
-			}
 		},
 	}
 
 	return cmd
+}
+
+func initRngOracleClient(
+	rollerData roller.RollappConfig,
+	contractAddr, mnemonic string,
+	obvi *dependencies.OracleBinaryVersionInfo,
+) error {
+	var v string
+	switch rollerData.RollappVMType {
+	case consts.EVM_ROLLAPP:
+		v = obvi.RngEvmOracle
+	default:
+		return fmt.Errorf("unsupported rollapp type %s", rollerData.RollappVMType)
+	}
+
+	bc := dependencies.BinaryInstallConfig{
+		RollappType: rollerData.RollappVMType,
+		Version:     v,
+		InstallDir:  consts.Executables.RngOracle,
+	}
+
+	if err := dependencies.InstallOracleBinary(context.Background(), bc, consts.Oracles.Rng); err != nil {
+		return fmt.Errorf("failed to install oracle binary: %v", err)
+	}
+
+	oracleConfigDir := filepath.Join(
+		rollerData.Home,
+		consts.ConfigDirName.Oracle,
+		consts.Oracles.Rng,
+	)
+	pterm.Info.Printfln("copying config file into %s", oracleConfigDir)
+	if err := copyConfigFile(rollerData.RollappVMType, oracleConfigDir); err != nil {
+		return fmt.Errorf("failed to copy config file: %v", err)
+	}
+	pterm.Info.Println("config file copied successfully")
+	pterm.Info.Println("updating config values")
+
+	cfp := filepath.Join(oracleConfigDir, "config.json")
+	configData, err := os.ReadFile(cfp)
+	if err != nil {
+		return fmt.Errorf("failed to read config file: %v", err)
+	}
+
+	var config Config
+	if err := json.Unmarshal(configData, &config); err != nil {
+		return fmt.Errorf("failed to parse config file: %v", err)
+	}
+
+	config.Contract.NodeURL = "http://127.0.0.1:8545"
+	config.Contract.ContractAddress = contractAddr
+	config.Contract.Mnemonic = mnemonic
+
+	updatedConfig, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal updated config: %v", err)
+	}
+
+	if err := os.WriteFile(cfp, updatedConfig, 0o644); err != nil {
+		return fmt.Errorf("failed to write updated config: %v", err)
+	}
+
+	return nil
 }
 
 func copyConfigFile(rollappType consts.VMType, destDir string) error {

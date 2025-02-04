@@ -24,18 +24,19 @@ var (
 )
 
 var Executables = struct {
-	Celestia    string
-	RollappEVM  string
-	Relayer     string
-	Dymension   string
-	CelKey      string
-	Roller      string
-	Simd        string
-	Eibc        string
-	CelestiaApp string
-	PriceOracle string
-	RngOracle   string
-	Solc        string
+	Celestia               string
+	RollappEVM             string
+	Relayer                string
+	Dymension              string
+	CelKey                 string
+	Roller                 string
+	Simd                   string
+	Eibc                   string
+	CelestiaApp            string
+	PriceOracle            string
+	RngOracle              string
+	RngOracleRandomService string
+	Solc                   string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -46,9 +47,11 @@ var Executables = struct {
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
-	PriceOracle: fmt.Sprintf("%s/price-oracle", InternalBinsDir),
-	RngOracle:   fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
-	Solc:        fmt.Sprintf("%s/solc", InternalBinsDir),
+	// oracles
+	PriceOracle:            fmt.Sprintf("%s/price-oracle", InternalBinsDir),
+	RngOracle:              fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
+	RngOracleRandomService: fmt.Sprintf("%s/rng-oracle-random-service", InternalBinsDir),
+	Solc:                   fmt.Sprintf("%s/solc", InternalBinsDir),
 }
 
 var KeysIds = struct {

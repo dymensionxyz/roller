@@ -151,7 +151,7 @@ func DeployCmd() *cobra.Command {
 				InstallDir:  consts.Executables.PriceOracle,
 			}
 
-			err = dependencies.InstallBinary(context.Background(), bc, consts.Oracles.Price)
+			err = dependencies.InstallOracleBinary(context.Background(), bc, consts.Oracles.Price)
 			if err != nil {
 				pterm.Error.Printf("failed to install oracle binary: %v\n", err)
 				return
