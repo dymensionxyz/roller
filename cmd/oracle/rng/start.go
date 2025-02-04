@@ -2,6 +2,7 @@ package rngoracle
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -117,5 +118,7 @@ func getStartRandomServiceCmd(rollerData roller.RollappConfig) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.RngOracleRandomService, args...,
 	)
+
+	fmt.Println(cmd.String())
 	return cmd
 }
