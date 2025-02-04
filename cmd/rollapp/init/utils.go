@@ -1,7 +1,11 @@
 package initrollapp
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -146,6 +150,37 @@ func initRollapp(
 	if err != nil {
 		errorhandling.PrettifyErrorIfExists(err)
 		return err
+	}
+
+	// nolint: errcheck
+	raSpinner.Stop()
+	pterm.DefaultSection.WithIndentCharacter("❗️").
+		Println("Below is the validator key of this node. It should be backed up so the node can be recovered in case of failure.")
+	jsonFilePath := filepath.Join(home, "rollapp", "config", "priv_validator_key.json")
+	jsonData, err := os.ReadFile(jsonFilePath)
+	if err != nil {
+		return err
+	}
+
+	var jsonContent map[string]interface{}
+	err = json.Unmarshal(jsonData, &jsonContent)
+	if err != nil {
+		return err
+	}
+
+	jsonString, err := json.MarshalIndent(jsonContent, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(jsonString))
+
+	isBackedUp, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		"press 'y' when you have backed up the validator key",
+	).Show()
+
+	if !isBackedUp {
+		return errors.New("cancelled by user")
 	}
 
 	raSpinner.Success("rollapp initialized successfully")
