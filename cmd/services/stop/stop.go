@@ -32,9 +32,9 @@ func Cmd(services []string) *cobra.Command {
 			} else {
 				servicesToStop = services
 			}
-			err := stopSystemdServices(servicesToStop)
+			err := StopSystemdServices(servicesToStop)
 			if err != nil {
-				pterm.Error.Println("failed to restart systemd services:", err)
+				pterm.Error.Println("failed to stop systemd services:", err)
 				return
 			}
 		},
@@ -42,7 +42,7 @@ func Cmd(services []string) *cobra.Command {
 	return cmd
 }
 
-func stopSystemdServices(services []string) error {
+func StopSystemdServices(services []string) error {
 	if runtime.GOOS == "linux" {
 		for _, service := range services {
 			err := servicemanager.StopSystemdService(service)
