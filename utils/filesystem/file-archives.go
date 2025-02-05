@@ -127,7 +127,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 }
 
 func CompressTarGz(sourceDir, destDir, fileName string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Compressing archive...")
+	spinner, _ := pterm.DefaultSpinner.Start("Creating archive from...")
 	// nolint:errcheck
 	defer spinner.Stop()
 
@@ -178,7 +178,7 @@ func CompressTarGz(sourceDir, destDir, fileName string) error {
 	})
 
 	if err != nil {
-		spinner.Fail("Archive compressed successfully")
+		spinner.Fail("Archive compressed failed")
 	} else {
 		spinner.Success("Archive compressed successfully")
 	}

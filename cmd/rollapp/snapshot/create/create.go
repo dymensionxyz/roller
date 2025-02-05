@@ -100,7 +100,7 @@ func Cmd() *cobra.Command {
 
 				err = filesystem.CompressTarGz(dataDir, snapshotDir, snapshotFileName)
 				if err != nil {
-					pterm.Error.Println("failed to extract snapshot: ", err)
+					pterm.Error.Println("failed to compress snapshot: ", err)
 					return
 				}
 			}
