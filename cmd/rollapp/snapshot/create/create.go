@@ -11,11 +11,11 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/cmd/services/stop"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
 func Cmd() *cobra.Command {
@@ -62,7 +62,7 @@ func Cmd() *cobra.Command {
 			)
 
 			servicesToStop := []string{"rollapp"}
-			err = stop.StopSystemdServices(servicesToStop)
+			err = servicemanager.StopSystemdServices(servicesToStop)
 			if err != nil {
 				pterm.Error.Println("failed to stop systemd services:", err)
 				return

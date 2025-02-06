@@ -254,7 +254,7 @@ func StopLaunchdService(serviceName string) error {
 	return nil
 }
 
-func StopSystemServices(services []string) error {
+func StopSystemdServices(services []string) error {
 	pterm.Info.Println("stopping existing system services, if any...")
 	switch runtime.GOOS {
 	case "linux":
