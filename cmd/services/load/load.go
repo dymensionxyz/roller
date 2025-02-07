@@ -61,10 +61,12 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
-			err = scripts.CreateRollappStartup(home)
-			if err != nil {
-				pterm.Error.Println("failed to generate startup scripts:", err)
-				return
+			if module == "rollapp" {
+				err = scripts.CreateRollappStartup(home)
+				if err != nil {
+					pterm.Error.Println("failed to generate startup scripts:", err)
+					return
+				}
 			}
 
 			if module == "relayer" {
