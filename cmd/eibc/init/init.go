@@ -64,59 +64,20 @@ func Cmd() *cobra.Command {
 			var hd consts.HubData
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			hdConfigPath := filepath.Join(eibcHome, "hub.yaml")
 			var ki *keys.KeyInfo
-
-			err = os.MkdirAll(eibcHome, 0o755)
-			if err != nil {
-				pterm.Error.Println("failed to create eibc client dir: ", err)
-				return
-			}
 
 			// get hub data
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
 				rollerConfig.HubData.ID == "" {
 				pterm.Warning.Println("no valid roller config found")
-				pterm.Info.Println("checking for hub data config")
-				_, err := os.Stat(hdConfigPath)
+				hd, err = initializeEibcForEnvironment()
 				if err != nil {
-					if errors.Is(err, fs.ErrNotExist) {
-						pterm.Info.Println(
-							"hub data config not found, initializing for environment",
-						)
-						hd, err = initializeEibcForEnvironment()
-						if err != nil {
-							pterm.Error.Println(
-								"failed to initialize hub metadata for eibc client: ",
-								err,
-							)
-							return
-						}
-
-						err = createHubDataConfigFile(hdConfigPath, hd)
-						if err != nil {
-							pterm.Error.Println("failed to create hub data config file: ", err)
-							return
-						}
-					} else {
-						pterm.Error.Println("failed to check for hub data config: ", err)
-						return
-					}
-				} else {
-					pterm.Info.Println("hub data config found")
-					data, err := os.ReadFile(hdConfigPath)
-					if err != nil {
-						pterm.Error.Println("failed to read hub data config file: ", err)
-						return
-					}
-
-					err = yaml.Unmarshal(data, &hd)
-					if err != nil {
-						pterm.Error.Println("failed to unmarshal hub data config file: ", err)
-						return
-					}
-					pterm.Info.Println("using hub data from eibc hub config")
+					pterm.Error.Println(
+						"failed to initialize hub metadata for eibc client: ",
+						err,
+					)
+					return
 				}
 			} else {
 				hd = rollerConfig.HubData
@@ -146,6 +107,19 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to initialize eibc client: ", err)
 					return
 				}
+			} else {
+				pterm.Info.Println("eibc client already initialized")
+				pterm.Info.Println("roller will use the hub rpc endpoint from the existing eibc config file:")
+				pterm.Info.Println(eibcConfigPath)
+
+				var cfg eibcutils.Config
+				rhd, err := cfg.HubDataFromHubRpc(eibcConfigPath)
+				if err != nil {
+					pterm.Error.Println("failed to get hub data from hub rpc: ", err)
+					return
+				}
+
+				hd = *rhd
 			}
 
 			ki, err = eibcutils.EnsureWhaleAccount()
