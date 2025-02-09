@@ -14,6 +14,7 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -63,17 +64,59 @@ func Cmd() *cobra.Command {
 			var hd consts.HubData
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
+			hdConfigPath := filepath.Join(eibcHome, "hub.yaml")
 			var ki *keys.KeyInfo
+
+			err = os.MkdirAll(eibcHome, 0o755)
+			if err != nil {
+				pterm.Error.Println("failed to create eibc client dir: ", err)
+				return
+			}
 
 			// get hub data
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
 				rollerConfig.HubData.ID == "" {
-
-				hd, err = initializeEibcForEnvironment()
+				pterm.Warning.Println("no valid roller config found")
+				pterm.Info.Println("checking for hub data config")
+				_, err := os.Stat(hdConfigPath)
 				if err != nil {
-					pterm.Error.Println("failed to initialize hub metadata for eibc client: ", err)
-					return
+					if errors.Is(err, fs.ErrNotExist) {
+						pterm.Info.Println(
+							"hub data config not found, initializing for environment",
+						)
+						hd, err = initializeEibcForEnvironment()
+						if err != nil {
+							pterm.Error.Println(
+								"failed to initialize hub metadata for eibc client: ",
+								err,
+							)
+							return
+						}
+
+						err = createHubDataConfigFile(hdConfigPath, hd)
+						if err != nil {
+							pterm.Error.Println("failed to create hub data config file: ", err)
+							return
+						}
+					} else {
+						pterm.Error.Println("failed to check for hub data config: ", err)
+						return
+					}
+				} else {
+					pterm.Info.Println("hub data config found")
+					data, err := os.ReadFile(hdConfigPath)
+					if err != nil {
+						pterm.Error.Println("failed to read hub data config file: ", err)
+						return
+					}
+
+					err = yaml.Unmarshal(data, &hd)
+					if err != nil {
+						pterm.Error.Println("failed to unmarshal hub data config file: ", err)
+						return
+					}
+					pterm.Info.Println("using hub data from eibc hub config")
 				}
 			} else {
 				hd = rollerConfig.HubData
@@ -391,7 +434,6 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 }
 
 func initializeEibcForEnvironment() (consts.HubData, error) {
-	pterm.Warning.Println("no roller config found")
 	pterm.Info.Println("initializing for environment")
 	var hd consts.HubData
 
@@ -655,4 +697,27 @@ func printPolicyAddress(policyAddr string) {
 			Sprint(policyAddr),
 	)
 	pterm.Info.Println("share the policy address with the LP provider")
+}
+
+func createHubDataConfigFile(hdConfigPath string, hd consts.HubData) error {
+	_, err := os.Create(hdConfigPath)
+	if err != nil {
+		return err
+	}
+
+	v := viper.New()
+
+	v.Set("rpc_url", hd.RpcUrl)
+	v.Set("id", hd.ID)
+
+	v.SetConfigFile(hdConfigPath)
+	v.SetConfigType("yaml")
+
+	err = v.WriteConfig()
+	if err != nil {
+		pterm.Error.Println("failed to write config", err)
+		return err
+	}
+
+	return nil
 }
