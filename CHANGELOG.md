@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.1-rc04](https://github.com/dymensionxyz/roller/compare/v1.13.0-rc04...v1.13.1-rc04) (2025-02-09)
+
+
+### Bug Fixes
+
+* add a more robust fallback mechanism for hub data in eibc ([398d522](https://github.com/dymensionxyz/roller/commit/398d5221d7ab402a274fe1f0411edd1f6d44cc9e))
+* fall back to eibc config's rpc endpoint ([674fa6d](https://github.com/dymensionxyz/roller/commit/674fa6db24a60fe9703a0055e4d248ca41fd9547))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
