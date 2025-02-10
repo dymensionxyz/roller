@@ -105,6 +105,7 @@ var ConfigDirName = struct {
 	Eibc                 string
 	BlockExplorer        string
 	Oracle               string
+	Snapshots            string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -115,6 +116,7 @@ var ConfigDirName = struct {
 	Eibc:                 ".eibc-client",
 	BlockExplorer:        "block-explorer",
 	Oracle:               "oracle",
+	Snapshots:            "snapshots",
 }
 
 var Denoms = struct {

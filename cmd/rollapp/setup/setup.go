@@ -41,8 +41,7 @@ import (
 var OneDaySequencePrice = big.NewInt(1)
 
 var (
-	RollappDirPath string
-	LogPath        string
+	LogPath string
 )
 
 // nolint:gocyclo
@@ -444,8 +443,10 @@ RollApp's IRO time: %v`,
 					}
 				}
 
-				// approve the data directory deletion before downloading the snapshot,
-				dataDir := filepath.Join(RollappDirPath, "data")
+				// approve the data directory deletion before downloading the snapshot
+				rollappDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+
+				dataDir := filepath.Join(rollappDirPath, "data")
 				if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
 					dataDirNotEmpty, err := filesystem.DirNotEmpty(dataDir)
 					if err != nil {
@@ -515,7 +516,7 @@ RollApp's IRO time: %v`,
 							return
 						}
 
-						err = filesystem.ExtractTarGz(archivePath, filepath.Join(RollappDirPath))
+						err = filesystem.ExtractTarGz(archivePath, filepath.Join(rollappDirPath))
 						if err != nil {
 							pterm.Error.Println("failed to extract snapshot: ", err)
 							return

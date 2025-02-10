@@ -125,3 +125,63 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	spinner.Success("Archive extracted successfully")
 	return nil
 }
+
+func CompressTarGz(sourceDir, destDir, fileName string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Creating archive from...")
+	// nolint:errcheck
+	defer spinner.Stop()
+
+	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create folder: %v", err)
+	}
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		return fmt.Errorf("failed to create backup file: %v", err)
+	}
+	defer file.Close()
+
+	gzipWriter := gzip.NewWriter(file)
+	defer gzipWriter.Close()
+
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
+	err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		header, err := tar.FileInfoHeader(info, info.Name())
+		if err != nil {
+			return err
+		}
+
+		header.Name, _ = filepath.Rel(sourceDir, path)
+
+		if err := tarWriter.WriteHeader(header); err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			if _, err := io.Copy(tarWriter, file); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		spinner.Fail("Archive compressed failed")
+	} else {
+		spinner.Success("Archive compressed successfully")
+	}
+
+	return nil
+}
