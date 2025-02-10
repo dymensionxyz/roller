@@ -31,6 +31,8 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			pterm.Warning.Println("warning! by default roller is using a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension")
+			pterm.Warning.Println("warning! Hub private endpoints can be updated anytime after initial setup by running roller config set hub-rpc-endpoint <private-endpoint>")
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)

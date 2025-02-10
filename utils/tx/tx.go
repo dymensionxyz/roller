@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	cometclient "github.com/cometbft/cometbft/rpc/client/http"
@@ -13,6 +14,21 @@ import (
 )
 
 func MonitorTransaction(wsURL, txHash string) error {
+	for {
+		_, err := http.Get(fmt.Sprintf("%s/status", wsURL))
+		if err == nil {
+			fmt.Println("✅ RPC is working!")
+			break
+		}
+		fmt.Printf("❌ RPC %s is not responding: %v\n", wsURL, err)
+
+		newRPC, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"the provided Hub RPC is not working, please enter another RPC Endpoint instead (you can be obtained in the following link https://blastapi.io/chains/dymension)",
+		).Show()
+
+		wsURL = newRPC
+	}
+
 	// Create a new client
 	client, err := cometclient.New(wsURL, "/websocket")
 	if err != nil {
