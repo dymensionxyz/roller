@@ -45,11 +45,27 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			return nil, err
 		}
 
+		var latestHeight string
+		var latestBlockIdHash string
+
 		pterm.Info.Println("retrieving latest block")
-		latestHeight, latestBlockIdHash, err := celestia.GetLatestBlock(rollerData)
-		if err != nil {
-			return nil, err
+
+		for {
+			latestHeight, latestBlockIdHash, err = celestia.GetLatestBlock(rollerData)
+			if err == nil {
+				break
+			}
+			newRPC, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"the provided Celestia RPC is not working, please enter another RPC Endpoint instead (you can be obtained in the following link https://docs.celestia.org/how-to-guides/mainnet#consensus-nodes)",
+			).Show()
+
+			rollerData.DA.RpcUrl = newRPC
+
+			if err = roller.WriteConfig(rollerData); err != nil {
+				return nil, err
+			}
 		}
+
 		heightInt, err := strconv.Atoi(latestHeight)
 		if err != nil {
 			return nil, err
