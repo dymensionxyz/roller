@@ -8,22 +8,16 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/pterm/pterm"
 
-	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
-	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
-	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
-	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 type ServiceConfig struct {
@@ -282,33 +276,7 @@ func StopSystemServices(services []string) error {
 }
 
 func RestartSystemServices(services []string, home string) error {
-	if slices.Contains(services, "rollapp") {
-		rollappConfig, err := roller.LoadConfig(home)
-		errorhandling.PrettifyErrorIfExists(err)
-
-		if rollappConfig.NodeType == "sequencer" {
-			err = sequencerutils.CheckBalance(rollappConfig)
-			if err != nil {
-				return err
-			}
-		}
-
-		if rollappConfig.HubData.ID != consts.MockHubID {
-			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
-			if err != nil {
-				pterm.Error.Println("failed to check rollapp version equality: ", err)
-			}
-
-			err = migrations.RequireRollappMigrateIfNeeded(
-				raUpgrade.CurrentVersionCommit[:6],
-				rollappConfig.RollappBinaryVersion[:6],
-				string(rollappConfig.RollappVMType),
-			)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	pterm.Info.Println("restarting system services...")
 
 	if runtime.GOOS == "linux" {
 		for _, service := range services {
