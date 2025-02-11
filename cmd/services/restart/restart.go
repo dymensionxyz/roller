@@ -1,12 +1,20 @@
 package restart
 
 import (
+	"slices"
+
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/migrations"
+	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
 func Cmd(services []string) *cobra.Command {
@@ -20,6 +28,36 @@ func Cmd(services []string) *cobra.Command {
 			if err != nil {
 				pterm.Error.Println("failed to expand home directory")
 				return
+			}
+
+			if slices.Contains(services, "rollapp") {
+				rollappConfig, err := roller.LoadConfig(home)
+				errorhandling.PrettifyErrorIfExists(err)
+
+				if rollappConfig.NodeType == "sequencer" {
+					err = sequencerutils.CheckBalance(rollappConfig)
+					if err != nil {
+						pterm.Error.Println("failed to check sequencer balance: ", err)
+						return
+					}
+				}
+
+				if rollappConfig.HubData.ID != consts.MockHubID {
+					raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+					if err != nil {
+						pterm.Error.Println("failed to check rollapp version equality: ", err)
+					}
+
+					err = migrations.RequireRollappMigrateIfNeeded(
+						raUpgrade.CurrentVersionCommit[:6],
+						rollappConfig.RollappBinaryVersion[:6],
+						string(rollappConfig.RollappVMType),
+					)
+					if err != nil {
+						pterm.Error.Println(err)
+						return
+					}
+				}
 			}
 
 			err = servicemanager.RestartSystemServices(services, home)
