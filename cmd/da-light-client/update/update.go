@@ -49,7 +49,7 @@ func Cmd() *cobra.Command {
 
 func addFlags(cmd *cobra.Command) {
 	cmd.Flags().
-		StringP(rpcEndpointFlag, "", "mocha-4-consensus.mesa.newmetric.xyz", "The DA rpc endpoint to connect to.")
+		StringP(rpcEndpointFlag, "", "rpc-mocha.pops.one", "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
 }

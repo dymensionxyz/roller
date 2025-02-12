@@ -26,7 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
+func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env string) (
 	map[string]types.Dependency,
 	map[string]types.Dependency,
 	error,
@@ -64,7 +64,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
-		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, env)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -74,6 +74,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse) (
 			raCommit = drsInfo.EvmCommit
 		case "wasm":
 			raCommit = drsInfo.WasmCommit
+		}
+
+		if raCommit == "UNRELEASED" {
+			return nil, nil, errors.New("rollapp does not support drs version: " + drsVersion)
 		}
 
 		pterm.Info.Println(
@@ -377,6 +381,54 @@ func DownloadRelease(
 	spinner.Stop()
 	// Extract the tar.gz file with progress
 	err = archives.ExtractTarGz(destination, readCloserWrapper, dep)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DownloadBinary(url, destination string) error {
+	// Create a new HTTP request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create a temporary file
+	f, err := os.CreateTemp("", "binary-")
+	if err != nil {
+		return err
+	}
+	tempName := f.Name()
+	defer os.Remove(tempName) // Clean up in case of failure
+
+	// Create a progress bar
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		"Downloading",
+	)
+
+	// Copy the response body to the temporary file while updating the progress bar
+	_, err = io.Copy(io.MultiWriter(f, bar), resp.Body)
+	if err != nil {
+		return err
+	}
+
+	// Important: Close the file handle before moving it
+	if err = f.Close(); err != nil {
+		return fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
+	// Move the file into place and make it executable
+	err = archives.MoveBinaryIntoPlaceAndMakeExecutable(tempName, destination)
 	if err != nil {
 		return err
 	}

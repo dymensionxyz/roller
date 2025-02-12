@@ -22,6 +22,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/migrations"
 	"github.com/dymensionxyz/roller/utils/roller"
+	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/upgrades"
 )
 
@@ -284,6 +285,13 @@ func RestartSystemServices(services []string, home string) error {
 	if slices.Contains(services, "rollapp") {
 		rollappConfig, err := roller.LoadConfig(home)
 		errorhandling.PrettifyErrorIfExists(err)
+
+		if rollappConfig.NodeType == "sequencer" {
+			err = sequencerutils.CheckBalance(rollappConfig)
+			if err != nil {
+				return err
+			}
+		}
 
 		if rollappConfig.HubData.ID != consts.MockHubID {
 			raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))

@@ -731,7 +731,8 @@ RollApp's IRO time: %v`,
 					}
 				case "archive":
 					fnVtu = map[string]any{
-						"pruning": "nothing",
+						"pruning":           "nothing",
+						"min-retain-blocks": "0",
 					}
 				}
 

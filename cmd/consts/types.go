@@ -10,7 +10,7 @@ type HubData struct {
 }
 
 type RollappData = struct {
-	ID       string `toml:"id"`
+	ID       string `toml:"id"        yaml:"id"`
 	ApiUrl   string `toml:"api_url"`
 	RpcUrl   string `toml:"rpc_url"`
 	GasPrice string `toml:"gas_price"`

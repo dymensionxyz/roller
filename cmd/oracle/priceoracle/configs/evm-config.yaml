@@ -1,0 +1,28 @@
+assets:
+  BTC:
+    decimals: 8
+    blockchainName: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+    logo: https://astrovault.io/static/media/logo-wbtc.axl.82bde40ecf2b5608fec5.svg
+    displayName: WBTC
+  USDC:
+    decimals: 6
+    blockchainName: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+    logo: ""
+
+chainClient:
+  rpcEndpoint: "http://127.0.0.1:8545/"  # RPC endpoint for the EVM network
+  chainId: 1234  # EVM chain ID (e.g. 1 for Ethereum mainnet)
+  privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"  # Private key for signing transactions
+  contractAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3"  # EVM oracle contract address
+  gasLimit: 250000  # Gas limit for transactions
+  maxGasPrice: "100000000000"  # Maximum gas price in wei
+
+oracle:
+  priceAggregatorEndpoint: 34.140.47.197:9090
+  priceRefreshRate: 15s
+  pricesToSend:
+    - BTC-USDC
+
+grpc_port: 9090 #exposes health service
+http_port: 8080 #xposes grpc gateway
+log_level: DEBUG

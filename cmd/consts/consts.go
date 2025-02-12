@@ -16,22 +16,28 @@ const (
 var InternalBinsDir = fmt.Sprintf("%s/roller_bins", binsDir)
 
 var (
-	AllServices            = []string{"rollapp", "da-light-client", "relayer", "eibc"}
-	RollappSystemdServices = []string{"rollapp", "da-light-client"}
-	RelayerSystemdServices = []string{"relayer"}
-	EibcSystemdServices    = []string{"eibc"}
+	AllServices                = []string{"rollapp", "da-light-client", "relayer", "eibc"}
+	RollappSystemdServices     = []string{"rollapp", "da-light-client"}
+	RelayerSystemdServices     = []string{"relayer"}
+	PriceOracleSystemdServices = []string{"price"}
+	RngOracleSystemdServices   = []string{"rng"}
+	EibcSystemdServices        = []string{"eibc"}
 )
 
 var Executables = struct {
-	Celestia    string
-	RollappEVM  string
-	Relayer     string
-	Dymension   string
-	CelKey      string
-	Roller      string
-	Simd        string
-	Eibc        string
-	CelestiaApp string
+	Celestia               string
+	RollappEVM             string
+	Relayer                string
+	Dymension              string
+	CelKey                 string
+	Roller                 string
+	Simd                   string
+	Eibc                   string
+	CelestiaApp            string
+	PriceOracle            string
+	RngOracle              string
+	RngOracleRandomService string
+	Solc                   string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -42,6 +48,11 @@ var Executables = struct {
 	Simd:        fmt.Sprintf("%s/simd", InternalBinsDir),
 	Eibc:        fmt.Sprintf("%s/eibc-client", binsDir),
 	CelestiaApp: fmt.Sprintf("%s/celestia-appd", InternalBinsDir),
+	// oracles
+	PriceOracle:            fmt.Sprintf("%s/price-oracle", InternalBinsDir),
+	RngOracle:              fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
+	RngOracleRandomService: fmt.Sprintf("%s/rng-oracle-random-service", InternalBinsDir),
+	Solc:                   fmt.Sprintf("%s/solc", InternalBinsDir),
 }
 
 var KeysIds = struct {
@@ -55,6 +66,7 @@ var KeysIds = struct {
 	Celestia                      string
 	Eibc                          string
 	Da                            string
+	Oracle                        string
 }{
 	HubSequencer:                  "hub_sequencer",
 	HubGenesis:                    "hub_genesis",
@@ -66,6 +78,15 @@ var KeysIds = struct {
 	Celestia:                      "my_celes_key",
 	Eibc:                          "whale",
 	Da:                            "da_key",
+	Oracle:                        "oracle",
+}
+
+var Oracles = struct {
+	Rng   string
+	Price string
+}{
+	Rng:   "rng",
+	Price: "price",
 }
 
 var AddressPrefixes = struct {
@@ -83,6 +104,7 @@ var ConfigDirName = struct {
 	LocalHub             string
 	Eibc                 string
 	BlockExplorer        string
+	Oracle               string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -92,16 +114,19 @@ var ConfigDirName = struct {
 	LocalHub:             "local-hub",
 	Eibc:                 ".eibc-client",
 	BlockExplorer:        "block-explorer",
+	Oracle:               "oracle",
 }
 
 var Denoms = struct {
-	Hub      string
-	Celestia string
-	Avail    string
+	Hub             string
+	HubIbcOnRollapp string
+	Celestia        string
+	Avail           string
 }{
-	Hub:      "adym",
-	Celestia: "utia",
-	Avail:    "aAVL",
+	Hub:             "adym",
+	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
+	Celestia:        "utia",
+	Avail:           "aAVL",
 }
 
 const (
@@ -129,6 +154,10 @@ var NodeType = struct {
 const RollerConfigFileName = "roller.toml"
 
 type VMType string
+
+func (v VMType) String() string {
+	return string(v)
+}
 
 const (
 	SDK_ROLLAPP  VMType = "sdk"

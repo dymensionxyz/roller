@@ -10,7 +10,7 @@ var DaAuthTokenType = struct {
 
 const (
 	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
-	DefaultCelestiaRPC             = "http://mocha-4-consensus.mesa.newmetric.xyz:26657"
+	DefaultCelestiaRPC             = "https://celestia-testnet-rpc.itrocket.net:443"
 
 	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
 	DefaultCelestiaNetwork = "mocha-4"
@@ -52,9 +52,8 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           DefaultCelestiaRestApiEndpoint,
 		ID:               CelestiaTestnet,
 		RpcUrl:           DefaultCelestiaRPC,
-		CurrentStateNode: "mocha-4-consensus.mesa.newmetric.xyz",
+		CurrentStateNode: "rpc-mocha.pops.one",
 		StateNodes: []string{
-			"mocha-4-consensus.mesa.newmetric.xyz",
 			"public-celestia-mocha4-consensus.numia.xyz",
 			"full.consensus.mocha-4.celestia-mocha.com",
 			"consensus-full-mocha-4.celestia-mocha.com",

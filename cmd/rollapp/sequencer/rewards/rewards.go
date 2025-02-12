@@ -7,9 +7,6 @@ import (
 	"path/filepath"
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
-
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -19,11 +16,12 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 	"github.com/dymensionxyz/roller/utils/tx"
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 )
 
 func Cmd() *cobra.Command {
 	var bech32Prefix string
-
 	cmd := &cobra.Command{
 		Use:   "rewards [address]",
 		Short: "temporary command to handle sequencer rewards address",

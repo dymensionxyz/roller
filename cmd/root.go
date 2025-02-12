@@ -11,6 +11,7 @@ import (
 	da_light_client "github.com/dymensionxyz/roller/cmd/da-light-client"
 	"github.com/dymensionxyz/roller/cmd/eibc"
 	"github.com/dymensionxyz/roller/cmd/observability"
+	"github.com/dymensionxyz/roller/cmd/oracle"
 	"github.com/dymensionxyz/roller/cmd/relayer"
 	"github.com/dymensionxyz/roller/cmd/rollapp"
 	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
@@ -42,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(blockexplorer.Cmd())
 	rootCmd.AddCommand(config.Cmd())
 	rootCmd.AddCommand(version.Cmd())
+	rootCmd.AddCommand(oracle.Cmd())
 
 	initconfig.AddGlobalFlags(rootCmd)
 }

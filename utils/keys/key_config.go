@@ -15,7 +15,8 @@ import (
 )
 
 type keyConfigOptions struct {
-	recover bool
+	recover    bool
+	customAlgo string
 }
 
 type KeyConfigOption func(opt *keyConfigOptions) error
@@ -30,11 +31,19 @@ type KeyConfig struct {
 	Type           consts.VMType
 	KeyringBackend consts.SupportedKeyringBackend
 	ShouldRecover  bool
+	CustomAlgo     string
 }
 
 func WithRecover() KeyConfigOption {
 	return func(options *keyConfigOptions) error {
 		options.recover = true
+		return nil
+	}
+}
+
+func WithCustomAlgo(a string) KeyConfigOption {
+	return func(options *keyConfigOptions) error {
+		options.customAlgo = a
 		return nil
 	}
 }
@@ -55,6 +64,12 @@ func NewKeyConfig(
 	}
 
 	shouldRecover := options.recover
+	withCustomAlgo := options.customAlgo
+
+	keyAlgo := "eth_secp256k1"
+	if withCustomAlgo != "" {
+		keyAlgo = withCustomAlgo
+	}
 
 	return &KeyConfig{
 		Dir:            dir,
@@ -63,6 +78,7 @@ func NewKeyConfig(
 		Type:           vmt,
 		KeyringBackend: kb,
 		ShouldRecover:  shouldRecover,
+		CustomAlgo:     keyAlgo,
 	}, nil
 }
 
@@ -77,6 +93,10 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 
 	if kc.ShouldRecover {
 		args = append(args, "--recover")
+	}
+
+	if kc.CustomAlgo != "" {
+		args = append(args, "--algo", kc.CustomAlgo)
 	}
 
 	if kc.ShouldRecover {

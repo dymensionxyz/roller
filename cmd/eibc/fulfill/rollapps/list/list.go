@@ -7,7 +7,6 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
@@ -26,6 +25,7 @@ func Cmd() *cobra.Command {
 			}
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 			isEibcClientInitialized, err := filesystem.DirNotEmpty(eibcHome)
 			if err != nil {
 				pterm.Error.Println("failed to check eibc client initialized", err)
@@ -37,18 +37,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
-			data, err := os.ReadFile(eibcConfigPath)
+			config, err := eibcutils.ReadConfig(eibcConfigPath)
 			if err != nil {
-				pterm.Error.Printf("Error reading file: %v\n", err)
-				return
-			}
-
-			// Parse the YAML
-			var config eibcutils.Config
-			err = yaml.Unmarshal(data, &config)
-			if err != nil {
-				pterm.Error.Printf("Error reading file: %v\n", err)
+				pterm.Error.Println("failed to read eibc config", err)
 				return
 			}
 

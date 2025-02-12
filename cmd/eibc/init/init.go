@@ -14,6 +14,7 @@ import (
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -69,10 +70,13 @@ func Cmd() *cobra.Command {
 			rollerConfig, err := roller.LoadConfig(rollerHome)
 			if err != nil || rollerConfig.HubData.ID == consts.MockHubID ||
 				rollerConfig.HubData.ID == "" {
-
+				pterm.Warning.Println("no valid roller config found")
 				hd, err = initializeEibcForEnvironment()
 				if err != nil {
-					pterm.Error.Println("failed to initialize hub metadata for eibc client: ", err)
+					pterm.Error.Println(
+						"failed to initialize hub metadata for eibc client: ",
+						err,
+					)
 					return
 				}
 			} else {
@@ -103,6 +107,19 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to initialize eibc client: ", err)
 					return
 				}
+			} else {
+				pterm.Info.Println("eibc client already initialized")
+				pterm.Info.Println("roller will use the hub rpc endpoint from the existing eibc config file:")
+				pterm.Info.Println(eibcConfigPath)
+
+				var cfg eibcutils.Config
+				rhd, err := cfg.HubDataFromHubRpc(eibcConfigPath)
+				if err != nil {
+					pterm.Error.Println("failed to get hub data from hub rpc: ", err)
+					return
+				}
+
+				hd = *rhd
 			}
 
 			ki, err = eibcutils.EnsureWhaleAccount()
@@ -391,7 +408,6 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 }
 
 func initializeEibcForEnvironment() (consts.HubData, error) {
-	pterm.Warning.Println("no roller config found")
 	pterm.Info.Println("initializing for environment")
 	var hd consts.HubData
 
@@ -655,4 +671,27 @@ func printPolicyAddress(policyAddr string) {
 			Sprint(policyAddr),
 	)
 	pterm.Info.Println("share the policy address with the LP provider")
+}
+
+func createHubDataConfigFile(hdConfigPath string, hd consts.HubData) error {
+	_, err := os.Create(hdConfigPath)
+	if err != nil {
+		return err
+	}
+
+	v := viper.New()
+
+	v.Set("rpc_url", hd.RpcUrl)
+	v.Set("id", hd.ID)
+
+	v.SetConfigFile(hdConfigPath)
+	v.SetConfigType("yaml")
+
+	err = v.WriteConfig()
+	if err != nil {
+		pterm.Error.Println("failed to write config", err)
+		return err
+	}
+
+	return nil
 }

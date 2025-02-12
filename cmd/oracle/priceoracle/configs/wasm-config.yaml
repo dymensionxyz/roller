@@ -1,0 +1,57 @@
+assets:
+  BTC:
+    decimals: 8
+    blockchainName: factory/osmo13s0f55s8ppwm35npn53pkndphzyctfl7gu8q9d/ubtc
+    logo: https://astrovault.io/static/media/logo-wbtc.axl.82bde40ecf2b5608fec5.svg
+    displayName: wBTC.axl
+  ETH:
+    decimals: 18
+    blockchainName: factory/osmo13s0f55s8ppwm35npn53pkndphzyctfl7gu8q9d/ueth
+    logo: https://astrovault.io/static/media/logo-eth.axl.c9502083459f6541237d.svg
+    displayName: ETH.axl
+  USDT:
+    decimals: 6
+    blockchainName: "factory/osmo13s0f55s8ppwm35npn53pkndphzyctfl7gu8q9d/uusdt"
+    logo: https://astrovault.io/static/media/logo-usdt.grav.1c50785c9a42c563a1b6.svg
+    displayName: USDT.grav
+  OSMOSIS:
+    decimals: 6
+    blockchainName: "uosmo"
+    logo: ""
+    displayName: "OSMO"
+  DYM:
+    decimals: 18
+    blockchainName: "factory/dym"
+    logo: ""
+    displayName: "DYM"
+  SOL:
+    decimals: 9
+    blockchainName: "factory/sol"
+    logo: ""
+  USDC:
+    decimals: 6
+    blockchainName: "factory/usdc"
+    logo: ""
+
+chainClient:
+  ssl: true
+  chainGrpcHost: grpc.testnet.osmosis.zone:443
+  chainId: osmo-test-5
+  privateKey: sumprivkey
+  bech32Prefix: osmo
+  fee: 1000uosmo # fees for sending price update, it's fixed
+  gasLimit: 250000 # fees for sending price update, it's fixed
+  oracleContractAddress: osmo1zc29309zydx8cjnmahv5uuw2jmjzdkrru59xxa3f8zzmeqwqr00seuxnwh # the oracle contract address
+
+oracle:
+  priceAggregatorEndpoint: 34.140.47.197:9090
+  priceRefreshRate: 15s
+  pricesToSend:
+    - BTC-USDC
+    - ETH-USDC
+    - DYM-USDT
+    - SOL-USDT
+
+grpc_port: 9090 #exposes health service
+http_port: 8080 #xposes grpc gateway
+log_level: DEBUG

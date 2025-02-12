@@ -107,6 +107,11 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 			return err
 		}
 
+		pterm.Info.Printf(
+			"current balance: %s\nnecessary balance: >0\n",
+			balance.String(),
+		)
+
 		if !balance.Amount.IsPositive() {
 			pterm.Info.Println(
 				"please fund the addresses below to operate the relayer.",

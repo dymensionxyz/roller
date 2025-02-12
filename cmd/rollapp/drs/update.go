@@ -62,7 +62,10 @@ func UpdateCmd() *cobra.Command {
 				pterm.Info.Println("Installing the latest version", err)
 			}
 
-			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+			drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(
+				drsVersion,
+				rollerData.HubData.Environment,
+			)
 			if err != nil {
 				pterm.Error.Println("Failed to get the latest commit:", err)
 				return
@@ -74,6 +77,11 @@ func UpdateCmd() *cobra.Command {
 				raCommit = drsInfo.EvmCommit
 			case "wasm":
 				raCommit = drsInfo.WasmCommit
+			}
+
+			if raCommit == "UNRELEASED" {
+				pterm.Error.Println("rollapp does not support drs version: " + drsVersion)
+				return
 			}
 
 			// if doesn't match, take latest as the reference

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pterm/pterm"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,4 +32,22 @@ func LoadSupportedRollapps(eibcConfigPath string) ([]string, error) {
 	}
 
 	return keys, nil
+}
+
+func ReadConfig(eibcConfigPath string) (*Config, error) {
+	data, err := os.ReadFile(eibcConfigPath)
+	if err != nil {
+		pterm.Error.Printf("Error reading file: %v\n", err)
+		return nil, err
+	}
+
+	// Parse the YAML
+	var config Config
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		pterm.Error.Printf("Error reading file: %v\n", err)
+		return nil, err
+	}
+
+	return &config, nil
 }

@@ -312,7 +312,7 @@ func installRelayerDependencies(
 		return err
 	}
 
-	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion)
+	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, hd.Environment)
 	if err != nil {
 		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
 		return err
@@ -324,6 +324,10 @@ func installRelayerDependencies(
 		raCommit = drsInfo.EvmCommit
 	case "wasm":
 		raCommit = drsInfo.WasmCommit
+	}
+
+	if raCommit == "UNRELEASED" {
+		return fmt.Errorf("rollapp does not support drs version: %s", drsVersion)
 	}
 
 	rbi := dependencies.NewRollappBinaryInfo(
