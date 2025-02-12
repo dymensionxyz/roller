@@ -29,7 +29,7 @@ type DataLayer interface {
 	GetPrivateKey() (string, error)
 	GetRootDirectory() string
 	GetNamespaceID() string
-	GetAppID() int
+	GetAppID() uint32
 }
 
 type DAManager struct {

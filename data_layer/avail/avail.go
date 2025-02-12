@@ -13,17 +13,18 @@ import (
 	"github.com/cosmos/go-bip39"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 const (
-	ConfigFileName            = "avail.toml"
-	mnemonicEntropySize       = 256
-	keyringNetworkID    uint8 = 42
-	DefaultRPCEndpoint        = "wss://turing-rpc.avail.so/ws"
-	requiredAVL               = 1
-	AppID                     = 1
+	ConfigFileName             = "avail.toml"
+	mnemonicEntropySize        = 256
+	keyringNetworkID    uint16 = 42
+	DefaultRPCEndpoint         = "wss://turing-rpc.avail.so/ws"
+	requiredAVL                = 1
+	AppID                      = 1
 )
 
 type Avail struct {
@@ -31,7 +32,7 @@ type Avail struct {
 	Mnemonic    string
 	AccAddress  string
 	RpcEndpoint string
-	AppID       int
+	AppID       uint32
 
 	client *gsrpc.SubstrateAPI
 }
@@ -44,6 +45,9 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewAvail(root string) *Avail {
+	rollerData, err := roller.LoadConfig(root)
+	errorhandling.PrettifyErrorIfExists(err)
+
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
@@ -74,7 +78,7 @@ func NewAvail(root string) *Avail {
 
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
-	availConfig.AppID = AppID // Change this if required
+	availConfig.AppID, err = CreateAppID(availConfig.RpcEndpoint, availConfig.Mnemonic, rollerData.RollappID)
 	return &availConfig
 }
 
@@ -205,6 +209,6 @@ func (a *Avail) GetNamespaceID() string {
 	return ""
 }
 
-func (a *Avail) GetAppID() int {
+func (a *Avail) GetAppID() uint32 {
 	return a.AppID
 }

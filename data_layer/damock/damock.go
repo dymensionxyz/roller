@@ -71,6 +71,6 @@ func (d *DAMock) GetNetworkName() string {
 	return "local"
 }
 
-func (d *DAMock) GetAppID() int {
+func (d *DAMock) GetAppID() uint32 {
 	return 0
 }

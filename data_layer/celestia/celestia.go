@@ -391,6 +391,6 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	)
 }
 
-func (c *Celestia) GetAppID() int {
+func (c *Celestia) GetAppID() uint32 {
 	return 0
 }
