@@ -524,12 +524,12 @@ RollApp's IRO time: %v`,
 				}
 			}
 
-			// DA
 			damanager := datalayer.NewDAManager(
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
 				rollappConfig.KeyringBackend,
 			)
+
 			daHome := filepath.Join(
 				damanager.GetRootDirectory(),
 				consts.ConfigDirName.DALightNode,
@@ -746,10 +746,18 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			daNamespace := damanager.DataLayer.GetNamespaceID()
-			if daNamespace == "" {
-				pterm.Error.Println("failed to retrieve da namespace id")
-				return
+			if rollappConfig.DA.Backend == consts.Celestia {
+				daNamespace := damanager.DataLayer.GetNamespaceID()
+				if daNamespace == "" {
+					pterm.Error.Println("failed to retrieve da namespace id")
+					return
+				}
+
+				_ = tomlconfig.UpdateFieldInFile(
+					dymintConfigPath,
+					"namespace_id",
+					daNamespace,
+				)
 			}
 
 			pterm.Info.Println("updating dymint configuration")
@@ -758,6 +766,13 @@ RollApp's IRO time: %v`,
 				"da_config",
 				daConfig,
 			)
+
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"da_layer",
+				rollappConfig.DA.Backend,
+			)
+
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"max_proof_time",

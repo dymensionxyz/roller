@@ -10,19 +10,21 @@ import (
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
-	bip39 "github.com/cosmos/go-bip39"
+	"github.com/cosmos/go-bip39"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 const (
-	ConfigFileName            = "avail.toml"
-	mnemonicEntropySize       = 256
-	keyringNetworkID    uint8 = 42
-	DefaultRPCEndpoint        = "wss://goldberg.avail.tools/ws"
-	requiredAVL               = 1
+	ConfigFileName             = "avail.toml"
+	mnemonicEntropySize        = 256
+	keyringNetworkID    uint16 = 42
+	DefaultRPCEndpoint         = "wss://turing-rpc.avail.so/ws"
+	requiredAVL                = 1
+	AppID                      = 1
 )
 
 type Avail struct {
@@ -30,6 +32,7 @@ type Avail struct {
 	Mnemonic    string
 	AccAddress  string
 	RpcEndpoint string
+	AppID       uint32
 
 	client *gsrpc.SubstrateAPI
 }
@@ -42,6 +45,9 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewAvail(root string) *Avail {
+	rollerData, err := roller.LoadConfig(root)
+	errorhandling.PrettifyErrorIfExists(err)
+
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
@@ -54,6 +60,9 @@ func NewAvail(root string) *Avail {
 		if err != nil {
 			panic(err)
 		}
+
+		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
+		availConfig.AppID = AppID
 
 		err = writeConfigToTOML(cfgPath, availConfig)
 		if err != nil {
@@ -69,15 +78,27 @@ func NewAvail(root string) *Avail {
 
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
+	availConfig.AppID, err = CreateAppID(availConfig.RpcEndpoint, availConfig.Mnemonic, rollerData.RollappID)
+	if err != nil {
+		panic(err)
+	}
 	return &availConfig
 }
 
-func (a *Avail) InitializeLightNodeConfig() error {
-	return nil
+func (a *Avail) InitializeLightNodeConfig() (string, error) {
+	return "", nil
 }
 
-func (a *Avail) GetDAAccountAddress() (string, error) {
-	return a.AccAddress, nil
+func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
+	key := keys.KeyInfo{
+		Address: a.AccAddress,
+	}
+	// return a.AccAddress, nil
+	return &key, nil
+}
+
+func (c *Avail) GetRootDirectory() string {
+	return c.Root
 }
 
 func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
@@ -96,7 +117,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 				CurrentBalance:  balance.Int,
 				RequiredBalance: required,
 				Denom:           consts.Denoms.Avail,
-				Network:         "avail",
+				Network:         string(consts.Avail),
 			},
 		}, nil
 	}
@@ -142,7 +163,7 @@ func (a *Avail) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error) {
+func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	balance, err := a.getBalance()
 	if err != nil {
 		return nil, err
@@ -158,11 +179,12 @@ func (a *Avail) GetDAAccData(c roller.RollappConfig) ([]keys.AccountData, error)
 	}, nil
 }
 
-func (a *Avail) GetSequencerDAConfig() string {
+func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"seed": "%s", "api_url": "%s", "app_id": 0, "tip":0}`,
+		`{"seed": "%s", "api_url": "%s", "app_id": %d, "tip":0}`,
 		a.Mnemonic,
 		a.RpcEndpoint,
+		a.AppID,
 	)
 }
 
@@ -184,4 +206,12 @@ func (a *Avail) GetStatus(c roller.RollappConfig) string {
 
 func (a *Avail) GetKeyName() string {
 	return "avail"
+}
+
+func (a *Avail) GetNamespaceID() string {
+	return ""
+}
+
+func (a *Avail) GetAppID() uint32 {
+	return a.AppID
 }

@@ -119,6 +119,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 			pterm.Yellow(pterm.Bold.Sprint(displayBond.String())),
 		),
 	}
+
 	txOutput, err := bash.ExecuteCommandWithPromptHandler(
 		consts.Executables.Dymension,
 		args,
@@ -436,7 +437,7 @@ func getShowSequencersCmd(raID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "sequencers", "sequencers",
-		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
+		"-o", "json", "--node", consts.DefaultRollappRPC, "--chain-id", raID,
 	)
 }
 
