@@ -79,6 +79,9 @@ func NewAvail(root string) *Avail {
 	availConfig.Root = root
 	availConfig.RpcEndpoint = DefaultRPCEndpoint
 	availConfig.AppID, err = CreateAppID(availConfig.RpcEndpoint, availConfig.Mnemonic, rollerData.RollappID)
+	if err != nil {
+		panic(err)
+	}
 	return &availConfig
 }
 
