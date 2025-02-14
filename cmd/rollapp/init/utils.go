@@ -3,8 +3,6 @@ package initrollapp
 import (
 	"fmt"
 
-	"github.com/pterm/pterm"
-
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
@@ -126,18 +124,10 @@ func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys
 func initRollapp(
 	initConfig roller.RollappConfig,
 ) error {
-	raSpinner, err := pterm.DefaultSpinner.Start("initializing rollapp client")
+	err := InitializeRollappNode(initConfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize rollapp client: %v", err)
 	}
-
-	err = InitializeRollappNode(initConfig)
-	if err != nil {
-		raSpinner.Fail("failed to initialize rollapp client")
-		return err
-	}
-
-	raSpinner.Success("rollapp initialized successfully")
 	return nil
 }
 

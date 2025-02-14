@@ -16,6 +16,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/pterm/pterm"
 )
 
 const (
@@ -31,7 +32,7 @@ type Avail struct {
 	Root        string
 	Mnemonic    string
 	AccAddress  string
-	RpcEndpoint string
+	RPCEndpoint string
 	AppID       uint32
 
 	client *gsrpc.SubstrateAPI
@@ -50,23 +51,44 @@ func NewAvail(root string) *Avail {
 
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
+
 	if err != nil {
-		entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
+		haveSeed, err := pterm.DefaultInteractiveConfirm.WithDefaultText("Did you have already Avail's seedphrase?").
+			WithDefaultValue(false).
+			Show()
 		if err != nil {
 			panic(err)
 		}
+		if haveSeed {
+			availConfig.Mnemonic, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"mnemonic: ",
+			).Show()
+			availConfig.RPCEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
+			availConfig.AppID = AppID
 
-		availConfig.Mnemonic, err = bip39.NewMnemonic(entropySeed)
-		if err != nil {
-			panic(err)
-		}
+			err = writeConfigToTOML(cfgPath, availConfig)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
+			if err != nil {
+				panic(err)
+			}
 
-		availConfig.RpcEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
-		availConfig.AppID = AppID
+			availConfig.Mnemonic, err = bip39.NewMnemonic(entropySeed)
+			if err != nil {
+				panic(err)
+			}
+			pterm.Warning.Printf("Please backup your mnemonic: \n%s\n", availConfig.Mnemonic)
 
-		err = writeConfigToTOML(cfgPath, availConfig)
-		if err != nil {
-			panic(err)
+			availConfig.RPCEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
+			availConfig.AppID = AppID
+
+			err = writeConfigToTOML(cfgPath, availConfig)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
@@ -75,10 +97,19 @@ func NewAvail(root string) *Avail {
 		panic(err)
 	}
 	availConfig.AccAddress = keyringPair.Address
-
 	availConfig.Root = root
-	availConfig.RpcEndpoint = DefaultRPCEndpoint
-	availConfig.AppID, err = CreateAppID(availConfig.RpcEndpoint, availConfig.Mnemonic, rollerData.RollappID)
+	availConfig.RPCEndpoint = DefaultRPCEndpoint
+
+	isFunded, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Did you fund avail to this account %s?", availConfig.AccAddress)).
+		WithDefaultValue(false).
+		Show()
+	if err != nil {
+		panic(err)
+	}
+	if !isFunded {
+		panic(fmt.Errorf("Need to funding"))
+	}
+	availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 	if err != nil {
 		panic(err)
 	}
@@ -183,13 +214,13 @@ func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
 		`{"seed": "%s", "api_url": "%s", "app_id": %d, "tip":0}`,
 		a.Mnemonic,
-		a.RpcEndpoint,
+		a.RPCEndpoint,
 		a.AppID,
 	)
 }
 
 func (a *Avail) SetRPCEndpoint(rpc string) {
-	a.RpcEndpoint = rpc
+	a.RPCEndpoint = rpc
 }
 
 func (a *Avail) GetLightNodeEndpoint() string {

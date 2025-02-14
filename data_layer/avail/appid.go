@@ -33,7 +33,7 @@ func CreateAppID(rpcURL, seedPhrase, rollappID string) (appID uint32, err error)
 	// Transaction Execution
 	res, err := tx.ExecuteAndWatchInclusion(acc, sdk.NewTransactionOptions())
 	if err != nil {
-		return 0, fmt.Errorf("failed to submit and execute the transaction")
+		return 0, fmt.Errorf("failed to submit and execute the transaction %v", err)
 	}
 	if !res.IsSuccessful().IsSome() {
 		return 0, fmt.Errorf("failed to determine transaction status")

@@ -75,7 +75,7 @@ var DaNetworks = map[string]DaData{
 	},
 	string(AvailTestnet): {
 		Backend:          Avail,
-		ApiUrl:           "https://turing-rpc.avail.so/rpc:443",
+		ApiUrl:           "https://turing-rpc.avail.so/rpc",
 		ID:               AvailTestnet,
 		RpcUrl:           "wss://turing-rpc.avail.so/ws:443",
 		CurrentStateNode: "",
