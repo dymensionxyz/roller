@@ -23,9 +23,7 @@ const (
 	ConfigFileName             = "avail.toml"
 	mnemonicEntropySize        = 256
 	keyringNetworkID    uint16 = 42
-	DefaultRPCEndpoint         = "wss://turing-rpc.avail.so/ws"
 	requiredAVL                = 1
-	AppID                      = 1
 )
 
 type Avail struct {
@@ -46,6 +44,8 @@ func (a *Avail) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewAvail(root string) *Avail {
+	var daNetwork string
+
 	rollerData, err := roller.LoadConfig(root)
 	errorhandling.PrettifyErrorIfExists(err)
 
@@ -53,6 +53,19 @@ func NewAvail(root string) *Avail {
 	availConfig, err := loadConfigFromTOML(cfgPath)
 
 	if err != nil {
+		envs := []string{"mainnet", "turing"}
+		env, _ := pterm.DefaultInteractiveSelect.
+			WithDefaultText(
+				"select the environment you want to initialize Avail for",
+			).
+			WithOptions(envs).
+			Show()
+		if env == "mainnet" {
+			daNetwork = string(consts.AvailMainnet)
+		} else if env == "turing" {
+			daNetwork = string(consts.AvailMainnet)
+		}
+
 		haveSeed, err := pterm.DefaultInteractiveConfirm.WithDefaultText("Did you have already Avail's seedphrase?").
 			WithDefaultValue(false).
 			Show()
@@ -63,8 +76,6 @@ func NewAvail(root string) *Avail {
 			availConfig.Mnemonic, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"mnemonic: ",
 			).Show()
-			availConfig.RPCEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
-			availConfig.AppID = AppID
 
 			err = writeConfigToTOML(cfgPath, availConfig)
 			if err != nil {
@@ -82,9 +93,6 @@ func NewAvail(root string) *Avail {
 			}
 			pterm.Warning.Printf("Please backup your mnemonic: \n%s\n", availConfig.Mnemonic)
 
-			availConfig.RPCEndpoint = DefaultRPCEndpoint // ws://127.0.0.1:9944
-			availConfig.AppID = AppID
-
 			err = writeConfigToTOML(cfgPath, availConfig)
 			if err != nil {
 				panic(err)
@@ -99,6 +107,12 @@ func NewAvail(root string) *Avail {
 		if !isFunded {
 			panic(fmt.Errorf("Need to funding"))
 		}
+
+		daData, exists := consts.DaNetworks[daNetwork]
+		if !exists {
+			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+		}
+		availConfig.RPCEndpoint = daData.RpcUrl
 	}
 
 	keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
@@ -107,7 +121,6 @@ func NewAvail(root string) *Avail {
 	}
 	availConfig.AccAddress = keyringPair.Address
 	availConfig.Root = root
-	availConfig.RPCEndpoint = DefaultRPCEndpoint
 
 	availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 	if err != nil {
@@ -158,7 +171,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 
 func (a *Avail) getBalance() (availtypes.U128, error) {
 	if a.client == nil {
-		client, err := gsrpc.NewSubstrateAPI(DefaultRPCEndpoint)
+		client, err := gsrpc.NewSubstrateAPI(a.RPCEndpoint)
 		if err != nil {
 			return availtypes.U128{}, err
 		}
