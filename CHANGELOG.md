@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.14.0-rc05](https://github.com/dymensionxyz/roller/compare/v1.13.0-rc05...v1.14.0-rc05) (2025-02-17)
+
+
+### Features
+
+* add `rollapp snapshot create` command ([#1248](https://github.com/dymensionxyz/roller/issues/1248)) ([c89fbcd](https://github.com/dymensionxyz/roller/commit/c89fbcda7d6efc3b924802c83306af2e020090bf))
+
+
+### Bug Fixes
+
+* roller rollapp services restart ([#1257](https://github.com/dymensionxyz/roller/issues/1257)) ([b403bcb](https://github.com/dymensionxyz/roller/commit/b403bcb5407298c6fd02f18eccb6631623629f8c))
+* typo json.go ([#1238](https://github.com/dymensionxyz/roller/issues/1238)) ([1cc5af7](https://github.com/dymensionxyz/roller/commit/1cc5af707186d4f2f7eb5eb94fe12aadea2c7c2c))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
