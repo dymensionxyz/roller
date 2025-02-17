@@ -125,7 +125,7 @@ func ReplaceFieldInFile(tmlFilePath, oldPath, newPath string, value any) error {
 	return WriteTomlTreeToFile(tomlCfg, tmlFilePath)
 }
 
-func DumpConfigToTOML(config interface{}, filePath string) error {
+func WriteConfigToTOML(config interface{}, filePath string) error {
 	// Convert the struct to a TOML format
 	tomlData, err := toml.Marshal(config)
 	if err != nil {

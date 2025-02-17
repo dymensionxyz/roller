@@ -51,7 +51,7 @@ func WriteConfigToDisk(
 	c RollappConfig,
 ) error {
 	rollerConfigFilePath := filepath.Join(c.Home, consts.RollerConfigFileName)
-	err := tomlconfig.DumpConfigToTOML(c, rollerConfigFilePath)
+	err := tomlconfig.WriteConfigToTOML(c, rollerConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to dump config to TOML: %w", err)
 	}
