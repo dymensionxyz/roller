@@ -90,6 +90,15 @@ func NewAvail(root string) *Avail {
 				panic(err)
 			}
 		}
+		isFunded, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Did you fund avail to this account %s?", availConfig.AccAddress)).
+			WithDefaultValue(false).
+			Show()
+		if err != nil {
+			panic(err)
+		}
+		if !isFunded {
+			panic(fmt.Errorf("Need to funding"))
+		}
 	}
 
 	keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
@@ -100,19 +109,11 @@ func NewAvail(root string) *Avail {
 	availConfig.Root = root
 	availConfig.RPCEndpoint = DefaultRPCEndpoint
 
-	isFunded, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Did you fund avail to this account %s?", availConfig.AccAddress)).
-		WithDefaultValue(false).
-		Show()
-	if err != nil {
-		panic(err)
-	}
-	if !isFunded {
-		panic(fmt.Errorf("Need to funding"))
-	}
 	availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 	if err != nil {
 		panic(err)
 	}
+	pterm.Info.Printf("AppID: %d", availConfig.AppID)
 	return &availConfig
 }
 
