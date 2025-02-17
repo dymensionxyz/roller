@@ -23,7 +23,7 @@ import (
 func RollappCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Start the systemd services on local machine",
+		Short: "Start the systemd services relevant to RollApp",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			home, err := filesystem.ExpandHomePath(
