@@ -746,20 +746,6 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			if rollappConfig.DA.Backend == consts.Celestia {
-				daNamespace := damanager.DataLayer.GetNamespaceID()
-				if daNamespace == "" {
-					pterm.Error.Println("failed to retrieve da namespace id")
-					return
-				}
-
-				_ = tomlconfig.UpdateFieldInFile(
-					dymintConfigPath,
-					"namespace_id",
-					daNamespace,
-				)
-			}
-
 			pterm.Info.Println("updating dymint configuration")
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
