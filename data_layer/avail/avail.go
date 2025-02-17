@@ -30,7 +30,7 @@ type Avail struct {
 	Root        string
 	Mnemonic    string
 	AccAddress  string
-	RPCEndpoint string
+	RpcEndpoint string
 	AppID       uint32
 
 	client *gsrpc.SubstrateAPI
@@ -63,24 +63,17 @@ func NewAvail(root string) *Avail {
 		if env == "mainnet" {
 			daNetwork = string(consts.AvailMainnet)
 		} else if env == "turing" {
-			daNetwork = string(consts.AvailMainnet)
+			daNetwork = string(consts.AvailTestnet)
 		}
 
-		haveSeed, err := pterm.DefaultInteractiveConfirm.WithDefaultText("Did you have already Avail's seedphrase?").
-			WithDefaultValue(false).
-			Show()
-		if err != nil {
-			panic(err)
-		}
-		if haveSeed {
+		useExistingAvailWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to import an existing Avail wallet?",
+		).Show()
+
+		if useExistingAvailWallet {
 			availConfig.Mnemonic, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-				"mnemonic: ",
+				"> Enter your bip39 mnemonic",
 			).Show()
-
-			err = writeConfigToTOML(cfgPath, availConfig)
-			if err != nil {
-				panic(err)
-			}
 		} else {
 			entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 			if err != nil {
@@ -91,42 +84,49 @@ func NewAvail(root string) *Avail {
 			if err != nil {
 				panic(err)
 			}
-			pterm.Warning.Printf("Please backup your mnemonic: \n%s\n", availConfig.Mnemonic)
 
-			err = writeConfigToTOML(cfgPath, availConfig)
-			if err != nil {
-				panic(err)
-			}
+			fmt.Printf("\t%s\n", availConfig.Mnemonic)
+			fmt.Println()
+			fmt.Println(pterm.LightYellow("💡 save this information and keep it safe"))
 		}
-		isFunded, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Did you fund avail to this account %s?", availConfig.AccAddress)).
-			WithDefaultValue(false).
-			Show()
+
+		keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
 		if err != nil {
 			panic(err)
 		}
-		if !isFunded {
-			panic(fmt.Errorf("Need to funding"))
+
+		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your Avail addresses below")
+		pterm.DefaultBasicText.Println(pterm.LightGreen(keyringPair.Address))
+
+		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+			WithDefaultText(
+				"press 'y' when the wallets are funded",
+			).Show()
+
+		if !proceed {
+			panic(fmt.Errorf("Avail addr need to be fund!"))
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
 			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
 		}
-		availConfig.RPCEndpoint = daData.RpcUrl
-	}
+		availConfig.RpcEndpoint = daData.RpcUrl
+		availConfig.AccAddress = keyringPair.Address
+		availConfig.Root = root
 
-	keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
-	if err != nil {
-		panic(err)
-	}
-	availConfig.AccAddress = keyringPair.Address
-	availConfig.Root = root
+		availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
+		if err != nil {
+			panic(err)
+		}
 
-	availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
-	if err != nil {
-		panic(err)
+		err = writeConfigToTOML(cfgPath, availConfig)
+		if err != nil {
+			panic(err)
+		}
+
+		pterm.Info.Printf("AppID: %d", availConfig.AppID)
 	}
-	pterm.Info.Printf("AppID: %d", availConfig.AppID)
 	return &availConfig
 }
 
@@ -142,8 +142,8 @@ func (a *Avail) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	return &key, nil
 }
 
-func (c *Avail) GetRootDirectory() string {
-	return c.Root
+func (a *Avail) GetRootDirectory() string {
+	return a.Root
 }
 
 func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
@@ -171,7 +171,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 
 func (a *Avail) getBalance() (availtypes.U128, error) {
 	if a.client == nil {
-		client, err := gsrpc.NewSubstrateAPI(a.RPCEndpoint)
+		client, err := gsrpc.NewSubstrateAPI(a.RpcEndpoint)
 		if err != nil {
 			return availtypes.U128{}, err
 		}
@@ -228,13 +228,13 @@ func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
 		`{"seed": "%s", "api_url": "%s", "app_id": %d, "tip":0}`,
 		a.Mnemonic,
-		a.RPCEndpoint,
+		a.RpcEndpoint,
 		a.AppID,
 	)
 }
 
 func (a *Avail) SetRPCEndpoint(rpc string) {
-	a.RPCEndpoint = rpc
+	a.RpcEndpoint = rpc
 }
 
 func (a *Avail) GetLightNodeEndpoint() string {

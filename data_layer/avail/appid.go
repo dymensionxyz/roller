@@ -24,7 +24,8 @@ func CreateAppID(rpcURL, seedPhrase, rollappID string) (appID uint32, err error)
 
 	if val.IsSome() {
 		value := val.Unwrap().Value
-		fmt.Println("AppId: ", value.AppId, "Owner: ", value.Owner.ToHuman())
+		fmt.Println("AppId: ", value.AppId)
+		fmt.Println("Owner: ", value.Owner.ToHuman())
 		return value.AppId, nil
 	}
 
