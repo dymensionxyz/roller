@@ -9,11 +9,13 @@ var DaAuthTokenType = struct {
 }
 
 const (
-	DefaultCelestiaRestApiEndpoint = "https://api.celestia-mocha.com"
-	DefaultCelestiaRPC             = "https://celestia-testnet-rpc.itrocket.net:443"
-
+	DefaultCelestiaMochaRest    = "https://api.celestia-mocha.com"
+	DefaultCelestiaMochaRPC     = "https://celestia-testnet-rpc.itrocket.net:443"
+	DefaultCelestiaMochaNetwork = "mocha-4"
 	// https://docs.celestia.org/nodes/mocha-testnet#community-data-availability-da-grpc-endpoints-for-state-access
-	DefaultCelestiaNetwork = "mocha-4"
+	DefaultCelestiaRest    = "https://api.celestia.pops.one"
+	DefaultCelestiaRPC     = "http://rpc.celestia.pops.one:26657"
+	DefaultCelestiaNetwork = "celestia"
 )
 
 type DAType string
@@ -47,9 +49,9 @@ var DaNetworks = map[string]DaData{
 	},
 	string(CelestiaTestnet): {
 		Backend:          Celestia,
-		ApiUrl:           DefaultCelestiaRestApiEndpoint,
+		ApiUrl:           DefaultCelestiaMochaRest,
 		ID:               CelestiaTestnet,
-		RpcUrl:           DefaultCelestiaRPC,
+		RpcUrl:           DefaultCelestiaMochaRPC,
 		CurrentStateNode: "rpc-mocha.pops.one",
 		StateNodes: []string{
 			"public-celestia-mocha4-consensus.numia.xyz",
@@ -61,9 +63,9 @@ var DaNetworks = map[string]DaData{
 	},
 	string(CelestiaMainnet): {
 		Backend:          Celestia,
-		ApiUrl:           "https://api.celestia.pops.one",
+		ApiUrl:           DefaultCelestiaRest,
 		ID:               CelestiaMainnet,
-		RpcUrl:           "http://rpc.celestia.pops.one:26657",
+		RpcUrl:           DefaultCelestiaRPC,
 		CurrentStateNode: "rpc.celestia.pops.one",
 		StateNodes: []string{
 			"rpc-celestia.alphab.ai",
