@@ -48,8 +48,6 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	home := roller.GetRootDir()
-
 	customRewardAddress, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"would you like to use a custom reward address (leave empty to use the sequencer address)",
 	).Show()
@@ -68,7 +66,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		"--fees", fmt.Sprintf("%d%s", consts.DefaultTxFee, consts.Denoms.Hub),
 		"--gas", "auto",
 		"--gas-adjustment", "1.3",
-		"--keyring-dir", filepath.Join(home, consts.ConfigDirName.HubKeys),
+		"--keyring-dir", filepath.Join(raCfg.Home, consts.ConfigDirName.HubKeys),
 		"--node", raCfg.HubData.RpcUrl, "--chain-id", raCfg.HubData.ID,
 	}
 	if customRewardAddress != "" {
@@ -85,7 +83,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 	if err != nil {
 		return err
 	}
-	fp := filepath.Join(home, string(pswFileName))
+	fp := filepath.Join(raCfg.Home, string(pswFileName))
 	psw, err := filesystem.ReadFromFile(fp)
 	if err != nil {
 		return err
@@ -119,6 +117,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 			pterm.Yellow(pterm.Bold.Sprint(displayBond.String())),
 		),
 	}
+
 	txOutput, err := bash.ExecuteCommandWithPromptHandler(
 		consts.Executables.Dymension,
 		args,
@@ -436,7 +435,7 @@ func getShowSequencersCmd(raID string) *exec.Cmd {
 	return exec.Command(
 		consts.Executables.RollappEVM,
 		"q", "sequencers", "sequencers",
-		"-o", "json", "--node", "http://localhost:26657", "--chain-id", raID,
+		"-o", "json", "--node", consts.DefaultRollappRPC, "--chain-id", raID,
 	)
 }
 

@@ -83,6 +83,7 @@ func DefaultRollappDependency(raBinInfo RollappBinaryInfo) types.Dependency {
 }
 
 func DefaultRollappPrebuiltDependencies() map[string]types.Dependency {
+	// TODO: should be DA dependency, not rollapps
 	deps := map[string]types.Dependency{
 		"celestia-app": {
 			DependencyName: "celestia-app",

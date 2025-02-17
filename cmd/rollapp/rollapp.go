@@ -44,7 +44,6 @@ func Cmd() *cobra.Command {
 			startservices.RollappCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
-			// logservices.RollappCmd(),
 		),
 	)
 
