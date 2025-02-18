@@ -26,7 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env string) (
+func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env, da string) (
 	map[string]types.Dependency,
 	map[string]types.Dependency,
 	error,
@@ -103,7 +103,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raVmType,
 		)
 
-		buildableDeps = DefaultRollappBuildableDependencies(rbi)
+		buildableDeps = DefaultRollappBuildableDependencies(rbi, da)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}

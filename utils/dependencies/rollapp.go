@@ -24,10 +24,12 @@ func NewRollappBinaryInfo(bech32Prefix, commit, vmType string) RollappBinaryInfo
 	}
 }
 
-func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo) map[string]types.Dependency {
+func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo, da string) map[string]types.Dependency {
 	deps := map[string]types.Dependency{}
 
-	deps["celestia"] = DefaultCelestiaNodeDependency()
+	if da == "celestia" {
+		deps["celestia"] = DefaultCelestiaNodeDependency()
+	}
 	deps["rollapp"] = DefaultRollappDependency(raBinInfo)
 
 	return deps

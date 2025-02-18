@@ -51,6 +51,7 @@ func Cmd() *cobra.Command {
 			// preflight checks
 			var hd consts.HubData
 			var env string
+			var da string
 			var raID string
 
 			isRootExist, err := filesystem.DirNotEmpty(home)
@@ -126,6 +127,12 @@ func Cmd() *cobra.Command {
 					Show()
 			}
 
+			das := []string{"celestia", "avail"}
+			da, _ = pterm.DefaultInteractiveSelect.
+				WithDefaultText("select the da you want to initialize for").
+				WithOptions(das).
+				Show()
+
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
@@ -186,7 +193,7 @@ func Cmd() *cobra.Command {
 				}
 
 				if !shouldSkipBinaryInstallation {
-					_, _, err = dependencies.InstallBinaries(true, raRespMock, env)
+					_, _, err = dependencies.InstallBinaries(true, raRespMock, env, da)
 					if err != nil {
 						pterm.Error.Println("failed to install binaries: ", err)
 						return
@@ -239,7 +246,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse, env)
+			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse, env, da)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return
