@@ -94,17 +94,17 @@ func Start(home string, l *log.Logger) {
 	}
 }
 
-func IsAvailNodeHealthy(url string) (bool, any) {
+func IsAvailNodeHealthy(url string) (bool, error) {
 	statusURL := fmt.Sprintf(url+"%s", "/v1/status")
 	resp, err := http.Get(statusURL)
 	if err != nil {
-		msg := fmt.Sprintf("Error making request: %v\n", err)
+		msg := fmt.Errorf("Error making request: %v\n", err)
 		return false, msg
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		msg := fmt.Sprintf("Error reading response body: %v\n", err)
+		msg := fmt.Errorf("Error reading response body: %v\n", err)
 		return false, msg
 	}
 	// nolint:errcheck,gosec
@@ -114,18 +114,18 @@ func IsAvailNodeHealthy(url string) (bool, any) {
 	if json.Valid(body) {
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			msg := fmt.Sprintf("Error unmarshaling JSON: %v\n", err)
+			msg := fmt.Errorf("Error unmarshaling JSON: %v\n", err)
 			return false, msg
 		}
 	} else {
-		return false, "invalid json"
+		return false, fmt.Errorf("invalid json")
 	}
 
 	if response.BlockNumber != 0 {
-		return true, "not healthy"
+		return true, fmt.Errorf("not healthy")
 	}
 
-	return true, "healthy"
+	return true, fmt.Errorf("healthy")
 
 }
 
