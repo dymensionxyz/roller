@@ -1,4 +1,4 @@
-package show
+package config
 
 import (
 	"github.com/pterm/pterm"
@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-func Cmd() *cobra.Command {
+func ShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "show",
 		Run: func(cmd *cobra.Command, args []string) {

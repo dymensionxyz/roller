@@ -37,14 +37,13 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(drs.Cmd())
 	cmd.AddCommand(snapshot.Cmd())
 
-	sl := []string{"rollapp", "da-light-client"}
+	sl := []string{"rollapp"}
 	cmd.AddCommand(
 		services.Cmd(
 			loadservices.Cmd(sl, "rollapp"),
 			startservices.RollappCmd(),
 			restartservices.Cmd(sl),
 			stopservices.Cmd(sl),
-			// logservices.RollappCmd(),
 		),
 	)
 

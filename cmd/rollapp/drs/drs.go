@@ -2,8 +2,6 @@ package drs
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/dymensionxyz/roller/cmd/rollapp/drs/update"
 )
 
 func Cmd() *cobra.Command {
@@ -12,7 +10,7 @@ func Cmd() *cobra.Command {
 		Short: "Commands related to drs(Dymension RollApp Standard).",
 	}
 
-	cmd.AddCommand(update.Cmd())
+	cmd.AddCommand(UpdateCmd())
 
 	return cmd
 }

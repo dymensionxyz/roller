@@ -47,50 +47,13 @@ func addCommasToNum(number string) string {
 	return result.String()
 }
 
-func PopulateConfig(
-	home, raID string,
-	hd consts.HubData,
-	daData consts.DaData,
-	vmType string,
-	kb consts.SupportedKeyringBackend,
+func WriteConfigToDisk(
+	c RollappConfig,
 ) error {
-	rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
-
-	rollerTomlData := map[string]any{
-		"rollapp_id":      raID,
-		"rollapp_binary":  strings.ToLower(consts.Executables.RollappEVM),
-		"rollapp_vm_type": vmType,
-		"home":            home,
-		"keyring_backend": string(kb),
-
-		"HubData.environment":     hd.Environment,
-		"HubData.id":              hd.ID,
-		"HubData.api_url":         hd.ApiUrl,
-		"HubData.rpc_url":         hd.RpcUrl,
-		"HubData.archive_rpc_url": hd.ArchiveRpcUrl,
-		"HubData.gas_price":       hd.GasPrice,
-
-		"DA.backend":            string(daData.Backend),
-		"DA.id":                 string(daData.ID),
-		"DA.api_url":            daData.ApiUrl,
-		"DA.rpc_url":            daData.RpcUrl,
-		"DA.current_state_node": daData.CurrentStateNode,
-		"DA.state_nodes":        daData.StateNodes,
-		"DA.gas_price":          daData.GasPrice,
-
-		"HealthAgent.enabled": true,
-	}
-
-	for key, value := range rollerTomlData {
-		err := tomlconfig.UpdateFieldInFile(
-			rollerConfigFilePath,
-			key,
-			value,
-		)
-		if err != nil {
-			fmt.Printf("failed to add %s to roller.toml: %v", key, err)
-			return err
-		}
+	rollerConfigFilePath := filepath.Join(c.Home, consts.RollerConfigFileName)
+	err := tomlconfig.WriteConfigToTOML(c, rollerConfigFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to dump config to TOML: %w", err)
 	}
 
 	return nil

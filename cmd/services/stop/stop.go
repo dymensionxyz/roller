@@ -9,6 +9,11 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
+	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
+	"github.com/dymensionxyz/roller/utils/filesystem"
+	"github.com/dymensionxyz/roller/utils/roller"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -19,6 +24,14 @@ func Cmd(services []string) *cobra.Command {
 		Short: "Stop the systemd services relevant to RollApp",
 		Run: func(cmd *cobra.Command, args []string) {
 			var servicesToStop []string
+			home, err := filesystem.ExpandHomePath(
+				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
+			)
+			if err != nil {
+				pterm.Error.Println("failed to expand home directory")
+				return
+			}
+
 			if len(args) != 0 {
 				if !slices.Contains(services, args[0]) {
 					pterm.Error.Printf(
@@ -30,9 +43,16 @@ func Cmd(services []string) *cobra.Command {
 				}
 				servicesToStop = []string{args[0]}
 			} else {
-				servicesToStop = services
+				rollappConfig, err := roller.LoadConfig(home)
+				errorhandling.PrettifyErrorIfExists(err)
+
+				if rollappConfig.DA.Backend == consts.Celestia {
+					servicesToStop = consts.RollappWithCelesSystemdServices
+				} else {
+					servicesToStop = services
+				}
 			}
-			err := stopSystemdServices(servicesToStop)
+			err = stopSystemdServices(servicesToStop)
 			if err != nil {
 				pterm.Error.Println("failed to stop systemd services:", err)
 				return
