@@ -286,6 +286,10 @@ func RestartSystemServices(services []string, home string) error {
 		rollappConfig, err := roller.LoadConfig(home)
 		errorhandling.PrettifyErrorIfExists(err)
 
+		if rollappConfig.DA.Backend == consts.Celestia {
+			services = consts.RollappWithCelesSystemdServices
+		}
+
 		if rollappConfig.NodeType == "sequencer" {
 			err = sequencerutils.CheckBalance(rollappConfig)
 			if err != nil {
