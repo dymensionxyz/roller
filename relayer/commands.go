@@ -30,6 +30,8 @@ func (r *Relayer) GetRelayPacketsCmd() *exec.Cmd {
 func (r *Relayer) GetStartCmd() *exec.Cmd {
 	args := []string{
 		"start",
+		"--block-history",
+		"2000",
 		"--max-msgs",
 		"100",
 		"--time-threshold",
