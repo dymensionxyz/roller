@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp/migrate"
 	"github.com/dymensionxyz/roller/cmd/rollapp/sequencer"
 	"github.com/dymensionxyz/roller/cmd/rollapp/setup"
+	"github.com/dymensionxyz/roller/cmd/rollapp/snapshot"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/rollapp/status"
 	"github.com/dymensionxyz/roller/cmd/services"
@@ -34,6 +35,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(keys.Cmd())
 	cmd.AddCommand(migrate.Cmd())
 	cmd.AddCommand(drs.Cmd())
+	cmd.AddCommand(snapshot.Cmd())
 
 	sl := []string{"rollapp"}
 	cmd.AddCommand(

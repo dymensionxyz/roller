@@ -17,7 +17,7 @@ func UpdateJSONParams(jsonFilePath string, params []config.PathValue) error {
 	}
 	jsonFileContentString := string(jsonFileContent)
 	for _, param := range params {
-		pterm.Info.Printf("upating %s to %s", param.Path, param.Value)
+		pterm.Info.Printf("updating %s to %s", param.Path, param.Value)
 		jsonFileContentString, err = sjson.Set(jsonFileContentString, param.Path, param.Value)
 		if err != nil {
 			return err
