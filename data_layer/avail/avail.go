@@ -104,7 +104,7 @@ func NewAvail(root string) *Avail {
 		if !exists {
 			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
 		}
-		availConfig.RpcEndpoint = daData.RpcUrl
+		availConfig.RpcEndpoint = daData.ApiUrl
 		availConfig.AccAddress = keyringPair.Address
 		availConfig.Root = root
 
