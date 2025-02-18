@@ -47,7 +47,9 @@ func Cmd(services []string) *cobra.Command {
 				errorhandling.PrettifyErrorIfExists(err)
 
 				if rollappConfig.DA.Backend == consts.Celestia {
-					services = consts.RollappWithCelesSystemdServices
+					servicesToStop = consts.RollappWithCelesSystemdServices
+				} else {
+					servicesToStop = services
 				}
 			}
 			err = stopSystemdServices(servicesToStop)
