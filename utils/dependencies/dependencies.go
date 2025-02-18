@@ -108,8 +108,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env, d
 
 	goreleaserDeps := map[string]types.Dependency{}
 
-	if !withMockDA {
-		goreleaserDeps = DefaultRollappPrebuiltDependencies()
+	if !withMockDA && da == "celestia" {
+		goreleaserDeps = DefaultCelestiaPrebuiltDependencies()
 	}
 
 	if withMockDA {

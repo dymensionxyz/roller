@@ -53,16 +53,9 @@ func NewAvail(root string) *Avail {
 	availConfig, err := loadConfigFromTOML(cfgPath)
 
 	if err != nil {
-		envs := []string{"mainnet", "turing"}
-		env, _ := pterm.DefaultInteractiveSelect.
-			WithDefaultText(
-				"select the environment you want to initialize Avail for",
-			).
-			WithOptions(envs).
-			Show()
-		if env == "mainnet" {
+		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.AvailMainnet)
-		} else if env == "turing" {
+		} else {
 			daNetwork = string(consts.AvailTestnet)
 		}
 
