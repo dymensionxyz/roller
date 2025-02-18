@@ -226,7 +226,7 @@ func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, erro
 
 func (a *Avail) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"seed": "%s", "endpoint": "%s", "app_id": %d, "tip":0}`,
+		`{"seed": "%s", "endpoint": "%s", "app_id": %d}`,
 		a.Mnemonic,
 		a.RpcEndpoint,
 		a.AppID,
