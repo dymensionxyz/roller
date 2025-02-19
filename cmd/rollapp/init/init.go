@@ -165,6 +165,10 @@ func Cmd() *cobra.Command {
 			switch env {
 			case "custom":
 				chd, err := config.CreateCustomHubData()
+				if err != nil {
+					pterm.Error.Println("failed to create custom hub data: ", err)
+					return
+				}
 
 				hd = consts.HubData{
 					Environment:   env,
@@ -173,12 +177,6 @@ func Cmd() *cobra.Command {
 					RpcUrl:        chd.RpcUrl,
 					ArchiveRpcUrl: chd.RpcUrl,
 					GasPrice:      chd.GasPrice,
-					DaNetwork:     consts.CelestiaTestnet,
-				}
-
-				if err != nil {
-					pterm.Info.Println("failed to create custom hub data", err)
-					return
 				}
 
 				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
@@ -204,7 +202,7 @@ func Cmd() *cobra.Command {
 				}
 
 				err := runInit(
-					cmd,
+					home,
 					env,
 					consts.HubData{},
 					raRespMock,
@@ -291,7 +289,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = runInit(cmd, env, hd, *raResponse, kb)
+			// TODO: all above should be wrapped in "InitDependencies"
+
+			err = runInit(home, env, hd, *raResponse, kb)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return

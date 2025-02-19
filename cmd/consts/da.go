@@ -32,6 +32,8 @@ const (
 	MockDA          DaNetwork = "mock"
 	CelestiaTestnet DaNetwork = "mocha-4"
 	CelestiaMainnet DaNetwork = "celestia"
+	AvailTestnet    DaNetwork = "avail"
+	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -72,5 +74,23 @@ var DaNetworks = map[string]DaData{
 			"celestia.rpc.kjnodes.com",
 		},
 		GasPrice: "0.002",
+	},
+	string(AvailTestnet): {
+		Backend:          Avail,
+		ApiUrl:           "https://turing-rpc.avail.so/rpc",
+		ID:               AvailTestnet,
+		RpcUrl:           "wss://turing-rpc.avail.so/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(AvailMainnet): {
+		Backend:          Avail,
+		ApiUrl:           "https://mainnet-rpc.avail.so/rpc:443",
+		ID:               AvailMainnet,
+		RpcUrl:           "wss://mainnet.avail-rpc.com/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
 	},
 }

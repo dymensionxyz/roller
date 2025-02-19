@@ -47,6 +47,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 
 	var raCommit string
 	var drsVersion string
+	var da string
+
 	raVmType := strings.ToLower(raResp.Rollapp.VmType)
 	if !withMockDA {
 		// TODO refactor, this genesis file fetch is redundand and will slow the process down
@@ -62,10 +64,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			return nil, nil, err
 		}
 
-		if err != nil {
-			return nil, nil, err
-		}
-
+		da = as.RollappParams.Params.Da
 		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
 		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
 		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, env)
@@ -107,13 +106,13 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raVmType,
 		)
 
-		buildableDeps = DefaultRollappBuildableDependencies(rbi)
+		buildableDeps = DefaultRollappBuildableDependencies(rbi, da)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}
 
-	if !withMockDA {
-		goreleaserDeps = DefaultRollappPrebuiltDependencies()
+	if !withMockDA && da == "celestia" {
+		goreleaserDeps = DefaultCelestiaPrebuiltDependencies()
 	}
 
 	if withMockDA {
