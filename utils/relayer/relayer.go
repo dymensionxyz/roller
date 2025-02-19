@@ -46,6 +46,8 @@ func GetRollappToRunFor(home, component string) (string, *consts.HubData, string
 
 		if runForRollappFromRollerConfig {
 			raID := rollerData.RollappID
+
+			rollerData = config.PromptCustomHubEndpoint(rollerData)
 			hd := rollerData.HubData
 
 			return raID, &hd, string(rollerData.KeyringBackend), nil
