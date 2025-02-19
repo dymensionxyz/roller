@@ -1,12 +1,14 @@
 package relayer
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 
 	toml "github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
@@ -14,6 +16,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
@@ -72,20 +75,116 @@ func Flush(home string) {
 		fmt.Println(v)
 	}
 
-	// for hub flush
-	hubFlushCmd := getFlushCmd(
-		rlyConfigDir,
-		hd.ID,
-		flushCfg.LastHubFlushHeight,
-		flushCfg.FlushRange,
-	)
-	raFlushCmd := getFlushCmd(rlyConfigDir, raID, flushCfg.LastRaFlushHeight, flushCfg.FlushRange)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	fmt.Println(hubFlushCmd.String())
-	fmt.Println(raFlushCmd.String())
+	errChan := make(chan error, 2)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Start hub flush goroutine
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				currentCfg, err := getFlushConfig(rrhf, raID, *hd)
+				if err != nil {
+					errChan <- fmt.Errorf("failed to get current flush config for hub: %w", err)
+					return
+				}
+
+				hubFlushCmd := getFlushCmd(
+					rlyConfigDir,
+					hd.ID,
+					currentCfg.LastHubFlushHeight,
+					currentCfg.FlushRange,
+				)
+
+				doneChan := make(chan error, 1)
+				err = bash.ExecCmdFollow(doneChan, ctx, hubFlushCmd, nil)
+				if err != nil {
+					errChan <- fmt.Errorf("hub flush command failed: %w", err)
+					return
+				}
+
+				// Update the last hub flush height
+				currentCfg.LastHubFlushHeight += currentCfg.FlushRange
+				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+					errChan <- fmt.Errorf("failed to update hub flush height: %w", err)
+					return
+				}
+			}
+		}
+	}()
+
+	// Start rollapp flush goroutine
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				currentCfg, err := getFlushConfig(rrhf, raID, *hd)
+				if err != nil {
+					errChan <- fmt.Errorf("failed to get current flush config for rollapp: %w", err)
+					return
+				}
+
+				raFlushCmd := getFlushCmd(
+					rlyConfigDir,
+					raID,
+					currentCfg.LastRaFlushHeight,
+					currentCfg.FlushRange,
+				)
+
+				doneChan := make(chan error, 1)
+				err = bash.ExecCmdFollow(doneChan, ctx, raFlushCmd, nil)
+				if err != nil {
+					errChan <- fmt.Errorf("rollapp flush command failed: %w", err)
+					return
+				}
+
+				// Update the last rollapp flush height
+				currentCfg.LastRaFlushHeight += currentCfg.FlushRange
+				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+					errChan <- fmt.Errorf("failed to update rollapp flush height: %w", err)
+					return
+				}
+			}
+		}
+	}()
+
+	// Error handling goroutine
+	go func() {
+		select {
+		case err := <-errChan:
+			if err != nil {
+				pterm.Error.Println(err)
+				cancel() // Cancel context to stop other goroutines
+			}
+		case <-ctx.Done():
+			return
+		}
+	}()
+
+	wg.Wait()
 }
 
 // nolint unused
+func writeFlushConfig(configPath string, config *RollerRelayerHelperConfig) error {
+	f, err := os.OpenFile(configPath, os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return toml.NewEncoder(f).Encode(config)
+}
+
 func getFlushCmd(rlyConfigDir, chain string, startHeight, r int) *exec.Cmd {
 	endHeight := startHeight + r
 
