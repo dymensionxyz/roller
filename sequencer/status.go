@@ -32,8 +32,9 @@ type Response struct {
 
 type HubResponse struct {
 	StateInfo struct {
-		StartHeight string `json:"startHeight"`
-		NumBlocks   string `json:"numBlocks"`
+		StartHeight    string `json:"startHeight"`
+		NumBlocks      string `json:"numBlocks"`
+		CreationHeight string `json:"creationHeight"`
 	} `json:"stateInfo"`
 }
 
@@ -76,6 +77,40 @@ func (seq *Sequencer) GetRollappHeight() (string, error) {
 	}
 }
 
+func GetFirstStateUpdateHeight(raID, hubRpcEndpoint, hubChainID string) (int, error) {
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"rollapp",
+		"state",
+		"--index",
+		"1",
+		raID,
+		"--output",
+		"json",
+		"--node",
+		hubRpcEndpoint,
+		"--chain-id",
+		hubChainID,
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return 0, err
+	}
+
+	var resp HubResponse
+	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
+		return 0, err
+	}
+	h, err := strconv.Atoi(resp.StateInfo.CreationHeight)
+	if err != nil {
+		return 0, fmt.Errorf("unable to convert start height to int: %s", err)
+	}
+
+	return h, nil
+}
+
 func (seq *Sequencer) GetHubHeight() (string, error) {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
@@ -90,14 +125,17 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 		"--chain-id",
 		seq.RlpCfg.HubData.ID,
 	)
+
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return "", err
 	}
+
 	var resp HubResponse
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
 		return "", err
 	}
+
 	startHeight, err := strconv.Atoi(resp.StateInfo.StartHeight)
 	if err != nil {
 		return "", fmt.Errorf("unable to convert start height to int: %s", err)

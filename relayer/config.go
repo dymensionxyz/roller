@@ -326,6 +326,10 @@ func InitializeConfig(
 	return nil
 }
 
+func (c *Config) RollappID() string {
+	return c.Paths.HubRollapp.Dst.ChainID
+}
+
 func (c *Config) HubDataFromRelayerConfig() *consts.HubData {
 	hd := consts.HubData{
 		ID:     c.Paths.HubRollapp.Src.ChainID,

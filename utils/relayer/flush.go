@@ -2,20 +2,23 @@ package relayer
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/naoina/toml"
+	toml "github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
+	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
 type RollerRelayerHelperConfig struct {
+	FlushRange         int `toml:"flush_range"`
 	LastHubFlushHeight int `toml:"last_hub_flush_height"`
 	LastRaFlushHeight  int `toml:"last_ra_flush_height"`
 }
@@ -42,10 +45,12 @@ func Flush(home string) {
 		pterm.Error.Println("failed to retrieve chains to run flush for: ", err)
 		return
 	}
+	hd := rlyConfig.HubDataFromRelayerConfig()
+	raID := rlyConfig.Paths.HubRollapp.Dst.ChainID
 
-	flushCfg, err := getFlushConfig(rrhf)
+	flushCfg, err := getFlushConfig(rrhf, raID, *hd)
 	if err != nil {
-		pterm.Error.Println("failed to handle flusher config")
+		pterm.Error.Println("failed to handle flusher config:", err)
 		return
 	}
 
@@ -57,12 +62,36 @@ func Flush(home string) {
 		"retrieved Hub height to start flushing from: %v",
 		flushCfg.LastHubFlushHeight,
 	)
+	pterm.Info.Printfln(
+		"flush interval: %v",
+		flushCfg.FlushRange,
+	)
 
-	pterm.Info.Println("chains to flush:", chainsToFlush)
+	pterm.Info.Println("chains to flush:")
+	for _, v := range chainsToFlush {
+		fmt.Println(v)
+	}
+
+	// for hub flush
+	hubFlushCmd := getFlushCmd(
+		rlyConfigDir,
+		hd.ID,
+		flushCfg.LastHubFlushHeight,
+		flushCfg.FlushRange,
+	)
+	raFlushCmd := getFlushCmd(rlyConfigDir, raID, flushCfg.LastRaFlushHeight, flushCfg.FlushRange)
+
+	fmt.Println(hubFlushCmd.String())
+	fmt.Println(raFlushCmd.String())
 }
 
 // nolint unused
-func getFlushCmd(rlyConfigDir, startHeight, endHeight, chain string) *exec.Cmd {
+func getFlushCmd(rlyConfigDir, chain string, startHeight, r int) *exec.Cmd {
+	endHeight := startHeight + r
+
+	shStr := fmt.Sprintf("%d", startHeight)
+	ehStr := fmt.Sprintf("%d", endHeight)
+
 	cmd := exec.Command(
 		consts.Executables.Relayer,
 		"tx",
@@ -70,9 +99,9 @@ func getFlushCmd(rlyConfigDir, startHeight, endHeight, chain string) *exec.Cmd {
 		"--stuck-packet-chain-id",
 		chain,
 		"--stuck-packet-height-start",
-		startHeight,
+		shStr,
 		"--stuck-packet-height-end",
-		endHeight,
+		ehStr,
 		"hub-rollapp",
 		"--home",
 		rlyConfigDir,
@@ -81,7 +110,7 @@ func getFlushCmd(rlyConfigDir, startHeight, endHeight, chain string) *exec.Cmd {
 	return cmd
 }
 
-func getFlushConfig(rrhf string) (*RollerRelayerHelperConfig, error) {
+func getFlushConfig(rrhf, raID string, hd consts.HubData) (*RollerRelayerHelperConfig, error) {
 	_, err := os.Stat(rrhf)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -96,21 +125,31 @@ func getFlushConfig(rrhf string) (*RollerRelayerHelperConfig, error) {
 				pterm.Error.Printfln("failed to create %s", rrhf)
 			}
 
-			updates := map[string]any{
-				"last_ra_flush_height":  0,
-				"last_hub_flush_height": 0,
+			hubFlushHeight, err := sequencer.GetFirstStateUpdateHeight(raID, hd.RpcUrl, hd.ID)
+			if err != nil {
+				pterm.Error.Println("failed to retrieve the height of the first state update:", err)
+				return nil, err
 			}
 
-			for k, v := range updates {
-				err = tomlconfig.UpdateFieldInFile(
-					rrhf,
-					k,
-					v,
-				)
-				if err != nil {
-					pterm.Error.Println("failed to update relayer helper config: ", err)
-				}
+			// Load existing config
+			var config RollerRelayerHelperConfig
+			if _, err := toml.DecodeFile(rrhf, &config); err != nil {
+				return nil, err
 			}
+
+			// Update values
+			config.LastRaFlushHeight = 0
+			config.LastHubFlushHeight = hubFlushHeight
+			config.FlushRange = 10_000
+
+			// Write back to file
+			f, err := os.OpenFile(rrhf, os.O_WRONLY|os.O_TRUNC, 0o644)
+			if err != nil {
+				return nil, err
+			}
+			defer f.Close()
+
+			return &config, toml.NewEncoder(f).Encode(config)
 		} else {
 			pterm.Error.Println("failed to check relayer helper file")
 		}
