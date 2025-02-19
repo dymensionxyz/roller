@@ -145,6 +145,10 @@ func Flush(home string) {
 					pterm.Error.Printf("failed to update hub flush height: %v\n", err)
 					return
 				}
+
+				// Exit after completing the flush operation
+				pterm.Info.Printf("Hub flush completed, exiting...\n")
+				return
 			}
 		}
 	}()
@@ -231,11 +235,15 @@ func Flush(home string) {
 				)
 
 				// Update the last rollapp flush height
-				currentCfg.LastRaFlushHeight += currentCfg.FlushRange
+				currentCfg.LastRaFlushHeight = endHeight
 				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
 					pterm.Error.Printf("failed to update rollapp flush height: %v\n", err)
 					return
 				}
+
+				// Exit after completing the flush operation
+				pterm.Info.Printf("Rollapp flush completed, exiting...\n")
+				return
 			}
 		}
 	}()
