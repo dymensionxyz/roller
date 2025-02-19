@@ -31,7 +31,9 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			pterm.Warning.Println("warning! by default roller uses a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension")
+			pterm.Warning.Println(
+				"By default roller uses a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension",
+			)
 			pterm.Info.Printf(
 				"run %s to update the Hub private endpoints anytime after initial setup\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
