@@ -75,10 +75,12 @@ func Flush(home string) {
 		fmt.Println(v)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// Create separate contexts for each command
+	hubCtx, hubCancel := context.WithCancel(context.Background())
+	raCtx, raCancel := context.WithCancel(context.Background())
+	defer hubCancel()
+	defer raCancel()
 
-	errChan := make(chan error, 2)
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -87,33 +89,58 @@ func Flush(home string) {
 		defer wg.Done()
 		for {
 			select {
-			case <-ctx.Done():
+			case <-hubCtx.Done():
 				return
 			default:
 				currentCfg, err := getFlushConfig(rrhf, raID, *hd)
 				if err != nil {
-					errChan <- fmt.Errorf("failed to get current flush config for hub: %w", err)
+					pterm.Error.Printf("failed to get current flush config for hub: %v\n", err)
 					return
 				}
+
+				// Skip if height is 0 on first run
+				if currentCfg.LastHubFlushHeight == 0 {
+					currentCfg.LastHubFlushHeight = 1
+					if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+						pterm.Error.Printf("failed to initialize hub flush height: %v\n", err)
+						return
+					}
+				}
+
+				startHeight := currentCfg.LastHubFlushHeight
+				endHeight := startHeight + currentCfg.FlushRange
+
+				pterm.Info.Printf(
+					"Starting hub flush from height %d to %d\n",
+					startHeight,
+					endHeight,
+				)
 
 				hubFlushCmd := getFlushCmd(
 					rlyConfigDir,
 					hd.ID,
-					currentCfg.LastHubFlushHeight,
+					startHeight,
 					currentCfg.FlushRange,
 				)
 
 				doneChan := make(chan error, 1)
-				err = bash.ExecCmdFollow(doneChan, ctx, hubFlushCmd, nil)
+				err = bash.ExecCmdFollow(doneChan, hubCtx, hubFlushCmd, nil)
 				if err != nil {
-					errChan <- fmt.Errorf("hub flush command failed: %w", err)
+					pterm.Error.Printf("hub flush command failed: %v\n", err)
+					hubCancel()
 					return
 				}
+
+				pterm.Info.Printf(
+					"Hub flush completed for range %d to %d\n",
+					startHeight,
+					endHeight,
+				)
 
 				// Update the last hub flush height
 				currentCfg.LastHubFlushHeight += currentCfg.FlushRange
 				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
-					errChan <- fmt.Errorf("failed to update hub flush height: %w", err)
+					pterm.Error.Printf("failed to update hub flush height: %v\n", err)
 					return
 				}
 			}
@@ -125,49 +152,61 @@ func Flush(home string) {
 		defer wg.Done()
 		for {
 			select {
-			case <-ctx.Done():
+			case <-raCtx.Done():
 				return
 			default:
 				currentCfg, err := getFlushConfig(rrhf, raID, *hd)
 				if err != nil {
-					errChan <- fmt.Errorf("failed to get current flush config for rollapp: %w", err)
+					pterm.Error.Printf("failed to get current flush config for rollapp: %v\n", err)
 					return
 				}
+
+				// Skip if height is 0 on first run
+				if currentCfg.LastRaFlushHeight == 0 {
+					currentCfg.LastRaFlushHeight = 1
+					if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+						pterm.Error.Printf("failed to initialize rollapp flush height: %v\n", err)
+						return
+					}
+				}
+
+				startHeight := currentCfg.LastRaFlushHeight
+				endHeight := startHeight + currentCfg.FlushRange
+
+				pterm.Info.Printf(
+					"Starting rollapp flush from height %d to %d\n",
+					startHeight,
+					endHeight,
+				)
 
 				raFlushCmd := getFlushCmd(
 					rlyConfigDir,
 					raID,
-					currentCfg.LastRaFlushHeight,
+					startHeight,
 					currentCfg.FlushRange,
 				)
 
 				doneChan := make(chan error, 1)
-				err = bash.ExecCmdFollow(doneChan, ctx, raFlushCmd, nil)
+				err = bash.ExecCmdFollow(doneChan, raCtx, raFlushCmd, nil)
 				if err != nil {
-					errChan <- fmt.Errorf("rollapp flush command failed: %w", err)
+					pterm.Error.Printf("rollapp flush command failed: %v\n", err)
+					raCancel()
 					return
 				}
+
+				pterm.Info.Printf(
+					"Rollapp flush completed for range %d to %d\n",
+					startHeight,
+					endHeight,
+				)
 
 				// Update the last rollapp flush height
 				currentCfg.LastRaFlushHeight += currentCfg.FlushRange
 				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
-					errChan <- fmt.Errorf("failed to update rollapp flush height: %w", err)
+					pterm.Error.Printf("failed to update rollapp flush height: %v\n", err)
 					return
 				}
 			}
-		}
-	}()
-
-	// Error handling goroutine
-	go func() {
-		select {
-		case err := <-errChan:
-			if err != nil {
-				pterm.Error.Println(err)
-				cancel() // Cancel context to stop other goroutines
-			}
-		case <-ctx.Done():
-			return
 		}
 	}()
 
