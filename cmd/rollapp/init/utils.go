@@ -184,6 +184,7 @@ func initRollapp(
 	}
 
 	raSpinner.Success("rollapp initialized successfully")
+	fmt.Println()
 	return nil
 }
 
