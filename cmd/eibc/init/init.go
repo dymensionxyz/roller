@@ -261,8 +261,9 @@ func Cmd() *cobra.Command {
 
 			printPolicyAddress(policyAddr)
 			updates := map[string]interface{}{
-				"fulfillers.policy_address": policyAddr,
-				"operator.group_id":         gID,
+				"fulfillers.policy_address":    policyAddr,
+				"fulfillers.max_orders_per_tx": 1,
+				"operator.group_id":            gID,
 			}
 			err = yamlconfig.UpdateNestedYAML(eibcConfigPath, updates)
 			if err != nil {
