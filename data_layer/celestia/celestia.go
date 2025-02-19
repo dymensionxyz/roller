@@ -321,7 +321,7 @@ func (c *Celestia) SetRPCEndpoint(rpc string) {
 }
 
 func (c *Celestia) GetNetworkName() string {
-	return consts.DefaultCelestiaNetwork
+	return consts.DefaultCelestiaMochaNetwork
 }
 
 func (c *Celestia) GetNamespaceID() string {

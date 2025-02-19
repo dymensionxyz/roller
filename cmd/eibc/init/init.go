@@ -41,6 +41,14 @@ func Cmd() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize eibc client",
 		Run: func(cmd *cobra.Command, args []string) {
+			pterm.Warning.Println(
+				"By default roller uses a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension",
+			)
+			pterm.Info.Printf(
+				"run %s to update the Hub private endpoints anytime after initial setup\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller config set hub-rpc-endpoint <private-endpoint>"),
+			)
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to add flags")
@@ -262,16 +270,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if err == nil {
-				defer func() {
-					pterm.Info.Println("next steps:")
-					pterm.Info.Printf(
-						"run %s to start the eibc client in interactive mode\n",
-						pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-							Sprintf("roller eibc start"),
-					)
-				}()
-			}
+			defer func() {
+				pterm.Info.Println("next steps:")
+				pterm.Info.Printf(
+					"run %s to start the eibc client in interactive mode\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller eibc start"),
+				)
+			}()
 		},
 	}
 	return cmd
