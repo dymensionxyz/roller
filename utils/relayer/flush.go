@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	toml "github.com/BurntSushi/toml"
@@ -18,6 +19,7 @@ import (
 	"github.com/dymensionxyz/roller/sequencer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 type RollerRelayerHelperConfig struct {
@@ -170,8 +172,36 @@ func Flush(home string) {
 					}
 				}
 
+				// Get current rollapp height
+				blockInfo, err := rollapp.GetCurrentHeight()
+				if err != nil {
+					pterm.Error.Printf("failed to get current rollapp height: %v\n", err)
+					return
+				}
+
+				currentHeight, err := strconv.Atoi(blockInfo.Block.Header.Height)
+				if err != nil {
+					pterm.Error.Printf("failed to parse current height: %v\n", err)
+					return
+				}
+
 				startHeight := currentCfg.LastRaFlushHeight
 				endHeight := startHeight + currentCfg.FlushRange
+
+				if endHeight > currentHeight {
+					pterm.Info.Printf(
+						"Target end height %d is greater than current height %d, setting LastRaFlushHeight to current height\n",
+						endHeight,
+						currentHeight,
+					)
+					// Update config to current height and exit
+					currentCfg.LastRaFlushHeight = currentHeight
+					endHeight = currentHeight
+					if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+						pterm.Error.Printf("failed to update rollapp flush height: %v\n", err)
+						return
+					}
+				}
 
 				pterm.Info.Printf(
 					"Starting rollapp flush from height %d to %d\n",
