@@ -40,9 +40,7 @@ import (
 // TODO: Test sequencing on 35-C and update the price
 var OneDaySequencePrice = big.NewInt(1)
 
-var (
-	LogPath string
-)
+var LogPath string
 
 // nolint:gocyclo
 func Cmd() *cobra.Command {
@@ -71,6 +69,7 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
+			localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
 
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
