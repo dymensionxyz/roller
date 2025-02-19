@@ -237,7 +237,7 @@ func getFlushConfig(rrhf, raID string, hd consts.HubData) (*RollerRelayerHelperC
 			}
 
 			// Update values
-			config.LastRaFlushHeight = 0
+			config.LastRaFlushHeight = 1
 			config.LastHubFlushHeight = hubFlushHeight
 			config.FlushRange = 10_000
 
