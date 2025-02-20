@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v3"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -12,8 +14,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 )
 
 type MetricConfig struct {
@@ -141,7 +141,7 @@ func Cmd() *cobra.Command {
 				}
 
 				config.Addresses = append(config.Addresses, AddressConfig{
-					Name:         keyInfo.Name,
+					Name:         fmt.Sprintf("%s %s", rollerData.RollappID, keyInfo.Name),
 					RestEndpoint: rollerData.HubData.ApiUrl,
 					Address:      keyInfo.Address,
 					Threshold: AddressThreshold{
