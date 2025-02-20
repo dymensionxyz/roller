@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
-	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
@@ -117,20 +117,92 @@ func Flush(home string) {
 		fmt.Println(flushCmd.String())
 
 		doneChan := make(chan error, 1)
-		err := bash.ExecCmdFollow(doneChan, ctx, flushCmd, nil)
-		if err != nil {
-			pterm.Error.Printf("%s Flush command failed: %v\n", prefix, err)
-			return err
+		outChan := make(chan []byte, 100)
+
+		// Start command execution in a goroutine
+		go func() {
+			cmd := exec.CommandContext(ctx, flushCmd.Path, flushCmd.Args...)
+			cmd.Env = flushCmd.Env
+
+			// Set up pipes for stdout and stderr
+			stdout, err := cmd.StdoutPipe()
+			if err != nil {
+				doneChan <- fmt.Errorf("failed to create stdout pipe: %v", err)
+				return
+			}
+			stderr, err := cmd.StderrPipe()
+			if err != nil {
+				doneChan <- fmt.Errorf("failed to create stderr pipe: %v", err)
+				return
+			}
+
+			// Start the command
+			if err := cmd.Start(); err != nil {
+				doneChan <- fmt.Errorf("failed to start command: %v", err)
+				return
+			}
+
+			// Read stdout and stderr in separate goroutines
+			go func() {
+				buf := make([]byte, 1024)
+				for {
+					n, err := stdout.Read(buf)
+					if n > 0 {
+						outChan <- buf[:n]
+					}
+					if err != nil {
+						break
+					}
+				}
+			}()
+
+			go func() {
+				buf := make([]byte, 1024)
+				for {
+					n, err := stderr.Read(buf)
+					if n > 0 {
+						outChan <- buf[:n]
+					}
+					if err != nil {
+						break
+					}
+				}
+			}()
+
+			// Wait for command completion
+			if err := cmd.Wait(); err != nil {
+				doneChan <- err
+				return
+			}
+			close(outChan)
+			doneChan <- nil
+		}()
+
+		// Process output and watch for skip signal
+		var output string
+		for {
+			select {
+			case data, ok := <-outChan:
+				if !ok {
+					// Command completed normally
+					pterm.Info.Printf("%s Moving to next range...\n", prefix)
+					return nil
+				}
+				output += string(data)
+				if strings.Contains(output, "Parsed stuck packet height, skipping to current") {
+					pterm.Info.Printf("%s Range complete, skipping to next range\n", prefix)
+					return nil
+				}
+			case err := <-doneChan:
+				if err != nil {
+					pterm.Error.Printf("%s Flush command failed: %v\n", prefix, err)
+					return err
+				}
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
-
-		pterm.Info.Printf(
-			"%s Flush completed for range %d -> %d\n",
-			prefix,
-			startHeight,
-			endHeight,
-		)
-
-		return nil
 	}
 
 	// Start hub flush goroutine
