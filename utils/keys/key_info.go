@@ -91,6 +91,8 @@ func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, erro
 			return nil, err
 		}
 		aki = append(aki, *eibcKi)
+	} else {
+		pterm.Error.Println("failed to get eibc key", err)
 	}
 
 	return aki, nil
