@@ -11,6 +11,7 @@ func Cmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(UpdateCmd())
+	cmd.AddCommand(UpgradeCmd())
 
 	return cmd
 }
