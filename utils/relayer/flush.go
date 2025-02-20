@@ -102,6 +102,46 @@ func Flush(home string) {
 			prefix = "[RollApp]"
 		}
 
+		// For hub, check if we need to adjust the end height based on latest block
+		// Only check if range is more than 1 block
+		if isHub && (endHeight-startHeight) > 1 {
+			var latestHeight int
+			// Run a command to get the latest height first
+			testCmd := getFlushCmd(
+				rlyConfigDir,
+				chainID,
+				endHeight,
+				1,
+			)
+
+			doneChan := make(chan error, 1)
+			err := bash.ExecCmdFollowWithHandler(doneChan, ctx, testCmd, func(line string) bool {
+				if strings.Contains(line, "new latest queried block") {
+					parts := strings.Split(line, "new latest queried block")
+					if len(parts) > 1 {
+						heightStr := strings.TrimSpace(strings.Map(func(r rune) rune {
+							if r >= '0' && r <= '9' {
+								return r
+							}
+							return -1
+						}, parts[1]))
+
+						if h, err := strconv.Atoi(heightStr); err == nil {
+							latestHeight = h
+						}
+					}
+					return true
+				}
+				return false
+			})
+			if err != nil {
+				pterm.Warning.Printf("%s Failed to get latest height: %v\n", prefix, err)
+			} else if latestHeight > 0 && latestHeight < endHeight {
+				pterm.Info.Printf("%s Adjusting end height from %d to %d based on latest block\n", prefix, endHeight, latestHeight)
+				endHeight = latestHeight
+			}
+		}
+
 		pterm.Info.Printf(
 			"%s Starting flush for range %d -> %d\n",
 			prefix,
@@ -115,7 +155,6 @@ func Flush(home string) {
 			startHeight,
 			endHeight-startHeight,
 		)
-		fmt.Println(flushCmd.String())
 
 		doneChan := make(chan error, 1)
 		var shouldStop bool
