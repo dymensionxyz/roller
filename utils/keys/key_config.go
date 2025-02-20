@@ -122,7 +122,13 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 }
 
 func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
-	kp := filepath.Join(home, kc.Dir)
+	var kp string
+	if kc.Dir == consts.ConfigDirName.Eibc {
+		kp = kc.Dir
+	} else {
+		kp = filepath.Join(home, kc.Dir)
+	}
+
 	args := []string{
 		"keys",
 		"show",
