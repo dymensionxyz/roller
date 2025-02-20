@@ -41,6 +41,10 @@ func Cmd(services []string, module string) *cobra.Command {
 		Use:   "load",
 		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(
+				services,
+				module,
+			)
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
@@ -55,10 +59,6 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
-			if rollerData.DA.Backend == consts.Celestia {
-				services = consts.RollappWithCelesSystemdServices
-			}
-
 			err = LoadServices(services, rollerData)
 			if err != nil {
 				pterm.Error.Println("failed to load services: ", err)
@@ -66,6 +66,10 @@ func Cmd(services []string, module string) *cobra.Command {
 			}
 
 			if module == "rollapp" {
+				if rollerData.DA.Backend == consts.Celestia {
+					services = consts.RollappWithCelesSystemdServices
+				}
+
 				err = scripts.CreateRollappStartup(home)
 				if err != nil {
 					pterm.Error.Println("failed to generate startup scripts:", err)
@@ -459,6 +463,7 @@ func LoadLinuxServices(services []string) error {
 }
 
 func LoadServices(services []string, rollerData roller.RollappConfig) error {
+	fmt.Println("load services", services)
 	if runtime.GOOS == "darwin" {
 		err := LoadMacOsServices(services, rollerData)
 		if err != nil {
