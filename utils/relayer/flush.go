@@ -318,6 +318,14 @@ func getFlushConfig(rrhf, raID string, hd consts.HubData) (*RollerRelayerHelperC
 			return nil, err
 		}
 
+		// Create the file
+		f, err := os.Create(rrhf)
+		if err != nil {
+			pterm.Error.Printf("failed to create config file: %v\n", err)
+			return nil, err
+		}
+		f.Close()
+
 		hubFlushHeight, err := sequencer.GetFirstStateUpdateHeight(raID, hd.RpcUrl, hd.ID)
 		if err != nil {
 			pterm.Error.Println("failed to retrieve the height of the first state update:", err)
