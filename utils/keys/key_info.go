@@ -2,7 +2,10 @@ package keys
 
 import (
 	"fmt"
+	"path"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/pterm/pterm"
 )
 
@@ -35,6 +38,54 @@ func WithPubKey() KeyInfoOption {
 	return func(opts *KeyInfo) {
 		opts.PrintPubKey = true
 	}
+}
+
+func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
+	var aki []KeyInfo
+
+	// relayer
+	rkc := KeyConfig{
+		Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
+		ID:             consts.KeysIds.HubRelayer,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           consts.SDK_ROLLAPP,
+		KeyringBackend: consts.SupportedKeyringBackends.Test,
+	}
+	rki, err := rkc.Info(rollappConfig.Home)
+	if err != nil {
+		return nil, err
+	}
+	aki = append(aki, *rki)
+
+	// sequencer
+	seqKc := KeyConfig{
+		Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
+		ID:             consts.KeysIds.HubSequencer,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           consts.SDK_ROLLAPP,
+		KeyringBackend: rollappConfig.KeyringBackend,
+	}
+	seqKi, err := seqKc.Info(rollappConfig.Home)
+	if err != nil {
+		return nil, err
+	}
+	aki = append(aki, *seqKi)
+
+	// eibc
+	eibcKc := KeyConfig{
+		Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
+		ID:             consts.KeysIds.Eibc,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           consts.SDK_ROLLAPP,
+		KeyringBackend: rollappConfig.KeyringBackend,
+	}
+	eibcKi, err := eibcKc.Info(rollappConfig.Home)
+	if err != nil {
+		return nil, err
+	}
+	aki = append(aki, *eibcKi)
+
+	return aki, nil
 }
 
 func (ki *KeyInfo) Print(o ...KeyInfoOption) {
