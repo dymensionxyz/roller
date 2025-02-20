@@ -39,7 +39,7 @@ func UpgradeCmd() *cobra.Command {
 			}
 
 			pterm.Info.Printf(
-				"IMPORTANT. Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
+				"IMPORTANT: Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller rollapp services load"),
 			)
