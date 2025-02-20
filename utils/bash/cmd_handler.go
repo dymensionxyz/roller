@@ -13,12 +13,13 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// ExecCmdFollowWithHandler executes a command and allows processing output through a handler function
+// ExecCmdFollowWithHandler executes a command and allows processing output through a handler function.
+// The outputHandler can return true to indicate that the command should be terminated early.
 func ExecCmdFollowWithHandler(
 	doneChan chan<- error,
 	ctx context.Context,
 	cmd *exec.Cmd,
-	outputHandler func(line string),
+	outputHandler func(line string) bool,
 ) error {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -66,7 +67,13 @@ func ExecCmdFollowWithHandler(
 			line := scanner.Text()
 			fmt.Println(line)
 			if outputHandler != nil {
-				outputHandler(line)
+				if shouldStop := outputHandler(line); shouldStop {
+					// Kill the command and return without error
+					if cmd.Process != nil {
+						_ = cmd.Process.Kill()
+					}
+					return
+				}
 			}
 		}
 		if err := scanner.Err(); err != nil {
@@ -81,7 +88,13 @@ func ExecCmdFollowWithHandler(
 			line := scanner.Text()
 			fmt.Println(line)
 			if outputHandler != nil {
-				outputHandler(line)
+				if shouldStop := outputHandler(line); shouldStop {
+					// Kill the command and return without error
+					if cmd.Process != nil {
+						_ = cmd.Process.Kill()
+					}
+					return
+				}
 			}
 		}
 

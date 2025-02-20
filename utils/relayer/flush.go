@@ -122,11 +122,13 @@ func Flush(home string) {
 		var foundSkip bool
 
 		// Run command with output handler
-		err := bash.ExecCmdFollowWithHandler(doneChan, ctx, flushCmd, func(line string) {
+		err := bash.ExecCmdFollowWithHandler(doneChan, ctx, flushCmd, func(line string) bool {
 			if strings.Contains(line, "Parsed stuck packet height, skipping to current") {
 				pterm.Info.Printf("%s Range complete, skipping to next range\n", prefix)
 				foundSkip = true
+				return true // Signal to stop the command
 			}
+			return false
 		})
 
 		if err != nil {
