@@ -1,7 +1,6 @@
 package keys
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -48,39 +47,43 @@ func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, erro
 	var aki []KeyInfo
 
 	// relayer
-	rkc := KeyConfig{
-		ChainBinary:    consts.Executables.Dymension,
-		ID:             consts.KeysIds.HubRelayer,
-		Dir:            filepath.Join(consts.ConfigDirName.Relayer, "keys", hd.ID),
-		KeyringBackend: consts.SupportedKeyringBackends.Test,
+	rlyDir := path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer)
+	if _, err := os.Stat(rlyDir); err == nil {
+		rkc := KeyConfig{
+			ChainBinary:    consts.Executables.Dymension,
+			ID:             consts.KeysIds.HubRelayer,
+			Dir:            filepath.Join(consts.ConfigDirName.Relayer, "keys", hd.ID),
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
+		}
+		rki, err := rkc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *rki)
 	}
-	rki, err := rkc.Info(rollappConfig.Home)
-	if err != nil {
-		return nil, err
-	}
-	aki = append(aki, *rki)
 
 	// sequencer
-	seqKc := KeyConfig{
-		Dir:            consts.ConfigDirName.HubKeys,
-		ID:             consts.KeysIds.HubSequencer,
-		ChainBinary:    consts.Executables.Dymension,
-		Type:           consts.SDK_ROLLAPP,
-		KeyringBackend: rollappConfig.KeyringBackend,
+	rolDir := path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
+	if _, err := os.Stat(rolDir); err == nil {
+		seqKc := KeyConfig{
+			Dir:            consts.ConfigDirName.HubKeys,
+			ID:             consts.KeysIds.HubSequencer,
+			ChainBinary:    consts.Executables.Dymension,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: rollappConfig.KeyringBackend,
+		}
+		seqKi, err := seqKc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *seqKi)
 	}
-	j, _ := json.Marshal(seqKc)
-	pterm.Info.Println(string(j))
-	seqKi, err := seqKc.Info(rollappConfig.Home)
-	if err != nil {
-		return nil, err
-	}
-	aki = append(aki, *seqKi)
+
+	// eibc - only if directory exists
 	uhd, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}
-
-	// eibc - only if directory exists
 	eibcDir := path.Join(uhd, consts.ConfigDirName.Eibc)
 	if _, err := os.Stat(eibcDir); err == nil {
 		eibcKc := KeyConfig{
