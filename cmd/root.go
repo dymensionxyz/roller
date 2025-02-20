@@ -5,7 +5,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	alert_agent "github.com/dymensionxyz/roller/cmd/alert-agent"
 	blockexplorer "github.com/dymensionxyz/roller/cmd/block-explorer"
 	"github.com/dymensionxyz/roller/cmd/config"
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
@@ -45,7 +44,6 @@ func init() {
 	rootCmd.AddCommand(config.Cmd())
 	rootCmd.AddCommand(version.Cmd())
 	rootCmd.AddCommand(oracle.Cmd())
-	rootCmd.AddCommand(alert_agent.Cmd())
 
 	initconfig.AddGlobalFlags(rootCmd)
 }
