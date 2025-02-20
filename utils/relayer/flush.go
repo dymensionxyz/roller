@@ -113,7 +113,7 @@ func Flush(home string) {
 				endHeight := startHeight + currentCfg.FlushRange
 
 				pterm.Info.Printf(
-					"Starting hub flush from height %d to %d\n",
+					"[Hub] Starting flush for range %d -> %d\n",
 					startHeight,
 					endHeight,
 				)
@@ -128,13 +128,13 @@ func Flush(home string) {
 				doneChan := make(chan error, 1)
 				err = bash.ExecCmdFollow(doneChan, hubCtx, hubFlushCmd, nil)
 				if err != nil {
-					pterm.Error.Printf("hub flush command failed: %v\n", err)
+					pterm.Error.Printf("[Hub] Flush command failed: %v\n", err)
 					hubCancel()
 					return
 				}
 
 				pterm.Info.Printf(
-					"Hub flush completed for range %d to %d\n",
+					"[Hub] Flush completed for range %d -> %d\n",
 					startHeight,
 					endHeight,
 				)
@@ -142,13 +142,12 @@ func Flush(home string) {
 				// Update the last hub flush height
 				currentCfg.LastHubFlushHeight += currentCfg.FlushRange
 				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
-					pterm.Error.Printf("failed to update hub flush height: %v\n", err)
+					pterm.Error.Printf("[Hub] Failed to update flush height: %v\n", err)
 					return
 				}
 
-				// Exit after completing the flush operation
-				pterm.Info.Printf("Hub flush completed, exiting...\n")
-				return
+				// Log completion of current range
+				pterm.Info.Printf("[Hub] Moving to next range...\n")
 			}
 		}
 	}()
@@ -194,7 +193,7 @@ func Flush(home string) {
 
 				if endHeight > currentHeight {
 					pterm.Info.Printf(
-						"Target end height %d is greater than current height %d, setting LastRaFlushHeight to current height\n",
+						"[RollApp] Target end height %d is greater than current height %d, setting LastRaFlushHeight to current height\n",
 						endHeight,
 						currentHeight,
 					)
@@ -202,13 +201,13 @@ func Flush(home string) {
 					currentCfg.LastRaFlushHeight = currentHeight
 					endHeight = currentHeight
 					if err := writeFlushConfig(rrhf, currentCfg); err != nil {
-						pterm.Error.Printf("failed to update rollapp flush height: %v\n", err)
+						pterm.Error.Printf("[RollApp] Failed to update flush height: %v\n", err)
 						return
 					}
 				}
 
 				pterm.Info.Printf(
-					"Starting rollapp flush from height %d to %d\n",
+					"[RollApp] Starting flush for range %d -> %d\n",
 					startHeight,
 					endHeight,
 				)
@@ -223,13 +222,13 @@ func Flush(home string) {
 				doneChan := make(chan error, 1)
 				err = bash.ExecCmdFollow(doneChan, raCtx, raFlushCmd, nil)
 				if err != nil {
-					pterm.Error.Printf("rollapp flush command failed: %v\n", err)
+					pterm.Error.Printf("[RollApp] Flush command failed: %v\n", err)
 					raCancel()
 					return
 				}
 
 				pterm.Info.Printf(
-					"Rollapp flush completed for range %d to %d\n",
+					"[RollApp] Flush completed for range %d -> %d\n",
 					startHeight,
 					endHeight,
 				)
@@ -237,12 +236,12 @@ func Flush(home string) {
 				// Update the last rollapp flush height
 				currentCfg.LastRaFlushHeight = endHeight
 				if err := writeFlushConfig(rrhf, currentCfg); err != nil {
-					pterm.Error.Printf("failed to update rollapp flush height: %v\n", err)
+					pterm.Error.Printf("[RollApp] Failed to update flush height: %v\n", err)
 					return
 				}
 
 				// Exit after completing the flush operation
-				pterm.Info.Printf("Rollapp flush completed, exiting...\n")
+				pterm.Info.Printf("[RollApp] All blocks flushed, exiting...\n")
 				return
 			}
 		}
