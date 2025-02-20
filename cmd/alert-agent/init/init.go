@@ -89,6 +89,11 @@ func Cmd() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize the Alert Agent configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			err := initconfig.AddFlags(cmd)
+			if err != nil {
+				return fmt.Errorf("failed to add flags: %w", err)
+			}
+
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
