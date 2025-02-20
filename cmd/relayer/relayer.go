@@ -3,6 +3,7 @@ package relayer
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/roller/cmd/relayer/flush"
 	"github.com/dymensionxyz/roller/cmd/relayer/setup"
 	"github.com/dymensionxyz/roller/cmd/relayer/start"
 	"github.com/dymensionxyz/roller/cmd/relayer/status"
@@ -23,6 +24,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(setup.Cmd())
 	cmd.AddCommand(start.Cmd())
 	cmd.AddCommand(status.Cmd())
+	cmd.AddCommand(flush.Cmd())
 	cmd.AddCommand(update.Cmd())
 
 	sl := []string{"relayer"}
