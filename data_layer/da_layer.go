@@ -67,6 +67,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.CelestiaTestnet)
 		case string(consts.Avail):
 			daNetwork = string(consts.AvailTestnet)
+		case string(consts.WeaveVM):
+			daNetwork = string(consts.WeaveVMTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -85,6 +87,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.CelestiaTestnet)
 		case string(consts.Avail):
 			daNetwork = string(consts.AvailTestnet)
+		case string(consts.WeaveVM):
+			daNetwork = string(consts.WeaveVMTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}

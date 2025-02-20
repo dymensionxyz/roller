@@ -24,6 +24,7 @@ const (
 	Local    DAType = "mock"
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
+	WeaveVM  DAType = "weavevm"
 )
 
 type DaNetwork string
@@ -34,6 +35,7 @@ const (
 	CelestiaMainnet DaNetwork = "celestia"
 	AvailTestnet    DaNetwork = "avail"
 	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
+	WeaveVMTestnet  DaNetwork = "weavevm"
 )
 
 var DaNetworks = map[string]DaData{
