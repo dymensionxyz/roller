@@ -68,7 +68,7 @@ func Cmd() *cobra.Command {
 
 			rlyAddrData, err := keys.GetRelayerData(home, kc, *hd)
 			if err != nil {
-				pterm.Error.Println("failed to retrieve relayer address")
+				pterm.Error.Println("failed to retrieve relayer address", err)
 				return
 			}
 
