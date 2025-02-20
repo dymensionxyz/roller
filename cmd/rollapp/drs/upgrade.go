@@ -128,16 +128,6 @@ func UpgradeCmd() *cobra.Command {
 				return
 			}
 
-			err = tomlconfig.UpdateFieldInFile(
-				filepath.Join(home, "roller.toml"),
-				"rollapp_binary_version",
-				raCommit,
-			)
-			if err != nil {
-				pterm.Error.Println("failed to update rollapp binary version in config: ", err)
-				return
-			}
-
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				rollerData.RollappID,
@@ -152,6 +142,16 @@ func UpgradeCmd() *cobra.Command {
 
 			if rollapp.IsDAConfigMigrationRequired(drsVersion, targetDrs, strings.ToLower(raResp.Rollapp.VmType)) {
 				upgradeDaConfig(sequencer.GetDymintFilePath(home), *damanager)
+			}
+
+			err = tomlconfig.UpdateFieldInFile(
+				filepath.Join(home, "roller.toml"),
+				"rollapp_binary_version",
+				raCommit,
+			)
+			if err != nil {
+				pterm.Error.Println("failed to update rollapp binary version in config: ", err)
+				return
 			}
 
 			pterm.Success.Println("update complete")
