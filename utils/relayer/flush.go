@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+	"time"
 
 	toml "github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
@@ -240,9 +241,22 @@ func Flush(home string) {
 					return
 				}
 
-				// Exit after completing the flush operation
-				pterm.Info.Printf("[RollApp] All blocks flushed, exiting...\n")
-				return
+				// If we've caught up to current height, sleep for a bit and check again
+				if endHeight >= currentHeight {
+					pterm.Info.Printf(
+						"[RollApp] Caught up to current height %d, waiting for new blocks...\n",
+						currentHeight,
+					)
+					select {
+					case <-raCtx.Done():
+						return
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+
+				// Log progress and continue to next range
+				pterm.Info.Printf("[RollApp] Moving to next range...\n")
 			}
 		}
 	}()
@@ -286,60 +300,58 @@ func getFlushCmd(rlyConfigDir, chain string, startHeight, r int) *exec.Cmd {
 }
 
 func getFlushConfig(rrhf, raID string, hd consts.HubData) (*RollerRelayerHelperConfig, error) {
+	// Try to load existing config first
+	var config RollerRelayerHelperConfig
+
 	_, err := os.Stat(rrhf)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			pterm.Info.Printfln("%s does not exist", rrhf)
-			err := os.MkdirAll(filepath.Dir(rrhf), 0o755)
-			if err != nil {
-				pterm.Error.Printfln("failed to create directory for %s", rrhf)
-			}
-
-			_, err = os.Create(rrhf)
-			if err != nil {
-				pterm.Error.Printfln("failed to create %s", rrhf)
-			}
-
-			hubFlushHeight, err := sequencer.GetFirstStateUpdateHeight(raID, hd.RpcUrl, hd.ID)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve the height of the first state update:", err)
-				return nil, err
-			}
-
-			// Load existing config
-			var config RollerRelayerHelperConfig
-			if _, err := toml.DecodeFile(rrhf, &config); err != nil {
-				return nil, err
-			}
-
-			// Update values
-			config.LastRaFlushHeight = 1
-			config.LastHubFlushHeight = hubFlushHeight
-			config.FlushRange = 10_000
-
-			// Write back to file
-			f, err := os.OpenFile(rrhf, os.O_WRONLY|os.O_TRUNC, 0o644)
-			if err != nil {
-				return nil, err
-			}
-			defer f.Close()
-
-			return &config, toml.NewEncoder(f).Encode(config)
-		} else {
+		if !errors.Is(err, fs.ErrNotExist) {
 			pterm.Error.Println("failed to check relayer helper file")
+			return nil, err
 		}
+
+		// File doesn't exist, create new config
+		pterm.Info.Printfln("%s does not exist, creating new config", rrhf)
+		err := os.MkdirAll(filepath.Dir(rrhf), 0o755)
+		if err != nil {
+			pterm.Error.Printfln("failed to create directory for %s: %v", rrhf, err)
+			return nil, err
+		}
+
+		hubFlushHeight, err := sequencer.GetFirstStateUpdateHeight(raID, hd.RpcUrl, hd.ID)
+		if err != nil {
+			pterm.Error.Println("failed to retrieve the height of the first state update:", err)
+			return nil, err
+		}
+
+		// Initialize new config
+		config = RollerRelayerHelperConfig{
+			LastRaFlushHeight:  1,
+			LastHubFlushHeight: hubFlushHeight,
+			FlushRange:         10_000,
+		}
+
+		// Write initial config
+		if err := writeFlushConfig(rrhf, &config); err != nil {
+			pterm.Error.Printf("failed to write initial config: %v\n", err)
+			return nil, err
+		}
+
+		return &config, nil
 	}
 
-	var rrhc RollerRelayerHelperConfig
+	// Load existing config
 	cfg, err := tomlconfig.Load(rrhf)
 	if err != nil {
-		pterm.Error.Println("failed to load relayer helper config")
+		pterm.Error.Printf("failed to load relayer helper config: %v\n", err)
+		return nil, err
 	}
 
-	err = toml.Unmarshal(cfg, &rrhc)
+	err = toml.Unmarshal(cfg, &config)
 	if err != nil {
-		pterm.Error.Println("failed to unmarshal relayer helper config")
+		pterm.Error.Printf("failed to unmarshal relayer helper config: %v\n", err)
+		return nil, err
 	}
 
-	return &rrhc, nil
+	return &config, nil
 }
