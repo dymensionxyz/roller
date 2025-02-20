@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -68,10 +69,8 @@ func ExecCmdFollowWithHandler(
 			fmt.Println(line)
 			if outputHandler != nil {
 				if shouldStop := outputHandler(line); shouldStop {
-					// Kill the command and return without error
-					if cmd.Process != nil {
-						_ = cmd.Process.Kill()
-					}
+					// Signal to main routine that we want to stop
+					doneChan <- nil
 					return
 				}
 			}
@@ -89,10 +88,8 @@ func ExecCmdFollowWithHandler(
 			fmt.Println(line)
 			if outputHandler != nil {
 				if shouldStop := outputHandler(line); shouldStop {
-					// Kill the command and return without error
-					if cmd.Process != nil {
-						_ = cmd.Process.Kill()
-					}
+					// Signal to main routine that we want to stop
+					doneChan <- nil
 					return
 				}
 			}
@@ -116,6 +113,10 @@ func ExecCmdFollowWithHandler(
 
 	err = cmd.Wait()
 	if err != nil {
+		// Check if this was due to us killing the process
+		if strings.Contains(err.Error(), "signal: killed") {
+			return nil
+		}
 		return err
 	}
 
