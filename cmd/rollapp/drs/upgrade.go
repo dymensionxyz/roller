@@ -37,6 +37,20 @@ func UpgradeCmd() *cobra.Command {
 				pterm.Error.Println("failed to expand home directory")
 				return
 			}
+
+			pterm.Info.Printf(
+				"IMPORTANT. Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp services load"),
+			)
+			ok, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+				"Would you like to continue?",
+			).Show()
+
+			if !ok {
+				pterm.Error.Println("upgrade cancelled")
+				return
+			}
 			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
 				pterm.Error.Println("failed to load roller config file", err)
