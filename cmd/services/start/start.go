@@ -169,7 +169,7 @@ func RelayerCmd() *cobra.Command {
 func EibcCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Start the systemd services on local machine",
+		Short: "Start the eibc systemd services on local machine",
 		Run: func(cmd *cobra.Command, args []string) {
 			if runtime.GOOS == "linux" {
 				err := startSystemdServices(consts.EibcSystemdServices)
