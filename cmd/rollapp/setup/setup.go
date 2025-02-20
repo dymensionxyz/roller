@@ -1070,7 +1070,7 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 		return nil
 	}
 
-	if drsVersion > "5" && "evm" == strings.ToLower(raResponse.Rollapp.VmType) || drsVersion > "8" && "wasm" == strings.ToLower(raResponse.Rollapp.VmType) {
+	if rollapp.IsDaConfigNewFormat(drsVersion, strings.ToLower(raResponse.Rollapp.VmType)) {
 		return []string{string(daType)}
 	} else {
 		return daType
@@ -1087,7 +1087,7 @@ func getDaConfig(dataLayer datalayer.DataLayer, nodeType string, home string, ra
 		return nil
 	}
 
-	if drsVersion > "5" && "evm" == strings.ToLower(raResponse.Rollapp.VmType) || drsVersion > "8" && "wasm" == strings.ToLower(raResponse.Rollapp.VmType) {
+	if rollapp.IsDaConfigNewFormat(drsVersion, strings.ToLower(raResponse.Rollapp.VmType)) {
 		return []string{daConfig}
 	} else {
 		return daConfig

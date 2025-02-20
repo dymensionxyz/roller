@@ -23,6 +23,11 @@ import (
 	"github.com/dymensionxyz/roller/version"
 )
 
+const (
+	minEvmDRSNewDAConfig  = "6"
+	minWasmDRSNewDAConfig = "9"
+)
+
 func GetHomeDir(home string) string {
 	return filepath.Join(home, consts.ConfigDirName.Rollapp)
 }
@@ -303,6 +308,23 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	}
 
 	return &raResponse, nil
+}
+
+func IsDaConfigNewFormat(drsVersion string, evmType string) bool {
+	if drsVersion >= minEvmDRSNewDAConfig && "evm" == evmType || drsVersion >= minWasmDRSNewDAConfig && "wasm" == evmType {
+		return true
+	}
+	return false
+}
+
+func IsDAConfigMigrationRequired(oldDRS string, newDRS string, evmType string) bool {
+	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType || oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+		return false
+	}
+	if newDRS >= minEvmDRSNewDAConfig && "evm" == evmType || newDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+		return true
+	}
+	return false
 }
 
 type RaParams struct {
