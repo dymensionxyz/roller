@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
+	"github.com/dymensionxyz/roller/data_layer/weavevm"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -45,6 +46,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 		dalayer = celestia.NewCelestia(home, kb)
 	case consts.Avail:
 		dalayer = avail.NewAvail(home)
+	case consts.WeaveVM:
+		dalayer = weavevm.NewWeaveVM()
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
