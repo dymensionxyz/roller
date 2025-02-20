@@ -28,7 +28,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			keys.PrintAddressesWithTitle(aki)
+			for _, addrData := range aki {
+				addrData.Print(keys.WithName())
+			}
 		},
 	}
 	// cmd.Flags().StringP(flagNames.outputType, "", "text", "Output format (text|json)")
