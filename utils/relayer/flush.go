@@ -7,9 +7,11 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	toml "github.com/BurntSushi/toml"
@@ -78,9 +80,13 @@ func Flush(home string) {
 		fmt.Println(v)
 	}
 
+	// Create root context with signal handling
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	// Create separate contexts for each command
-	hubCtx, hubCancel := context.WithCancel(context.Background())
-	raCtx, raCancel := context.WithCancel(context.Background())
+	hubCtx, hubCancel := context.WithCancel(ctx)
+	raCtx, raCancel := context.WithCancel(ctx)
 	defer hubCancel()
 	defer raCancel()
 
