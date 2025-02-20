@@ -88,7 +88,7 @@ func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, erro
 			ID:             consts.KeysIds.Eibc,
 			ChainBinary:    consts.Executables.Dymension,
 			Type:           consts.SDK_ROLLAPP,
-			KeyringBackend: rollappConfig.KeyringBackend,
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
 		}
 		eibcKi, err := eibcKc.Info(rollappConfig.Home)
 		if err != nil {
