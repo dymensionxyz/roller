@@ -156,6 +156,16 @@ func Cmd() *cobra.Command {
 				})
 			}
 
+			tgToken, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"Please provide a telegram bot token, learn how to obtain one here: https://github.com/dymensionxyz/alert-agent?tab=readme-ov-file#telegram-setup-optional",
+			).Show()
+			tgChatId, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"Please provide a telegram chat id, learn how to obtain it for group or telegram handle here: https://github.com/dymensionxyz/alert-agent?tab=readme-ov-file#telegram-setup-optional",
+			).Show()
+
+			config.Telegram.BotToken = tgToken
+			config.Telegram.ChatID = tgChatId
+
 			yamlData, err := yaml.Marshal(config)
 			if err != nil {
 				return fmt.Errorf("failed to marshal config: %w", err)
