@@ -9,15 +9,15 @@ import (
 
 func DefaultAlertManagerDependency() types.Dependency {
 	return types.Dependency{
-		DependencyName:  "alert-manager",
+		DependencyName:  "alert-agent",
 		RepositoryOwner: "dymensionxyz",
-		RepositoryName:  "alert-manager",
-		RepositoryUrl:   "https://github.com/dymensionxyz/alert-manager.git",
+		RepositoryName:  "alert-agent",
+		RepositoryUrl:   "https://github.com/dymensionxyz/alert-agent.git",
 		Release:         "v0.1.0-alpha-rc03",
 		Binaries: []types.BinaryPathPair{
 			{
-				Binary:            "./build/alert-manager",
-				BinaryDestination: consts.Executables.AlertManager,
+				Binary:            "./build/alert-agent",
+				BinaryDestination: consts.Executables.AlertAgent,
 				BuildCommand: exec.Command(
 					"make",
 					"build",

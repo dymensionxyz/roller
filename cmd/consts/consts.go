@@ -39,7 +39,7 @@ var Executables = struct {
 	RngOracle              string
 	RngOracleRandomService string
 	Solc                   string
-	AlertManager           string
+	AlertAgent             string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -55,7 +55,7 @@ var Executables = struct {
 	RngOracle:              fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
 	RngOracleRandomService: fmt.Sprintf("%s/rng-oracle-random-service", InternalBinsDir),
 	Solc:                   fmt.Sprintf("%s/solc", InternalBinsDir),
-	AlertManager:           fmt.Sprintf("%s/alert-manager", InternalBinsDir),
+	AlertAgent:             fmt.Sprintf("%s/alert-agent", InternalBinsDir),
 }
 
 var KeysIds = struct {
