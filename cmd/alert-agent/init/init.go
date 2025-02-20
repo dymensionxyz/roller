@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -11,6 +12,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -117,6 +119,11 @@ func Cmd() *cobra.Command {
 				return fmt.Errorf("failed to load roller config: %w", err)
 			}
 
+			dep := dependencies.DefaultAlertManagerDependency()
+			if err := dependencies.InstallBinaryFromRelease(dep); err != nil {
+				return fmt.Errorf("failed to install alert manager: %w", err)
+			}
+
 			keyInfos, err := keys.All(rollerData, rollerData.HubData)
 			if err != nil {
 				return fmt.Errorf("failed to get keys: %w", err)
@@ -135,7 +142,11 @@ func Cmd() *cobra.Command {
 				}
 
 				config.Addresses = append(config.Addresses, AddressConfig{
-					Name:         fmt.Sprintf("%s %s", rollerData.RollappID, keyInfo.Name),
+					Name: fmt.Sprintf(
+						"%s %s wallet",
+						strings.ToUpper(rollerData.RollappID),
+						keyInfo.Name,
+					),
 					RestEndpoint: rollerData.HubData.ApiUrl,
 					Address:      keyInfo.Address,
 					Threshold: AddressThreshold{
