@@ -102,7 +102,7 @@ func Cmd() *cobra.Command {
 				return fmt.Errorf("failed to create config directory %s: %w", configDir, err)
 			}
 
-			configPath := filepath.Join(configDir, "alert-agent.yaml")
+			configPath := filepath.Join(configDir, "config.yaml")
 			if _, err := os.Stat(configPath); err == nil {
 				return fmt.Errorf("config file already exists at %s", configPath)
 			}
