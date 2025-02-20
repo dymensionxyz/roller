@@ -61,7 +61,7 @@ func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
 
 	// sequencer
 	seqKc := KeyConfig{
-		Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
+		Dir:            consts.ConfigDirName.HubKeys,
 		ID:             consts.KeysIds.HubSequencer,
 		ChainBinary:    consts.Executables.Dymension,
 		Type:           consts.SDK_ROLLAPP,
