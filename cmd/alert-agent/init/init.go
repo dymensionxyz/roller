@@ -119,7 +119,7 @@ func Cmd() *cobra.Command {
 				return fmt.Errorf("failed to load roller config: %w", err)
 			}
 
-			dep := dependencies.DefaultAlertManagerDependency()
+			dep := dependencies.DefaultAlertAgentDependency()
 			if err := dependencies.InstallBinaryFromRelease(dep); err != nil {
 				return fmt.Errorf("failed to install alert manager: %w", err)
 			}

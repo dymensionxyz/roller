@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
 )
 
-func DefaultAlertManagerDependency() types.Dependency {
+func DefaultAlertAgentDependency() types.Dependency {
 	return types.Dependency{
 		DependencyName:  "alert-agent",
 		RepositoryOwner: "dymensionxyz",
