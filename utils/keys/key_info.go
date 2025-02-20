@@ -47,18 +47,18 @@ func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
 	var aki []KeyInfo
 
 	// relayer
-	// rkc := KeyConfig{
-	// 	Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer),
-	// 	ID:             consts.KeysIds.HubRelayer,
-	// 	ChainBinary:    consts.Executables.Dymension,
-	// 	Type:           consts.SDK_ROLLAPP,
-	// 	KeyringBackend: consts.SupportedKeyringBackends.Test,
-	// }
-	// rki, err := rkc.Info(rollappConfig.Home)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// aki = append(aki, *rki)
+	rkc := KeyConfig{
+		Dir:            consts.ConfigDirName.Relayer,
+		ID:             consts.KeysIds.HubRelayer,
+		ChainBinary:    consts.Executables.Dymension,
+		Type:           consts.SDK_ROLLAPP,
+		KeyringBackend: consts.SupportedKeyringBackends.Test,
+	}
+	rki, err := rkc.Info(rollappConfig.Home)
+	if err != nil {
+		return nil, err
+	}
+	aki = append(aki, *rki)
 
 	// sequencer
 	seqKc := KeyConfig{
