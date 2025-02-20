@@ -135,6 +135,9 @@ func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 		"json",
 	}
 
+	cmd := exec.Command(kc.ChainBinary, args...)
+	fmt.Println(cmd.String())
+
 	output, err := RunCmdBasedOnKeyringBackend(home, kc.ChainBinary, args, kc.KeyringBackend)
 	if err != nil {
 		return nil, err
