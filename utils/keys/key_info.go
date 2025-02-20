@@ -67,12 +67,12 @@ func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
 		Type:           consts.SDK_ROLLAPP,
 		KeyringBackend: rollappConfig.KeyringBackend,
 	}
+	j, _ := json.Marshal(seqKc)
+	pterm.Info.Println(string(j))
 	seqKi, err := seqKc.Info(rollappConfig.Home)
 	if err != nil {
 		return nil, err
 	}
-	j, _ := json.Marshal(seqKc)
-	pterm.Info.Println(string(j))
 	aki = append(aki, *seqKi)
 
 	// eibc
