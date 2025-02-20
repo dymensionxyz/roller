@@ -14,14 +14,13 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/dymensionxyz/roller/utils/bash"
-
 	toml "github.com/BurntSushi/toml"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/sequencer"
+	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
@@ -119,33 +118,45 @@ func Flush(home string) {
 		fmt.Println(flushCmd.String())
 
 		doneChan := make(chan error, 1)
-		var foundSkip bool
-
-		// Run command with output handler
 		var shouldStop bool
 		err := bash.ExecCmdFollowWithHandler(doneChan, ctx, flushCmd, func(line string) bool {
 			if strings.Contains(line, "Parsed stuck packet height, skipping to current") {
-				pterm.Info.Printf("%s Range complete, skipping to next range\n", prefix)
-				foundSkip = true
+				// Update the config with the end height of current range
+				currentCfg, err := getFlushConfig(rrhf, raID, *hd)
+				if err == nil {
+					if isHub {
+						currentCfg.LastHubFlushHeight = endHeight
+					} else {
+						currentCfg.LastRaFlushHeight = endHeight
+					}
+					if err := writeFlushConfig(rrhf, currentCfg); err != nil {
+						pterm.Error.Printf("%s Failed to update config: %v\n", prefix, err)
+					}
+				}
 				shouldStop = true
+				pterm.Info.Printf(
+					"%s Range complete at height %d, skipping to next range\n",
+					prefix,
+					endHeight,
+				)
 				return true // Signal to stop the command
 			}
 			return false
 		})
-
-		// If we stopped because of skip signal, don't treat it as an error
-		if shouldStop {
-			return nil
-		}
 
 		if err != nil {
 			pterm.Error.Printf("%s Flush command failed: %v\n", prefix, err)
 			return err
 		}
 
-		// If we didn't find skip message, this was a normal completion
-		if !foundSkip {
-			pterm.Info.Printf("%s Moving to next range...\n", prefix)
+		// Only show completion message if we didn't skip
+		if !shouldStop {
+			pterm.Info.Printf(
+				"%s Flush completed for range %d -> %d\n",
+				prefix,
+				startHeight,
+				endHeight,
+			)
 		}
 
 		return nil
