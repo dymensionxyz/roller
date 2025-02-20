@@ -23,6 +23,7 @@ var (
 	PriceOracleSystemdServices      = []string{"price"}
 	RngOracleSystemdServices        = []string{"rng"}
 	EibcSystemdServices             = []string{"eibc"}
+	AlertAgentSystemdServices       = []string{"alert-agent"}
 )
 
 var Executables = struct {
