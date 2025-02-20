@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 
@@ -70,6 +71,8 @@ func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	j, _ := json.Marshal(seqKc)
+	pterm.Info.Println(string(j))
 	aki = append(aki, *seqKi)
 
 	// eibc
