@@ -69,7 +69,10 @@ func ExecCmdFollowWithHandler(
 			fmt.Println(line)
 			if outputHandler != nil {
 				if shouldStop := outputHandler(line); shouldStop {
-					// Signal to main routine that we want to stop
+					// Kill the process and signal completion
+					if cmd.Process != nil {
+						_ = cmd.Process.Kill()
+					}
 					doneChan <- nil
 					return
 				}
@@ -88,7 +91,10 @@ func ExecCmdFollowWithHandler(
 			fmt.Println(line)
 			if outputHandler != nil {
 				if shouldStop := outputHandler(line); shouldStop {
-					// Signal to main routine that we want to stop
+					// Kill the process and signal completion
+					if cmd.Process != nil {
+						_ = cmd.Process.Kill()
+					}
 					doneChan <- nil
 					return
 				}

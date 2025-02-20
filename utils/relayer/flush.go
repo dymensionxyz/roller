@@ -139,10 +139,16 @@ func Flush(home string) {
 					prefix,
 					endHeight,
 				)
-				return true // Signal to stop the command
+				// Signal to stop and let the outer loop continue
+				return true
 			}
 			return false
 		})
+
+		// If we stopped because of skip signal, let the outer loop continue
+		if shouldStop {
+			return nil
+		}
 
 		if err != nil {
 			pterm.Error.Printf("%s Flush command failed: %v\n", prefix, err)
