@@ -22,7 +22,7 @@ func Cmd() *cobra.Command {
 			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
 
-			aki, err := keys.All(rollerData)
+			aki, err := keys.All(rollerData, rollerData.HubData)
 			if err != nil {
 				pterm.Error.Println("failed to get all keys", err)
 				return

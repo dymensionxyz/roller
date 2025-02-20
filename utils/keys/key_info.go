@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
 
@@ -43,15 +44,14 @@ func WithPubKey() KeyInfoOption {
 	}
 }
 
-func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
+func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, error) {
 	var aki []KeyInfo
 
 	// relayer
 	rkc := KeyConfig{
-		Dir:            consts.ConfigDirName.Relayer,
-		ID:             consts.KeysIds.HubRelayer,
 		ChainBinary:    consts.Executables.Dymension,
-		Type:           consts.SDK_ROLLAPP,
+		ID:             consts.KeysIds.HubRelayer,
+		Dir:            filepath.Join(consts.ConfigDirName.Relayer, "keys", hd.ID),
 		KeyringBackend: consts.SupportedKeyringBackends.Test,
 	}
 	rki, err := rkc.Info(rollappConfig.Home)
