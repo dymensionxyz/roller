@@ -38,10 +38,10 @@ func UpgradeCmd() *cobra.Command {
 				return
 			}
 
-			pterm.Info.Printf(
-				"IMPORTANT: Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
+			pterm.Warning.Printf(
+				"Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller rollapp services load"),
+					Sprintf("roller rollapp services stop"),
 			)
 			ok, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 				"Would you like to continue?",
@@ -154,7 +154,11 @@ func UpgradeCmd() *cobra.Command {
 				rollappConfig.KeyringBackend,
 			)
 
-			if rollapp.IsDAConfigMigrationRequired(drsVersion, targetDrs, strings.ToLower(raResp.Rollapp.VmType)) {
+			if rollapp.IsDAConfigMigrationRequired(
+				drsVersion,
+				targetDrs,
+				strings.ToLower(raResp.Rollapp.VmType),
+			) {
 				upgradeDaConfig(sequencer.GetDymintFilePath(home), *damanager)
 			}
 
@@ -169,6 +173,11 @@ func UpgradeCmd() *cobra.Command {
 			}
 
 			pterm.Success.Println("update complete")
+			pterm.Info.Printf(
+				"Run %s to start the rollapp services",
+				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+					Sprintf("roller rollapp services restart"),
+			)
 		},
 	}
 
@@ -176,7 +185,6 @@ func UpgradeCmd() *cobra.Command {
 }
 
 func upgradeDaConfig(dymintConfigPath string, daManager datalayer.DAManager) {
-
 	daConfig := daManager.DataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
 
 	pterm.Info.Println("updating dymint configuration")
@@ -192,5 +200,4 @@ func upgradeDaConfig(dymintConfigPath string, daManager datalayer.DAManager) {
 		"da_layer",
 		[]string{string(daManager.DaType)},
 	)
-
 }
