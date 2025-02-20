@@ -314,7 +314,7 @@ func getFlushConfig(rrhf, raID string, hd consts.HubData) (*RollerRelayerHelperC
 		config = RollerRelayerHelperConfig{
 			LastRaFlushHeight:  1,
 			LastHubFlushHeight: hubFlushHeight,
-			FlushRange:         10_000,
+			FlushRange:         100,
 		}
 
 		// Write initial config
