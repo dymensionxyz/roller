@@ -107,6 +107,7 @@ var ConfigDirName = struct {
 	BlockExplorer        string
 	Oracle               string
 	Snapshots            string
+	AlertAgent           string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -118,6 +119,7 @@ var ConfigDirName = struct {
 	BlockExplorer:        "block-explorer",
 	Oracle:               "oracle",
 	Snapshots:            "snapshots",
+	AlertAgent:           "alert-agent",
 }
 
 var Denoms = struct {
