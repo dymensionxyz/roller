@@ -3,6 +3,7 @@ package keys
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"path"
 
 	"github.com/pterm/pterm"
@@ -75,19 +76,22 @@ func All(rollappConfig roller.RollappConfig) ([]KeyInfo, error) {
 	}
 	aki = append(aki, *seqKi)
 
-	// eibc
-	eibcKc := KeyConfig{
-		Dir:            path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys),
-		ID:             consts.KeysIds.Eibc,
-		ChainBinary:    consts.Executables.Dymension,
-		Type:           consts.SDK_ROLLAPP,
-		KeyringBackend: rollappConfig.KeyringBackend,
+	// eibc - only if directory exists
+	eibcDir := path.Join(rollappConfig.Home, consts.ConfigDirName.Eibc)
+	if _, err := os.Stat(eibcDir); err == nil {
+		eibcKc := KeyConfig{
+			Dir:            consts.ConfigDirName.Eibc,
+			ID:             consts.KeysIds.Eibc,
+			ChainBinary:    consts.Executables.Dymension,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: rollappConfig.KeyringBackend,
+		}
+		eibcKi, err := eibcKc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *eibcKi)
 	}
-	eibcKi, err := eibcKc.Info(rollappConfig.Home)
-	if err != nil {
-		return nil, err
-	}
-	aki = append(aki, *eibcKi)
 
 	return aki, nil
 }
