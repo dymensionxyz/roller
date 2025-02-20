@@ -66,6 +66,39 @@ type SecretAddressData struct {
 	Mnemonic string
 }
 
+func GetHubRelayerAddress(home string, kc KeyConfig) (string, error) {
+	rlyAddr, err := kc.Address(home)
+	if err != nil {
+		return "", err
+	}
+
+	return rlyAddr, nil
+}
+
+func GetRelayerData(home string, kc KeyConfig, hd consts.HubData) ([]AccountData, error) {
+	rlyAddr, err := GetHubRelayerAddress(home, kc)
+	if err != nil {
+		return nil, err
+	}
+
+	relayerBalance, err := QueryBalance(
+		ChainQueryConfig{
+			Binary: consts.Executables.Dymension,
+			Denom:  consts.Denoms.Hub,
+			RPC:    hd.RpcUrl,
+		}, rlyAddr,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return []AccountData{
+		{
+			Address: rlyAddr,
+			Balance: *relayerBalance,
+		},
+	}, nil
+}
+
 func GetRelayerKeysConfig(rollappConfig roller.RollappConfig) map[string]KeyConfig {
 	return map[string]KeyConfig{
 		consts.KeysIds.RollappRelayer: {
