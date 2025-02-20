@@ -11,7 +11,6 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -89,24 +88,14 @@ func Cmd() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize the Alert Agent configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := initconfig.AddFlags(cmd)
-			if err != nil {
-				return fmt.Errorf("failed to add flags: %w", err)
-			}
-
-			home, err := filesystem.ExpandHomePath(
-				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
-			)
-			if err != nil {
-				return fmt.Errorf("failed to get roller directory: %w", err)
-			}
+			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
 			configDir := filepath.Join(home, consts.ConfigDirName.AlertAgent)
 			if err := os.MkdirAll(configDir, 0o755); err != nil {
 				return fmt.Errorf("failed to create config directory: %w", err)
 			}
 
-			err = os.MkdirAll(configDir, 0o755)
+			err := os.MkdirAll(configDir, 0o755)
 			if err != nil {
 				return fmt.Errorf("failed to create config directory %s: %w", configDir, err)
 			}
@@ -173,8 +162,6 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String("home", "", "home directory")
-	_ = cmd.MarkFlagRequired("home")
-
+	initconfig.AddGlobalFlags(cmd)
 	return cmd
 }
