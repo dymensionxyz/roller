@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -276,26 +275,6 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 	return &raData, hd, kb, nil
 }
 
-func getDrsVersionFromGenesis(
-	home string,
-	raResp *rollapputils.ShowRollappResponse,
-) (string, error) {
-	err := genesis.DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
-	if err != nil {
-		return "", err
-	}
-
-	as, err := genesis.GetAppStateFromGenesisFile(home)
-	if err != nil {
-		pterm.Error.Println("failed to get genesis app state: ", err)
-		return "", err
-	}
-	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
-
-	pterm.Info.Println("DRS version: ", drsVersion)
-	return drsVersion, nil
-}
-
 func installRelayerDependencies(
 	home string,
 	raID string,
@@ -306,7 +285,7 @@ func installRelayerDependencies(
 		return err
 	}
 
-	drsVersion, err := getDrsVersionFromGenesis(home, raResp)
+	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResp)
 	if err != nil {
 		pterm.Error.Println("failed to get drs version from genesis: ", err)
 		return err

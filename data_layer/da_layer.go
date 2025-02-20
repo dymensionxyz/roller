@@ -33,7 +33,7 @@ type DataLayer interface {
 }
 
 type DAManager struct {
-	datype consts.DAType
+	DaType consts.DAType
 	DataLayer
 }
 
@@ -52,7 +52,7 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 	}
 
 	return &DAManager{
-		datype:    datype,
+		DaType:    datype,
 		DataLayer: dalayer,
 	}
 }
