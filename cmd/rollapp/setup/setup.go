@@ -667,7 +667,6 @@ RollApp's IRO time: %v`,
 				}
 			}
 
-			var daConfig string
 			dymintConfigPath := sequencer.GetDymintFilePath(home)
 			appConfigPath := sequencer.GetAppConfigFilePath(home)
 
@@ -695,15 +694,7 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				// TODO: daconfig should be a struct
-				daConfig = damanager.DataLayer.GetSequencerDAConfig(
-					consts.NodeType.Sequencer,
-				)
-
 			case "fullnode":
-				daConfig = damanager.DataLayer.GetSequencerDAConfig(
-					consts.NodeType.FullNode,
-				)
 
 				vtu := map[string]any{
 					"p2p_advertising_enabled": "true",
@@ -747,16 +738,17 @@ RollApp's IRO time: %v`,
 			}
 
 			pterm.Info.Println("updating dymint configuration")
+
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",
-				daConfig,
+				getDaLayer(home, raResponse, damanager.DaType),
 			)
 
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_layer",
-				rollappConfig.DA.Backend,
+				getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
 			)
 
 			_ = tomlconfig.UpdateFieldInFile(
@@ -1069,4 +1061,35 @@ func displayRegularDenom(coin cosmossdktypes.Coin, decimals int) string {
 	}
 
 	return formattedAmount
+}
+
+func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType consts.DAType) any {
+	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return nil
+	}
+
+	if drsVersion > "5" && "evm" == strings.ToLower(raResponse.Rollapp.VmType) || drsVersion > "8" && "wasm" == strings.ToLower(raResponse.Rollapp.VmType) {
+		return []string{string(daType)}
+	} else {
+		return daType
+	}
+}
+
+func getDaConfig(dataLayer datalayer.DataLayer, nodeType string, home string, raResponse *rollapp.ShowRollappResponse, rollappConfig *roller.RollappConfig) any {
+
+	daConfig := dataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+
+	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return nil
+	}
+
+	if drsVersion > "5" && "evm" == strings.ToLower(raResponse.Rollapp.VmType) || drsVersion > "8" && "wasm" == strings.ToLower(raResponse.Rollapp.VmType) {
+		return []string{daConfig}
+	} else {
+		return daConfig
+	}
 }
