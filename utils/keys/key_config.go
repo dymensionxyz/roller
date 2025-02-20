@@ -3,6 +3,7 @@ package keys
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -124,7 +125,11 @@ func (kc KeyConfig) Create(home string) (*KeyInfo, error) {
 func (kc KeyConfig) Info(home string) (*KeyInfo, error) {
 	var kp string
 	if kc.Dir == consts.ConfigDirName.Eibc {
-		kp = kc.Dir
+		uhd, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+		kp = filepath.Join(uhd, kc.Dir)
 	} else {
 		kp = filepath.Join(home, kc.Dir)
 	}
