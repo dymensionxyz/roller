@@ -16,8 +16,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/dymensionxyz/roller/utils/sequencer"
 )
 
 func UpgradeCmd() *cobra.Command {
@@ -136,6 +138,22 @@ func UpgradeCmd() *cobra.Command {
 				return
 			}
 
+			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+				home,
+				rollerData.RollappID,
+				rollerData.HubData,
+			)
+
+			damanager := datalayer.NewDAManager(
+				rollappConfig.DA.Backend,
+				rollappConfig.Home,
+				rollappConfig.KeyringBackend,
+			)
+
+			if rollapp.IsDAConfigMigrationRequired(drsVersion, targetDrs, strings.ToLower(raResp.Rollapp.VmType)) {
+				upgradeDaConfig(sequencer.GetDymintFilePath(home), *damanager)
+			}
+
 			pterm.Success.Println("update complete")
 		},
 	}
@@ -145,17 +163,20 @@ func UpgradeCmd() *cobra.Command {
 
 func upgradeDaConfig(dymintConfigPath string, daManager datalayer.DAManager) {
 
+	daConfig := daManager.DataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+
 	pterm.Info.Println("updating dymint configuration")
+
 	_ = tomlconfig.UpdateFieldInFile(
 		dymintConfigPath,
 		"da_config",
-		daConfig,
+		[]string{daConfig},
 	)
 
 	_ = tomlconfig.UpdateFieldInFile(
 		dymintConfigPath,
 		"da_layer",
-		rollappConfig.DA.Backend,
+		[]string{string(daManager.DaType)},
 	)
 
 }
