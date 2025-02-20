@@ -153,7 +153,7 @@ func WritePasswordToFile(path string) error {
 }
 
 func IsValidURL(url string) bool {
-	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$`
+	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})(:\d+)?([\/\w \.-]*)*\/?$`
 	re := regexp.MustCompile(regex)
 	return re.MatchString(url)
 }

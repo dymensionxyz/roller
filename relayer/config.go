@@ -69,6 +69,19 @@ type Paths struct {
 	} `yaml:"hub-rollapp"`
 }
 
+func (c *Config) GetChains(cfgPath string) ([]string, error) {
+	err := c.Load(cfgPath)
+	if err != nil {
+		return nil, err
+	}
+
+	chains := make([]string, 0, len(c.Chains))
+	for chainName := range c.Chains {
+		chains = append(chains, chainName)
+	}
+	return chains, nil
+}
+
 func (c *Config) Load(rlyConfigPath string) error {
 	fmt.Println("loading config from", rlyConfigPath)
 	data, err := os.ReadFile(rlyConfigPath)
@@ -311,6 +324,10 @@ func InitializeConfig(
 	}
 
 	return nil
+}
+
+func (c *Config) RollappID() string {
+	return c.Paths.HubRollapp.Dst.ChainID
 }
 
 func (c *Config) HubDataFromRelayerConfig() *consts.HubData {
