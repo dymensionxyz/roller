@@ -429,6 +429,7 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 }
 
 func LoadLinuxServices(services []string) error {
+	fmt.Println(services)
 	for _, service := range services {
 		serviceData := ServiceTemplateData{
 			Name:     service,
