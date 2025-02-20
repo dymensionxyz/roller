@@ -7,12 +7,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/services/load"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -20,6 +17,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/roller"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
+	"github.com/pterm/pterm"
+	"golang.org/x/exp/slices"
 )
 
 func Start(home string, l *log.Logger) {
@@ -93,6 +92,46 @@ func Start(home string, l *log.Logger) {
 
 		healthy = true
 	}
+}
+
+func IsAvailNodeHealthy(url string) (bool, error) {
+	statusURL := fmt.Sprintf(url+"%s", "/v1/status")
+	resp, err := http.Get(statusURL)
+	if err != nil {
+		msg := fmt.Errorf("Error making request: %v\n", err)
+		return false, msg
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		msg := fmt.Errorf("Error reading response body: %v\n", err)
+		return false, msg
+	}
+	// nolint:errcheck,gosec
+	resp.Body.Close()
+
+	var response availStatus
+	if json.Valid(body) {
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			msg := fmt.Errorf("Error unmarshaling JSON: %v\n", err)
+			return false, msg
+		}
+	} else {
+		return false, fmt.Errorf("invalid json")
+	}
+
+	if response.BlockNumber != 0 {
+		return true, fmt.Errorf("not healthy")
+	}
+
+	return true, fmt.Errorf("healthy")
+
+}
+
+type availStatus struct {
+	BlockNumber int `json:"block_number"`
+	AppID       int `json:"app_id"`
 }
 
 func IsEndpointHealthy(url string) (bool, any) {

@@ -14,6 +14,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -189,6 +190,7 @@ func GetMetadataFromChain(
 	return &raResponse, nil
 }
 
+// TODO: should be refactored into multiple functions
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
@@ -207,6 +209,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		return nil, err
 	}
 
+	// TODO: not sure why we overpopulate existing config
 	if rollerConfigExists {
 		pterm.Info.Println(
 			"existing roller configuration found, retrieving keyring backend from it",
@@ -224,19 +227,32 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		} else {
 			kb = rollerData.KeyringBackend
 		}
+		cfg = rollerData
 	} else {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
 	}
 
-	var DA consts.DaData
+	genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
+	if err != nil {
+		return nil, err
+	}
+	// nolint: errcheck
+	defer os.RemoveAll(genesisTmpDir)
 
-	switch hd.ID {
-	case consts.MockHubID:
-	case consts.MainnetHubID:
-		DA = consts.DaNetworks[string(consts.CelestiaMainnet)]
-	default:
-		DA = consts.DaNetworks[string(consts.CelestiaTestnet)]
+	err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
+	if err != nil {
+		pterm.Error.Println("failed to download genesis file: ", err)
+		return nil, err
+	}
+	as, err := GetAppStateFromGenesisFile(genesisTmpDir)
+	if err != nil {
+		return nil, err
+	}
+
+	DAData, err := datalayer.GetDaInfo(hd.Environment, as.RollappParams.Params.Da)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DA info: %w", err)
 	}
 
 	var baseDenom string
@@ -245,43 +261,28 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		baseDenom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
 	} else {
 		pterm.Info.Println("no native denom found, assuming token-less rollapp and using the staking denom")
-		genesisTmpDir, err := os.MkdirTemp(os.TempDir(), "genesis-file")
-		if err != nil {
-			return nil, err
-		}
-		// nolint: errcheck
-		defer os.RemoveAll(genesisTmpDir)
-
-		err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
-		if err != nil {
-			pterm.Error.Println("failed to download genesis file: ", err)
-			return nil, err
-		}
-		as, err := GetAppStateFromGenesisFile(genesisTmpDir)
-		if err != nil {
-			return nil, err
-		}
 		baseDenom = as.Staking.Params.BondDenom
 	}
 
 	cfg = roller.RollappConfig{
 		Home:                 home,
+		RollerVersion:        version.BuildCommit,
 		KeyringBackend:       kb,
 		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
 		RollappID:            raResponse.Rollapp.RollappId,
-		RollappBinary:        consts.Executables.RollappEVM,
-		RollappVMType:        vmt,
-		Denom:                baseDenom,
-		Decimals:             18,
-		HubData:              hd,
-		DA:                   DA,
-		RollerVersion:        version.BuildCommit,
 		Environment:          hd.ID,
+		RollappVMType:        vmt,
+		RollappBinary:        consts.Executables.RollappEVM,
 		RollappBinaryVersion: version.BuildVersion,
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 		BaseDenom:            baseDenom,
+		Denom:                baseDenom,
+		Decimals:             18,
 		MinGasPrices:         "0",
+		HubData:              hd,
+		DA:                   *DAData,
+		HealthAgent:          roller.HealthAgentConfig{},
 	}
 
 	return &cfg, nil

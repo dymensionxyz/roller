@@ -73,8 +73,7 @@ func UpdateDymintDAConfig(rlpCfg roller.RollappConfig) error {
 func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) error {
 	damanager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend)
 	dymintCfg.Set("da_layer", "mock")
-	// daConfig := damanager.GetSequencerDAConfig()
-	// dymintCfg.Set("da_config", daConfig)
+
 	if rlpCfg.DA.Backend == consts.Celestia {
 		celDAManager, ok := damanager.DataLayer.(*celestia.Celestia)
 		if !ok {

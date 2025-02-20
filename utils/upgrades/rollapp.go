@@ -7,8 +7,8 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
-	"github.com/dymensionxyz/roller/utils/binaries"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/migrations"
 )
 
@@ -37,7 +37,7 @@ func NewRollappUpgrade(vmType string) (*RollappUpgrade, error) {
 }
 
 func (ra RollappUpgrade) Version() (string, error) {
-	isAvailable := binaries.IsAvailable(consts.Executables.RollappEVM)
+	isAvailable := filesystem.IsAvailable(consts.Executables.RollappEVM)
 	if !isAvailable {
 		return "", exec.ErrNotFound
 	}
@@ -55,7 +55,7 @@ func (ra RollappUpgrade) Version() (string, error) {
 }
 
 func (ra RollappUpgrade) VersionCommit() (string, error) {
-	isAvailable := binaries.IsAvailable(consts.Executables.RollappEVM)
+	isAvailable := filesystem.IsAvailable(consts.Executables.RollappEVM)
 	if !isAvailable {
 		return "", exec.ErrNotFound
 	}

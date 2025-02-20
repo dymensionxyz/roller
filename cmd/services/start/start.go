@@ -75,7 +75,11 @@ func RollappCmd() *cobra.Command {
 
 				servicesToStart = []string{args[0]}
 			} else {
-				servicesToStart = consts.RollappSystemdServices
+				if rollappConfig.DA.Backend == consts.Celestia {
+					servicesToStart = consts.RollappWithCelesSystemdServices
+				} else {
+					servicesToStart = consts.RollappSystemdServices
+				}
 			}
 
 			if runtime.GOOS == "darwin" {

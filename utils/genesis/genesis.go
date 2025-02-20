@@ -12,9 +12,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/cometbft/cometbft/types"
 	comettypes "github.com/cometbft/cometbft/types"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
@@ -137,7 +137,7 @@ func GetAppStateFromGenesisFile(home string) (*AppState, error) {
 }
 
 func VerifyGenesisChainID(genesisPath, raID string) error {
-	genesis, err := types.GenesisDocFromFile(genesisPath)
+	genesis, err := comettypes.GenesisDocFromFile(genesisPath)
 	if err != nil {
 		return err
 	}
@@ -155,20 +155,32 @@ func VerifyGenesisChainID(genesisPath, raID string) error {
 	return nil
 }
 
+// FIXME: review this change
 func calculateSHA256(filepath string) (string, error) {
-	file, err := os.Open(filepath)
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %v", err)
 	}
-	// nolint:errcheck
-	defer file.Close()
 
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("error calculating hash: %v", err)
+	var jsonObject map[string]interface{}
+	err = json.Unmarshal(data, &jsonObject)
+	if err != nil {
+		return "", err
 	}
 
-	return hex.EncodeToString(hash.Sum(nil)), nil
+	keys := make([]string, 0, len(jsonObject))
+	for k := range jsonObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	sortedJSON, err := json.Marshal(jsonObject)
+	if err != nil {
+		return "", err
+	}
+
+	hash := sha256.Sum256(sortedJSON)
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {

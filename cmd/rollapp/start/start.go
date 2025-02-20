@@ -257,20 +257,10 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(consts.Celestia, rlpCfg.Home, rlpCfg.KeyringBackend)
-		celAddrData, errCel := daManager.GetDAAccData(rlpCfg)
+		daManager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend)
+		daAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return
-		}
-
-		if err != nil {
-			return
-		}
-		pterm.DefaultSection.WithIndentCharacter("💈").
-			Println("Wallet Info:")
-		fmt.Println("Sequencer Address:", seqAddrData[0].Address)
-		if withBalance && rlpCfg.NodeType == "sequencer" {
-			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
 		}
 
 		if errCel != nil {
@@ -278,9 +268,14 @@ func PrintOutput(
 			return
 		}
 
-		fmt.Println("Da Address:", celAddrData[0].Address)
+		pterm.DefaultSection.WithIndentCharacter("💈").
+			Println("Wallet Info:")
+		if withBalance && rlpCfg.NodeType == "sequencer" {
+			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+		}
+
 		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
-			fmt.Println("Da Balance:", celAddrData[0].Balance.String())
+			fmt.Println("Da Balance:", daAddrData[0].Balance.String())
 		}
 	}
 }
