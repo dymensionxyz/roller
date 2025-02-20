@@ -114,6 +114,7 @@ func Flush(home string) {
 			startHeight,
 			endHeight-startHeight,
 		)
+		fmt.Println(flushCmd.String())
 
 		doneChan := make(chan error, 1)
 		err := bash.ExecCmdFollow(doneChan, ctx, flushCmd, nil)
