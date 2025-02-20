@@ -75,9 +75,13 @@ func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, erro
 		return nil, err
 	}
 	aki = append(aki, *seqKi)
+	uhd, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
 
 	// eibc - only if directory exists
-	eibcDir := path.Join(rollappConfig.Home, consts.ConfigDirName.Eibc)
+	eibcDir := path.Join(uhd, consts.ConfigDirName.Eibc)
 	if _, err := os.Stat(eibcDir); err == nil {
 		eibcKc := KeyConfig{
 			Dir:            consts.ConfigDirName.Eibc,
