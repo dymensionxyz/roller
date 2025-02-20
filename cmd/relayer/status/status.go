@@ -62,7 +62,7 @@ func Cmd() *cobra.Command {
 			kc := keys.KeyConfig{
 				ChainBinary:    consts.Executables.Dymension,
 				ID:             consts.KeysIds.HubRelayer,
-				Dir:            consts.ConfigDirName.HubKeys,
+				Dir:            consts.ConfigDirName.Relayer,
 				KeyringBackend: consts.SupportedKeyringBackends.Test,
 			}
 
