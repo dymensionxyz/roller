@@ -41,10 +41,6 @@ func Cmd(services []string, module string) *cobra.Command {
 		Use:   "load",
 		Short: "Loads the different RollApp services on the local machine",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(
-				services,
-				module,
-			)
 			home, err := filesystem.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
@@ -433,7 +429,6 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 }
 
 func LoadLinuxServices(services []string) error {
-	fmt.Println(services)
 	for _, service := range services {
 		serviceData := ServiceTemplateData{
 			Name:     service,
@@ -463,7 +458,6 @@ func LoadLinuxServices(services []string) error {
 }
 
 func LoadServices(services []string, rollerData roller.RollappConfig) error {
-	fmt.Println("load services", services)
 	if runtime.GOOS == "darwin" {
 		err := LoadMacOsServices(services, rollerData)
 		if err != nil {
