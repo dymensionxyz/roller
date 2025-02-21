@@ -95,4 +95,13 @@ var DaNetworks = map[string]DaData{
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
+	string(WeaveVMTestnet): {
+		Backend:          WeaveVM,
+		ApiUrl:           "https://testnet-rpc.wvm.dev",
+		ID:               WeaveVMTestnet,
+		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
 }

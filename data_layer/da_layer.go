@@ -47,7 +47,7 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 	case consts.Avail:
 		dalayer = avail.NewAvail(home)
 	case consts.WeaveVM:
-		dalayer = weavevm.NewWeaveVM()
+		dalayer = weavevm.NewWeaveVM(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
