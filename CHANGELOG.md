@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1-rc01](https://github.com/dymensionxyz/roller/compare/v1.15.0-rc01...v1.15.1-rc01) (2025-02-21)
+
+
+### Bug Fixes
+
+* **da:** da config fix ([#1284](https://github.com/dymensionxyz/roller/issues/1284)) ([9cda31c](https://github.com/dymensionxyz/roller/commit/9cda31ce8dba7b6a3e3647f767082e187617d804))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
