@@ -21,7 +21,6 @@ import (
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
-// TODO: use dymint instead
 type dymintConfig struct {
 	BatchAcceptanceAttempts    string                      `toml:"batch_acceptance_attempts"`
 	BatchAcceptanceTimeout     string                      `toml:"batch_acceptance_timeout"`
@@ -29,8 +28,8 @@ type dymintConfig struct {
 	BlockBatchMaxSizeBytes     int                         `toml:"block_batch_max_size_bytes"`
 	BlockBatchSize             string                      `toml:"block_batch_size"`
 	BlockTime                  string                      `toml:"block_time"`
-	DaConfig                   string                      `toml:"da_config"`
-	DaLayer                    string                      `toml:"da_layer"`
+	DaConfig                   []string                    `toml:"da_config"`
+	DaLayer                    []string                    `toml:"da_layer"`
 	DymAccountName             string                      `toml:"dym_account_name"`
 	EmptyBlocksMaxTime         string                      `toml:"empty_blocks_max_time"`
 	GasPrices                  string                      `toml:"gas_prices"`
