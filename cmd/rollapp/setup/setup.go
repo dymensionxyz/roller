@@ -741,13 +741,13 @@ RollApp's IRO time: %v`,
 
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
-				"da_config",
+				"da_layer",
 				getDaLayer(home, raResponse, damanager.DaType),
 			)
 
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
-				"da_layer",
+				"da_config",
 				getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
 			)
 
