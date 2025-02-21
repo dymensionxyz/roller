@@ -15,6 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/logging"
+	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
 func Cmd() *cobra.Command {
@@ -40,6 +41,13 @@ func Cmd() *cobra.Command {
 
 			raData := rlyCfg.RaDataFromRelayerConfig()
 			hd := rlyCfg.HubDataFromRelayerConfig()
+
+			_, err = rollapp.GetMetadataFromChain(raData.ID, *hd)
+			if err != nil {
+				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+				pterm.Error.Println("the hub rpc endpoint is not responsive")
+				return
+			}
 
 			rly := relayer.NewRelayer(
 				home,
