@@ -2,8 +2,14 @@ package keys
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/pterm/pterm"
+
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 // KeyInfo struct stores information about a generated wallet
@@ -35,6 +41,68 @@ func WithPubKey() KeyInfoOption {
 	return func(opts *KeyInfo) {
 		opts.PrintPubKey = true
 	}
+}
+
+func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, error) {
+	var aki []KeyInfo
+
+	// relayer
+	rlyDir := path.Join(rollappConfig.Home, consts.ConfigDirName.Relayer)
+	if _, err := os.Stat(rlyDir); err == nil {
+		rkc := KeyConfig{
+			ChainBinary:    consts.Executables.Dymension,
+			ID:             consts.KeysIds.HubRelayer,
+			Dir:            filepath.Join(consts.ConfigDirName.Relayer, "keys", hd.ID),
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
+		}
+		rki, err := rkc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *rki)
+	}
+
+	// sequencer
+	rolDir := path.Join(rollappConfig.Home, consts.ConfigDirName.HubKeys)
+	if _, err := os.Stat(rolDir); err == nil {
+		seqKc := KeyConfig{
+			Dir:            consts.ConfigDirName.HubKeys,
+			ID:             consts.KeysIds.HubSequencer,
+			ChainBinary:    consts.Executables.Dymension,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: rollappConfig.KeyringBackend,
+		}
+		seqKi, err := seqKc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *seqKi)
+	}
+
+	// eibc - only if directory exists
+	uhd, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	eibcDir := path.Join(uhd, consts.ConfigDirName.Eibc)
+	if _, err := os.Stat(eibcDir); err == nil {
+		eibcKc := KeyConfig{
+			Dir:            consts.ConfigDirName.Eibc,
+			ID:             consts.KeysIds.Eibc,
+			ChainBinary:    consts.Executables.Dymension,
+			Type:           consts.SDK_ROLLAPP,
+			KeyringBackend: consts.SupportedKeyringBackends.Test,
+		}
+		eibcKi, err := eibcKc.Info(rollappConfig.Home)
+		if err != nil {
+			return nil, err
+		}
+		aki = append(aki, *eibcKi)
+	} else {
+		pterm.Error.Println("failed to get eibc key", err)
+	}
+
+	return aki, nil
 }
 
 func (ki *KeyInfo) Print(o ...KeyInfoOption) {

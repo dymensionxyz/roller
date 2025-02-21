@@ -21,31 +21,15 @@ func Cmd() *cobra.Command {
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 			rollerData, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			addresses := make([]keys.KeyInfo, 0)
 
-			var kc []keys.KeyConfig
-			if rollerData.HubData.ID != "mock" {
-				kc = keys.GetSequencerKeysConfig(rollerData.KeyringBackend)
-			} else {
-				kc = keys.GetMockSequencerKeyConfig(rollerData)
-			}
-
-			ki, err := kc[0].Info(home)
+			aki, err := keys.All(rollerData, rollerData.HubData)
 			if err != nil {
-				pterm.Error.Println("failed to retrieve sequencer info: ", err)
+				pterm.Error.Println("failed to get all keys", err)
 				return
 			}
-			seqPubKey, err := keys.GetSequencerPubKey(rollerData)
-			if err != nil {
-				pterm.Error.Println("failed to retrieve sequencer public key: ", err)
-				return
-			}
-			ki.PubKey = seqPubKey
 
-			addresses = append(addresses, *ki)
-
-			for _, address := range addresses {
-				address.Print(keys.WithName(), keys.WithPubKey())
+			for _, addrData := range aki {
+				addrData.Print(keys.WithName())
 			}
 		},
 	}

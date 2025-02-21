@@ -23,6 +23,7 @@ var (
 	PriceOracleSystemdServices      = []string{"price"}
 	RngOracleSystemdServices        = []string{"rng"}
 	EibcSystemdServices             = []string{"eibc"}
+	AlertAgentSystemdServices       = []string{"alert-agent"}
 )
 
 var Executables = struct {
@@ -39,6 +40,7 @@ var Executables = struct {
 	RngOracle              string
 	RngOracleRandomService string
 	Solc                   string
+	AlertAgent             string
 }{
 	Roller:      fmt.Sprintf("%s/roller", binsDir),
 	RollappEVM:  fmt.Sprintf("%s/rollappd", binsDir),
@@ -54,6 +56,7 @@ var Executables = struct {
 	RngOracle:              fmt.Sprintf("%s/rng-oracle", InternalBinsDir),
 	RngOracleRandomService: fmt.Sprintf("%s/rng-oracle-random-service", InternalBinsDir),
 	Solc:                   fmt.Sprintf("%s/solc", InternalBinsDir),
+	AlertAgent:             fmt.Sprintf("%s/alert-agent", InternalBinsDir),
 }
 
 var KeysIds = struct {
@@ -107,6 +110,7 @@ var ConfigDirName = struct {
 	BlockExplorer        string
 	Oracle               string
 	Snapshots            string
+	AlertAgent           string
 }{
 	Rollapp:              "rollapp",
 	Relayer:              "relayer",
@@ -118,6 +122,7 @@ var ConfigDirName = struct {
 	BlockExplorer:        "block-explorer",
 	Oracle:               "oracle",
 	Snapshots:            "snapshots",
+	AlertAgent:           "alert-agent",
 }
 
 var Denoms = struct {
