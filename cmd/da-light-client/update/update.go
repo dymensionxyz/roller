@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/firebase"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -25,7 +26,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			dep := dependencies.DefaultCelestiaNodeDependency()
+			bvi, err := firebase.GetDependencyVersions()
+			if err != nil {
+				pterm.Error.Println("failed to get dependency versions: ", err)
+				return
+			}
+
+			dep := dependencies.CelestiaNodeDependency(*bvi)
 			err = dependencies.InstallBinaryFromRepo(
 				dep, dep.DependencyName,
 			)

@@ -10,9 +10,11 @@ import (
 
 // BinaryVersionInfo represents the version information for DRS binaries
 type BinaryVersionInfo struct {
-	EibcClient string `firestore:"eibc-client"`
-	Relayer    string `firestore:"relayer"`
-	Dymd       string `firestore:"dymd"`
+	EibcClient   string `firestore:"eibc-client"`
+	Relayer      string `firestore:"relayer"`
+	Dymd         string `firestore:"dymd"`
+	CelestiaNode string `firestore:"celestia-node"`
+	CelestiaApp  string `firestore:"celestia-app"`
 }
 
 // GetDependencyVersions
