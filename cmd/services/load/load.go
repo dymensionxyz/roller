@@ -34,6 +34,7 @@ type ServiceTemplateData struct {
 	ExecPath     string
 	UserName     string
 	CustomRunCmd []string
+	Home         string
 }
 
 func Cmd(services []string, module string) *cobra.Command {
@@ -317,7 +318,7 @@ After=network.target
 
 [Service]
 Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart={{.ExecPath}} oracle {{.Name}} start
+ExecStart={{.ExecPath}} oracle {{.Name}} start --home {{.Home}}
 Restart=on-failure
 RestartSec=10
 MemoryHigh=15%
@@ -428,12 +429,13 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 	return nil
 }
 
-func LoadLinuxServices(services []string) error {
+func LoadLinuxServices(services []string, rollerData roller.RollappConfig) error {
 	for _, service := range services {
 		serviceData := ServiceTemplateData{
 			Name:     service,
 			ExecPath: consts.Executables.Roller,
 			UserName: os.Getenv("USER"),
+			Home:     rollerData.Home,
 		}
 		tpl, err := generateSystemdServiceTemplate(serviceData)
 		errorhandling.PrettifyErrorIfExists(err)
@@ -464,7 +466,7 @@ func LoadServices(services []string, rollerData roller.RollappConfig) error {
 			return err
 		}
 	} else if runtime.GOOS == "linux" {
-		err := LoadLinuxServices(services)
+		err := LoadLinuxServices(services, rollerData)
 		if err != nil {
 			return err
 		}

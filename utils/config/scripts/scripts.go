@@ -36,6 +36,7 @@ func writeDaTemplateToFile(home string) error {
 	daD := StartupTemplateData{
 		PasswordFilePath: pswFp,
 		Component:        "da-light-client",
+		Home:             home,
 	}
 
 	daTmpl, err := generateStartupScript(daD)
@@ -58,6 +59,7 @@ func writeRaTemplateToFile(home string) error {
 	raD := StartupTemplateData{
 		PasswordFilePath: pswFp,
 		Component:        "rollapp",
+		Home:             home,
 	}
 
 	raTmpl, err := generateStartupScript(raD)
@@ -98,7 +100,7 @@ set timeout -1
 
 set password [exec cat {{.PasswordFilePath}}]
 
-spawn roller {{.Component}} start
+spawn roller {{.Component}} start --home {{.Home}}
 
 expect {
     "Enter keyring passphrase:" {
