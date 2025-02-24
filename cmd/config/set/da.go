@@ -26,6 +26,71 @@ func setDA(rlpCfg roller.RollappConfig, value string) error {
 	return updateDaConfig(rlpCfg, daValue)
 }
 
+func setDARPC(rlpCfg roller.RollappConfig, value string) error {
+	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
+	_, err := filesystem.DirNotEmpty(daCfgDirPath)
+	if err != nil {
+		return err
+	}
+
+	rlpCfg.DA.RpcUrl = value
+	switch rlpCfg.DA.Backend {
+	case consts.Celestia:
+		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "base_url"); err != nil {
+			return err
+		}
+	case consts.Avail:
+		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "endpoint"); err != nil {
+			return err
+		}
+	case consts.Local:
+		return fmt.Errorf("mock DA don't use RPC")
+
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
+	}
+
+	if err := roller.WriteConfig(rlpCfg); err != nil {
+		return err
+	}
+
+	fmt.Printf("💈 RollApp DA RPC has been successfully set to '%s'\n\n", value)
+	return nil
+}
+
+func setDAAPI(rlpCfg roller.RollappConfig, value string) error {
+	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
+	_, err := filesystem.DirNotEmpty(daCfgDirPath)
+	if err != nil {
+		return err
+	}
+
+	rlpCfg.DA.ApiUrl = value
+
+	if err := roller.WriteConfig(rlpCfg); err != nil {
+		return err
+	}
+
+	fmt.Printf("💈 RollApp DA API_URL has been successfully set to '%s'\n\n", value)
+	return nil
+}
+
+func setDAStateNode(rlpCfg roller.RollappConfig, value string) error {
+	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
+	_, err := filesystem.DirNotEmpty(daCfgDirPath)
+	if err != nil {
+		return err
+	}
+
+	rlpCfg.DA.CurrentStateNode = value
+
+	if err := roller.WriteConfig(rlpCfg); err != nil {
+		return err
+	}
+
+	fmt.Printf("💈 RollApp DA StateNode has been successfully set to '%s'\n\n", value)
+	return nil
+}
 func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
 	dirExist, err := filesystem.DirNotEmpty(daCfgDirPath)
