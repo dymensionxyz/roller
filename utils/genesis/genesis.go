@@ -407,7 +407,8 @@ type ValidateGenesisRequest struct {
 }
 
 const (
-	ValidateGenesisURL = "https://genesis-validator.rollapp.network/validate-genesis"
+	MainnetValidateGenesisURL = "https://genesis-validator.rollapp.network/validate-genesis"
+	TestnetValidateGenesisURL = "https://next.genesis-validator.rollapp.network/validate-genesis"
 )
 
 func ValidateGenesis(raCfg roller.RollappConfig, raID string, hd consts.HubData) error {
@@ -436,7 +437,15 @@ func ValidateGenesis(raCfg roller.RollappConfig, raID string, hd consts.HubData)
 		return err
 	}
 
-	resp, err := http.Post(ValidateGenesisURL, "application/json", bytes.NewBuffer(b))
+	var ValidateGenesisUrl string
+	if hd.ID == consts.MainnetHubID {
+		ValidateGenesisUrl = MainnetValidateGenesisURL
+	} else {
+		ValidateGenesisUrl = TestnetValidateGenesisURL
+	}
+
+	// nolint gosec
+	resp, err := http.Post(ValidateGenesisUrl, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
