@@ -16,7 +16,7 @@ const (
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "update",
-		Short: "Runs the DA light client.",
+		Short: "Updates the DA light client binary.",
 		Run: func(cmd *cobra.Command, args []string) {
 			pterm.Info.Println("stopping existing system services, if any...")
 			err := servicemanager.StopSystemServices([]string{"da-light-client"})
