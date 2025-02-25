@@ -24,6 +24,7 @@ const (
 	Local    DAType = "mock"
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
+	WeaveVM  DAType = "weavevm"
 )
 
 type DaNetwork string
@@ -34,6 +35,8 @@ const (
 	CelestiaMainnet DaNetwork = "celestia"
 	AvailTestnet    DaNetwork = "avail"
 	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
+	WeaveVMTestnet  DaNetwork = "alphanet"
+	WeaveVMMainnet  DaNetwork = "weavevm" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -89,6 +92,24 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://mainnet-rpc.avail.so/rpc:443",
 		ID:               AvailMainnet,
 		RpcUrl:           "wss://mainnet.avail-rpc.com/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(WeaveVMTestnet): {
+		Backend:          WeaveVM,
+		ApiUrl:           "https://testnet-rpc.wvm.dev",
+		ID:               WeaveVMTestnet,
+		RpcUrl:           "wss://testnet-rpc.wvm.dev/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(WeaveVMMainnet): {
+		Backend:          WeaveVM,
+		ApiUrl:           "",
+		ID:               WeaveVMMainnet,
+		RpcUrl:           "",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
