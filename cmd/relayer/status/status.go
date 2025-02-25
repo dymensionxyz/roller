@@ -45,7 +45,6 @@ func Cmd() *cobra.Command {
 			_, err = rollapp.GetMetadataFromChain(raData.ID, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
-				pterm.Error.Println("the hub rpc endpoint is not responsive")
 				return
 			}
 

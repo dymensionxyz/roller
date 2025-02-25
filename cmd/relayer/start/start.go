@@ -58,7 +58,6 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				}
 				if i == (maxRetries - 1) {
 					pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
-					pterm.Error.Println("the hub endpoint is unhealthy")
 					return
 
 				}
