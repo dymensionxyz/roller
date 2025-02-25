@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.2](https://github.com/dymensionxyz/roller/compare/v1.15.1...v1.15.2) (2025-02-25)
+
+
+### Bug Fixes
+
+* linter workflow ([#1299](https://github.com/dymensionxyz/roller/issues/1299)) ([2a2b8cb](https://github.com/dymensionxyz/roller/commit/2a2b8cb647b6f39e081aff9b4dfadd79d3fbe9aa))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
