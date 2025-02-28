@@ -9,7 +9,7 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.60.3
+    rev: v1.61.0
     hooks:
       - id: golangci-lint
         name: lint Go files

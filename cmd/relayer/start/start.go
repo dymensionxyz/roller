@@ -64,7 +64,7 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 				time.Sleep(30 * time.Second)
 			}
 
-			err = relayer.VerifyRelayerBalances(*hd)
+			err = relayer.VerifyRelayerBalances(home, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to check balances", err)
 				return
