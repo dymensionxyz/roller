@@ -57,6 +57,7 @@ func InitializeRelayer(home string, rollerData roller.RollappConfig) error {
 }
 
 func EnsureKeysArePresentAndFunded(
+	home string,
 	rollerData roller.RollappConfig,
 ) (map[string]keys.KeyInfo, error) {
 	ck, err := keys.GenerateRelayerKeys(rollerData)
@@ -79,7 +80,7 @@ func EnsureKeysArePresentAndFunded(
 		return nil, fmt.Errorf("cancelled by user")
 	}
 
-	err = relayer.VerifyRelayerBalances(rollerData.HubData)
+	err = relayer.VerifyRelayerBalances(home, rollerData.HubData)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/firebase"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
@@ -16,7 +17,7 @@ const (
 func Cmd() *cobra.Command {
 	runCmd := &cobra.Command{
 		Use:   "update",
-		Short: "Runs the DA light client.",
+		Short: "Updates the DA light client binary.",
 		Run: func(cmd *cobra.Command, args []string) {
 			pterm.Info.Println("stopping existing system services, if any...")
 			err := servicemanager.StopSystemServices([]string{"da-light-client"})
@@ -25,7 +26,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			dep := dependencies.DefaultCelestiaNodeDependency()
+			bvi, err := firebase.GetDependencyVersions()
+			if err != nil {
+				pterm.Error.Println("failed to get dependency versions: ", err)
+				return
+			}
+
+			dep := dependencies.CelestiaNodeDependency(*bvi)
 			err = dependencies.InstallBinaryFromRepo(
 				dep, dep.DependencyName,
 			)

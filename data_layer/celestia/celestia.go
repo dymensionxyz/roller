@@ -301,6 +301,7 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 	args := []string{
 		"light", "start",
 		"--core.ip", raCfg.DA.CurrentStateNode,
+		"--core.port", "9090",
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
 		// "--gateway.deprecated-endpoints",

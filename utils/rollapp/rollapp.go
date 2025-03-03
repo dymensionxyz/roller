@@ -271,7 +271,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 
 	cfg = roller.RollappConfig{
 		Home:                 home,
-		RollerVersion:        version.BuildCommit,
+		RollerVersion:        version.BuildVersion,
 		KeyringBackend:       kb,
 		GenesisHash:          raResponse.Rollapp.GenesisInfo.GenesisChecksum,
 		GenesisUrl:           raResponse.Rollapp.Metadata.GenesisUrl,
@@ -279,7 +279,7 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 		Environment:          hd.ID,
 		RollappVMType:        vmt,
 		RollappBinary:        consts.Executables.RollappEVM,
-		RollappBinaryVersion: version.BuildVersion,
+		RollappBinaryVersion: "",
 		Bech32Prefix:         raResponse.Rollapp.GenesisInfo.Bech32Prefix,
 		BaseDenom:            baseDenom,
 		Denom:                baseDenom,
@@ -311,17 +311,20 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 }
 
 func IsDaConfigNewFormat(drsVersion string, evmType string) bool {
-	if drsVersion >= minEvmDRSNewDAConfig && "evm" == evmType || drsVersion >= minWasmDRSNewDAConfig && "wasm" == evmType {
+	if drsVersion >= minEvmDRSNewDAConfig && "evm" == evmType ||
+		drsVersion >= minWasmDRSNewDAConfig && "wasm" == evmType {
 		return true
 	}
 	return false
 }
 
 func IsDAConfigMigrationRequired(oldDRS string, newDRS string, evmType string) bool {
-	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType || oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType ||
+		oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
 		return false
 	}
-	if newDRS >= minEvmDRSNewDAConfig && "evm" == evmType || newDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+	if newDRS >= minEvmDRSNewDAConfig && "evm" == evmType ||
+		newDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
 		return true
 	}
 	return false

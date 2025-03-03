@@ -315,7 +315,7 @@ func (r *Relayer) HandleIbcChannelCreation(
 		return err
 	}
 
-	err = VerifyRelayerBalances(r.Hub)
+	err = VerifyRelayerBalances(home, r.Hub)
 	if err != nil {
 		pterm.Error.Printf("failed to verify relayer balances: %v\n", err)
 		return err
