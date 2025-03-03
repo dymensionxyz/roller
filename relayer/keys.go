@@ -5,15 +5,14 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/keys"
-	"github.com/dymensionxyz/roller/utils/roller"
 )
 
 var oneDayRelayPrice, _ = cosmossdkmath.NewIntFromString(
 	"2000000000000000000",
 ) // 2000000000000000000 = 2dym
 
-func VerifyRelayerBalances(hd consts.HubData) error {
-	insufficientBalances, err := getRelayerInsufficientBalances(hd)
+func VerifyRelayerBalances(home string, hd consts.HubData) error {
+	insufficientBalances, err := getRelayerInsufficientBalances(home, hd)
 	if err != nil {
 		return err
 	}
@@ -29,10 +28,10 @@ func VerifyRelayerBalances(hd consts.HubData) error {
 }
 
 func getRelayerInsufficientBalances(
+	home string,
 	hd consts.HubData,
 ) ([]keys.NotFundedAddressData, error) {
 	var insufficientBalances []keys.NotFundedAddressData
-	home := roller.GetRootDir()
 
 	accData, err := GetRelayerAccountsData(home, hd)
 	if err != nil {

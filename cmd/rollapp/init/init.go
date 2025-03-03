@@ -256,23 +256,6 @@ func Cmd() *cobra.Command {
 
 			pterm.Info.Println("all dependencies installed in: ", elapsed)
 
-			// if roller has not been initialized or it was reset
-			// set the versions to the current version
-			if isFirstInitialization {
-				rollerConfigFilePath := roller.GetConfigPath(home)
-
-				fieldsToUpdate := map[string]any{
-					"roller_version":         version.BuildVersion,
-					"rollapp_binary_version": builtDeps["rollapp"].Release,
-					"keyring_backend":        string(kb),
-				}
-				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
-				if err != nil {
-					pterm.Error.Println("failed to update roller config file: ", err)
-					return
-				}
-			}
-
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
 				strings.ToLower(raResponse.Rollapp.VmType),
 			)
@@ -295,6 +278,24 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
+			}
+
+			// if roller has not been initialized or it was reset
+			// set the versions to the current version
+			if isFirstInitialization {
+				rollerConfigFilePath := roller.GetConfigPath(home)
+
+				fieldsToUpdate := map[string]any{
+					"roller_version":         version.BuildVersion,
+					"rollapp_binary_version": builtDeps["rollapp"].Release,
+					"keyring_backend":        string(kb),
+				}
+
+				err = tomlconfig.UpdateFieldsInFile(rollerConfigFilePath, fieldsToUpdate)
+				if err != nil {
+					pterm.Error.Println("failed to update roller config file: ", err)
+					return
+				}
 			}
 
 			if kb == consts.SupportedKeyringBackends.OS {

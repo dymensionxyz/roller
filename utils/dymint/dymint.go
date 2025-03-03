@@ -21,42 +21,8 @@ import (
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
-// TODO: use dymint instead
 type dymintConfig struct {
-	BatchAcceptanceAttempts    string                      `toml:"batch_acceptance_attempts"`
-	BatchAcceptanceTimeout     string                      `toml:"batch_acceptance_timeout"`
-	BatchSubmitMaxTime         string                      `toml:"batch_submit_max_time"`
-	BlockBatchMaxSizeBytes     int                         `toml:"block_batch_max_size_bytes"`
-	BlockBatchSize             string                      `toml:"block_batch_size"`
-	BlockTime                  string                      `toml:"block_time"`
-	DaConfig                   string                      `toml:"da_config"`
-	DaLayer                    string                      `toml:"da_layer"`
-	DymAccountName             string                      `toml:"dym_account_name"`
-	EmptyBlocksMaxTime         string                      `toml:"empty_blocks_max_time"`
-	GasPrices                  string                      `toml:"gas_prices"`
-	KeyringBackend             string                      `toml:"keyring_backend"`
-	KeyringHomeDir             string                      `toml:"keyring_home_dir"`
-	MaxIdleTime                string                      `toml:"max_idle_time"`
-	MaxProofTime               string                      `toml:"max_proof_time"`
-	MaxSupportedBatchSkew      int                         `toml:"max_supported_batch_skew"`
-	NamespaceID                string                      `toml:"namespace_id"`
-	NodeAddress                string                      `toml:"node_address"`
-	P2PAdvertisingEnabled      string                      `toml:"p2p_advertising_enabled"`
-	P2PBootstrapNodes          string                      `toml:"p2p_bootstrap_nodes"`
-	P2PBootstrapRetryTime      string                      `toml:"p2p_bootstrap_retry_time"`
-	P2PGossipedBlocksCacheSize int                         `toml:"p2p_gossiped_blocks_cache_size"`
-	P2PListenAddress           string                      `toml:"p2p_listen_address"`
-	RetryAttempts              string                      `toml:"retry_attempts"`
-	RetryMaxDelay              string                      `toml:"retry_max_delay"`
-	RetryMinDelay              string                      `toml:"retry_min_delay"`
-	RollappID                  string                      `toml:"rollapp_id"`
-	SettlementGasFees          string                      `toml:"settlement_gas_fees"`
-	SettlementGasLimit         int                         `toml:"settlement_gas_limit"`
-	SettlementGasPrices        string                      `toml:"settlement_gas_prices"`
-	SettlementLayer            string                      `toml:"settlement_layer"`
-	SettlementNodeAddress      string                      `toml:"settlement_node_address"`
-	Db                         dymintDBConfig              `toml:"db"`
-	Instrumentation            dymintInstrumentationConfig `toml:"instrumentation"`
+	MaxIdleTime string `toml:"max_idle_time"`
 }
 
 type dymintDBConfig struct {

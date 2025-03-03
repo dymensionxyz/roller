@@ -147,6 +147,10 @@ func UpgradeCmd() *cobra.Command {
 				rollerData.RollappID,
 				rollerData.HubData,
 			)
+			if err != nil {
+				pterm.Error.Println("failed to populate rollapp config: ", err)
+				return
+			}
 
 			damanager := datalayer.NewDAManager(
 				rollappConfig.DA.Backend,

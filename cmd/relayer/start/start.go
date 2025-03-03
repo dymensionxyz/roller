@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -48,14 +49,22 @@ Consider using 'services' if you want to run a 'systemd' service instead.
 			raData := rlyCfg.RaDataFromRelayerConfig()
 			hd := rlyCfg.HubDataFromRelayerConfig()
 
-			raResponse, err := rollapp.GetMetadataFromChain(raData.ID, *hd)
-			if err != nil {
-				pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
-				return
-			}
-			raData.Denom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
+			maxRetries := 5
+			for i := 0; i < maxRetries; i++ {
+				raResponse, err := rollapp.GetMetadataFromChain(raData.ID, *hd)
+				if err == nil {
+					raData.Denom = raResponse.Rollapp.GenesisInfo.NativeDenom.Base
+					break
+				}
+				if i == (maxRetries - 1) {
+					pterm.Error.Println("failed to fetch rollapp information from hub: ", err)
+					return
 
-			err = relayer.VerifyRelayerBalances(*hd)
+				}
+				time.Sleep(30 * time.Second)
+			}
+
+			err = relayer.VerifyRelayerBalances(home, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to check balances", err)
 				return

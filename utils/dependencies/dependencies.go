@@ -327,8 +327,6 @@ func InstallBinaryFromRelease(dep types.Dependency) error {
 		archiveName,
 	)
 
-	fmt.Println(url)
-
 	spinner.UpdateText(fmt.Sprintf("[%s] downloading %s", dep.DependencyName, dep.Release))
 	err = DownloadRelease(url, targetDir, dep, spinner)
 	if err != nil {

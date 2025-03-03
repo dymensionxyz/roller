@@ -124,7 +124,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(*rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, *rollappChainData)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
