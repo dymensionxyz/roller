@@ -100,6 +100,16 @@ func NewAvail(root string) *Avail {
 			panic(fmt.Errorf("Avail addr need to be fund!"))
 		}
 
+		insufficientBalances, err := availConfig.CheckDABalance()
+		if err != nil {
+			pterm.Error.Println("failed to check balance", err)
+		}
+
+		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
+		if err != nil {
+			pterm.Error.Println("failed to check insufficient balances: ", err)
+		}
+
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
 			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
