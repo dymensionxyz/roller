@@ -233,16 +233,23 @@ func (e *EVMDeployer) DeployContract(
 			[]AssetInfo{
 				{
 					LocalNetworkName: common.HexToAddress(
-						"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+						"oracle/WBTC",
 					),
 					OracleNetworkName:     "WBTC",
 					LocalNetworkPrecision: big.NewInt(8),
 				},
 				{
 					LocalNetworkName: common.HexToAddress(
-						"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+						"oracle/USDC",
 					),
 					OracleNetworkName:     "USDC",
+					LocalNetworkPrecision: big.NewInt(6),
+				},
+				{
+					LocalNetworkName: common.HexToAddress(
+						"oracle/USDT",
+					),
+					OracleNetworkName:     "USDT",
 					LocalNetworkPrecision: big.NewInt(6),
 				},
 			},
