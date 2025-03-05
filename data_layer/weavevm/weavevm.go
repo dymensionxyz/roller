@@ -39,7 +39,7 @@ type RequestPayload struct {
 type EthBalanceResponse struct {
 	ID      int    `json:"id"`
 	JsonRPC string `json:"jsonrpc"`
-	Result  string `json:"result"` // Balance dạng hex string
+	Result  string `json:"result"`
 }
 
 type WeaveVM struct {
