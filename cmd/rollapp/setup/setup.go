@@ -412,6 +412,87 @@ RollApp's IRO time: %v`,
 						si.Checksum,
 						si.SnapshotUrl,
 					)
+
+					// approve the data directory deletion before downloading the snapshot
+					rollappDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
+
+					dataDir := filepath.Join(rollappDirPath, "data")
+					if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
+						dataDirNotEmpty, err := filesystem.DirNotEmpty(dataDir)
+						if err != nil {
+							pterm.Error.Printf("failed to check if data directory is empty: %v\n", err)
+							os.Exit(1)
+						}
+
+						var replaceExistingData bool
+						if dataDirNotEmpty {
+							pterm.Warning.Println("the ~/.roller/rollapp/data directory is not empty.")
+							replaceExistingData, _ = pterm.DefaultInteractiveConfirm.Show(
+								"Do you want to replace its contents?",
+							)
+							if !replaceExistingData {
+								pterm.Info.Println(
+									"operation cancelled, node will be synced from genesis block ",
+								)
+							}
+						}
+
+						if !dataDirNotEmpty || replaceExistingData {
+							// TODO: this should be a util "RecreateDir"
+							err = os.RemoveAll(dataDir)
+							if err != nil {
+								pterm.Error.Printf("failed to remove %s dir: %v", dataDir, err)
+								return
+							}
+
+							err = os.MkdirAll(dataDir, 0o755)
+							if err != nil {
+								pterm.Error.Printf("failed to create %s: %v\n", dataDir, err)
+								return
+							}
+
+							tmpDir, err := os.MkdirTemp("", "download-*")
+							if err != nil {
+								fmt.Printf("Error creating temp directory: %v\n", err)
+								return
+							}
+
+							// Print the path of the temporary directory
+							fmt.Printf("Temporary directory created: %s\n", tmpDir)
+
+							// The directory will be deleted when the program exits
+							// nolint:errcheck,gosec
+							defer os.RemoveAll(tmpDir)
+							archivePath := filepath.Join(tmpDir, "backup.tar.gz")
+							spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
+							downloadedFileHash, err := filesystem.DownloadAndSaveArchive(
+								si.SnapshotUrl,
+								archivePath,
+							)
+							if err != nil {
+								spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
+								os.Exit(1)
+							}
+							spinner.Success("file downloaded successfully")
+
+							// compare the checksum
+							if downloadedFileHash != si.Checksum {
+								pterm.Error.Printf(
+									"snapshot archive checksum mismatch, have: %s, want: %s.",
+									downloadedFileHash,
+									si.Checksum,
+								)
+
+								return
+							}
+
+							err = filesystem.ExtractTarGz(archivePath, filepath.Join(rollappDirPath))
+							if err != nil {
+								pterm.Error.Println("failed to extract snapshot: ", err)
+								return
+							}
+						}
+					}
 				}
 
 				// look for p2p bootstrap nodes, if there are no nodes available, the rollapp
@@ -439,87 +520,6 @@ RollApp's IRO time: %v`,
 					err = tomlconfig.UpdateFieldsInFile(dymintFilePath, fieldsToUpdate)
 					if err != nil {
 						pterm.Warning.Println("failed to add p2p peers: ", err)
-					}
-				}
-
-				// approve the data directory deletion before downloading the snapshot
-				rollappDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
-
-				dataDir := filepath.Join(rollappDirPath, "data")
-				if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
-					dataDirNotEmpty, err := filesystem.DirNotEmpty(dataDir)
-					if err != nil {
-						pterm.Error.Printf("failed to check if data directory is empty: %v\n", err)
-						os.Exit(1)
-					}
-
-					var replaceExistingData bool
-					if dataDirNotEmpty {
-						pterm.Warning.Println("the ~/.roller/rollapp/data directory is not empty.")
-						replaceExistingData, _ = pterm.DefaultInteractiveConfirm.Show(
-							"Do you want to replace its contents?",
-						)
-						if !replaceExistingData {
-							pterm.Info.Println(
-								"operation cancelled, node will be synced from genesis block ",
-							)
-						}
-					}
-
-					if !dataDirNotEmpty || replaceExistingData {
-						// TODO: this should be a util "RecreateDir"
-						err = os.RemoveAll(dataDir)
-						if err != nil {
-							pterm.Error.Printf("failed to remove %s dir: %v", dataDir, err)
-							return
-						}
-
-						err = os.MkdirAll(dataDir, 0o755)
-						if err != nil {
-							pterm.Error.Printf("failed to create %s: %v\n", dataDir, err)
-							return
-						}
-
-						tmpDir, err := os.MkdirTemp("", "download-*")
-						if err != nil {
-							fmt.Printf("Error creating temp directory: %v\n", err)
-							return
-						}
-
-						// Print the path of the temporary directory
-						fmt.Printf("Temporary directory created: %s\n", tmpDir)
-
-						// The directory will be deleted when the program exits
-						// nolint:errcheck,gosec
-						defer os.RemoveAll(tmpDir)
-						archivePath := filepath.Join(tmpDir, "backup.tar.gz")
-						spinner, _ := pterm.DefaultSpinner.Start("downloading file...")
-						downloadedFileHash, err := filesystem.DownloadAndSaveArchive(
-							si.SnapshotUrl,
-							archivePath,
-						)
-						if err != nil {
-							spinner.Fail(fmt.Sprintf("error downloading file: %v", err))
-							os.Exit(1)
-						}
-						spinner.Success("file downloaded successfully")
-
-						// compare the checksum
-						if downloadedFileHash != si.Checksum {
-							pterm.Error.Printf(
-								"snapshot archive checksum mismatch, have: %s, want: %s.",
-								downloadedFileHash,
-								si.Checksum,
-							)
-
-							return
-						}
-
-						err = filesystem.ExtractTarGz(archivePath, filepath.Join(rollappDirPath))
-						if err != nil {
-							pterm.Error.Println("failed to extract snapshot: ", err)
-							return
-						}
 					}
 				}
 			}
