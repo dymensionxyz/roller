@@ -252,6 +252,13 @@ func (e *EVMDeployer) DeployContract(
 					OracleNetworkName:     "USDT",
 					LocalNetworkPrecision: big.NewInt(6),
 				},
+				{
+					LocalNetworkName: common.HexToAddress(
+						"oracle/DYM",
+					),
+					OracleNetworkName:     "DYM",
+					LocalNetworkPrecision: big.NewInt(18),
+				},
 			},
 			big.NewInt(1000000000000000000), // 1 ETH bound threshold
 			contractABI,
