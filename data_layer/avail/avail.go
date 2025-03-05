@@ -2,21 +2,26 @@ package avail
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 	"os/exec"
 
 	cosmossdkmath "cosmossdk.io/math"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v4"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
-	availtypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
 
+	prim "github.com/availproject/avail-go-sdk/primitives"
+	"github.com/availproject/avail-go-sdk/sdk"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/pterm/pterm"
+
+	syPallet "github.com/availproject/avail-go-sdk/metadata/pallets/system"
+	"github.com/availproject/avail-go-sdk/primitives"
 )
 
 const (
@@ -157,12 +162,14 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
-	if required.Cmp(balance.Int) > 0 {
+	bigIntValue := new(big.Int)
+	bigIntValue.SetString(balance, 10)
+	if required.Cmp(bigIntValue) > 0 {
 		return []keys.NotFundedAddressData{
 			{
 				KeyName:         a.GetKeyName(),
 				Address:         a.AccAddress,
-				CurrentBalance:  balance.Int,
+				CurrentBalance:  bigIntValue,
 				RequiredBalance: required,
 				Denom:           consts.Denoms.Avail,
 				Network:         string(consts.Avail),
@@ -172,39 +179,44 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	return nil, nil
 }
 
-func (a *Avail) getBalance() (availtypes.U128, error) {
-	if a.client == nil {
-		client, err := gsrpc.NewSubstrateAPI(a.RpcEndpoint)
-		if err != nil {
-			return availtypes.U128{}, err
-		}
-		a.client = client
-	}
-	var res availtypes.U128
-	meta, err := a.client.RPC.State.GetMetadataLatest()
+func (a *Avail) getBalance() (string, error) {
+	// Initialize the SDK
+	sdk, err := sdk.NewSDK(a.RpcEndpoint)
 	if err != nil {
-		return res, err
+		log.Fatalf("Failed to initialize SDK: %v", err)
 	}
 
-	keyringPair, err := signature.KeyringPairFromSecret(a.Mnemonic, keyringNetworkID)
+	// Get the latest block hash
+	latestBlockHash, err := sdk.Client.BestBlockHash()
 	if err != nil {
-		return res, err
-	}
-	key, err := availtypes.CreateStorageKey(meta, "System", "Account", keyringPair.PublicKey)
-	if err != nil {
-		return res, err
+		log.Fatalf("Failed to get latest block hash: %v", err)
 	}
 
-	var accountInfo availtypes.AccountInfo
-	ok, err := a.client.RPC.State.GetStorageLatest(key, &accountInfo)
+	// Initialize the block storage
+	blockStorage, err := sdk.Client.StorageAt(prim.Some(latestBlockHash))
 	if err != nil {
-		return res, err
-	}
-	if !ok {
-		return res, fmt.Errorf("account %s not found", keyringPair.Address)
+		log.Fatalf("Failed to get block storage: %v", err)
 	}
 
-	return accountInfo.Data.Free, nil
+	// Create the account ID
+	accountId, err := primitives.NewAccountIdFromAddress(a.AccAddress)
+	if err != nil {
+		log.Fatalf("Failed to convert address: %v", err)
+	}
+
+	// Fetch the account data
+	storage := syPallet.StorageAccount{}
+	val, err := storage.Fetch(&blockStorage, accountId)
+	if err != nil {
+		log.Fatalf("Failed to fetch account: %v", err)
+	}
+
+	// Log the account data
+	fmt.Println("Free Balance: ", val.Value.AccountData.Free.ToHuman())
+	fmt.Println("Reserved Balance: ", val.Value.AccountData.Reserved.ToHuman())
+	fmt.Println("Frozen Balance: ", val.Value.AccountData.Frozen.ToHuman())
+
+	return val.Value.AccountData.Free.ToHuman(), nil
 }
 
 func (a *Avail) GetStartDACmd() *exec.Cmd {
@@ -216,12 +228,15 @@ func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, erro
 	if err != nil {
 		return nil, err
 	}
+	bigIntValue := new(big.Int)
+	bigIntValue.SetString(balance, 10)
+
 	return []keys.AccountData{
 		{
 			Address: a.AccAddress,
 			Balance: cosmossdktypes.Coin{
 				Denom:  consts.Denoms.Avail,
-				Amount: cosmossdkmath.NewIntFromBigInt(balance.Int),
+				Amount: cosmossdkmath.NewIntFromBigInt(bigIntValue),
 			},
 		},
 	}, nil
