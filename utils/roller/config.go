@@ -70,7 +70,7 @@ func (c RollappConfig) ValidateConfig() error {
 	}
 
 	if !IsValidDAType(string(c.DA.Backend)) {
-		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA, SupportedDas)
+		return fmt.Errorf("invalid DA type: %s. supported types %s", c.DA.Backend, SupportedDas)
 	}
 
 	return nil

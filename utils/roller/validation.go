@@ -10,7 +10,7 @@ import (
 
 func IsValidDAType(t string) bool {
 	switch consts.DAType(t) {
-	case consts.Local, consts.Celestia, consts.Avail:
+	case consts.Local, consts.Celestia, consts.Avail, consts.WeaveVM:
 		return true
 	}
 	return false
