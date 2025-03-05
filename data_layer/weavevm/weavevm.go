@@ -1,7 +1,13 @@
 package weavevm
 
 import (
+	"bytes"
+	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math/big"
+	"net/http"
 	"os/exec"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
@@ -9,6 +15,10 @@ import (
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/pterm/pterm"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 const (
@@ -18,6 +28,19 @@ const (
 	requiredAVL                  = 1
 	DefaultTestnetChainID        = 9496
 )
+
+type RequestPayload struct {
+	JSONRPC string        `json:"jsonrpc"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+	ID      int           `json:"id"`
+}
+
+type EthBalanceResponse struct {
+	ID      int    `json:"id"`
+	JsonRPC string `json:"jsonrpc"`
+	Result  string `json:"result"` // Balance dạng hex string
+}
 
 type WeaveVM struct {
 	Root        string
@@ -41,7 +64,6 @@ func NewWeaveVM(root string) *WeaveVM {
 
 	cfgPath := GetCfgFilePath(root)
 	weavevmConfig, err := loadConfigFromTOML(cfgPath)
-
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.WeaveVMMainnet)
@@ -66,9 +88,19 @@ func NewWeaveVM(root string) *WeaveVM {
 		if !exists {
 			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
 		}
+
+		balance, err := GetBalance(daData.ApiUrl, weavevmConfig.PrivateKey)
+		if err != nil {
+			panic(err)
+		}
+		if balance == "" {
+			panic(fmt.Errorf("WeaveVM wallet need to be fund!"))
+		}
+
+		pterm.Println("WeaveVM Balance: ", balance)
+
 		weavevmConfig.RpcEndpoint = daData.ApiUrl
 		weavevmConfig.Root = root
-
 		weavevmConfig.ChainID = DefaultTestnetChainID
 
 		err = writeConfigToTOML(cfgPath, weavevmConfig)
@@ -138,4 +170,70 @@ func (w *WeaveVM) GetNamespaceID() string {
 
 func (w *WeaveVM) GetAppID() uint32 {
 	return 0
+}
+
+func getAddressFromPrivateKey(privKey string) (common.Address, *ecdsa.PrivateKey, error) {
+	// Getting public address from private key
+	pKeyBytes, err := hexutil.Decode("0x" + privKey)
+	if err != nil {
+		return common.Address{}, nil, err
+	}
+	// Convert the private key bytes to an ECDSA private key.
+	ecdsaPrivateKey, err := crypto.ToECDSA(pKeyBytes)
+	if err != nil {
+		return common.Address{}, nil, err
+	}
+	// Extract the public key from the ECDSA private key.
+	publicKey := ecdsaPrivateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return common.Address{}, nil, fmt.Errorf("error casting public key to ECDSA")
+	}
+
+	// Compute the Ethereum address of the signer from the public key.
+	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+	return fromAddress, ecdsaPrivateKey, nil
+}
+
+func GetBalance(jsonRPCURL, key string) (string, error) {
+	address, _, err := getAddressFromPrivateKey(key)
+	if err != nil {
+		return "", err
+	}
+	payload := RequestPayload{
+		JSONRPC: "2.0",
+		Method:  "eth_getBalance",
+		Params:  []interface{}{address, "latest"},
+		ID:      1,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.Post(jsonRPCURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var response EthBalanceResponse
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+
+	balance := new(big.Int)
+	balance.SetString(response.Result[2:], 16)
+
+	ethBalance := new(big.Float).Quo(new(big.Float).SetInt(balance), big.NewFloat(1e18))
+
+	return ethBalance.Text('f', 6), nil
 }
