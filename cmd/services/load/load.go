@@ -56,6 +56,10 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
+			if rollerData.DA.Backend == consts.Celestia {
+				services = consts.RollappWithCelesSystemdServices
+			}
+
 			err = LoadServices(services, rollerData)
 			if err != nil {
 				pterm.Error.Println("failed to load services: ", err)
@@ -63,10 +67,6 @@ func Cmd(services []string, module string) *cobra.Command {
 			}
 
 			if module == "rollapp" {
-				if rollerData.DA.Backend == consts.Celestia {
-					services = consts.RollappWithCelesSystemdServices
-				}
-
 				err = scripts.CreateRollappStartup(home)
 				if err != nil {
 					pterm.Error.Println("failed to generate startup scripts:", err)
