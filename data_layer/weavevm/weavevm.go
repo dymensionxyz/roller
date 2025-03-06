@@ -95,7 +95,7 @@ func NewWeaveVM(root string) *WeaveVM {
 			panic(err)
 		}
 
-		balanceInt, err := strconv.Atoi(balance)
+		balanceInt, err := strconv.ParseFloat(balance, 64)
 		if err != nil {
 			panic(err)
 		}
