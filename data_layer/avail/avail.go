@@ -162,14 +162,12 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
-	bigIntValue := new(big.Int)
-	bigIntValue.SetString(balance, 10)
-	if required.Cmp(bigIntValue) > 0 {
+	if required.Cmp(balance) > 0 {
 		return []keys.NotFundedAddressData{
 			{
 				KeyName:         a.GetKeyName(),
 				Address:         a.AccAddress,
-				CurrentBalance:  bigIntValue,
+				CurrentBalance:  balance,
 				RequiredBalance: required,
 				Denom:           consts.Denoms.Avail,
 				Network:         string(consts.Avail),
@@ -179,7 +177,7 @@ func (a *Avail) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	return nil, nil
 }
 
-func (a *Avail) getBalance() (string, error) {
+func (a *Avail) getBalance() (*big.Int, error) {
 	// Initialize the SDK
 	sdk, err := sdk.NewSDK(a.RpcEndpoint)
 	if err != nil {
@@ -211,12 +209,7 @@ func (a *Avail) getBalance() (string, error) {
 		log.Fatalf("Failed to fetch account: %v", err)
 	}
 
-	// Log the account data
-	fmt.Println("Free Balance: ", val.Value.AccountData.Free.ToHuman())
-	fmt.Println("Reserved Balance: ", val.Value.AccountData.Reserved.ToHuman())
-	fmt.Println("Frozen Balance: ", val.Value.AccountData.Frozen.ToHuman())
-
-	return val.Value.AccountData.Free.ToHuman(), nil
+	return val.Value.AccountData.Free.Value.Big(), nil
 }
 
 func (a *Avail) GetStartDACmd() *exec.Cmd {
@@ -228,15 +221,13 @@ func (a *Avail) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, erro
 	if err != nil {
 		return nil, err
 	}
-	bigIntValue := new(big.Int)
-	bigIntValue.SetString(balance, 10)
 
 	return []keys.AccountData{
 		{
 			Address: a.AccAddress,
 			Balance: cosmossdktypes.Coin{
 				Denom:  consts.Denoms.Avail,
-				Amount: cosmossdkmath.NewIntFromBigInt(bigIntValue),
+				Amount: cosmossdkmath.NewIntFromBigInt(balance),
 			},
 		},
 	}, nil
