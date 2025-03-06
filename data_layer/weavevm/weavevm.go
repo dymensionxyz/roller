@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"net/http"
 	"os/exec"
+	"strconv"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
@@ -93,7 +94,13 @@ func NewWeaveVM(root string) *WeaveVM {
 		if err != nil {
 			panic(err)
 		}
-		if balance == "" {
+
+		balanceInt, err := strconv.ParseFloat(balance, 64)
+		if err != nil {
+			panic(err)
+		}
+
+		if balanceInt > 0 {
 			panic(fmt.Errorf("WeaveVM wallet need to be fund!"))
 		}
 
@@ -137,7 +144,7 @@ func (w *WeaveVM) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, er
 
 func (w *WeaveVM) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"endpoint": "%s", "chain_id": %d,"private_key_hex": %s}`,
+		`{"endpoint": "%s", "chain_id": %d,"private_key_hex": "%s"}`,
 		w.RpcEndpoint,
 		w.ChainID,
 		w.PrivateKey,
