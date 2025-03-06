@@ -5,6 +5,7 @@ import (
 
 	"github.com/pterm/pterm"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -44,19 +45,21 @@ func PromptCustomHubEndpoint(rollerConfig roller.RollappConfig) roller.RollappCo
 
 	var rpcEndpoint string
 
-	for {
-		rpcEndpoint, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("We recommend using a private RPC endpoint for the hub. Please provide the hub rpc endpoint to use. You can obtain one here: https://blastapi.io/chains/dymension").
-			Show()
+	if rollerConfig.HubData.RpcUrl == consts.MainnetHubData.RpcUrl || rollerConfig.HubData.RpcUrl == "" {
+		for {
+			rpcEndpoint, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("We recommend using a private RPC endpoint for the hub. Please provide the hub rpc endpoint to use. You can obtain one here: https://blastapi.io/chains/dymension").
+				Show()
 
-		isValidUrl := IsValidURL(rpcEndpoint)
-		if isValidUrl {
-			break
+			isValidUrl := IsValidURL(rpcEndpoint)
+			if isValidUrl {
+				break
+			}
 		}
-	}
 
-	if rpcEndpoint != "" {
-		rollerConfig.HubData.RpcUrl = rpcEndpoint
-		rollerConfig.HubData.ArchiveRpcUrl = rpcEndpoint
+		if rpcEndpoint != "" {
+			rollerConfig.HubData.RpcUrl = rpcEndpoint
+			rollerConfig.HubData.ArchiveRpcUrl = rpcEndpoint
+		}
 	}
 
 	return rollerConfig
