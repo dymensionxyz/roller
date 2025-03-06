@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.17.0-rc03](https://github.com/dymensionxyz/roller/compare/v1.16.0-rc03...v1.17.0-rc03) (2025-03-06)
+
+
+### Features
+
+* prompt only if the config contains the default endpoint ([#1310](https://github.com/dymensionxyz/roller/issues/1310)) ([8e7f4ce](https://github.com/dymensionxyz/roller/commit/8e7f4cea187ee85f07cc35e851d53b3351165f46))
+
+
+### Bug Fixes
+
+* set services before load them ([#1309](https://github.com/dymensionxyz/roller/issues/1309)) ([5b1e6ae](https://github.com/dymensionxyz/roller/commit/5b1e6ae33cf06d189867a73dd81be65e10716f72))
+* unmarshal da config ([#1311](https://github.com/dymensionxyz/roller/issues/1311)) ([335cdbb](https://github.com/dymensionxyz/roller/commit/335cdbb67cbabbd279dea3d494569cae86a9655a))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
