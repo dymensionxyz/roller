@@ -67,8 +67,17 @@ func setDAAPI(rlpCfg roller.RollappConfig, value string) error {
 
 	rlpCfg.DA.ApiUrl = value
 
-	if err := roller.WriteConfig(rlpCfg); err != nil {
-		return err
+	switch rlpCfg.DA.Backend {
+	case consts.Celestia:
+		if err := roller.WriteConfig(rlpCfg); err != nil {
+			return err
+		}
+	case consts.Avail:
+		return fmt.Errorf("avail DA don't use API")
+	case consts.Local:
+		return fmt.Errorf("mock DA don't use API")
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
 	}
 
 	fmt.Printf("💈 RollApp DA API_URL has been successfully set to '%s'\n\n", value)
@@ -84,8 +93,17 @@ func setDAStateNode(rlpCfg roller.RollappConfig, value string) error {
 
 	rlpCfg.DA.CurrentStateNode = value
 
-	if err := roller.WriteConfig(rlpCfg); err != nil {
-		return err
+	switch rlpCfg.DA.Backend {
+	case consts.Celestia:
+		if err := roller.WriteConfig(rlpCfg); err != nil {
+			return err
+		}
+	case consts.Avail:
+		return fmt.Errorf("avail DA don't use StateNode")
+	case consts.Local:
+		return fmt.Errorf("mock DA don't use StateNode")
+	default:
+		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
 	}
 
 	fmt.Printf("💈 RollApp DA StateNode has been successfully set to '%s'\n\n", value)
