@@ -2,7 +2,6 @@ package avail
 
 import (
 	"fmt"
-	"log"
 	"math/big"
 	"os/exec"
 
@@ -181,32 +180,32 @@ func (a *Avail) getBalance() (*big.Int, error) {
 	// Initialize the SDK
 	sdk, err := sdk.NewSDK(a.RpcEndpoint)
 	if err != nil {
-		log.Fatalf("Failed to initialize SDK: %v", err)
+		return nil, fmt.Errorf("Failed to initialize SDK: %v", err)
 	}
 
 	// Get the latest block hash
 	latestBlockHash, err := sdk.Client.BestBlockHash()
 	if err != nil {
-		log.Fatalf("Failed to get latest block hash: %v", err)
+		return nil, fmt.Errorf("Failed to get latest block hash: %v", err)
 	}
 
 	// Initialize the block storage
 	blockStorage, err := sdk.Client.StorageAt(prim.Some(latestBlockHash))
 	if err != nil {
-		log.Fatalf("Failed to get block storage: %v", err)
+		return nil, fmt.Errorf("Failed to get block storage: %v", err)
 	}
 
 	// Create the account ID
 	accountId, err := primitives.NewAccountIdFromAddress(a.AccAddress)
 	if err != nil {
-		log.Fatalf("Failed to convert address: %v", err)
+		return nil, fmt.Errorf("Failed to convert address: %v", err)
 	}
 
 	// Fetch the account data
 	storage := syPallet.StorageAccount{}
 	val, err := storage.Fetch(&blockStorage, accountId)
 	if err != nil {
-		log.Fatalf("Failed to fetch account: %v", err)
+		return nil, fmt.Errorf("Failed to fetch account: %v", err)
 	}
 
 	return val.Value.AccountData.Free.Value.Big(), nil
