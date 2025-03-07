@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"strconv"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -139,7 +141,28 @@ func (w *WeaveVM) GetStartDACmd() *exec.Cmd {
 }
 
 func (w *WeaveVM) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
-	return nil, nil
+	balance, err := GetBalance(cfg.DA.ApiUrl, w.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	address, _, err := getAddressFromPrivateKey(w.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	balanceInt, ok := cosmossdkmath.NewIntFromString(balance)
+	if !ok {
+		return nil, fmt.Errorf("Can not convert from String to Int")
+	}
+	return []keys.AccountData{
+		{
+			Address: address.String(),
+			Balance: cosmossdktypes.Coin{
+				Denom:  consts.Denoms.WeaveVM,
+				Amount: balanceInt,
+			},
+		},
+	}, nil
 }
 
 func (w *WeaveVM) GetSequencerDAConfig(_ string) string {
