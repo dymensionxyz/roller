@@ -95,16 +95,16 @@ func NewWeaveVM(root string) *WeaveVM {
 			panic(err)
 		}
 
-		balanceInt, err := strconv.ParseFloat(balance, 64)
+		balanceFloat, err := strconv.ParseFloat(balance, 64)
 		if err != nil {
 			panic(err)
 		}
 
-		if balanceInt > 0 {
+		if balanceFloat == 0 {
 			panic(fmt.Errorf("WeaveVM wallet need to be fund!"))
 		}
 
-		pterm.Println("WeaveVM Balance: ", balance)
+		pterm.Println("WeaveVM Balance: ", balanceFloat)
 
 		weavevmConfig.RpcEndpoint = daData.ApiUrl
 		weavevmConfig.Root = root
