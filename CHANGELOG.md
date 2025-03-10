@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0-rc05](https://github.com/dymensionxyz/roller/compare/v1.16.0-rc05...v1.17.0-rc05) (2025-03-10)
+
+
+### Features
+
+* add logic GetDAAccData for WeaveVM ([#1315](https://github.com/dymensionxyz/roller/issues/1315)) ([189f133](https://github.com/dymensionxyz/roller/commit/189f133e243dd1cd6fd31d61d26ef3886ae688ae))
+* fetch the balance of the wallet before trying to continue ([#1302](https://github.com/dymensionxyz/roller/issues/1302)) ([41b0b50](https://github.com/dymensionxyz/roller/commit/41b0b50f788b63c7cdab4bdcac6314a4548c03c4))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
