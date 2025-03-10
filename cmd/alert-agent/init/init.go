@@ -13,6 +13,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -154,6 +155,35 @@ func Cmd() *cobra.Command {
 						Amount: amount,
 					},
 				})
+
+				if keyInfo.Name == consts.KeysIds.Eibc {
+					eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
+					eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
+					eibcConfig, err := eibcutils.ReadConfig(eibcConfigPath)
+					if err != nil {
+						return fmt.Errorf("failed to read eibc config %w", err)
+					}
+
+					grantsByGrantee, err := eibcutils.GetGrantsByGrantee(eibcConfig.Fulfillers.PolicyAddress)
+					for _, grant := range grantsByGrantee.Grants {
+						for _, rollapp := range grant.Authorization.Value.Rollapps {
+							for _, spendLimit := range rollapp.SpendLimit {
+								config.Addresses = append(config.Addresses, AddressConfig{
+									Name: fmt.Sprintf(
+										"%s LP wallet",
+										strings.ToUpper(rollerData.RollappID),
+									),
+									RestEndpoint: rollerData.HubData.ApiUrl,
+									Address:      grant.Granter,
+									Threshold: AddressThreshold{
+										Denom:  spendLimit.Denom,
+										Amount: amount,
+									},
+								})
+							}
+						}
+					}
+				}
 			}
 
 			tgToken, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
