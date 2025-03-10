@@ -161,25 +161,28 @@ func Cmd() *cobra.Command {
 					eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
 					eibcConfig, err := eibcutils.ReadConfig(eibcConfigPath)
 					if err != nil {
-						return fmt.Errorf("failed to read eibc config %w", err)
-					}
-
-					grantsByGrantee, err := eibcutils.GetGrantsByGrantee(eibcConfig.Fulfillers.PolicyAddress)
-					for _, grant := range grantsByGrantee.Grants {
-						for _, rollapp := range grant.Authorization.Value.Rollapps {
-							for _, spendLimit := range rollapp.SpendLimit {
-								config.Addresses = append(config.Addresses, AddressConfig{
-									Name: fmt.Sprintf(
-										"%s LP wallet",
-										strings.ToUpper(rollerData.RollappID),
-									),
-									RestEndpoint: rollerData.HubData.ApiUrl,
-									Address:      grant.Granter,
-									Threshold: AddressThreshold{
-										Denom:  spendLimit.Denom,
-										Amount: amount,
-									},
-								})
+						pterm.Error.Println("failed to read eibc config", err)
+					} else {
+						grantsByGrantee, err := eibcutils.GetGrantsByGrantee(eibcConfig.Fulfillers.PolicyAddress)
+						if err != nil {
+							return fmt.Errorf("failed to get grants-by-gratee: %w", err)
+						}
+						for _, grant := range grantsByGrantee.Grants {
+							for _, rollapp := range grant.Authorization.Value.Rollapps {
+								for _, spendLimit := range rollapp.SpendLimit {
+									config.Addresses = append(config.Addresses, AddressConfig{
+										Name: fmt.Sprintf(
+											"%s LP wallet",
+											strings.ToUpper(rollerData.RollappID),
+										),
+										RestEndpoint: rollerData.HubData.ApiUrl,
+										Address:      grant.Granter,
+										Threshold: AddressThreshold{
+											Denom:  spendLimit.Denom,
+											Amount: amount,
+										},
+									})
+								}
 							}
 						}
 					}
