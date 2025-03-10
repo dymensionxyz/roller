@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func GetGrantsByGrantee(policyAddr string) (*GrantsByGranteeResponse, error) {
-	cmd := GetGrantsByGranteeCmd(policyAddr)
+func GetGrantsByGrantee(policyAddr string, hd consts.HubData) (*GrantsByGranteeResponse, error) {
+	cmd := GetGrantsByGranteeCmd(policyAddr, hd)
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
@@ -25,7 +25,7 @@ func GetGrantsByGrantee(policyAddr string) (*GrantsByGranteeResponse, error) {
 	return &grantsByGrantee, err
 }
 
-func GetGrantsByGranteeCmd(policyAddr string) *exec.Cmd {
+func GetGrantsByGranteeCmd(policyAddr string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
 		consts.Executables.Dymension,
 		"q",
@@ -34,6 +34,7 @@ func GetGrantsByGranteeCmd(policyAddr string) *exec.Cmd {
 		policyAddr,
 		"-o",
 		"json",
+		"--node", hd.RpcUrl,
 	)
 
 	return cmd

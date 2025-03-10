@@ -51,7 +51,7 @@ func AddEibcLPCmd() *cobra.Command {
 				return fmt.Errorf("failed to marshal config: %w", err)
 			}
 
-			grantsByGrantee, err := eibcutils.GetGrantsByGrantee(granteeAddr)
+			grantsByGrantee, err := eibcutils.GetGrantsByGrantee(granteeAddr, rollerData.HubData)
 			if err != nil {
 				return fmt.Errorf("failed to get grants-by-gratee: %w", err)
 			}
@@ -94,6 +94,11 @@ func RemoveEibcLPCmd() *cobra.Command {
 			granteeAddr := args[0]
 			home := cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String()
 
+			rollerData, err := roller.LoadConfig(home)
+			if err != nil {
+				return fmt.Errorf("failed to load roller config: %w", err)
+			}
+
 			configDir := filepath.Join(home, consts.ConfigDirName.AlertAgent)
 			if _, err := os.Stat(configDir); err != nil {
 				return fmt.Errorf(
@@ -115,7 +120,7 @@ func RemoveEibcLPCmd() *cobra.Command {
 				return fmt.Errorf("failed to marshal config: %w", err)
 			}
 
-			grantsByGrantee, err := eibcutils.GetGrantsByGrantee(granteeAddr)
+			grantsByGrantee, err := eibcutils.GetGrantsByGrantee(granteeAddr, rollerData.HubData)
 			if err != nil {
 				return fmt.Errorf("failed to get grants-by-gratee: %w", err)
 			}

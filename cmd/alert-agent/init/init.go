@@ -163,7 +163,7 @@ func Cmd() *cobra.Command {
 					if err != nil {
 						pterm.Error.Println("failed to read eibc config", err)
 					} else {
-						grantsByGrantee, err := eibcutils.GetGrantsByGrantee(eibcConfig.Fulfillers.PolicyAddress)
+						grantsByGrantee, err := eibcutils.GetGrantsByGrantee(eibcConfig.Fulfillers.PolicyAddress, rollerData.HubData)
 						if err != nil {
 							return fmt.Errorf("failed to get grants-by-gratee: %w", err)
 						}
