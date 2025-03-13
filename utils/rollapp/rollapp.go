@@ -319,15 +319,19 @@ func IsDaConfigNewFormat(drsVersion string, evmType string) bool {
 }
 
 func IsDAConfigMigrationRequired(oldDRS string, newDRS string, evmType string) bool {
-	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType ||
-		oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType {
 		return false
 	}
-	if newDRS >= minEvmDRSNewDAConfig && "evm" == evmType ||
-		newDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
-		return true
+	if oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+		return false
 	}
-	return false
+	if newDRS < minEvmDRSNewDAConfig && "evm" == evmType {
+		return false
+	}
+	if newDRS < minWasmDRSNewDAConfig && "wasm" == evmType {
+		return false
+	}
+	return true
 }
 
 type RaParams struct {

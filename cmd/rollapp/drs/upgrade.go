@@ -189,7 +189,14 @@ func UpgradeCmd() *cobra.Command {
 }
 
 func upgradeDaConfig(dymintConfigPath string, daManager datalayer.DAManager) {
-	daConfig := daManager.DataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+	daConfig, err := tomlconfig.GetKeyFromFile(
+		dymintConfigPath,
+		"da_config")
+
+	if err != nil {
+		pterm.Error.Println("error updating dymint configuration: ", err)
+		return
+	}
 
 	pterm.Info.Println("updating dymint configuration")
 
