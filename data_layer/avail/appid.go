@@ -14,7 +14,7 @@ func CreateAppID(rpcURL, seedPhrase, rollappID string) (appID uint32, err error)
 		fmt.Printf("cannot create api:%v", err)
 	}
 
-	//If the appID corresponding to the rollappID already exists, it will be reused.
+	// If the appID corresponding to the rollappID already exists, it will be reused.
 	blockStorage, err := api.Client.StorageAt(prim.None[prim.H256]())
 	acc, err := sdk.Account.NewKeyPair(seedPhrase)
 
