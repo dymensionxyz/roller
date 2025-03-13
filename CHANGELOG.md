@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1-rc06](https://github.com/dymensionxyz/roller/compare/v1.16.0-rc06...v1.16.1-rc06) (2025-03-13)
+
+
+### Bug Fixes
+
+* **drs_ugprade:** fix da_config reinitialization for drs upgrade (namespace) ([#1319](https://github.com/dymensionxyz/roller/issues/1319)) ([4d469bf](https://github.com/dymensionxyz/roller/commit/4d469bf1575a6e08cd0a0427a56ff2270f7c35c1))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
