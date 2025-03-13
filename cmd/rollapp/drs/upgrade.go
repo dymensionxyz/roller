@@ -192,7 +192,6 @@ func upgradeDaConfig(dymintConfigPath string, daManager datalayer.DAManager) {
 	daConfig, err := tomlconfig.GetKeyFromFile(
 		dymintConfigPath,
 		"da_config")
-
 	if err != nil {
 		pterm.Error.Println("error updating dymint configuration: ", err)
 		return
