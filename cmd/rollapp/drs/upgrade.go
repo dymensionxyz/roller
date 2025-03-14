@@ -3,6 +3,7 @@ package drs
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -158,9 +159,21 @@ func UpgradeCmd() *cobra.Command {
 				rollappConfig.KeyringBackend,
 			)
 
+			drsVersionInt, err := strconv.ParseInt(drsVersion, 10, 64)
+			if err != nil {
+				pterm.Error.Println("failed to get drs version from binary: ", err)
+				return
+			}
+
+			targetDrsInt, err := strconv.ParseInt(drsVersion, 10, 64)
+			if err != nil {
+				pterm.Error.Println("failed to convert drs version from arg: ", err)
+				return
+			}
+
 			if rollapp.IsDAConfigMigrationRequired(
-				drsVersion,
-				targetDrs,
+				drsVersionInt,
+				targetDrsInt,
 				strings.ToLower(raResp.Rollapp.VmType),
 			) {
 				upgradeDaConfig(sequencer.GetDymintFilePath(home), *damanager)
