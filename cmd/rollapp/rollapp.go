@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/rollapp/config"
+	"github.com/dymensionxyz/roller/cmd/rollapp/da"
 	"github.com/dymensionxyz/roller/cmd/rollapp/drs"
 	initrollapp "github.com/dymensionxyz/roller/cmd/rollapp/init"
 	"github.com/dymensionxyz/roller/cmd/rollapp/keys"
@@ -36,6 +37,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(migrate.Cmd())
 	cmd.AddCommand(drs.Cmd())
 	cmd.AddCommand(snapshot.Cmd())
+	cmd.AddCommand(da.Cmd())
 
 	sl := []string{"rollapp"}
 	cmd.AddCommand(
