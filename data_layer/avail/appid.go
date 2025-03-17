@@ -11,12 +11,19 @@ import (
 func CreateAppID(rpcURL, seedPhrase, rollappID string) (appID uint32, err error) {
 	api, err := sdk.NewSDK(rpcURL)
 	if err != nil {
-		fmt.Printf("cannot create api:%v", err)
+		return 0, fmt.Errorf("cannot create api: %v", err)
 	}
 
 	// If the appID corresponding to the rollappID already exists, it will be reused.
 	blockStorage, err := api.Client.StorageAt(prim.None[prim.H256]())
+	if err != nil {
+		return 0, err
+	}
+
 	acc, err := sdk.Account.NewKeyPair(seedPhrase)
+	if err != nil {
+		return 0, err
+	}
 
 	// Fetch Map Storage
 	storage := daPallet.StorageAppKeys{}

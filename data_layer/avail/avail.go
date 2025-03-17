@@ -92,6 +92,14 @@ func NewAvail(root string) *Avail {
 			panic(err)
 		}
 
+		daData, exists := consts.DaNetworks[daNetwork]
+		if !exists {
+			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+		}
+		availConfig.RpcEndpoint = daData.ApiUrl
+		availConfig.AccAddress = keyringPair.Address
+		availConfig.Root = root
+
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your Avail addresses below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(keyringPair.Address))
 
@@ -106,23 +114,15 @@ func NewAvail(root string) *Avail {
 
 		insufficientBalances, err := availConfig.CheckDABalance()
 		if err != nil {
-			pterm.Error.Println("failed to check balance", err)
+			panic(pterm.Error.Println("failed to check balance", err))
 		}
 
 		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 		if err != nil {
-			pterm.Error.Println("failed to check insufficient balances: ", err)
+			panic(pterm.Error.Println("failed to check insufficient balances: ", err))
 		}
 
-		daData, exists := consts.DaNetworks[daNetwork]
-		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
-		}
-		availConfig.RpcEndpoint = daData.ApiUrl
-		availConfig.AccAddress = keyringPair.Address
-		availConfig.Root = root
-
-		availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
+		availConfig.AppID, err = CreateAppID(daData.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 		if err != nil {
 			panic(err)
 		}
