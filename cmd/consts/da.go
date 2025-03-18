@@ -25,6 +25,7 @@ const (
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
 	WeaveVM  DAType = "weavevm"
+	Near     DAType = "near"
 )
 
 type DaNetwork string
@@ -37,6 +38,8 @@ const (
 	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 	WeaveVMTestnet  DaNetwork = "alphanet"
 	WeaveVMMainnet  DaNetwork = "weavevm" // change this with correct mainnet id
+	NearTestnet     DaNetwork = "testnet"
+	NearMainnet     DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -109,6 +112,24 @@ var DaNetworks = map[string]DaData{
 		Backend:          WeaveVM,
 		ApiUrl:           "",
 		ID:               WeaveVMMainnet,
+		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(NearTestnet): {
+		Backend:          Near,
+		ApiUrl:           "",
+		ID:               NearTestnet,
+		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(NearMainnet): {
+		Backend:          Near,
+		ApiUrl:           "",
+		ID:               NearMainnet,
 		RpcUrl:           "",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
