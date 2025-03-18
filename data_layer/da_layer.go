@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
+	"github.com/dymensionxyz/roller/data_layer/near"
 	"github.com/dymensionxyz/roller/data_layer/weavevm"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -48,6 +49,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 		dalayer = avail.NewAvail(home)
 	case consts.WeaveVM:
 		dalayer = weavevm.NewWeaveVM(home)
+	case consts.Near:
+		dalayer = near.NewNear(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
@@ -72,6 +75,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.AvailTestnet)
 		case string(consts.WeaveVM):
 			daNetwork = string(consts.WeaveVMTestnet)
+		case string(consts.Near):
+			daNetwork = string(consts.NearTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -83,6 +88,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.AvailMainnet)
 		case string(consts.WeaveVM):
 			daNetwork = string(consts.WeaveVMMainnet)
+		case string(consts.Near):
+			daNetwork = string(consts.NearMainnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -94,6 +101,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.AvailTestnet)
 		case string(consts.WeaveVM):
 			daNetwork = string(consts.WeaveVMTestnet)
+		case string(consts.Near):
+			daNetwork = string(consts.NearTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
