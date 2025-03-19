@@ -15,21 +15,14 @@ import (
 
 func runInit(
 	home, env string,
-	customHubData consts.HubData,
+	hubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
 ) error {
 	raID := raResp.Rollapp.RollappId
 
-	var hd consts.HubData
-	if env != "custom" {
-		hd = consts.Hubs[env]
-	} else {
-		hd = customHubData
-	}
-
 	// TODO: should set keyring as well
-	ic, err := prepareConfig(env, home, raID, hd, raResp)
+	ic, err := prepareConfig(env, home, raID, hubData, raResp)
 	if err != nil {
 		return err
 	}
