@@ -1,103 +1,228 @@
 package sui
 
 import (
+	"context"
+	"fmt"
+	"math/big"
 	"os/exec"
 
+	"github.com/block-vision/sui-go-sdk/models"
+	"github.com/block-vision/sui-go-sdk/signer"
+	"github.com/block-vision/sui-go-sdk/sui"
+	"github.com/cosmos/go-bip39"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
+	"github.com/pterm/pterm"
 )
 
 const (
-	ConfigFileName = "sui.toml"
+	ConfigFileName        = "sui.toml"
+	DefaultTestnetChainID = 9496
+	NoopContractAddress   = "0xcf119583badb169bfc9a031ec16fb6a79a5151ff7aa0d229f2a35b798ddcd9d6"
+	MnemonicEntropySize   = 256
+	requiredAVL           = 1
 )
-
-type RequestPayload struct {
-	JSONRPC string        `json:"jsonrpc"`
-	Method  string        `json:"method"`
-	Params  []interface{} `json:"params"`
-	ID      int           `json:"id"`
-}
-
-type EthBalanceResponse struct {
-	ID      int    `json:"id"`
-	JsonRPC string `json:"jsonrpc"`
-	Result  string `json:"result"`
-}
 
 type Sui struct {
 	Root        string
-	PrivateKey  string
+	Mnemonic    string
+	Address     string
 	RpcEndpoint string
 	ChainID     uint32
 }
 
-func (w *Sui) GetPrivateKey() (string, error) {
-	return w.PrivateKey, nil
+func (s *Sui) GetPrivateKey() (string, error) {
+	return s.Mnemonic, nil
 }
 
-func (w *Sui) SetMetricsEndpoint(endpoint string) {
+func (s *Sui) SetMetricsEndpoint(endpoint string) {
 }
 
 func NewSui(root string) *Sui {
-	return nil
+	var daNetwork string
+
+	rollerData, err := roller.LoadConfig(root)
+	errorhandling.PrettifyErrorIfExists(err)
+
+	cfgPath := GetCfgFilePath(root)
+	suiConfig, err := loadConfigFromTOML(cfgPath)
+
+	if err != nil {
+		if rollerData.HubData.Environment == "mainnet" {
+			daNetwork = string(consts.SuiMainnet)
+		} else {
+			daNetwork = string(consts.SuiTestnet)
+		}
+
+		daData, exists := consts.DaNetworks[daNetwork]
+		if !exists {
+			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+		}
+
+		useExistingSuiWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to import an existing SUI wallet?",
+		).Show()
+
+		if useExistingSuiWallet {
+			suiConfig.Mnemonic, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"> Enter your bip39 mnemonic",
+			).Show()
+		} else {
+			entropySeed, err := bip39.NewEntropy(MnemonicEntropySize)
+			if err != nil {
+				panic(err)
+			}
+
+			suiConfig.Mnemonic, err = bip39.NewMnemonic(entropySeed)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("\t%s\n", suiConfig.Mnemonic)
+			fmt.Println()
+			fmt.Println(pterm.LightYellow("💡 save this information and keep it safe"))
+		}
+
+		key, err := signer.NewSignertWithMnemonic(suiConfig.Mnemonic)
+		if err != nil {
+			panic(err)
+		}
+
+		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your sui addresses below")
+		pterm.DefaultBasicText.Println(pterm.LightGreen(key.Address))
+
+		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+			WithDefaultText(
+				"press 'y' when the wallets are funded",
+			).Show()
+
+		if !proceed {
+			panic(fmt.Errorf("Sui addr need to be fund!"))
+		}
+
+		suiConfig.RpcEndpoint = daData.RpcUrl
+		suiConfig.Root = root
+		suiConfig.Address = key.Address
+
+		insufficientBalances, err := suiConfig.CheckDABalance()
+		if err != nil {
+			pterm.Error.Println("failed to check balance", err)
+		}
+
+		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
+		if err != nil {
+			pterm.Error.Println("failed to check insufficient balances: ", err)
+		}
+
+		err = writeConfigToTOML(cfgPath, suiConfig)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return &suiConfig
 }
 
-func (w *Sui) InitializeLightNodeConfig() (string, error) {
+func (s *Sui) InitializeLightNodeConfig() (string, error) {
 	return "", nil
 }
 
-func (w *Sui) GetDAAccountAddress() (*keys.KeyInfo, error) {
+func (s *Sui) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	return nil, nil
 }
 
-func (w *Sui) GetRootDirectory() string {
-	return w.Root
+func (s *Sui) GetRootDirectory() string {
+	return s.Root
 }
 
-func (w *Sui) CheckDABalance() ([]keys.NotFundedAddressData, error) {
+func (s *Sui) CheckDABalance() ([]keys.NotFundedAddressData, error) {
+	balance, err := s.getBalance()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DA balance: %w", err)
+	}
+
+	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
+	if required.Cmp(balance) > 0 {
+		return []keys.NotFundedAddressData{
+			{
+				KeyName:         s.GetKeyName(),
+				Address:         s.Address,
+				CurrentBalance:  balance,
+				RequiredBalance: required,
+				Denom:           consts.Denoms.Sui,
+				Network:         string(consts.Sui),
+			},
+		}, nil
+	}
 	return nil, nil
 }
 
-func (w *Sui) GetStartDACmd() *exec.Cmd {
+func (s *Sui) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (w *Sui) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
+func (s *Sui) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	return nil, nil
 }
 
-func (w *Sui) GetSequencerDAConfig(_ string) string {
+func (s *Sui) GetSequencerDAConfig(_ string) string {
+	return fmt.Sprintf(
+		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "%s"}`,
+		s.ChainID,
+		s.RpcEndpoint,
+		NoopContractAddress,
+		s.Mnemonic,
+	)
+}
+
+func (s *Sui) SetRPCEndpoint(rpc string) {
+	s.RpcEndpoint = rpc
+}
+
+func (s *Sui) GetLightNodeEndpoint() string {
 	return ""
 }
 
-func (w *Sui) SetRPCEndpoint(rpc string) {
-	w.RpcEndpoint = rpc
-}
-
-func (w *Sui) GetLightNodeEndpoint() string {
-	return ""
-}
-
-func (w *Sui) GetNetworkName() string {
+func (s *Sui) GetNetworkName() string {
 	return "sui"
 }
 
-func (w *Sui) GetStatus(c roller.RollappConfig) string {
+func (s *Sui) GetStatus(c roller.RollappConfig) string {
 	return "Active"
 }
 
-func (w *Sui) GetKeyName() string {
+func (s *Sui) GetKeyName() string {
 	return "sui"
 }
 
-func (w *Sui) GetNamespaceID() string {
+func (s *Sui) GetNamespaceID() string {
 	return ""
 }
 
-func (w *Sui) GetAppID() uint32 {
+func (s *Sui) GetAppID() uint32 {
 	return 0
 }
 
-func GetBalance(jsonRPCURL, key string) (string, error) {
-	return "", nil
+func (s *Sui) getBalance() (*big.Int, error) {
+	ctx := context.Background()
+	cli := sui.NewSuiClient(s.RpcEndpoint)
+
+	rsp, err := cli.SuiXGetBalance(ctx, models.SuiXGetBalanceRequest{
+		Owner:    s.Address,
+		CoinType: "0x2::sui::SUI",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	bigIntValue := new(big.Int)
+
+	bigIntValue, success := bigIntValue.SetString(rsp.TotalBalance, 10)
+	if !success {
+		return nil, fmt.Errorf("⚠️ Error converting string to big.Int")
+	}
+
+	return bigIntValue, nil
 }

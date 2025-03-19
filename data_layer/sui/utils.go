@@ -9,8 +9,8 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-func writeConfigToTOML(path string, w Sui) error {
-	tomlBytes, err := toml.Marshal(w)
+func writeConfigToTOML(path string, s Sui) error {
+	tomlBytes, err := toml.Marshal(s)
 	if err != nil {
 		return err
 	}
