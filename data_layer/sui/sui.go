@@ -18,19 +18,21 @@ import (
 )
 
 const (
-	ConfigFileName        = "sui.toml"
-	DefaultTestnetChainID = 9496
-	NoopContractAddress   = "0xcf119583badb169bfc9a031ec16fb6a79a5151ff7aa0d229f2a35b798ddcd9d6"
-	MnemonicEntropySize   = 256
-	requiredAVL           = 1
+	ConfigFileName             = "sui.toml"
+	DefaultTestnetChainID      = 9496
+	NoopContractAddressTestnet = "0xcf119583badb169bfc9a031ec16fb6a79a5151ff7aa0d229f2a35b798ddcd9d6"
+	NoopContractAddressMainnet = "" // Not yet
+	MnemonicEntropySize        = 256
+	requiredAVL                = 1
 )
 
 type Sui struct {
-	Root        string
-	Mnemonic    string
-	Address     string
-	RpcEndpoint string
-	ChainID     uint32
+	Root                string
+	Mnemonic            string
+	Address             string
+	NoopContractAddress string
+	RpcEndpoint         string
+	ChainID             uint32
 }
 
 func (s *Sui) GetPrivateKey() (string, error) {
@@ -52,8 +54,10 @@ func NewSui(root string) *Sui {
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.SuiMainnet)
+			suiConfig.NoopContractAddress = NoopContractAddressMainnet
 		} else {
 			daNetwork = string(consts.SuiTestnet)
+			suiConfig.NoopContractAddress = NoopContractAddressTestnet
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
@@ -172,7 +176,7 @@ func (s *Sui) GetSequencerDAConfig(_ string) string {
 		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "%s"}`,
 		s.ChainID,
 		s.RpcEndpoint,
-		NoopContractAddress,
+		s.Address,
 		s.Mnemonic,
 	)
 }
