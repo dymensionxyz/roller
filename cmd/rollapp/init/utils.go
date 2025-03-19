@@ -51,10 +51,13 @@ func runInit(
 	}
 
 	// save the genesis file in the rollapp directory
-	err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
-	if err != nil {
-		return err
+	if env != consts.MockHubName {
+		err = genesisutils.DownloadGenesis(home, ic.GenesisUrl)
+		if err != nil {
+			return err
+		}
 	}
+
 	/* ------------------------------ Generate keys ----------------------------- */
 	var addresses []keys.KeyInfo
 
@@ -115,7 +118,7 @@ func runInit(
 				Address: daAddress.Address,
 			})
 		}
-
+	case consts.Mock:
 	default:
 		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
