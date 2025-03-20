@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/dymensionxyz/roller/compare/v1.16.1...v1.17.0) (2025-03-20)
+
+
+### Features
+
+* import existing relayer keys ([#1327](https://github.com/dymensionxyz/roller/issues/1327)) ([704732e](https://github.com/dymensionxyz/roller/commit/704732eca58b07fc05988eeea8eef6653a1f8ba9))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
