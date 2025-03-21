@@ -69,16 +69,8 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
-			localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
 
-			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
-				home,
-				localRollerConfig.RollappID,
-				localRollerConfig.HubData,
-			)
-			errorhandling.PrettifyErrorIfExists(err)
-
-			if rollappConfig.HubData.ID == "mock" {
+			if localRollerConfig.Environment == "mock" {
 				pterm.Error.Println("setup is not required for mock backend")
 				pterm.Info.Printf(
 					"run %s instead to run the rollapp\n",
@@ -87,6 +79,15 @@ func Cmd() *cobra.Command {
 				)
 				return
 			}
+
+			localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
+
+			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+				home,
+				localRollerConfig.RollappID,
+				localRollerConfig.HubData,
+			)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			raResponse, err := rollapp.GetMetadataFromChain(
 				localRollerConfig.RollappID,
