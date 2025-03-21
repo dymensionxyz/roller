@@ -25,6 +25,7 @@ const (
 	Celestia DAType = "celestia"
 	Avail    DAType = "avail"
 	WeaveVM  DAType = "weavevm"
+	Aptos    DAType = "aptos"
 	Mock     DAType = "mock"
 )
 
@@ -38,6 +39,8 @@ const (
 	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 	WeaveVMTestnet  DaNetwork = "alphanet"
 	WeaveVMMainnet  DaNetwork = "weavevm" // change this with correct mainnet id
+	AptosTestnet    DaNetwork = "aptos-testnet"
+	AptosMainnet    DaNetwork = "aptos-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -110,6 +113,24 @@ var DaNetworks = map[string]DaData{
 		Backend:          WeaveVM,
 		ApiUrl:           "",
 		ID:               WeaveVMMainnet,
+		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(AptosTestnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosTestnet,
+		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(AptosMainnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosMainnet,
 		RpcUrl:           "",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
