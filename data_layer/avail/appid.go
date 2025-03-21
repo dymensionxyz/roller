@@ -11,7 +11,7 @@ import (
 func CreateAppID(rpcURL, seedPhrase, rollappID string) (appID uint32, err error) {
 	api, err := sdk.NewSDK(rpcURL)
 	if err != nil {
-		return 0, fmt.Errorf("cannot create api: %v", err)
+		return 0, fmt.Errorf("cannot create appID: %v", err)
 	}
 
 	// If the appID corresponding to the rollappID already exists, it will be reused.

@@ -2,6 +2,7 @@ package da
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -54,6 +56,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			var dalayer datalayer.DataLayer
 			switch env {
 			case "avail":
 				raResp, err := rollapp.GetMetadataFromChain(rollappConfig.RollappID, rollappConfig.HubData)
@@ -79,64 +82,64 @@ func Cmd() *cobra.Command {
 					return
 				}
 
-				dalayer := avail.NewAvail(home)
-
-				submited, _ := pterm.DefaultInteractiveConfirm.WithDefaultText("Have you submitted to gov yet?").Show()
-				if !submited {
-					// Create Gov
-					keyName, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your key name").Show()
-					keyring, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your keyring-backend").Show()
-					title, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Title").Show()
-					description, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Description").Show()
-					deposit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Deposit").Show()
-					newDAParam := json.RawMessage(`"avail"`)
-					txHash, err := gov.ParamChangeProposal(home, keyName, keyring,
-						&utils.ParamChangeProposalJSON{
-							Title:       title,
-							Description: description,
-							Changes: utils.ParamChangesJSON{
-								utils.NewParamChangeJSON("rollappparams", "da", newDAParam),
-							},
-							Deposit: deposit + rollappConfig.Denom,
-						})
-
-					if err != nil {
-						pterm.Error.Println("failed to submit proposal", err)
-						return
-					}
-					pterm.Info.Println("Proposal Tx hash: ", txHash)
-				}
-
-				daConfig := dalayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
-				rollappConfig.DA.Backend = "avail"
-
-				dymintConfigPath := sequtils.GetDymintFilePath(home)
-
-				pterm.Info.Println("updating dymint configuration")
-
-				_ = tomlconfig.UpdateFieldInFile(
-					dymintConfigPath,
-					"da_layer",
-					[]string{string("avail")},
-				)
-
-				_ = tomlconfig.UpdateFieldInFile(
-					dymintConfigPath,
-					"da_config",
-					daConfig,
-				)
-
-				if err := roller.WriteConfig(rollappConfig); err != nil {
-					pterm.Error.Println("failed to write roller config", err)
-					return
-				}
-
-				pterm.Info.Println("the config update process is complete! Now you need to restart the nodes before the proposal passes.")
+				dalayer = avail.NewAvail(home)
 
 			default:
 				pterm.Error.Println("switch does not support da: ", env)
 				return
 			}
+
+			submited, _ := pterm.DefaultInteractiveConfirm.WithDefaultText("Have you submitted to gov yet?").Show()
+			if !submited {
+				// Create Gov
+				keyName, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your key name").Show()
+				keyring, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your keyring-backend").Show()
+				title, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Title").Show()
+				description, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Description").Show()
+				deposit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("Enter your Proposal Deposit").Show()
+				newDAParam := json.RawMessage(fmt.Sprintf(`"%s"`, env))
+				txHash, err := gov.ParamChangeProposal(home, keyName, keyring,
+					&utils.ParamChangeProposalJSON{
+						Title:       title,
+						Description: description,
+						Changes: utils.ParamChangesJSON{
+							utils.NewParamChangeJSON("rollappparams", "da", newDAParam),
+						},
+						Deposit: deposit + rollappConfig.Denom,
+					})
+
+				if err != nil {
+					pterm.Error.Println("failed to submit proposal", err)
+					return
+				}
+				pterm.Info.Println("Proposal Tx hash: ", txHash)
+			}
+
+			daConfig := dalayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+			rollappConfig.DA.Backend = consts.DAType(env)
+
+			dymintConfigPath := sequtils.GetDymintFilePath(home)
+
+			pterm.Info.Println("updating dymint configuration")
+
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"da_layer",
+				[]string{string(env)},
+			)
+
+			_ = tomlconfig.UpdateFieldInFile(
+				dymintConfigPath,
+				"da_config",
+				daConfig,
+			)
+
+			if err := roller.WriteConfig(rollappConfig); err != nil {
+				pterm.Error.Println("failed to write roller config", err)
+				return
+			}
+
+			pterm.Info.Println("the config update process is complete! Now you need to restart the nodes before the proposal passes.")
 
 		},
 	}
