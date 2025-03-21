@@ -56,6 +56,11 @@ func Cmd() *cobra.Command {
 				return
 			}
 
+			if strings.ToLower(string(rollappConfig.DA.Backend)) == env {
+				pterm.Info.Println("You are switching to the same DA as previous!")
+				return
+			}
+
 			var dalayer datalayer.DataLayer
 			switch env {
 			case "avail":
