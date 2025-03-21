@@ -432,9 +432,12 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 			Show()
 		hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
 			Show()
+		hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+			Show()
 
 		rollerConfig.HubData.ID = hdid
 		rollerConfig.HubData.RpcUrl = hdrpc
+		rollerConfig.HubData.WsUrl = hdws
 
 		hd = rollerConfig.HubData
 
@@ -452,6 +455,9 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 		}
 	} else {
 		hd = consts.Hubs[env]
+		hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+			Show()
+		hd.WsUrl = hdws
 	}
 
 	return hd, nil
