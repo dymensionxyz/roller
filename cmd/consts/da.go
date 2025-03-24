@@ -26,6 +26,7 @@ const (
 	Avail    DAType = "avail"
 	WeaveVM  DAType = "weavevm"
 	Sui      DAType = "sui"
+	Mock     DAType = "mock"
 )
 
 type DaNetwork string

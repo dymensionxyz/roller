@@ -38,6 +38,7 @@ func GetRelayerAddressInfo(keyConfig KeyConfig, chainId string) (*KeyInfo, error
 }
 
 func IsRlyAddressWithNameInKeyring(
+	keyName string,
 	info KeyConfig,
 	chainId string,
 ) (bool, error) {
@@ -51,13 +52,11 @@ func IsRlyAddressWithNameInKeyring(
 		return false, err
 	}
 
-	lookFor := fmt.Sprintf("no keys found for chain %s", chainId)
-
 	if out.String() == "" {
 		return false, nil
 	}
 
-	return !strings.Contains(out.String(), lookFor), nil
+	return strings.Contains(out.String(), keyName), nil
 }
 
 // TODO: remove this struct as it's redundant to KeyInfo
@@ -174,20 +173,49 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 		switch v.ID {
 		case consts.KeysIds.RollappRelayer:
 			chainId := rollerData.RollappID
-			ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
-			if err != nil {
-				return nil, err
-			}
 
-			createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+			useExistingWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+				"would you like to import an existing relayer key for Rollapp?",
+			).Show()
+
+			if useExistingWallet {
+				mnemonic, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"> Enter your bip39 mnemonic",
+				).Show()
+				ki, err := restoreRelayerKeyIfNotPresent(k, chainId, mnemonic, v)
+				if err != nil {
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+			} else {
+				ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
+				if err != nil {
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+			}
 		case consts.KeysIds.HubRelayer:
 			chainId := rollerData.HubData.ID
-			ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
-			if err != nil {
-				return nil, err
-			}
+			useExistingWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+				"would you like to import an existing relayer key for Hub?",
+			).Show()
 
-			createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
+			if useExistingWallet {
+				mnemonic, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"> Enter your bip39 mnemonic",
+				).Show()
+				ki, err := restoreRelayerKeyIfNotPresent(k, chainId, mnemonic, v)
+				if err != nil {
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+			} else {
+				ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
+				if err != nil {
+					return nil, err
+				}
+				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+			}
 		default:
 			return nil, fmt.Errorf("invalid key name: %s", v.ID)
 		}
@@ -206,7 +234,7 @@ func createRelayerKeyIfNotPresent(
 	keyName, chainID string,
 	kc KeyConfig,
 ) (*KeyInfo, error) {
-	isPresent, err := IsRlyAddressWithNameInKeyring(kc, chainID)
+	isPresent, err := IsRlyAddressWithNameInKeyring(keyName, kc, chainID)
 	var ki KeyInfo
 	if err != nil {
 		pterm.Error.Printf("failed to check address: %v\n", err)
@@ -217,6 +245,38 @@ func createRelayerKeyIfNotPresent(
 		key, err := AddRlyKey(kc, chainID)
 		if err != nil {
 			pterm.Error.Printf("failed to add key: %v\n", err)
+		}
+
+		ki = *key
+	} else {
+		key, err := GetRelayerAddressInfo(
+			kc,
+			chainID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		ki = *key
+	}
+	return &ki, nil
+}
+
+func restoreRelayerKeyIfNotPresent(
+	keyName, chainID, mnemonic string,
+	kc KeyConfig,
+) (*KeyInfo, error) {
+	isPresent, err := IsRlyAddressWithNameInKeyring(keyName, kc, chainID)
+	var ki KeyInfo
+	if err != nil {
+		pterm.Error.Printf("failed to check address: %v\n", err)
+		return nil, err
+	}
+
+	if !isPresent {
+		key, err := RestoreRlyKey(kc, chainID, mnemonic)
+		if err != nil {
+			pterm.Error.Printf("failed to restore key: %v\n", err)
 		}
 
 		ki = *key
@@ -259,6 +319,46 @@ func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
 	)
 
 	out, err := bash.ExecCommandWithStdout(addKeyCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	ki, err := ParseAddressFromOutput(out)
+	if err != nil {
+		return nil, err
+	}
+	ki.Name = kc.ID
+
+	return ki, nil
+}
+
+func getRestoreRlyKeyCmd(keyConfig KeyConfig, chainID, mnemonic string) *exec.Cmd {
+	coinType := "60"
+	if keyConfig.Type == consts.WASM_ROLLAPP {
+		coinType = "118"
+	}
+	return exec.Command(
+		consts.Executables.Relayer,
+		"keys",
+		"restore",
+		chainID,
+		keyConfig.ID,
+		mnemonic,
+		"--home",
+		keyConfig.Dir,
+		"--coin-type",
+		coinType,
+	)
+}
+
+func RestoreRlyKey(kc KeyConfig, chainID, mnemonic string) (*KeyInfo, error) {
+	restoreKeyCmd := getRestoreRlyKeyCmd(
+		kc,
+		chainID,
+		mnemonic,
+	)
+
+	out, err := bash.ExecCommandWithStdout(restoreKeyCmd)
 	if err != nil {
 		return nil, err
 	}
