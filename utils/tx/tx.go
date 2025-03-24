@@ -17,14 +17,8 @@ import (
 
 func MonitorTransaction(wsURL, txHash string) error {
 	if strings.HasPrefix(wsURL, "http") {
-		for {
-			_, err := http.Get(fmt.Sprintf("%s/status", wsURL))
-			if err == nil {
-				fmt.Println("✅ RPC is working!")
-				break
-			}
-			fmt.Printf("❌ RPC %s is not responding: %v\n", wsURL, err)
-
+		err := WaitForRPCStatus(fmt.Sprintf("%s/status", wsURL))
+		if err != nil {
 			newRPC, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"the provided Hub RPC is not working, please enter another RPC Endpoint instead (you can be obtained in the following link https://blastapi.io/chains/dymension)",
 			).Show()
@@ -182,6 +176,32 @@ func MonitorTransaction(wsURL, txHash string) error {
 					}
 				}
 			}
+		}
+	}
+}
+
+func WaitForRPCStatus(url string) error {
+	timeout := time.After(20 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	spinner, _ := pterm.DefaultSpinner.Start("checking rpc status")
+
+	for {
+		select {
+		case <-timeout:
+			spinner.Fail("Timeout: Failed to receive expected response within 20 seconds")
+			return fmt.Errorf("timeout")
+		case <-ticker.C:
+			// nolint:gosec
+			_, err := http.Get(url)
+			if err != nil {
+				fmt.Printf("Error making request: %v\n", err)
+				continue
+			}
+			spinner.Success("RollApp is healthy")
+			return nil
+
 		}
 	}
 }
