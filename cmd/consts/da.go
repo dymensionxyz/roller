@@ -39,8 +39,8 @@ const (
 	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 	WeaveVMTestnet  DaNetwork = "alphanet"
 	WeaveVMMainnet  DaNetwork = "weavevm" // change this with correct mainnet id
-	AptosTestnet    DaNetwork = "aptos-testnet"
-	AptosMainnet    DaNetwork = "aptos-mainnet"
+	AptosTestnet    DaNetwork = "testnet"
+	AptosMainnet    DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
