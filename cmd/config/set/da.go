@@ -12,7 +12,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/pterm/pterm"
 )
 
 func setDA(rlpCfg roller.RollappConfig, value string) error {
@@ -37,7 +36,6 @@ func setDARPC(rlpCfg roller.RollappConfig, value string) error {
 	rlpCfg.DA.RpcUrl = value
 	switch rlpCfg.DA.Backend {
 	case consts.Celestia:
-		pterm.Info.Println("base url is always the locally running light client, the rpc command should not update the url for Celestia")
 		return nil
 	case consts.Avail:
 		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "endpoint"); err != nil {
