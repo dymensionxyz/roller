@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -63,7 +64,7 @@ func AddEibcLPCmd() *cobra.Command {
 				selectedRollapps = strings.Split(rollappList, ",")
 				for _, grant := range grantsByGrantee.Grants {
 					for _, rollapp := range grant.Authorization.Value.Rollapps {
-						if !contains(selectedRollapps, rollapp.RollappID) {
+						if !slices.Contains(selectedRollapps, rollapp.RollappID) {
 							continue
 						}
 						for _, spendLimit := range rollapp.SpendLimit {
@@ -192,13 +193,4 @@ func RemoveEibcLPCmd() *cobra.Command {
 	}
 
 	return cmd
-}
-
-func contains(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
 }
