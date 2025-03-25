@@ -38,7 +38,7 @@ type DAManager struct {
 	DataLayer
 }
 
-func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringBackend) *DAManager {
+func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringBackend, nodeType string) *DAManager {
 	var dalayer DataLayer
 
 	switch datype {

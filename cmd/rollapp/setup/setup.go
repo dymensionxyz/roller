@@ -528,6 +528,7 @@ RollApp's IRO time: %v`,
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
 				rollappConfig.KeyringBackend,
+				nodeType,
 			)
 
 			daHome := filepath.Join(
