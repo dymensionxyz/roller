@@ -146,7 +146,7 @@ func (s *Sui) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 		return nil, fmt.Errorf("failed to get DA balance: %w", err)
 	}
 
-	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	exp := new(big.Int).Exp(big.NewInt(1000), big.NewInt(1), nil)
 	required := new(big.Int).Mul(big.NewInt(requiredAVL), exp)
 	if required.Cmp(balance) > 0 {
 		return []keys.NotFundedAddressData{
