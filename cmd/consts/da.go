@@ -21,23 +21,23 @@ const (
 type DAType string
 
 const (
-	Local    DAType = "mock"
-	Celestia DAType = "celestia"
-	Avail    DAType = "avail"
-	WeaveVM  DAType = "weavevm"
-	Mock     DAType = "mock"
+	Local       DAType = "mock"
+	Celestia    DAType = "celestia"
+	Avail       DAType = "avail"
+	LoadNetwork DAType = "loadnetwork"
+	Mock        DAType = "mock"
 )
 
 type DaNetwork string
 
 const (
-	MockDA          DaNetwork = "mock"
-	CelestiaTestnet DaNetwork = "mocha-4"
-	CelestiaMainnet DaNetwork = "celestia"
-	AvailTestnet    DaNetwork = "avail"
-	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
-	WeaveVMTestnet  DaNetwork = "alphanet"
-	WeaveVMMainnet  DaNetwork = "weavevm" // change this with correct mainnet id
+	MockDA             DaNetwork = "mock"
+	CelestiaTestnet    DaNetwork = "mocha-4"
+	CelestiaMainnet    DaNetwork = "celestia"
+	AvailTestnet       DaNetwork = "avail"
+	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
+	LoadNetworkTestnet DaNetwork = "alphanet"
+	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -97,19 +97,19 @@ var DaNetworks = map[string]DaData{
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
-	string(WeaveVMTestnet): {
-		Backend:          WeaveVM,
-		ApiUrl:           "https://testnet-rpc.wvm.dev",
-		ID:               WeaveVMTestnet,
-		RpcUrl:           "wss://testnet-rpc.wvm.dev/ws",
+	string(LoadNetworkTestnet): {
+		Backend:          LoadNetwork,
+		ApiUrl:           "https://alphanet.load.network",
+		ID:               LoadNetworkTestnet,
+		RpcUrl:           "wss://alphanet.load.network/ws",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
-	string(WeaveVMMainnet): {
-		Backend:          WeaveVM,
+	string(LoadNetworkMainnet): {
+		Backend:          LoadNetwork,
 		ApiUrl:           "",
-		ID:               WeaveVMMainnet,
+		ID:               LoadNetworkMainnet,
 		RpcUrl:           "",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
