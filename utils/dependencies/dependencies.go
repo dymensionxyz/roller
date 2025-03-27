@@ -158,8 +158,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 				DependencyName:  "rollapp-evm",
 				RepositoryOwner: "artemijspavlovs",
 				RepositoryName:  "rollapp-evm",
-				RepositoryUrl:   "https://github.com/artemijspavlovs/rollapp-evm",
-				Release:         "v2.3.4-pg-roller-02",
+				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-evm",
+				Release:         "v3.1.0-drs6-rc02",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -172,8 +172,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 				DependencyName:  "rollapp-wasm",
 				RepositoryOwner: "artemijspavlovs",
 				RepositoryName:  "rollapp-wasm",
-				RepositoryUrl:   "https://github.com/artemijspavlovs/rollapp-wasm",
-				Release:         "v1.0.0-rc04-roller-07",
+				RepositoryUrl:   "https://github.com/dymensionxyz/rollapp-wasm",
+				Release:         "v2.1.0-drs9",
 				Binaries: []types.BinaryPathPair{
 					{
 						Binary:            "rollappd",
@@ -182,7 +182,6 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 				},
 			}
 		}
-
 	}
 
 	for k, dep := range goreleaserDeps {
