@@ -1,7 +1,6 @@
 package relayer
 
 import (
-	"fmt"
 	"slices"
 	"time"
 
@@ -16,8 +15,6 @@ func (r *Relayer) HandleWhitelisting(
 	addr string,
 	rollappChainData *roller.RollappConfig,
 ) error {
-	fmt.Printf("adding %s to the whitelist\n", addr)
-
 	kb := rollappChainData.KeyringBackend
 
 	seqAddr, err := sequencerutils.GetSequencerAccountAddress(*rollappChainData)
