@@ -56,7 +56,7 @@ func Cmd(services []string, module string) *cobra.Command {
 				return
 			}
 
-			if rollerData.DA.Backend == consts.Celestia {
+			if rollerData.DA.Backend == consts.Celestia && module == "rollapp" {
 				services = consts.RollappWithCelesSystemdServices
 			}
 
