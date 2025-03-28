@@ -69,7 +69,8 @@ func AddEibcLPCmd() *cobra.Command {
 						}
 						for _, spendLimit := range rollapp.SpendLimit {
 							for _, addr := range config.Addresses {
-								if addr.Address == grant.Granter && addr.Threshold.Denom == spendLimit.Denom {
+								if addr.Address == grant.Granter &&
+									addr.Threshold.Denom == spendLimit.Denom {
 									continue
 								}
 							}
@@ -128,7 +129,8 @@ func AddEibcLPCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&rollappList, "rollapp", "", "Comma-separated list of rollapps exp: --rollapps a,b,c (default: all)")
+	cmd.Flags().
+		StringVar(&rollappList, "rollapp", "", "Comma-separated list of rollapps exp: --rollapps a,b,c (default: all)")
 	return cmd
 }
 
