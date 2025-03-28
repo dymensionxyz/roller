@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/dymensionxyz/roller/compare/v1.16.2...v1.17.0) (2025-03-28)
+
+
+### Features
+
+* add alert when there is no LP for DYM or Native token ([#1316](https://github.com/dymensionxyz/roller/issues/1316)) ([aa187cc](https://github.com/dymensionxyz/roller/commit/aa187cc8db72b6ec802eac04ad6bb5c72e107253))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
