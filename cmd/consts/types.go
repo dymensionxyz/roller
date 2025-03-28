@@ -5,6 +5,7 @@ type HubData struct {
 	ApiUrl        string `toml:"api_url"         json:"apiUrl"`
 	ID            string `toml:"id"              json:"id"`
 	RpcUrl        string `toml:"rpc_url"         json:"rpcUrl"`
+	WsUrl         string `toml:"ws_url"          json:"wsUrl"`
 	ArchiveRpcUrl string `toml:"archive_rpc_url" json:"archiveRpcUrl"`
 	GasPrice      string `toml:"gas_price"       json:"gasPrice"`
 }
