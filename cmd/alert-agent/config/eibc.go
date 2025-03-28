@@ -120,7 +120,7 @@ func AddEibcLPCmd() *cobra.Command {
 				return fmt.Errorf("failed to marshal updated config: %w", err)
 			}
 
-			err = os.WriteFile(configPath, updatedConfig, 0644)
+			err = os.WriteFile(configPath, updatedConfig, 0x644)
 			if err != nil {
 				return fmt.Errorf("failed to write config file: %w", err)
 			}
@@ -185,7 +185,7 @@ func RemoveEibcLPCmd() *cobra.Command {
 				return fmt.Errorf("failed to marshal updated config: %w", err)
 			}
 
-			err = os.WriteFile(configPath, updatedConfig, 0644)
+			err = os.WriteFile(configPath, updatedConfig, 0x644)
 			if err != nil {
 				return fmt.Errorf("failed to write config file: %w", err)
 			}
