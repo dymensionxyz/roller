@@ -115,12 +115,13 @@ func MonitorTransaction(wsURL, txHash string) error {
 				wsURL = newWS
 				continue
 			}
-			defer func() error {
+
+			defer func() {
 				if err := c.Close(); err != nil {
-					return fmt.Errorf("error closing connection: %v", err)
+					pterm.Warning.Printf("failed to close the websocket connection: %v\n", err)
 				}
-				return nil
 			}()
+
 			fmt.Println("✅ WebSocket is working!")
 
 			txBytes, err := hex.DecodeString(txHash)
