@@ -133,6 +133,7 @@ var Denoms = struct {
 	Aptos           string
 	Sui             string
 	LoadNetwork     string
+	Bnb             string
 }{
 	Hub:             "adym",
 	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
@@ -141,6 +142,7 @@ var Denoms = struct {
 	Aptos:           "apt",
 	Sui:             "sui",
 	LoadNetwork:     "tLOAD",
+	Bnb:             "ubnb",
 }
 
 const (
