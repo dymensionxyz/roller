@@ -21,26 +21,26 @@ const (
 type DAType string
 
 const (
-	Local    DAType = "mock"
-	Celestia DAType = "celestia"
-	Avail    DAType = "avail"
+	Local       DAType = "mock"
+	Celestia    DAType = "celestia"
+	Avail       DAType = "avail"
 	LoadNetwork DAType = "loadnetwork"
-	Sui      DAType = "sui"
-	Mock     DAType = "mock"
+	Sui         DAType = "sui"
+	Mock        DAType = "mock"
 )
 
 type DaNetwork string
 
 const (
-	MockDA          DaNetwork = "mock"
-	CelestiaTestnet DaNetwork = "mocha-4"
-	CelestiaMainnet DaNetwork = "celestia"
-	AvailTestnet    DaNetwork = "avail"
-	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
+	MockDA             DaNetwork = "mock"
+	CelestiaTestnet    DaNetwork = "mocha-4"
+	CelestiaMainnet    DaNetwork = "celestia"
+	AvailTestnet       DaNetwork = "avail"
+	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
-	SuiTestnet      DaNetwork = "testnet"
-	SuiMainnet      DaNetwork = "mainnet"
+	SuiTestnet         DaNetwork = "testnet"
+	SuiMainnet         DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
