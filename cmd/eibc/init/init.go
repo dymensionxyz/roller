@@ -426,7 +426,8 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 		WithOptions(envs).
 		Show()
 
-	if env == "custom" {
+	switch env {
+	case "custom":
 		var rollerConfig roller.RollappConfig
 		hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
 			Show()
@@ -437,7 +438,12 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 
 		rollerConfig.HubData.ID = hdid
 		rollerConfig.HubData.RpcUrl = hdrpc
-		rollerConfig.HubData.WsUrl = hdws
+
+		if hdws == "" {
+			rollerConfig.HubData.WsUrl = hdrpc
+		} else {
+			rollerConfig.HubData.WsUrl = hdws
+		}
 
 		hd = rollerConfig.HubData
 
@@ -453,11 +459,17 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 			pterm.Error.Println("failed to write roller config", err)
 			return consts.HubData{}, err
 		}
-	} else {
+	case "mainnet":
 		hd = consts.Hubs[env]
 		hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
 			Show()
-		hd.WsUrl = hdws
+		if hdws == "" {
+			hd.WsUrl = hd.RpcUrl
+		} else {
+			hd.WsUrl = hdws
+		}
+	default:
+		hd = consts.Hubs[env]
 	}
 
 	return hd, nil
@@ -537,7 +549,7 @@ func createGroupIfNotPresent(
 			return "", err
 		}
 
-		err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+		err = tx.MonitorTransaction(hd.WsUrl, txHash)
 		if err != nil {
 			return "", err
 		}
@@ -597,7 +609,7 @@ func createPolicyIfNotPresent(
 			return "", err
 		}
 
-		err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+		err = tx.MonitorTransaction(hd.WsUrl, txHash)
 		if err != nil {
 			return "", err
 		}

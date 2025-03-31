@@ -138,11 +138,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	if raCfg.HubData.WsUrl == "" {
-		err = tx.MonitorTransaction(raCfg.HubData.RpcUrl, txHash)
-	} else {
-		err = tx.MonitorTransaction(raCfg.HubData.WsUrl, txHash)
-	}
+	err = tx.MonitorTransaction(raCfg.HubData.WsUrl, txHash)
 	if err != nil {
 		return err
 	}
@@ -661,11 +657,7 @@ func UpdateWhitelistedRelayers(
 		return err
 	}
 
-	if hd.WsUrl == "" {
-		err = tx.MonitorTransaction(hd.RpcUrl, txHash)
-	} else {
-		err = tx.MonitorTransaction(hd.WsUrl, txHash)
-	}
+	err = tx.MonitorTransaction(hd.WsUrl, txHash)
 	if err != nil {
 		return err
 	}

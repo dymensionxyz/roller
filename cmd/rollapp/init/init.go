@@ -180,7 +180,11 @@ func Cmd() *cobra.Command {
 				}
 
 				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
-				hd.WsUrl = hdws
+				if hdws == "" {
+					hd.WsUrl = hd.RpcUrl
+				} else {
+					hd.WsUrl = hdws
+				}
 
 				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 				if err != nil {
@@ -218,10 +222,25 @@ func Cmd() *cobra.Command {
 					return
 				}
 				return
-			default:
+			case "mainnet":
 				hd = consts.Hubs[env]
 				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
-				hd.WsUrl = hdws
+				if hdws == "" {
+					hd.WsUrl = hd.RpcUrl
+				} else {
+					hd.WsUrl = hdws
+				}
+
+				if shouldSkipBinaryInstallation {
+					dymdDep := dependencies.DefaultDymdDependency()
+					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					if err != nil {
+						pterm.Error.Println("failed to install dymd: ", err)
+						return
+					}
+				}
+			default:
+				hd = consts.Hubs[env]
 
 				if shouldSkipBinaryInstallation {
 					dymdDep := dependencies.DefaultDymdDependency()

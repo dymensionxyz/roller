@@ -129,11 +129,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if raData.HubData.WsUrl == "" {
-				err = tx.MonitorTransaction(raData.HubData.RpcUrl, txHash)
-			} else {
-				err = tx.MonitorTransaction(raData.HubData.WsUrl, txHash)
-			}
+			err = tx.MonitorTransaction(raData.HubData.WsUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
 				return

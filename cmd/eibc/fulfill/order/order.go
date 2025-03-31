@@ -78,11 +78,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if rollerCfg.HubData.WsUrl == "" {
-				err = tx.MonitorTransaction(rollerCfg.HubData.RpcUrl, txHash)
-			} else {
-				err = tx.MonitorTransaction(rollerCfg.HubData.WsUrl, txHash)
-			}
+			err = tx.MonitorTransaction(rollerCfg.HubData.WsUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
 				return

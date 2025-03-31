@@ -122,11 +122,7 @@ func Cmd() *cobra.Command {
 				}
 			}
 
-			if rollerData.HubData.WsUrl == "" {
-				err = tx.MonitorTransaction(rollerData.HubData.RpcUrl, txHash)
-			} else {
-				err = tx.MonitorTransaction(rollerData.HubData.WsUrl, txHash)
-			}
+			err = tx.MonitorTransaction(rollerData.HubData.WsUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("failed to update bond: ", err)
 				return

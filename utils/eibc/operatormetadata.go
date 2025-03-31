@@ -197,11 +197,7 @@ func UpdateEibcOperatorMetadata(home, metadata string, hd consts.HubData) error 
 		return err
 	}
 
-	if hd.WsUrl == "" {
-		err = tx.MonitorTransaction(hd.RpcUrl, txHash)
-	} else {
-		err = tx.MonitorTransaction(hd.WsUrl, txHash)
-	}
+	err = tx.MonitorTransaction(hd.WsUrl, txHash)
 	if err != nil {
 		return err
 	}
