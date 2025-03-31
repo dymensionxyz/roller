@@ -6,103 +6,208 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	cometclient "github.com/cometbft/cometbft/rpc/client/http"
 	comettypes "github.com/cometbft/cometbft/types"
+	"github.com/gorilla/websocket"
 	"github.com/pterm/pterm"
 )
 
 func MonitorTransaction(wsURL, txHash string) error {
-	for {
-		_, err := http.Get(fmt.Sprintf("%s/status", wsURL))
-		if err == nil {
-			fmt.Println("✅ RPC is working!")
-			break
+	if strings.HasPrefix(wsURL, "http") {
+		err := WaitForRPCStatus(fmt.Sprintf("%s/status", wsURL))
+		if err != nil {
+			newRPC, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"the provided Hub RPC is not working, please enter another RPC Endpoint instead (you can be obtained in the following link https://blastapi.io/chains/dymension)",
+			).Show()
+
+			wsURL = newRPC
 		}
-		fmt.Printf("❌ RPC %s is not responding: %v\n", wsURL, err)
 
-		newRPC, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"the provided Hub RPC is not working, please enter another RPC Endpoint instead (you can be obtained in the following link https://blastapi.io/chains/dymension)",
-		).Show()
+		// Create a new client
+		client, err := cometclient.New(wsURL, "/websocket")
+		if err != nil {
+			return fmt.Errorf("error creating client: %v", err)
+		}
 
-		wsURL = newRPC
-	}
+		// Start the client
+		err = client.Start()
+		if err != nil {
+			return fmt.Errorf("error starting client: %v", err)
+		}
 
-	// Create a new client
-	client, err := cometclient.New(wsURL, "/websocket")
-	if err != nil {
-		return fmt.Errorf("error creating client: %v", err)
-	}
+		// nolint errcheck
+		defer client.Stop()
 
-	// Start the client
-	err = client.Start()
-	if err != nil {
-		return fmt.Errorf("error starting client: %v", err)
-	}
+		// Convert txHash string to bytes
+		txBytes, err := hex.DecodeString(txHash)
+		if err != nil {
+			return fmt.Errorf("error decoding txHash: %v", err)
+		}
 
-	// nolint errcheck
-	defer client.Stop()
+		// Create a query to filter transactions
+		query := fmt.Sprintf("tm.event='Tx' AND tx.hash='%X'", txBytes)
 
-	// Convert txHash string to bytes
-	txBytes, err := hex.DecodeString(txHash)
-	if err != nil {
-		return fmt.Errorf("error decoding txHash: %v", err)
-	}
+		// Subscribe to the query
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		// nolint errcheck
+		defer cancel()
 
-	// Create a query to filter transactions
-	query := fmt.Sprintf("tm.event='Tx' AND tx.hash='%X'", txBytes)
+		subscription, err := client.Subscribe(ctx, "tx-monitor", query, 100)
+		if err != nil {
+			return fmt.Errorf("error subscribing: %v", err)
+		}
+		// nolint errcheck
+		defer client.Unsubscribe(ctx, "tx-monitor", query)
 
-	// Subscribe to the query
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	// nolint errcheck
-	defer cancel()
+		fmt.Println("Monitoring transaction:", txHash)
 
-	subscription, err := client.Subscribe(ctx, "tx-monitor", query, 100)
-	if err != nil {
-		return fmt.Errorf("error subscribing: %v", err)
-	}
-	// nolint errcheck
-	defer client.Unsubscribe(ctx, "tx-monitor", query)
+		spinner, _ := pterm.DefaultSpinner.WithText(
+			fmt.Sprintf(
+				"waiting for tx with hash %s to finalize",
+				pterm.FgYellow.Sprint(txHash),
+			),
+		).Start()
 
-	fmt.Println("Monitoring transaction:", txHash)
+		// Listen for events
+		for {
+			select {
+			case event := <-subscription:
+				txEvent, ok := event.Data.(comettypes.EventDataTx)
+				if !ok {
+					fmt.Println("Received non-tx event")
+					continue
+				}
 
-	spinner, _ := pterm.DefaultSpinner.WithText(
-		fmt.Sprintf(
-			"waiting for tx with hash %s to finalize",
-			pterm.FgYellow.Sprint(txHash),
-		),
-	).Start()
+				if txEvent.Result.Code == 0 {
+					spinner.Success("transaction succeeded")
+					pterm.Info.Printf(
+						"Gas wanted: %d, Gas used: %d\n",
+						txEvent.Result.GasWanted,
+						txEvent.Result.GasUsed,
+					)
+					return nil
+				} else {
+					j, _ := json.MarshalIndent(txEvent.Result, "", " ")
+					fmt.Println(string(j))
 
-	// Listen for events
-	for {
-		select {
-		case event := <-subscription:
-			txEvent, ok := event.Data.(comettypes.EventDataTx)
-			if !ok {
-				fmt.Println("Received non-tx event")
+					return fmt.Errorf("transaction failed with code %d: %v", txEvent.Result.Code, txEvent.Result.Log)
+				}
+			case <-time.After(5 * time.Minute):
+				return fmt.Errorf("timeout waiting for transaction")
+
+			case <-ctx.Done():
+				return fmt.Errorf("context cancelled")
+			}
+		}
+	} else {
+		for {
+			c, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+			if err != nil {
+				fmt.Printf("❌ WebSocket %s is not responding\n", wsURL)
+
+				newWS, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
+					"WebSocket is not working. Please enter a new WebSocket URL (wss:// or ws://):",
+				).Show()
+
+				wsURL = newWS
 				continue
 			}
 
-			if txEvent.Result.Code == 0 {
-				spinner.Success("transaction succeeded")
-				pterm.Info.Printf(
-					"Gas wanted: %d, Gas used: %d\n",
-					txEvent.Result.GasWanted,
-					txEvent.Result.GasUsed,
-				)
-				return nil
-			} else {
-				j, _ := json.MarshalIndent(txEvent.Result, "", " ")
-				fmt.Println(string(j))
+			defer func() {
+				if err := c.Close(); err != nil {
+					pterm.Warning.Printf("failed to close the websocket connection: %v\n", err)
+				}
+			}()
 
-				return fmt.Errorf("transaction failed with code %d: %v", txEvent.Result.Code, txEvent.Result.Log)
+			fmt.Println("✅ WebSocket is working!")
+
+			txBytes, err := hex.DecodeString(txHash)
+			if err != nil {
+				return fmt.Errorf("error decoding txHash: %v", err)
 			}
-		case <-time.After(5 * time.Minute):
-			return fmt.Errorf("timeout waiting for transaction")
 
-		case <-ctx.Done():
-			return fmt.Errorf("context cancelled")
+			// Create a query to filter transactions
+			query := fmt.Sprintf("tm.event='Tx' AND tx.hash='%X'", txBytes)
+
+			subscribeMsg := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      "1",
+				"method":  "subscribe",
+				"params":  []interface{}{query},
+			}
+
+			if err := c.WriteJSON(subscribeMsg); err != nil {
+				return fmt.Errorf("failed to send subscribe request: %v", err)
+			}
+
+			fmt.Println("Monitoring transaction:", txHash)
+
+			spinner, _ := pterm.DefaultSpinner.WithText(
+				fmt.Sprintf("Waiting for transaction %s to finalize...", pterm.FgYellow.Sprint(txHash)),
+			).Start()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel()
+
+			for {
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("timeout waiting for transaction")
+
+				default:
+					var event struct {
+						DataTx comettypes.EventDataTx `json:"result"`
+					}
+
+					_, message, err := c.ReadMessage()
+					if err != nil {
+						return fmt.Errorf("error reading from WebSocket: %v", err)
+					}
+
+					if err := json.Unmarshal(message, &event); err != nil {
+						fmt.Println("⚠️ Error parsing response:", err)
+						continue
+					}
+
+					if event.DataTx.Result.Code == 0 {
+						spinner.Success("✅ Transaction succeeded!")
+						fmt.Printf("Gas Wanted: %d, Gas Used: %d\n", event.DataTx.Result.GasWanted, event.DataTx.Result.GasUsed)
+						return nil
+					} else {
+						fmt.Printf("❌ Transaction failed: %s\n", event.DataTx.Result.Log)
+						return fmt.Errorf("transaction failed with code %d: %v", event.DataTx.Result.Code, event.DataTx.Result.Log)
+					}
+				}
+			}
+		}
+	}
+}
+
+func WaitForRPCStatus(url string) error {
+	timeout := time.After(20 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	spinner, _ := pterm.DefaultSpinner.Start("checking rpc status")
+
+	for {
+		select {
+		case <-timeout:
+			spinner.Fail("Timeout: Failed to receive expected response within 20 seconds")
+			return fmt.Errorf("timeout")
+		case <-ticker.C:
+			// nolint:gosec
+			_, err := http.Get(url)
+			if err != nil {
+				fmt.Printf("Error making request: %v\n", err)
+				continue
+			}
+			spinner.Success("RollApp is healthy")
+			return nil
+
 		}
 	}
 }
