@@ -25,6 +25,7 @@ const (
 	Celestia    DAType = "celestia"
 	Avail       DAType = "avail"
 	LoadNetwork DAType = "loadnetwork"
+	Bnb         DAType = "bnb"
 	Mock        DAType = "mock"
 )
 
@@ -38,6 +39,8 @@ const (
 	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
+	BnbTestnet         DaNetwork = "97"
+	BnbMainnet         DaNetwork = "56" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -111,6 +114,24 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "",
 		ID:               LoadNetworkMainnet,
 		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(BnbTestnet): {
+		Backend:          Bnb,
+		ApiUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+		ID:               BnbTestnet,
+		RpcUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(BnbMainnet): {
+		Backend:          Bnb,
+		ApiUrl:           "https://bsc-dataseed.bnbchain.org",
+		ID:               BnbMainnet,
+		RpcUrl:           "https://bsc-dataseed.bnbchain.org",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
