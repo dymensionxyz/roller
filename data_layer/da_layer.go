@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/avail"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
-	"github.com/dymensionxyz/roller/data_layer/sui"
 	loadnetwork "github.com/dymensionxyz/roller/data_layer/loadnetwork"
+	"github.com/dymensionxyz/roller/data_layer/sui"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
