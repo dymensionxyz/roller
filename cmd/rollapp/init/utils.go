@@ -15,21 +15,14 @@ import (
 
 func runInit(
 	home, env string,
-	customHubData consts.HubData,
+	hubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
 ) error {
 	raID := raResp.Rollapp.RollappId
 
-	var hd consts.HubData
-	if env != "custom" {
-		hd = consts.Hubs[env]
-	} else {
-		hd = customHubData
-	}
-
 	// TODO: should set keyring as well
-	ic, err := prepareConfig(env, home, raID, hd, raResp)
+	ic, err := prepareConfig(env, home, raID, hubData, raResp)
 	if err != nil {
 		return err
 	}
@@ -123,6 +116,9 @@ func runInit(
 	case consts.Bnb:
 		// Initialize DAManager for Bnb
 		damanager := datalayer.NewDAManager(consts.Bnb, home, kb)
+	case consts.Sui:
+		// Initialize DAManager for Sui
+		damanager := datalayer.NewDAManager(consts.Sui, home, kb)
 
 		// Retrieve DA account address
 		daAddress, err := damanager.GetDAAccountAddress()
@@ -139,6 +135,23 @@ func runInit(
 		}
 
 	case consts.Mock:
+	case consts.Aptos:
+		// Initialize DAManager for Aptos
+		damanager := datalayer.NewDAManager(consts.Aptos, home, kb)
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Aptos account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
 	default:
 		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}

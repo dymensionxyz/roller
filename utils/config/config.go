@@ -27,6 +27,7 @@ type CustomHubData struct {
 	ID            string `json:"id"`
 	RpcUrl        string `json:"rpcUrl"`
 	ApiUrl        string `json:"apiUrl"`
+	WsUrl         string `json:"wsUrl"`
 	GasPrice      string `json:"gasPrice"`
 	DymensionHash string `json:"commit"`
 }
@@ -57,6 +58,7 @@ func createCustomHubDataManually() CustomHubData {
 	restUrl, _ := pterm.DefaultInteractiveTextInput.WithDefaultText(
 		"provide hub rest api endpoint (including port, example: http://dym.dev:1318)",
 	).Show()
+	ws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint").Show()
 	gasPrice, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide gas price").
 		WithDefaultValue("2000000000").Show()
 	commit, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("dymension binary commit to build").
@@ -67,6 +69,7 @@ func createCustomHubDataManually() CustomHubData {
 	restUrl = strings.TrimSpace(restUrl)
 	gasPrice = strings.TrimSpace(gasPrice)
 	commit = strings.TrimSpace(commit)
+	ws = strings.TrimSpace(ws)
 
 	hd := CustomHubData{
 		ID:            id,
@@ -74,6 +77,7 @@ func createCustomHubDataManually() CustomHubData {
 		ApiUrl:        restUrl,
 		GasPrice:      gasPrice,
 		DymensionHash: commit,
+		WsUrl:         ws,
 	}
 	return hd
 }

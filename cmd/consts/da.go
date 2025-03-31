@@ -21,26 +21,33 @@ const (
 type DAType string
 
 const (
-	Local       DAType = "mock"
-	Celestia    DAType = "celestia"
-	Avail       DAType = "avail"
+	Local    DAType = "mock"
+	Celestia DAType = "celestia"
+	Avail    DAType = "avail"
+	Aptos    DAType = "aptos"
 	LoadNetwork DAType = "loadnetwork"
 	Bnb         DAType = "bnb"
+	Sui         DAType = "sui"
 	Mock        DAType = "mock"
 )
 
 type DaNetwork string
 
 const (
-	MockDA             DaNetwork = "mock"
-	CelestiaTestnet    DaNetwork = "mocha-4"
-	CelestiaMainnet    DaNetwork = "celestia"
-	AvailTestnet       DaNetwork = "avail"
-	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
+
+	MockDA          DaNetwork = "mock"
+	CelestiaTestnet DaNetwork = "mocha-4"
+	CelestiaMainnet DaNetwork = "celestia"
+	AvailTestnet    DaNetwork = "avail"
+	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
 	BnbTestnet         DaNetwork = "97"
 	BnbMainnet         DaNetwork = "56" // change this with correct mainnet id
+	SuiTestnet         DaNetwork = "testnet"
+	SuiMainnet         DaNetwork = "mainnet"
+	AptosTestnet    DaNetwork = "testnet"
+	AptosMainnet    DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -123,7 +130,7 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
 		ID:               BnbTestnet,
 		RpcUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
-		CurrentStateNode: "",
+    CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
@@ -132,6 +139,42 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://bsc-dataseed.bnbchain.org",
 		ID:               BnbMainnet,
 		RpcUrl:           "https://bsc-dataseed.bnbchain.org",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(AptosTestnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosTestnet,
+		RpcUrl:           "",
+    CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+  }
+	string(AptosMainnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosMainnet,
+		RpcUrl:           "",
+    CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+  }
+	string(SuiTestnet): {
+		Backend:          Sui,
+		ApiUrl:           "",
+		ID:               SuiTestnet,
+		RpcUrl:           "https://fullnode.testnet.sui.io:443",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(SuiMainnet): {
+		Backend:          Sui,
+		ApiUrl:           "",
+		ID:               SuiMainnet,
+		RpcUrl:           "https://fullnode.mainnet.sui.io:443",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",

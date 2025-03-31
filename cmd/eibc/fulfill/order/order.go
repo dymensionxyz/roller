@@ -78,7 +78,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = tx.MonitorTransaction(rollerCfg.HubData.RpcUrl, txHash)
+			err = tx.MonitorTransaction(rollerCfg.HubData.WsUrl, txHash)
 			if err != nil {
 				pterm.Error.Println("transaction failed", err)
 				return

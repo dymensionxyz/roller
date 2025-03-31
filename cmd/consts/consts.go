@@ -130,6 +130,8 @@ var Denoms = struct {
 	HubIbcOnRollapp string
 	Celestia        string
 	Avail           string
+	Aptos           string
+	Sui             string
 	LoadNetwork     string
 	Bnb             string
 }{
@@ -137,6 +139,8 @@ var Denoms = struct {
 	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 	Celestia:        "utia",
 	Avail:           "aAVL",
+	Aptos:           "apt",
+	Sui:             "sui",
 	LoadNetwork:     "tLOAD",
 	Bnb:             "ubnb",
 }
