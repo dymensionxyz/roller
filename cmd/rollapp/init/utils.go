@@ -101,14 +101,14 @@ func runInit(
 				Address: daAddress.Address,
 			})
 		}
-	case consts.WeaveVM:
-		// Initialize DAManager for WeaveVM
-		damanager := datalayer.NewDAManager(consts.WeaveVM, home, kb)
+	case consts.LoadNetwork:
+		// Initialize DAManager for LoadNetwork
+		damanager := datalayer.NewDAManager(consts.LoadNetwork, home, kb)
 
 		// Retrieve DA account address
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
-			return fmt.Errorf("failed to get WeaveVM account address: %w", err)
+			return fmt.Errorf("failed to get LoadNetwork account address: %w", err)
 		}
 
 		// Append DA account address if available

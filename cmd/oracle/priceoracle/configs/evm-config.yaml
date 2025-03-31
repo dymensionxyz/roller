@@ -1,17 +1,22 @@
 assets:
   BTC:
     decimals: 8
-    blockchainName: "oracle/WBTC"
+    blockchainName: "0x1cb923B38308360D93f9438eE8be03437fD20EC5"
     logo: https://astrovault.io/static/media/logo-wbtc.axl.82bde40ecf2b5608fec5.svg
     displayName: WBTC
   USDC:
     decimals: 6
-    blockchainName: "oracle/USDC"
+    blockchainName: "0x6333A2f50EA1d8c37BdAB2b894D4a420117256FC"
     logo: ""
   USDT:
     decimals: 6
-    blockchainName: "oracle/USDT"
+    blockchainName: "0xF6f30F7b6845E019D4e8BAe87BC8715fd569e12C"
     logo: "https://astrovault.io/static/media/logo-usdt.grav.1c50785c9a42c563a1b6.svg"
+  DYM:
+      decimals: 18
+      blockchainName: "0xc7870fbBE3e63E1F7b3F90C47C3e57E0C47a3580"
+      logo: "https://raw.githubusercontent.com/cosmos/chain-registry/master/dymension/images/dymension-logo.svg"
+      displayName: "DYM"
 
 chainClient:
   rpcEndpoint: "http://127.0.0.1:8545/" # RPC endpoint for the EVM network

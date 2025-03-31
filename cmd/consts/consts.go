@@ -130,15 +130,15 @@ var Denoms = struct {
 	HubIbcOnRollapp string
 	Celestia        string
 	Avail           string
-	WeaveVM         string
 	Sui             string
+	LoadNetwork     string
 }{
 	Hub:             "adym",
 	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 	Celestia:        "utia",
 	Avail:           "aAVL",
-	WeaveVM:         "tWVM",
 	Sui:             "sui",
+	LoadNetwork:     "tLOAD",
 }
 
 const (

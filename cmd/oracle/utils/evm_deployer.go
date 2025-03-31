@@ -232,30 +232,25 @@ func (e *EVMDeployer) DeployContract(
 			big.NewInt(3),
 			[]AssetInfo{
 				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/WBTC",
-					),
+					LocalNetworkName:      StringToAddress("oracle/WBTC"),
 					OracleNetworkName:     "WBTC",
 					LocalNetworkPrecision: big.NewInt(8),
 				},
+
 				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/USDC",
-					),
+					LocalNetworkName:      StringToAddress("oracle/USDC"),
 					OracleNetworkName:     "USDC",
 					LocalNetworkPrecision: big.NewInt(6),
 				},
+
 				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/USDT",
-					),
+					LocalNetworkName:      StringToAddress("oracle/USDT"),
 					OracleNetworkName:     "USDT",
 					LocalNetworkPrecision: big.NewInt(6),
 				},
+
 				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/DYM",
-					),
+					LocalNetworkName:      StringToAddress("oracle/DYM"),
 					OracleNetworkName:     "DYM",
 					LocalNetworkPrecision: big.NewInt(18),
 				},
@@ -689,4 +684,9 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 	}
 
 	return nil
+}
+
+func StringToAddress(str string) common.Address {
+	hash := crypto.Keccak256Hash([]byte(str))
+	return common.BytesToAddress(hash.Bytes())
 }
