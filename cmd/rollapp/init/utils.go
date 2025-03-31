@@ -116,6 +116,20 @@ func runInit(
 	case consts.Bnb:
 		// Initialize DAManager for Bnb
 		damanager := datalayer.NewDAManager(consts.Bnb, home, kb)
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Bnb account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
 	case consts.Sui:
 		// Initialize DAManager for Sui
 		damanager := datalayer.NewDAManager(consts.Sui, home, kb)
@@ -133,8 +147,6 @@ func runInit(
 				Address: daAddress.Address,
 			})
 		}
-
-	case consts.Mock:
 	case consts.Aptos:
 		// Initialize DAManager for Aptos
 		damanager := datalayer.NewDAManager(consts.Aptos, home, kb)
@@ -152,6 +164,7 @@ func runInit(
 				Address: daAddress.Address,
 			})
 		}
+	case consts.Mock:
 	default:
 		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
