@@ -31,14 +31,9 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			pterm.Warning.Println(
-				"By default roller uses a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension",
-			)
-			pterm.Info.Printf(
-				"run %s to update the Hub private endpoints anytime after initial setup\n",
-				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-					Sprintf("roller config set hub-rpc-endpoint <private-endpoint>"),
-			)
+			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
+			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
+
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
@@ -52,9 +47,6 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to initialize rollapp: ", err)
 				return
 			}
-
-			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
-			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
 
 			// preflight checks
 			var hd consts.HubData
@@ -134,6 +126,17 @@ func Cmd() *cobra.Command {
 					Show()
 			}
 
+			if env == "mainnet" {
+				pterm.Warning.Println(
+					"By default roller uses a public endpoint which is not reliable. for production usage it's highly recommended to use a private endpoint. A freemium private endpoint can be obtained in the following link https://blastapi.io/chains/dymension",
+				)
+				pterm.Info.Printf(
+					"run %s to update the Hub private endpoints anytime after initial setup\n",
+					pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
+						Sprintf("roller config set hub-rpc-endpoint <private-endpoint>"),
+				)
+			}
+
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
@@ -179,6 +182,13 @@ func Cmd() *cobra.Command {
 					GasPrice:      chd.GasPrice,
 				}
 
+				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
+				if hdws == "" {
+					hd.WsUrl = hd.RpcUrl
+				} else {
+					hd.WsUrl = hdws
+				}
+
 				err = dependencies.InstallCustomDymdVersion(chd.DymensionHash)
 				if err != nil {
 					pterm.Info.Println("failed to install dymd", err)
@@ -201,10 +211,12 @@ func Cmd() *cobra.Command {
 					}
 				}
 
+				hd = consts.Hubs[env]
+
 				err := runInit(
 					home,
 					env,
-					consts.HubData{},
+					hd,
 					raRespMock,
 					kb,
 				)
@@ -213,6 +225,23 @@ func Cmd() *cobra.Command {
 					return
 				}
 				return
+			case "mainnet":
+				hd = consts.Hubs[env]
+				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
+				if hdws == "" {
+					hd.WsUrl = hd.RpcUrl
+				} else {
+					hd.WsUrl = hdws
+				}
+
+				if shouldSkipBinaryInstallation {
+					dymdDep := dependencies.DefaultDymdDependency()
+					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					if err != nil {
+						pterm.Error.Println("failed to install dymd: ", err)
+						return
+					}
+				}
 			default:
 				hd = consts.Hubs[env]
 

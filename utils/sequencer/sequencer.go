@@ -138,7 +138,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		return err
 	}
 
-	err = tx.MonitorTransaction(raCfg.HubData.RpcUrl, txHash)
+	err = tx.MonitorTransaction(raCfg.HubData.WsUrl, txHash)
 	if err != nil {
 		return err
 	}
@@ -657,7 +657,7 @@ func UpdateWhitelistedRelayers(
 		return err
 	}
 
-	err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+	err = tx.MonitorTransaction(hd.WsUrl, txHash)
 	if err != nil {
 		return err
 	}
