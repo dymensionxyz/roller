@@ -21,9 +21,10 @@ const (
 type DAType string
 
 const (
-	Local       DAType = "mock"
-	Celestia    DAType = "celestia"
-	Avail       DAType = "avail"
+	Local    DAType = "mock"
+	Celestia DAType = "celestia"
+	Avail    DAType = "avail"
+	Aptos    DAType = "aptos"
 	LoadNetwork DAType = "loadnetwork"
 	Sui         DAType = "sui"
 	Mock        DAType = "mock"
@@ -32,15 +33,18 @@ const (
 type DaNetwork string
 
 const (
-	MockDA             DaNetwork = "mock"
-	CelestiaTestnet    DaNetwork = "mocha-4"
-	CelestiaMainnet    DaNetwork = "celestia"
-	AvailTestnet       DaNetwork = "avail"
-	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
+
+	MockDA          DaNetwork = "mock"
+	CelestiaTestnet DaNetwork = "mocha-4"
+	CelestiaMainnet DaNetwork = "celestia"
+	AvailTestnet    DaNetwork = "avail"
+	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
 	SuiTestnet         DaNetwork = "testnet"
 	SuiMainnet         DaNetwork = "mainnet"
+	AptosTestnet    DaNetwork = "testnet"
+	AptosMainnet    DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -118,6 +122,24 @@ var DaNetworks = map[string]DaData{
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
+	string(AptosTestnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosTestnet,
+		RpcUrl:           "",
+    CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+  }
+	string(AptosMainnet): {
+		Backend:          Aptos,
+		ApiUrl:           "",
+		ID:               AptosMainnet,
+		RpcUrl:           "",
+    CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+  }
 	string(SuiTestnet): {
 		Backend:          Sui,
 		ApiUrl:           "",

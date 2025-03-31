@@ -2,7 +2,7 @@ package roller
 
 import "github.com/dymensionxyz/roller/cmd/consts"
 
-var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.LoadNetwork, consts.Local, consts.Sui}
+var SupportedDas = []consts.DAType{consts.Celestia, consts.Avail, consts.LoadNetwork, consts.Aptos, consts.Sui, consts.Local}
 
 type RollappConfig struct {
 	// new roller.toml

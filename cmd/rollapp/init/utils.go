@@ -131,6 +131,23 @@ func runInit(
 		}
 
 	case consts.Mock:
+	case consts.Aptos:
+		// Initialize DAManager for Aptos
+		damanager := datalayer.NewDAManager(consts.Aptos, home, kb)
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Aptos account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
 	default:
 		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
 	}
