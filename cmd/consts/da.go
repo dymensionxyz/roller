@@ -21,10 +21,10 @@ const (
 type DAType string
 
 const (
-	Local    DAType = "mock"
-	Celestia DAType = "celestia"
-	Avail    DAType = "avail"
-	Aptos    DAType = "aptos"
+	Local       DAType = "mock"
+	Celestia    DAType = "celestia"
+	Avail       DAType = "avail"
+	Aptos       DAType = "aptos"
 	LoadNetwork DAType = "loadnetwork"
 	Bnb         DAType = "bnb"
 	Sui         DAType = "sui"
@@ -34,20 +34,20 @@ const (
 type DaNetwork string
 
 const (
-
-	MockDA          DaNetwork = "mock"
-	CelestiaTestnet DaNetwork = "mocha-4"
-	CelestiaMainnet DaNetwork = "celestia"
-	AvailTestnet    DaNetwork = "avail"
-	AvailMainnet    DaNetwork = "avail-1" // change this with correct mainnet id
+	MockDA             DaNetwork = "mock"
+	CelestiaTestnet    DaNetwork = "mocha-4"
+	CelestiaMainnet    DaNetwork = "celestia"
+	AvailTestnet       DaNetwork = "avail"
+	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
 	BnbTestnet         DaNetwork = "97"
 	BnbMainnet         DaNetwork = "56" // change this with correct mainnet id
-	SuiTestnet         DaNetwork = "testnet"
-	SuiMainnet         DaNetwork = "mainnet"
-	AptosTestnet    DaNetwork = "testnet"
-	AptosMainnet    DaNetwork = "mainnet"
+	SuiTestnet         DaNetwork = "sui-testnet"
+	SuiMainnet         DaNetwork = "sui-mainnet"
+	// https://aptos.dev/en/network/nodes/networks
+	AptosTestnet DaNetwork = "2"
+	AptosMainnet DaNetwork = "1"
 )
 
 var DaNetworks = map[string]DaData{
@@ -130,7 +130,7 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
 		ID:               BnbTestnet,
 		RpcUrl:           "https://data-seed-prebsc-1-s1.bnbchain.org:8545",
-    CurrentStateNode: "",
+		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
 	},
@@ -148,19 +148,19 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "",
 		ID:               AptosTestnet,
 		RpcUrl:           "",
-    CurrentStateNode: "",
+		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
-  }
+	},
 	string(AptosMainnet): {
 		Backend:          Aptos,
 		ApiUrl:           "",
 		ID:               AptosMainnet,
 		RpcUrl:           "",
-    CurrentStateNode: "",
+		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
-  }
+	},
 	string(SuiTestnet): {
 		Backend:          Sui,
 		ApiUrl:           "",
