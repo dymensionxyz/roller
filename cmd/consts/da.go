@@ -25,6 +25,7 @@ const (
 	Celestia    DAType = "celestia"
 	Avail       DAType = "avail"
 	LoadNetwork DAType = "loadnetwork"
+	Sui         DAType = "sui"
 	Mock        DAType = "mock"
 )
 
@@ -38,6 +39,8 @@ const (
 	AvailMainnet       DaNetwork = "avail-1" // change this with correct mainnet id
 	LoadNetworkTestnet DaNetwork = "alphanet"
 	LoadNetworkMainnet DaNetwork = "loadnetwork" // change this with correct mainnet id
+	SuiTestnet         DaNetwork = "testnet"
+	SuiMainnet         DaNetwork = "mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -111,6 +114,24 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "",
 		ID:               LoadNetworkMainnet,
 		RpcUrl:           "",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(SuiTestnet): {
+		Backend:          Sui,
+		ApiUrl:           "",
+		ID:               SuiTestnet,
+		RpcUrl:           "https://fullnode.testnet.sui.io:443",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(SuiMainnet): {
+		Backend:          Sui,
+		ApiUrl:           "",
+		ID:               SuiMainnet,
+		RpcUrl:           "https://fullnode.mainnet.sui.io:443",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
