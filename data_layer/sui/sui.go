@@ -124,6 +124,8 @@ func NewSui(root string) *Sui {
 		if err != nil {
 			panic(err)
 		}
+
+		pterm.Warning.Print("You will need to save Mnemonic to an environment variable named SUI_MNEMONIC")
 	}
 	return &suiConfig
 }
@@ -173,11 +175,10 @@ func (s *Sui) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error)
 
 func (s *Sui) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "%s"}`,
+		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "SUI_MNEMONIC"}`,
 		s.ChainID,
 		s.RpcEndpoint,
-		s.Address,
-		s.Mnemonic,
+		s.NoopContractAddress,
 	)
 }
 
