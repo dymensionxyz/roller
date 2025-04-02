@@ -30,7 +30,7 @@ chainClient:
 
 oracle:
   priceAggregatorEndpoint: 34.140.47.197:9090
-  priceRefreshRate: 5s
+  priceRefreshRate: 10s
   pricesToSend:
     - BTC-USDC
     - DYM-USDT
