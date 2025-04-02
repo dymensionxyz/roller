@@ -229,7 +229,7 @@ func (e *EVMDeployer) DeployContract(
 		contractAddress, err = deployPriceOracleContract(
 			bytecode,
 			e.KeyData.PrivateKey,
-			big.NewInt(3),
+			big.NewInt(11),
 			[]AssetInfo{
 				{
 					LocalNetworkName:      StringToAddress("oracle/WBTC"),
@@ -255,7 +255,7 @@ func (e *EVMDeployer) DeployContract(
 					LocalNetworkPrecision: big.NewInt(18),
 				},
 			},
-			big.NewInt(1000000000000000000), // 1 ETH bound threshold
+			5, // percentage, 0-100
 			contractABI,
 		)
 		if err != nil {
@@ -353,7 +353,7 @@ func deployPriceOracleContract(
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	expirationOffset *big.Int,
 	assetInfos []AssetInfo,
-	boundThreshold *big.Int,
+	boundThreshold int,
 	contractABI string,
 ) (*goethcommon.Address, error) {
 	pterm.Info.Println("deploying Oracle contract")
