@@ -229,7 +229,7 @@ func (e *EVMDeployer) DeployContract(
 		contractAddress, err = deployPriceOracleContract(
 			bytecode,
 			e.KeyData.PrivateKey,
-			big.NewInt(3),
+			big.NewInt(11),
 			[]AssetInfo{
 				{
 					LocalNetworkName:      StringToAddress("oracle/WBTC"),
