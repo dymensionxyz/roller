@@ -223,6 +223,31 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	var contractAddress *goethcommon.Address
+	assetInfos := []*AssetInfo{
+		{
+			LocalNetworkName:  StringToAddress("oracle/WBTC"),
+			OracleNetworkName: "WBTC",
+			Precision:         big.NewInt(8),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/USDC"),
+			OracleNetworkName: "USDC",
+			Precision:         big.NewInt(6),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/USDT"),
+			OracleNetworkName: "USDT",
+			Precision:         big.NewInt(6),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/DYM"),
+			OracleNetworkName: "DYM",
+			Precision:         big.NewInt(18),
+		},
+	}
 
 	switch tContractName {
 	case "PriceOracle":
@@ -230,31 +255,7 @@ func (e *EVMDeployer) DeployContract(
 			bytecode,
 			e.KeyData.PrivateKey,
 			big.NewInt(11),
-			[]AssetInfo{
-				{
-					LocalNetworkName:  StringToAddress("oracle/WBTC"),
-					OracleNetworkName: "WBTC",
-					Precision:         big.NewInt(8),
-				},
-
-				{
-					LocalNetworkName:  StringToAddress("oracle/USDC"),
-					OracleNetworkName: "USDC",
-					Precision:         big.NewInt(6),
-				},
-
-				{
-					LocalNetworkName:  StringToAddress("oracle/USDT"),
-					OracleNetworkName: "USDT",
-					Precision:         big.NewInt(6),
-				},
-
-				{
-					LocalNetworkName:  StringToAddress("oracle/DYM"),
-					OracleNetworkName: "DYM",
-					Precision:         big.NewInt(18),
-				},
-			},
+			assetInfos,
 			uint8(5), // percentage, 0-100
 			contractABI,
 		)
@@ -352,7 +353,7 @@ func deployPriceOracleContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	expirationOffset *big.Int,
-	assetInfos []AssetInfo,
+	assetInfos []*AssetInfo,
 	boundThreshold uint8,
 	contractABI string,
 ) (*goethcommon.Address, error) {
