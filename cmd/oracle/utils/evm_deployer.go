@@ -387,11 +387,12 @@ func deployPriceOracleContract(
 	// Encode constructor arguments
 
 	scaleFactor := cosmossdkmath.NewIntWithDecimal(1, 18)
+
 	constructorInput := []interface{}{
 		expirationOffsetSec,
 		assetInfos,
 		boundThreshold,
-		scaleFactor.Int64(),
+		scaleFactor.BigInt(),
 	}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
