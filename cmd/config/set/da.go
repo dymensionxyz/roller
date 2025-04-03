@@ -44,7 +44,7 @@ func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 		return err
 	}
 
-	daManager := datalayer.NewDAManager(newDa, rlpCfg.Home, rlpCfg.KeyringBackend)
+	daManager := datalayer.NewDAManager(newDa, rlpCfg.Home, rlpCfg.KeyringBackend, rlpCfg.NodeType)
 	_, err = daManager.InitializeLightNodeConfig()
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 	fmt.Printf("💈 RollApp DA has been successfully set to '%s'\n\n", newDa)
 	if newDa != consts.Local {
 		addresses := make([]keys.KeyInfo, 0)
-		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home, rlpCfg.KeyringBackend)
+		damanager := datalayer.NewDAManager(newDa, rlpCfg.Home, rlpCfg.KeyringBackend, rlpCfg.NodeType)
 		daAddress, err := damanager.GetDAAccountAddress()
 		if err != nil {
 			return err

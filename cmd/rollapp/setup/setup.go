@@ -16,6 +16,7 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -524,6 +525,66 @@ RollApp's IRO time: %v`,
 				}
 			}
 
+			/* ------------------------ Initialize DA ------------------------ */
+
+			var addresses []keys.KeyInfo
+			// Generalize DA initialization logic
+			switch localRollerConfig.DA.Backend {
+			case consts.Celestia:
+				// Initialize Celestia light client
+				daKeyInfo, err := celestialightclient.Initialize(localRollerConfig.HubData.Environment, localRollerConfig)
+				if err != nil {
+					pterm.Error.Println("failed to initialize Celestia light client: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daKeyInfo != nil {
+					addresses = append(addresses, *daKeyInfo)
+				}
+
+			case consts.Avail:
+				// Initialize DAManager for Avail
+				damanager := datalayer.NewDAManager(consts.Avail, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Avail account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.WeaveVM:
+				// Initialize DAManager for WeaveVM
+				damanager := datalayer.NewDAManager(consts.WeaveVM, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get WeaveVM account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Mock:
+			default:
+				pterm.Error.Println("unsupported DA backend: %s", rollappConfig.DA.Backend)
+				return
+			}
+
 			damanager := datalayer.NewDAManager(
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
@@ -769,6 +830,8 @@ RollApp's IRO time: %v`,
 				"enable",
 				"true",
 			)
+
+			keys.PrintAddressesWithTitle(addresses)
 
 			pterm.Info.Println("initialization complete")
 

@@ -156,6 +156,7 @@ func UpgradeCmd() *cobra.Command {
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
 				rollappConfig.KeyringBackend,
+				rollappConfig.NodeType, // TODO: NodeType here will be empty because it is not set before.
 			)
 
 			if rollapp.IsDAConfigMigrationRequired(
