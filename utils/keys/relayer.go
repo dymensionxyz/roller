@@ -236,7 +236,6 @@ func createRelayerKeyIfNotPresent(
 	keyName, chainID string,
 	kc KeyConfig,
 ) (*KeyInfo, error) {
-	fmt.Println("creating relayer key for", chainID)
 	isPresent, err := IsRlyAddressWithNameInKeyring(keyName, kc, chainID)
 	var ki KeyInfo
 	if err != nil {
@@ -245,7 +244,6 @@ func createRelayerKeyIfNotPresent(
 	}
 
 	if !isPresent {
-		fmt.Println("[not present] adding relayer key for", chainID)
 		key, err := AddRlyKey(kc, chainID)
 		if err != nil {
 			pterm.Error.Printf("failed to add key: %v\n", err)
