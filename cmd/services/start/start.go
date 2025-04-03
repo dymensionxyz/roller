@@ -2,6 +2,7 @@ package start
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"slices"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/data_layer/aptos"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/migrations"
@@ -36,6 +38,20 @@ func RollappCmd() *cobra.Command {
 
 			rollappConfig, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
+
+			if rollappConfig.DA.Backend == consts.Aptos {
+				cfgPath := aptos.GetCfgFilePath(home)
+				aptConfig, err := aptos.LoadConfigFromTOML(cfgPath)
+				if err != nil {
+					pterm.Error.Println("failed to load config", err)
+					return
+				}
+				err = os.Setenv("APT_PRIVATE_KEY", aptConfig.PrivateKey)
+				if err != nil {
+					pterm.Error.Println("failed to set env", err)
+					return
+				}
+			}
 
 			if rollappConfig.NodeType == "sequencer" {
 				err = sequencerutils.CheckBalance(rollappConfig)

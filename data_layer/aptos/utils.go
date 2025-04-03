@@ -28,7 +28,7 @@ func writeConfigToTOML(path string, a Aptos) error {
 	return nil
 }
 
-func loadConfigFromTOML(path string) (Aptos, error) {
+func LoadConfigFromTOML(path string) (Aptos, error) {
 	var config Aptos
 	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
