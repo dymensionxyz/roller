@@ -64,11 +64,23 @@ func DeployCmd() *cobra.Command {
 					pterm.Error.Printf("failed to create evm deployer: %v\n", err)
 					return
 				}
+				ownableContractUrl := "https://storage.googleapis.com/dymension-roller/Ownable.sol"
 				contractUrl = "https://storage.googleapis.com/dymension-roller/price_oracle_contract.sol"
 
 				err := dependencies.InstallSolidityDependencies()
 				if err != nil {
 					pterm.Error.Printf("failed to install solidity dependencies: %v\n", err)
+					return
+				}
+
+				pterm.Info.Println("Downloading contract dependencies")
+				err = deployer.DownloadContract(
+					ownableContractUrl,
+					"Ownable.sol",
+					consts.Oracles.Price,
+				)
+				if err != nil {
+					pterm.Error.Printf("failed to download contract dependencies: %v\n", err)
 					return
 				}
 
