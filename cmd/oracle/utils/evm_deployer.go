@@ -223,7 +223,7 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	var contractAddress *goethcommon.Address
-	assetInfos := []*AssetInfo{
+	assetInfos := []AssetInfo{
 		{
 			LocalNetworkName:  StringToAddress("oracle/WBTC"),
 			OracleNetworkName: "WBTC",
@@ -352,8 +352,8 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 func deployPriceOracleContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
-	expirationOffset *big.Int,
-	assetInfos []*AssetInfo,
+	expirationOffsetSec *big.Int,
+	assetInfos []AssetInfo,
 	boundThreshold uint8,
 	contractABI string,
 ) (*goethcommon.Address, error) {
@@ -386,8 +386,8 @@ func deployPriceOracleContract(
 
 	// Encode constructor arguments
 
-	exp := cosmossdkmath.NewIntWithDecimal(1, 18)
-	constructorInput := []interface{}{expirationOffset, assetInfos, boundThreshold, exp}
+	scaleFactor := cosmossdkmath.NewIntWithDecimal(1, 18)
+	constructorInput := []interface{}{expirationOffsetSec, assetInfos, boundThreshold, scaleFactor}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
