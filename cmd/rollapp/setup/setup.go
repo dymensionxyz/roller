@@ -529,6 +529,7 @@ RollApp's IRO time: %v`,
 				rollappConfig.DA.Backend,
 				rollappConfig.Home,
 				rollappConfig.KeyringBackend,
+				nodeType,
 			)
 
 			daHome := filepath.Join(
@@ -1080,7 +1081,7 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 
 func getDaConfig(dataLayer datalayer.DataLayer, nodeType string, home string, raResponse *rollapp.ShowRollappResponse, rollappConfig *roller.RollappConfig) any {
 
-	daConfig := dataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+	daConfig := dataLayer.GetSequencerDAConfig(nodeType)
 
 	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
 	if err != nil {
