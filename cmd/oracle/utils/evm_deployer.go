@@ -255,7 +255,7 @@ func (e *EVMDeployer) DeployContract(
 					Precision:         big.NewInt(18),
 				},
 			},
-			big.NewInt(5), // percentage, 0-100
+			uint8(5), // percentage, 0-100
 			contractABI,
 		)
 		if err != nil {
@@ -353,7 +353,7 @@ func deployPriceOracleContract(
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	expirationOffset *big.Int,
 	assetInfos []AssetInfo,
-	boundThreshold *big.Int,
+	boundThreshold uint8,
 	contractABI string,
 ) (*goethcommon.Address, error) {
 	pterm.Info.Println("deploying Oracle contract")
