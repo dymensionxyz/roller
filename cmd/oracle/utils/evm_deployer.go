@@ -41,9 +41,9 @@ import (
 
 // AssetInfo represents the asset information structure matching the contract's constructor
 type AssetInfo struct {
-	LocalNetworkName      common.Address
-	OracleNetworkName     string
-	LocalNetworkPrecision *big.Int
+	LocalNetworkName  common.Address
+	OracleNetworkName string
+	Precision         *big.Int
 }
 
 // EVMDeployer implements ContractDeployer for EVM chains
@@ -232,27 +232,27 @@ func (e *EVMDeployer) DeployContract(
 			big.NewInt(11),
 			[]AssetInfo{
 				{
-					LocalNetworkName:      StringToAddress("oracle/WBTC"),
-					OracleNetworkName:     "WBTC",
-					LocalNetworkPrecision: big.NewInt(8),
+					LocalNetworkName:  StringToAddress("oracle/WBTC"),
+					OracleNetworkName: "WBTC",
+					Precision:         big.NewInt(8),
 				},
 
 				{
-					LocalNetworkName:      StringToAddress("oracle/USDC"),
-					OracleNetworkName:     "USDC",
-					LocalNetworkPrecision: big.NewInt(6),
+					LocalNetworkName:  StringToAddress("oracle/USDC"),
+					OracleNetworkName: "USDC",
+					Precision:         big.NewInt(6),
 				},
 
 				{
-					LocalNetworkName:      StringToAddress("oracle/USDT"),
-					OracleNetworkName:     "USDT",
-					LocalNetworkPrecision: big.NewInt(6),
+					LocalNetworkName:  StringToAddress("oracle/USDT"),
+					OracleNetworkName: "USDT",
+					Precision:         big.NewInt(6),
 				},
 
 				{
-					LocalNetworkName:      StringToAddress("oracle/DYM"),
-					OracleNetworkName:     "DYM",
-					LocalNetworkPrecision: big.NewInt(18),
+					LocalNetworkName:  StringToAddress("oracle/DYM"),
+					OracleNetworkName: "DYM",
+					Precision:         big.NewInt(18),
 				},
 			},
 			5, // percentage, 0-100
