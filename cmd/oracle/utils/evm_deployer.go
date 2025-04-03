@@ -387,7 +387,12 @@ func deployPriceOracleContract(
 	// Encode constructor arguments
 
 	scaleFactor := cosmossdkmath.NewIntWithDecimal(1, 18)
-	constructorInput := []interface{}{expirationOffsetSec, assetInfos, boundThreshold, scaleFactor}
+	constructorInput := []interface{}{
+		expirationOffsetSec,
+		assetInfos,
+		boundThreshold,
+		scaleFactor.Int64(),
+	}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
