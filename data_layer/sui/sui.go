@@ -49,7 +49,7 @@ func NewSui(root string) *Sui {
 	errorhandling.PrettifyErrorIfExists(err)
 
 	cfgPath := GetCfgFilePath(root)
-	suiConfig, err := loadConfigFromTOML(cfgPath)
+	suiConfig, err := LoadConfigFromTOML(cfgPath)
 
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
