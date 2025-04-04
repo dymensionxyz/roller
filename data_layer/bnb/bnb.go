@@ -51,9 +51,10 @@ func NewBnb(root string) *Bnb {
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.BnbMainnet)
-
+			bnbConfig.ChainID = 56
 		} else {
 			daNetwork = string(consts.BnbTestnet)
+			bnbConfig.ChainID = 97
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
@@ -114,7 +115,6 @@ func NewBnb(root string) *Bnb {
 
 		bnbConfig.RpcEndpoint = daData.RpcUrl
 		bnbConfig.Root = root
-
 		balance, err := bnbConfig.getBalance()
 		if err != nil {
 			panic(err)
@@ -158,7 +158,7 @@ func (b *Bnb) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error)
 
 func (b *Bnb) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"endpoint": %s, "chain_id": %d, "timeout": 5000000000, "private_key_hex": "%s"}`,
+		`{"endpoint": "%s", "chain_id": %d, "timeout": 5000000000, "private_key_hex": "%s"}`,
 		b.RpcEndpoint,
 		b.ChainID,
 		b.PrivateKey,

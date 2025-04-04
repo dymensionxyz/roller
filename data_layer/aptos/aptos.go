@@ -57,7 +57,7 @@ func NewAptos(root string) *Aptos {
 	errorhandling.PrettifyErrorIfExists(err)
 
 	cfgPath := GetCfgFilePath(root)
-	aptConfig, err := loadConfigFromTOML(cfgPath)
+	aptConfig, err := LoadConfigFromTOML(cfgPath)
 
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
@@ -122,6 +122,8 @@ func NewAptos(root string) *Aptos {
 
 		pterm.Println("APT Balance: ", balance)
 
+		pterm.Warning.Print("You will need to save Private Key to an environment variable named APT_PRIVATE_KEY")
+
 		err = writeConfigToTOML(cfgPath, aptConfig)
 		if err != nil {
 			panic(err)
@@ -169,9 +171,8 @@ func (a *Aptos) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, erro
 
 func (a *Aptos) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"network": "%s", "pri_key_env": "%s"}`,
+		`{"network": "%s", "pri_key_env": "APT_PRIVATE_KEY"}`,
 		a.Network,
-		a.PrivateKey,
 	)
 }
 
