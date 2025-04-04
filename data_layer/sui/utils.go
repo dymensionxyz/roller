@@ -28,7 +28,7 @@ func writeConfigToTOML(path string, s Sui) error {
 	return nil
 }
 
-func loadConfigFromTOML(path string) (Sui, error) {
+func LoadConfigFromTOML(path string) (Sui, error) {
 	var config Sui
 	tomlBytes, err := os.ReadFile(path)
 	if err != nil {

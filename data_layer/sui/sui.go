@@ -21,7 +21,7 @@ const (
 	ConfigFileName             = "sui.toml"
 	DefaultTestnetChainID      = 9496
 	NoopContractAddressTestnet = "0xcf119583badb169bfc9a031ec16fb6a79a5151ff7aa0d229f2a35b798ddcd9d6"
-	NoopContractAddressMainnet = "" // Not yet
+	NoopContractAddressMainnet = "0x015596db61510363c3341b8a4ede0986fadcb1b5bed70d2586b8e2e7db9538a7"
 	MnemonicEntropySize        = 256
 	requiredAVL                = 1
 )
@@ -49,7 +49,7 @@ func NewSui(root string) *Sui {
 	errorhandling.PrettifyErrorIfExists(err)
 
 	cfgPath := GetCfgFilePath(root)
-	suiConfig, err := loadConfigFromTOML(cfgPath)
+	suiConfig, err := LoadConfigFromTOML(cfgPath)
 
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
@@ -124,6 +124,8 @@ func NewSui(root string) *Sui {
 		if err != nil {
 			panic(err)
 		}
+
+		pterm.Warning.Print("You will need to save Mnemonic to an environment variable named SUI_MNEMONIC")
 	}
 	return &suiConfig
 }
@@ -173,11 +175,10 @@ func (s *Sui) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error)
 
 func (s *Sui) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "%s"}`,
+		`{"chain_id": %d, "rpc_url": "%s", "noop_contract_address": "%s", "gas_budget": "10000000","timeout": 5000000000, "mnemonic_env": "SUI_MNEMONIC"}`,
 		s.ChainID,
 		s.RpcEndpoint,
-		s.Address,
-		s.Mnemonic,
+		s.NoopContractAddress,
 	)
 }
 
