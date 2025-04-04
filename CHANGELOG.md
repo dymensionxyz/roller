@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.17.2-rc02](https://github.com/dymensionxyz/roller/compare/v1.17.1-rc02...v1.17.2-rc02) (2025-04-04)
+
+
+### Bug Fixes
+
+* update dymint config for APT ([#1342](https://github.com/dymensionxyz/roller/issues/1342)) ([d166b46](https://github.com/dymensionxyz/roller/commit/d166b46d9f2b8f9d888039dc4317b7f85b661c2c))
+* update dymint config for BNB ([#1343](https://github.com/dymensionxyz/roller/issues/1343)) ([f3f71f6](https://github.com/dymensionxyz/roller/commit/f3f71f6d3ccb697103321ce11540433a396bd49e))
+* update dymint config for Sui ([#1340](https://github.com/dymensionxyz/roller/issues/1340)) ([45133ff](https://github.com/dymensionxyz/roller/commit/45133ffef72eba32cbc6a60b9a629d657f11facc))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
