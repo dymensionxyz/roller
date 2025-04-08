@@ -296,7 +296,7 @@ func UpdateGroupSupportedRollapps(eibcConfigPath string, cfg Config, home string
 	return nil
 }
 
-// UpdateGroupSupportedRollapps function updates the supported rollapps list in the onchain metadata
+// UpdateGroupOperatorMinFee function updates the operator's fee share in the onchain metadata
 // of group and group-policy and returns an error if any
 func UpdateGroupOperatorMinFee(
 	eibcConfigPath string,
