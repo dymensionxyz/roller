@@ -164,6 +164,23 @@ func runInit(
 				Address: daAddress.Address,
 			})
 		}
+	case consts.Walrus:
+		// Initialize DAManager for Walrus
+		damanager := datalayer.NewDAManager(consts.Walrus, home, kb)
+
+		// Retrieve DA account address
+		daAddress, err := damanager.GetDAAccountAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get Walrus account address: %w", err)
+		}
+
+		// Append DA account address if available
+		if daAddress != nil {
+			addresses = append(addresses, keys.KeyInfo{
+				Name:    damanager.GetKeyName(),
+				Address: daAddress.Address,
+			})
+		}
 	case consts.Mock:
 	default:
 		return fmt.Errorf("unsupported DA backend: %s", ic.DA.Backend)
