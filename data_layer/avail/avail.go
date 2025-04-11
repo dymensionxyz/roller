@@ -63,6 +63,11 @@ func NewAvail(root string) *Avail {
 			daNetwork = string(consts.AvailTestnet)
 		}
 
+		daData, exists := consts.DaNetworks[daNetwork]
+		if !exists {
+			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+		}
+
 		useExistingAvailWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to import an existing Avail wallet?",
 		).Show()
@@ -114,10 +119,6 @@ func NewAvail(root string) *Avail {
 			pterm.Error.Println("failed to check insufficient balances: ", err)
 		}
 
-		daData, exists := consts.DaNetworks[daNetwork]
-		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
-		}
 		availConfig.RpcEndpoint = daData.ApiUrl
 		availConfig.AccAddress = keyringPair.Address
 		availConfig.Root = root
