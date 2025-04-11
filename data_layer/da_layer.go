@@ -12,6 +12,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/damock"
 	loadnetwork "github.com/dymensionxyz/roller/data_layer/loadnetwork"
 	"github.com/dymensionxyz/roller/data_layer/sui"
+	"github.com/dymensionxyz/roller/data_layer/walrus"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -57,6 +58,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 		dalayer = loadnetwork.NewLoadNetwork(home)
 	case consts.Bnb:
 		dalayer = bnb.NewBnb(home)
+	case consts.Walrus:
+		dalayer = walrus.NewWalrus(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
@@ -87,6 +90,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.LoadNetworkTestnet)
 		case string(consts.Bnb):
 			daNetwork = string(consts.BnbTestnet)
+		case string(consts.Walrus):
+			daNetwork = string(consts.WalrusTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -104,6 +109,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.LoadNetworkMainnet)
 		case string(consts.Bnb):
 			daNetwork = string(consts.BnbMainnet)
+		case string(consts.Walrus):
+			daNetwork = string(consts.WalrusMainnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -121,6 +128,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.LoadNetworkTestnet)
 		case string(consts.Bnb):
 			daNetwork = string(consts.BnbTestnet)
+		case string(consts.Walrus):
+			daNetwork = string(consts.WalrusTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
