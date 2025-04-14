@@ -1078,8 +1078,13 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 	}
 }
 
-func getDaConfig(dataLayer datalayer.DataLayer, nodeType string, home string, raResponse *rollapp.ShowRollappResponse, rollappConfig *roller.RollappConfig) any {
-
+func getDaConfig(
+	dataLayer datalayer.DataLayer,
+	nodeType string,
+	home string,
+	raResponse *rollapp.ShowRollappResponse,
+	rollappConfig *roller.RollappConfig,
+) any {
 	daConfig := dataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
 
 	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)

@@ -34,7 +34,7 @@ func DirNotEmpty(path string) (bool, error) {
 	return len(files) > 0, err
 }
 
-func CreateRollerRootWithOptionalOverride(home string) error {
+func CreateRollerRootWithOptionalOverride(home string, forceOverwrite bool) error {
 	isRootExist, err := DirNotEmpty(home)
 	if err != nil {
 		return err
@@ -43,14 +43,17 @@ func CreateRollerRootWithOptionalOverride(home string) error {
 	if isRootExist {
 		fmt.Printf("Directory %s is not empty.\n", home)
 
-		shouldOverwrite, err := pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Do you want to overwrite %s?", home)).
-			WithDefaultValue(false).
-			Show()
-		if err != nil {
-			return err
+		var shouldOverwrite bool
+		if !forceOverwrite {
+			shouldOverwrite, err = pterm.DefaultInteractiveConfirm.WithDefaultText(fmt.Sprintf("Do you want to overwrite %s?", home)).
+				WithDefaultValue(false).
+				Show()
+			if err != nil {
+				return err
+			}
 		}
 
-		if shouldOverwrite {
+		if shouldOverwrite || forceOverwrite {
 			err = os.RemoveAll(home)
 			if err != nil {
 				return err

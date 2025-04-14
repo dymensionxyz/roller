@@ -15,7 +15,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/scripts"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 	"github.com/dymensionxyz/roller/utils/dependencies"
-	"github.com/dymensionxyz/roller/utils/filesystem"
+	rollerfs "github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -33,6 +33,10 @@ func Cmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
+			shouldGenerateSequencerAddress, _ := cmd.Flags().GetBool("generate-sequencer-address")
+			forceOverwrite, _ := cmd.Flags().GetBool("overwrite")
+
+			envFromFlag, _ := cmd.Flags().GetString("env")
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -40,7 +44,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			home, err := filesystem.ExpandHomePath(
+			home, err := rollerfs.ExpandHomePath(
 				cmd.Flag(initconfig.GlobalFlagNames.Home).Value.String(),
 			)
 			if err != nil {
@@ -53,7 +57,7 @@ func Cmd() *cobra.Command {
 			var env string
 			var raID string
 
-			isRootExist, err := filesystem.DirNotEmpty(home)
+			isRootExist, err := rollerfs.DirNotEmpty(home)
 			if err != nil {
 				pterm.Error.Printf(
 					"failed to check if roller home directory (%s) is empty: %v\n",
@@ -100,7 +104,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			err = filesystem.CreateRollerRootWithOptionalOverride(home)
+			err = rollerfs.CreateRollerRootWithOptionalOverride(home, forceOverwrite)
 			if err != nil {
 				pterm.Error.Printf(
 					"failed to create roller home directory (%s): %v\n",
@@ -119,11 +123,15 @@ func Cmd() *cobra.Command {
 			if shouldUseMockBackend {
 				env = "mock"
 			} else {
-				envs := []string{"mock", "playground", "blumbus", "custom", "mainnet"}
-				env, _ = pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(envs).
-					Show()
+				if envFromFlag == "" {
+					envs := []string{"mock", "playground", "blumbus", "custom", "mainnet"}
+					env, _ = pterm.DefaultInteractiveSelect.
+						WithDefaultText("select the environment you want to initialize for").
+						WithOptions(envs).
+						Show()
+				} else {
+					env = envFromFlag
+				}
 			}
 
 			if env == "mainnet" {
@@ -182,7 +190,8 @@ func Cmd() *cobra.Command {
 					GasPrice:      chd.GasPrice,
 				}
 
-				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
+				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+					Show()
 				if hdws == "" {
 					hd.WsUrl = hd.RpcUrl
 				} else {
@@ -219,6 +228,7 @@ func Cmd() *cobra.Command {
 					hd,
 					raRespMock,
 					kb,
+					shouldGenerateSequencerAddress,
 				)
 				if err != nil {
 					fmt.Println("failed to run init: ", err)
@@ -227,7 +237,8 @@ func Cmd() *cobra.Command {
 				return
 			case "mainnet":
 				hd = consts.Hubs[env]
-				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").Show()
+				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+					Show()
 				if hdws == "" {
 					hd.WsUrl = hd.RpcUrl
 				} else {
@@ -303,7 +314,7 @@ func Cmd() *cobra.Command {
 
 			// TODO: all above should be wrapped in "InitDependencies"
 
-			err = runInit(home, env, hd, *raResponse, kb)
+			err = runInit(home, env, hd, *raResponse, kb, shouldGenerateSequencerAddress)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize the RollApp: %v\n", err)
 				return
@@ -350,6 +361,10 @@ func Cmd() *cobra.Command {
 
 	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
 	cmd.Flags().Bool("skip-binary-installation", false, "skips the binary installation")
+	cmd.Flags().Bool("generate-sequencer-address", true, "generates a sequencer address")
+	cmd.Flags().String("env", "", "environment to initialize the rollapp for")
+	cmd.Flags().
+		Bool("overwrite", false, "DANGER! overwrites the existing roller home directory without prompting")
 
 	return cmd
 }

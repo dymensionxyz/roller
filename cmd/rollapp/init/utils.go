@@ -18,6 +18,7 @@ func runInit(
 	hubData consts.HubData,
 	raResp rollapp.ShowRollappResponse,
 	kb consts.SupportedKeyringBackend,
+	shouldGenerateSequencerAddress bool,
 ) error {
 	raID := raResp.Rollapp.RollappId
 
@@ -54,7 +55,7 @@ func runInit(
 	/* ------------------------------ Generate keys ----------------------------- */
 	var addresses []keys.KeyInfo
 
-	sequencerKeys, err := initSequencerKeys(home, env, ic)
+	sequencerKeys, err := initSequencerKeys(home, env, ic, shouldGenerateSequencerAddress)
 	if err != nil {
 		return err
 	}
@@ -175,12 +176,17 @@ func runInit(
 	return nil
 }
 
-func initSequencerKeys(home string, env string, ic roller.RollappConfig) ([]keys.KeyInfo, error) {
+func initSequencerKeys(
+	home string,
+	env string,
+	ic roller.RollappConfig,
+	shouldGenerateSequencerAddress bool,
+) ([]keys.KeyInfo, error) {
 	err := keys.CreateSequencerOsKeyringPswFile(home)
 	if err != nil {
 		return nil, err
 	}
-	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, ic)
+	sequencerKeys, err := keys.GenerateSequencerKeys(home, env, ic, shouldGenerateSequencerAddress)
 	if err != nil {
 		return nil, err
 	}
