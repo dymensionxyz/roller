@@ -50,6 +50,12 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			nodeTypes := []string{"sequencer", "fullnode"}
+			fullNodeTypes := []string{"rpc", "archive"}
+
+			nodeTypeFromFlag, _ := cmd.Flags().GetString("node-type")
+			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
+
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to add flags")
@@ -138,11 +144,15 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			options := []string{"sequencer", "fullnode"}
-			nodeType, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the node type you want to run").
-				WithOptions(options).
-				Show()
+			var nodeType string
+			if slices.Contains(nodeTypes, nodeTypeFromFlag) {
+				nodeType = nodeTypeFromFlag
+			} else {
+				nodeType, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the node type you want to run").
+					WithOptions(nodeTypes).
+					Show()
+			}
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 			err = tomlconfig.UpdateFieldInFile(rollerConfigFilePath, "node_type", nodeType)
@@ -706,11 +716,16 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				fullNodeTypes := []string{"rpc", "archive"}
-				fullNodeType, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(fullNodeTypes).
-					Show()
+				var fullNodeType string
+				if slices.Contains(fullNodeTypes, fullNodeTypeFromFlag) {
+					fullNodeType = fullNodeTypeFromFlag
+				} else {
+					fullNodeType, _ = pterm.DefaultInteractiveSelect.
+						WithDefaultText("select the environment you want to initialize for").
+						WithOptions(fullNodeTypes).
+						Show()
+				}
+
 				var fnVtu map[string]any
 
 				switch fullNodeType {
@@ -782,6 +797,9 @@ RollApp's IRO time: %v`,
 			}()
 		},
 	}
+
+	cmd.Flags().String("node-type", "", "node type ( supported values: [sequencer, fullnode] )")
+	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive] )")
 
 	return cmd
 }
