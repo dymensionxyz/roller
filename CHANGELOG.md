@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.18.0-rc02](https://github.com/dymensionxyz/roller/compare/v1.17.1-rc02...v1.18.0-rc02) (2025-04-16)
+
+
+### Features
+
+* add flags to setup node ([#1349](https://github.com/dymensionxyz/roller/issues/1349)) ([f17dc58](https://github.com/dymensionxyz/roller/commit/f17dc58759be7f2dc9ae456fedca703af8b078f7))
+* add Walrus DA support ([#1347](https://github.com/dymensionxyz/roller/issues/1347)) ([2534120](https://github.com/dymensionxyz/roller/commit/253412065b2bc68fbc8b24adcea761f6fdce6e92))
+* config set da node ([#1288](https://github.com/dymensionxyz/roller/issues/1288)) ([25c0886](https://github.com/dymensionxyz/roller/commit/25c0886d9c6c487389099ddd0522799b2e4025ba))
+* handle config set da for other DAs ([#1352](https://github.com/dymensionxyz/roller/issues/1352)) ([30fba97](https://github.com/dymensionxyz/roller/commit/30fba97ebccd4d236562e85fe663e4750adfb47e))
+
+
+### Bug Fixes
+
+* update dymint config for APT ([#1342](https://github.com/dymensionxyz/roller/issues/1342)) ([d166b46](https://github.com/dymensionxyz/roller/commit/d166b46d9f2b8f9d888039dc4317b7f85b661c2c))
+* update dymint config for BNB ([#1343](https://github.com/dymensionxyz/roller/issues/1343)) ([f3f71f6](https://github.com/dymensionxyz/roller/commit/f3f71f6d3ccb697103321ce11540433a396bd49e))
+* update dymint config for Sui ([#1340](https://github.com/dymensionxyz/roller/issues/1340)) ([45133ff](https://github.com/dymensionxyz/roller/commit/45133ffef72eba32cbc6a60b9a629d657f11facc))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
