@@ -59,7 +59,8 @@ func NewBnb(root string) *Bnb {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %b", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &bnbConfig
 		}
 
 		bnbConfig.RpcEndpoint = daData.RpcUrl
@@ -110,11 +111,12 @@ func NewBnb(root string) *Bnb {
 		for {
 			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 				WithDefaultText(
-					"press 'y' when the wallet are funded",
+					"press 'y' when the wallet is funded",
 				).Show()
 
 			if !proceed {
-				panic(fmt.Errorf("BNB addr need to be fund!"))
+				pterm.Error.Println("BNB addr needs to be funded!")
+				continue
 			}
 
 			balance, err := bnbConfig.getBalance()
@@ -127,7 +129,7 @@ func NewBnb(root string) *Bnb {
 				pterm.Println("Wallet funded with balance:", balance)
 				break
 			}
-			pterm.Println("BNB wallet need to be fund!")
+			pterm.Error.Println("BNB wallet needs to be funded!")
 		}
 
 		err = writeConfigToTOML(cfgPath, bnbConfig)

@@ -76,7 +76,8 @@ func NewLoadNetwork(root string) *LoadNetwork {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &loadNetworkConfig
 		}
 
 		useExistingWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -109,11 +110,12 @@ func NewLoadNetwork(root string) *LoadNetwork {
 		for {
 			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 				WithDefaultText(
-					"press 'y' when the wallet are funded",
+					"press 'y' when the wallet is funded",
 				).Show()
 
 			if !proceed {
-				panic(fmt.Errorf("LoadNetwork wallet need to be fund!"))
+				pterm.Error.Println("LoadNetwork wallet needs to be funded!")
+				continue
 			}
 
 			balance, err := GetBalance(daData.ApiUrl, loadNetworkConfig.PrivateKey)
@@ -133,7 +135,7 @@ func NewLoadNetwork(root string) *LoadNetwork {
 				break
 			}
 
-			pterm.Println("LoadNetwork wallet need to be fund!")
+			pterm.Error.Println("LoadNetwork wallet needs to be funded!")
 		}
 
 		loadNetworkConfig.RpcEndpoint = daData.ApiUrl

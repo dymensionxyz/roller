@@ -68,7 +68,8 @@ func NewAptos(root string) *Aptos {
 
 		daData, exists := consts.DaNetworks[aptConfig.Network]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", aptConfig.Network))
+			pterm.Error.Printf("DA network configuration not found for: %s", aptConfig.Network)
+			return &aptConfig
 		}
 
 		aptConfig.RpcEndpoint = daData.RpcUrl
@@ -105,11 +106,12 @@ func NewAptos(root string) *Aptos {
 		for {
 			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
 				WithDefaultText(
-					"press 'y' when the wallet are funded",
+					"press 'y' when the wallet is funded",
 				).Show()
 
 			if !proceed {
-				panic(fmt.Errorf("APT addr need to be fund!"))
+				pterm.Error.Println("APT addr needs to be funded!")
+				continue
 			}
 
 			balance, err := aptConfig.getBalance()
@@ -123,7 +125,7 @@ func NewAptos(root string) *Aptos {
 				break
 			}
 
-			pterm.Println("APT wallet need to be fund!")
+			pterm.Error.Println("APT wallet needs to be funded!")
 		}
 
 		pterm.Warning.Print("You will need to save Private Key to an environment variable named APT_PRIVATE_KEY")

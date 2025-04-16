@@ -65,7 +65,8 @@ func NewAvail(root string) *Avail {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &availConfig
 		}
 
 		useExistingAvailWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -106,7 +107,7 @@ func NewAvail(root string) *Avail {
 			).Show()
 
 		if !proceed {
-			panic(fmt.Errorf("Avail addr need to be fund!"))
+			panic(fmt.Errorf("Avail addr needs to be funded!"))
 		}
 
 		insufficientBalances, err := availConfig.CheckDABalance()

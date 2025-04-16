@@ -62,7 +62,8 @@ func NewSui(root string) *Sui {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &suiConfig
 		}
 
 		useExistingSuiWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -103,7 +104,7 @@ func NewSui(root string) *Sui {
 			).Show()
 
 		if !proceed {
-			panic(fmt.Errorf("Sui addr need to be fund!"))
+			panic(fmt.Errorf("Sui addr needs to be funded!"))
 		}
 
 		suiConfig.RpcEndpoint = daData.RpcUrl
