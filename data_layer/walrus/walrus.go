@@ -96,7 +96,7 @@ func (w *Walrus) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, err
 
 func (w *Walrus) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"publisher_url": "%s", "aggregator_url": "%s", "blob_owner_addr": "%s", "store_duration_epochs": 180}`,
+		`{"publisher_url": "%s", "aggregator_url": "%s", "blob_owner_addr": "%s", "store_duration_epochs": 53}`,
 		w.Publisher,
 		w.Aggregator,
 		w.Address,
