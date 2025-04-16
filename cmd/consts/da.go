@@ -28,6 +28,7 @@ const (
 	LoadNetwork DAType = "loadnetwork"
 	Bnb         DAType = "bnb"
 	Sui         DAType = "sui"
+	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
 )
 
@@ -46,8 +47,10 @@ const (
 	SuiTestnet         DaNetwork = "sui-testnet"
 	SuiMainnet         DaNetwork = "sui-mainnet"
 	// https://aptos.dev/en/network/nodes/networks
-	AptosTestnet DaNetwork = "2"
-	AptosMainnet DaNetwork = "1"
+	AptosTestnet  DaNetwork = "2"
+	AptosMainnet  DaNetwork = "1"
+	WalrusTestnet DaNetwork = "walrus-testnet"
+	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
 )
 
 var DaNetworks = map[string]DaData{
@@ -175,6 +178,24 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "",
 		ID:               SuiMainnet,
 		RpcUrl:           "https://fullnode.mainnet.sui.io:443",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(WalrusTestnet): {
+		Backend:          Walrus,
+		ApiUrl:           "https://aggregator.walrus-testnet.walrus.space",
+		ID:               WalrusTestnet,
+		RpcUrl:           "https://publisher.walrus-testnet.walrus.space",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(WalrusMainnet): {
+		Backend:          Walrus,
+		ApiUrl:           "https://aggregator.walrus-mainnet.walrus.space",
+		ID:               WalrusMainnet,
+		RpcUrl:           "https://publisher.walrus-mainnet.walrus.space",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",

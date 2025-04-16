@@ -55,7 +55,6 @@ func NewAvail(root string) *Avail {
 
 	cfgPath := GetCfgFilePath(root)
 	availConfig, err := loadConfigFromTOML(cfgPath)
-
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.AvailMainnet)
