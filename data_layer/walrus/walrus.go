@@ -50,7 +50,8 @@ func NewWalrus(root string) *Walrus {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %b", daNetwork))
+			pterm.Error.Println("DA network configuration not found for: %s", daNetwork)
+			return &walrusConfig
 		}
 
 		walrusConfig.Address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
