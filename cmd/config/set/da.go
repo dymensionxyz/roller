@@ -41,11 +41,20 @@ func setDARPC(rlpCfg roller.RollappConfig, value string) error {
 		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "endpoint"); err != nil {
 			return err
 		}
-	case consts.Local:
-		return fmt.Errorf("mock DA don't use RPC")
-
+	case consts.LoadNetwork:
+		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "endpoint"); err != nil {
+			return err
+		}
+	case consts.Sui:
+		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "rpc_url"); err != nil {
+			return err
+		}
+	case consts.Bnb:
+		if err := sequencer.UpdateDymintDANodeConfig(rlpCfg, "endpoint"); err != nil {
+			return err
+		}
 	default:
-		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
+		return fmt.Errorf("your current da doesn't use this config value")
 	}
 
 	if err := roller.WriteConfig(rlpCfg); err != nil {
@@ -70,12 +79,8 @@ func setDAAPI(rlpCfg roller.RollappConfig, value string) error {
 		if err := roller.WriteConfig(rlpCfg); err != nil {
 			return err
 		}
-	case consts.Avail:
-		return fmt.Errorf("avail DA don't use API")
-	case consts.Local:
-		return fmt.Errorf("mock DA don't use API")
 	default:
-		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
+		return fmt.Errorf("your current da doesn't use this config value")
 	}
 
 	fmt.Printf("💈 RollApp DA API_URL has been successfully set to '%s'\n\n", value)
@@ -96,12 +101,8 @@ func setDAStateNode(rlpCfg roller.RollappConfig, value string) error {
 		if err := roller.WriteConfig(rlpCfg); err != nil {
 			return err
 		}
-	case consts.Avail:
-		return fmt.Errorf("avail DA don't use StateNode")
-	case consts.Local:
-		return fmt.Errorf("mock DA don't use StateNode")
 	default:
-		return fmt.Errorf("unsupported DA backend: %s", rlpCfg.DA.Backend)
+		return fmt.Errorf("your current da doesn't use this config value")
 	}
 
 	fmt.Printf("💈 RollApp DA StateNode has been successfully set to '%s'\n\n", value)
