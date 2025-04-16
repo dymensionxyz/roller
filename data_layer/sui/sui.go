@@ -50,7 +50,6 @@ func NewSui(root string) *Sui {
 
 	cfgPath := GetCfgFilePath(root)
 	suiConfig, err := LoadConfigFromTOML(cfgPath)
-
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.SuiMainnet)

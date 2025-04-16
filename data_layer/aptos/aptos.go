@@ -58,7 +58,6 @@ func NewAptos(root string) *Aptos {
 
 	cfgPath := GetCfgFilePath(root)
 	aptConfig, err := LoadConfigFromTOML(cfgPath)
-
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			aptConfig.Network = string(consts.AptosMainnet)
