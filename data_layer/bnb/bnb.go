@@ -76,7 +76,7 @@ func NewBnb(root string) *Bnb {
 			).Show()
 			privateKey, err := crypto.HexToECDSA(bnbConfig.PrivateKey)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to parse private key from hex", err)
 			}
 			publicKey := privateKey.Public().(*ecdsa.PublicKey)
 			address := crypto.PubkeyToAddress(*publicKey).Hex()
@@ -85,15 +85,11 @@ func NewBnb(root string) *Bnb {
 		} else {
 			privateKey, err := crypto.GenerateKey()
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to generate new private key", err)
 			}
 
 			privateKeyBytes := crypto.FromECDSA(privateKey)
 			privateKeyHex := hex.EncodeToString(privateKeyBytes)
-			if err != nil {
-				panic(err)
-			}
-
 			bnbConfig.PrivateKey = privateKeyHex
 
 			fmt.Printf("\t%s\n", bnbConfig.PrivateKey)

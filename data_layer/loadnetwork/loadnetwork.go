@@ -91,15 +91,11 @@ func NewLoadNetwork(root string) *LoadNetwork {
 		} else {
 			privateKey, err := crypto.GenerateKey()
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to generate private key", err)
+				return &loadNetworkConfig
 			}
 
 			privateKeyBytes := crypto.FromECDSA(privateKey)
-			// privateKeyHex := hex.EncodeToString(privateKeyBytes)
-			// if err != nil {
-			// 	panic(err)
-			// }
-
 			loadNetworkConfig.PrivateKey = fmt.Sprintf("%x", string(privateKeyBytes))
 
 			fmt.Printf("\t%s\n", loadNetworkConfig.PrivateKey)
@@ -120,13 +116,13 @@ func NewLoadNetwork(root string) *LoadNetwork {
 
 			balance, err := GetBalance(daData.ApiUrl, loadNetworkConfig.PrivateKey)
 			if err != nil {
-				pterm.Println("Error getting balance:", err)
+				pterm.Error.Println("Error getting balance:", err)
 				continue
 			}
 
 			balanceFloat, err := strconv.ParseFloat(balance, 64)
 			if err != nil {
-				pterm.Println("Error parsing balance:", err)
+				pterm.Error.Println("Error parsing balance:", err)
 				continue
 			}
 

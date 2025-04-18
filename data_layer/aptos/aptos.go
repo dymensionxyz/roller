@@ -91,9 +91,6 @@ func NewAptos(root string) *Aptos {
 
 			privKeyHex := hex.EncodeToString(privKey.Seed())
 			aptConfig.PrivateKey = privKeyHex
-			if err != nil {
-				panic(err)
-			}
 
 			fmt.Printf("\t%s\n", aptConfig.PrivateKey)
 			fmt.Println()

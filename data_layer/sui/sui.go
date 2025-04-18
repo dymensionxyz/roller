@@ -77,12 +77,14 @@ func NewSui(root string) *Sui {
 		} else {
 			entropySeed, err := bip39.NewEntropy(MnemonicEntropySize)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to generate new entropy:", err)
+				return &suiConfig
 			}
 
 			suiConfig.Mnemonic, err = bip39.NewMnemonic(entropySeed)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to generate new mnemonic:", err)
+				return &suiConfig
 			}
 
 			fmt.Printf("\t%s\n", suiConfig.Mnemonic)
@@ -92,19 +94,24 @@ func NewSui(root string) *Sui {
 
 		key, err := signer.NewSignertWithMnemonic(suiConfig.Mnemonic)
 		if err != nil {
-			panic(err)
+			pterm.Error.Println("failed to generate new signer from mnemonic:", err)
+			return &suiConfig
 		}
 
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your sui addresses below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(key.Address))
 
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallets are funded",
-			).Show()
+		for {
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
 
-		if !proceed {
-			panic(fmt.Errorf("Sui addr needs to be funded!"))
+			if !proceed {
+				pterm.Error.Println("Sui addr needs to be funded!")
+				continue
+			}
+			break
 		}
 
 		suiConfig.RpcEndpoint = daData.RpcUrl
