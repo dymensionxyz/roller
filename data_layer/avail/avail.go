@@ -62,6 +62,12 @@ func NewAvail(root string) *Avail {
 			daNetwork = string(consts.AvailTestnet)
 		}
 
+		daData, exists := consts.DaNetworks[daNetwork]
+		if !exists {
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &availConfig
+		}
+
 		useExistingAvailWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to import an existing Avail wallet?",
 		).Show()
@@ -73,12 +79,12 @@ func NewAvail(root string) *Avail {
 		} else {
 			entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to create new entropy", err)
 			}
 
 			availConfig.Mnemonic, err = bip39.NewMnemonic(entropySeed)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to create new mnemonic", err)
 			}
 
 			fmt.Printf("\t%s\n", availConfig.Mnemonic)
@@ -88,19 +94,24 @@ func NewAvail(root string) *Avail {
 
 		keyringPair, err := signature.KeyringPairFromSecret(availConfig.Mnemonic, keyringNetworkID)
 		if err != nil {
-			panic(err)
+			pterm.Error.Println("failed to create new keypair from mnemonic", err)
 		}
 
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your Avail addresses below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(keyringPair.Address))
 
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallets are funded",
-			).Show()
+		for {
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallets are funded",
+				).Show()
 
-		if !proceed {
-			panic(fmt.Errorf("Avail addr need to be fund!"))
+			if !proceed {
+				pterm.Error.Println("Avail addr needs to be funded!")
+				continue
+			}
+
+			break
 		}
 
 		insufficientBalances, err := availConfig.CheckDABalance()
@@ -110,20 +121,16 @@ func NewAvail(root string) *Avail {
 
 		err = keys.PrintInsufficientBalancesIfAny(insufficientBalances)
 		if err != nil {
-			pterm.Error.Println("failed to check insufficient balances: ", err)
+			pterm.Error.Println("failed to check insufficient balances", err)
 		}
 
-		daData, exists := consts.DaNetworks[daNetwork]
-		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
-		}
 		availConfig.RpcEndpoint = daData.ApiUrl
 		availConfig.AccAddress = keyringPair.Address
 		availConfig.Root = root
 
 		availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 		if err != nil {
-			panic(err)
+			pterm.Error.Println("failed to create AppID", err)
 		}
 
 		err = writeConfigToTOML(cfgPath, availConfig)

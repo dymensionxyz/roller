@@ -58,20 +58,24 @@ func NewBnb(root string) *Bnb {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %b", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &bnbConfig
 		}
 
-		useExistingbnbWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		bnbConfig.RpcEndpoint = daData.RpcUrl
+		bnbConfig.Root = root
+
+		useExistingBnbWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to import an existing Bnb wallet?",
 		).Show()
 
-		if useExistingbnbWallet {
+		if useExistingBnbWallet {
 			bnbConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"> Enter your hex private key",
 			).Show()
 			privateKey, err := crypto.HexToECDSA(bnbConfig.PrivateKey)
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to parse private key from hex", err)
 			}
 			publicKey := privateKey.Public().(*ecdsa.PublicKey)
 			address := crypto.PubkeyToAddress(*publicKey).Hex()
@@ -80,15 +84,11 @@ func NewBnb(root string) *Bnb {
 		} else {
 			privateKey, err := crypto.GenerateKey()
 			if err != nil {
-				panic(err)
+				pterm.Error.Println("failed to generate new private key", err)
 			}
 
 			privateKeyBytes := crypto.FromECDSA(privateKey)
 			privateKeyHex := hex.EncodeToString(privateKeyBytes)
-			if err != nil {
-				panic(err)
-			}
-
 			bnbConfig.PrivateKey = privateKeyHex
 
 			fmt.Printf("\t%s\n", bnbConfig.PrivateKey)
@@ -103,24 +103,28 @@ func NewBnb(root string) *Bnb {
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your bnb addresses below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(bnbConfig.Address))
 
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallets are funded",
-			).Show()
+		for {
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallet is funded",
+				).Show()
 
-		if !proceed {
-			panic(fmt.Errorf("Bnb addr need to be fund!"))
-		}
+			if !proceed {
+				pterm.Error.Println("BNB addr needs to be funded!")
+				continue
+			}
 
-		bnbConfig.RpcEndpoint = daData.RpcUrl
-		bnbConfig.Root = root
-		balance, err := bnbConfig.getBalance()
-		if err != nil {
-			panic(err)
-		}
+			balance, err := bnbConfig.getBalance()
+			if err != nil {
+				pterm.Println("Error getting balance:", err)
+				continue
+			}
 
-		if balance.Cmp(big.NewInt(0)) <= 0 {
-			panic(fmt.Errorf("Bnb wallet need to be fund!"))
+			if balance.Cmp(big.NewInt(0)) > 0 {
+				pterm.Println("Wallet funded with balance:", balance)
+				break
+			}
+			pterm.Error.Println("BNB wallet needs to be funded!")
 		}
 
 		err = writeConfigToTOML(cfgPath, bnbConfig)
