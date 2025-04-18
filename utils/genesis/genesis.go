@@ -309,7 +309,7 @@ func getDefaultGenesisParams(
 	var params []config.PathValue
 
 	commonParams := []config.PathValue{
-		{Path: "app_state.mint.params.mint_denom", Value: raCfg.BaseDenom},
+		{Path: "app_state.mint.minter.mint_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.staking.params.bond_denom", Value: raCfg.BaseDenom},
 		{Path: "app_state.gov.deposit_params.min_deposit.0.denom", Value: raCfg.BaseDenom},
 		{Path: "consensus_params.block.max_gas", Value: "40000000"},
