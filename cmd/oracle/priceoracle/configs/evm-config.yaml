@@ -1,29 +1,36 @@
 assets:
   BTC:
     decimals: 8
-    blockchainName: "oracle/WBTC"
+    blockchainName: "0x1cb923B38308360D93f9438eE8be03437fD20EC5"
     logo: https://astrovault.io/static/media/logo-wbtc.axl.82bde40ecf2b5608fec5.svg
     displayName: WBTC
   USDC:
     decimals: 6
-    blockchainName: "oracle/USDC"
+    blockchainName: "0x6333A2f50EA1d8c37BdAB2b894D4a420117256FC"
     logo: ""
   USDT:
     decimals: 6
-    blockchainName: "oracle/USDT"
+    blockchainName: "0xF6f30F7b6845E019D4e8BAe87BC8715fd569e12C"
     logo: "https://astrovault.io/static/media/logo-usdt.grav.1c50785c9a42c563a1b6.svg"
+  DYM:
+      decimals: 18
+      blockchainName: "0xc7870fbBE3e63E1F7b3F90C47C3e57E0C47a3580"
+      logo: "https://raw.githubusercontent.com/cosmos/chain-registry/master/dymension/images/dymension-logo.svg"
+      displayName: "DYM"
 
 chainClient:
   rpcEndpoint: "http://127.0.0.1:8545/" # RPC endpoint for the EVM network
   chainId: 1234 # EVM chain ID (e.g. 1 for Ethereum mainnet)
-  privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" # Private key for signing transactions
+  privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" # Private key for signing transactions, dummy key here, it's being replaced by the deployer's private key during setup
   contractAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3" # EVM oracle contract address
-  gasLimit: 250000 # Gas limit for transactions
-  maxGasPrice: "100000000000" # Maximum gas price in wei
+  gasLimit: 300000 # Gas limit for transactions
+  gasFeeCap: 20000000000
+  gasTipCap: 1000000000
+  scaleFactor: 18
 
 oracle:
   priceAggregatorEndpoint: 34.140.47.197:9090
-  priceRefreshRate: 15s
+  priceRefreshRate: 10s
   pricesToSend:
     - BTC-USDC
     - DYM-USDT

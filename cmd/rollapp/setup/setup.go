@@ -51,6 +51,12 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			nodeTypes := []string{"sequencer", "fullnode"}
+			fullNodeTypes := []string{"rpc", "archive"}
+
+			nodeTypeFromFlag, _ := cmd.Flags().GetString("node-type")
+			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
+
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
 				pterm.Error.Println("failed to add flags")
@@ -70,16 +76,8 @@ func Cmd() *cobra.Command {
 				pterm.Error.Println("failed to load roller config file", err)
 				return
 			}
-			localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
 
-			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
-				home,
-				localRollerConfig.RollappID,
-				localRollerConfig.HubData,
-			)
-			errorhandling.PrettifyErrorIfExists(err)
-
-			if rollappConfig.HubData.ID == "mock" {
+			if localRollerConfig.Environment == "mock" {
 				pterm.Error.Println("setup is not required for mock backend")
 				pterm.Info.Printf(
 					"run %s instead to run the rollapp\n",
@@ -88,6 +86,15 @@ func Cmd() *cobra.Command {
 				)
 				return
 			}
+
+			localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
+
+			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+				home,
+				localRollerConfig.RollappID,
+				localRollerConfig.HubData,
+			)
+			errorhandling.PrettifyErrorIfExists(err)
 
 			raResponse, err := rollapp.GetMetadataFromChain(
 				localRollerConfig.RollappID,
@@ -138,11 +145,15 @@ RollApp's IRO time: %v`,
 				return
 			}
 
-			options := []string{"sequencer", "fullnode"}
-			nodeType, _ := pterm.DefaultInteractiveSelect.
-				WithDefaultText("select the node type you want to run").
-				WithOptions(options).
-				Show()
+			var nodeType string
+			if slices.Contains(nodeTypes, nodeTypeFromFlag) {
+				nodeType = nodeTypeFromFlag
+			} else {
+				nodeType, _ = pterm.DefaultInteractiveSelect.
+					WithDefaultText("select the node type you want to run").
+					WithOptions(nodeTypes).
+					Show()
+			}
 
 			rollerConfigFilePath := filepath.Join(home, consts.RollerConfigFileName)
 			err = tomlconfig.UpdateFieldInFile(rollerConfigFilePath, "node_type", nodeType)
@@ -561,14 +572,86 @@ RollApp's IRO time: %v`,
 						Address: daAddress.Address,
 					})
 				}
-			case consts.WeaveVM:
-				// Initialize DAManager for WeaveVM
-				damanager := datalayer.NewDAManager(consts.WeaveVM, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+			case consts.LoadNetwork:
+				// Initialize DAManager for LoadNetwork
+				damanager := datalayer.NewDAManager(consts.LoadNetwork, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
 				if err != nil {
-					pterm.Error.Println("failed to get WeaveVM account address: %w", err)
+					pterm.Error.Println("failed to get LoadNetwork account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Bnb:
+				// Initialize DAManager for Bnb
+				damanager := datalayer.NewDAManager(consts.Bnb, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Bnb account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Sui:
+				// Initialize DAManager for Sui
+				damanager := datalayer.NewDAManager(consts.Sui, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Sui account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Aptos:
+				// Initialize DAManager for Aptos
+				damanager := datalayer.NewDAManager(consts.Aptos, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Aptos account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Walrus:
+				// Initialize DAManager for Walrus
+				damanager := datalayer.NewDAManager(consts.Walrus, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Walrus account address: %w", err)
 					return
 				}
 
@@ -767,11 +850,16 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				fullNodeTypes := []string{"rpc", "archive"}
-				fullNodeType, _ := pterm.DefaultInteractiveSelect.
-					WithDefaultText("select the environment you want to initialize for").
-					WithOptions(fullNodeTypes).
-					Show()
+				var fullNodeType string
+				if slices.Contains(fullNodeTypes, fullNodeTypeFromFlag) {
+					fullNodeType = fullNodeTypeFromFlag
+				} else {
+					fullNodeType, _ = pterm.DefaultInteractiveSelect.
+						WithDefaultText("select the environment you want to initialize for").
+						WithOptions(fullNodeTypes).
+						Show()
+				}
+
 				var fnVtu map[string]any
 
 				switch fullNodeType {
@@ -845,6 +933,9 @@ RollApp's IRO time: %v`,
 			}()
 		},
 	}
+
+	cmd.Flags().String("node-type", "", "node type ( supported values: [sequencer, fullnode] )")
+	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive] )")
 
 	return cmd
 }
@@ -1141,9 +1232,14 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 	}
 }
 
-func getDaConfig(dataLayer datalayer.DataLayer, nodeType string, home string, raResponse *rollapp.ShowRollappResponse, rollappConfig *roller.RollappConfig) any {
-
-	daConfig := dataLayer.GetSequencerDAConfig(nodeType)
+func getDaConfig(
+	dataLayer datalayer.DataLayer,
+	nodeType string,
+	home string,
+	raResponse *rollapp.ShowRollappResponse,
+	rollappConfig *roller.RollappConfig,
+) any {
+	daConfig := dataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
 
 	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
 	if err != nil {

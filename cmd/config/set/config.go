@@ -13,7 +13,7 @@ import (
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
 
-func SetMinimumGasPrice(cfg roller.RollappConfig, value string) error {
+func setMinimumGasPrice(cfg roller.RollappConfig, value string) error {
 	appConfigFilePath := filepath.Join(sequencerutils.GetSequencerConfigDir(cfg.Home), "app.toml")
 	err := tomlconfig.UpdateFieldInFile(appConfigFilePath, "minimum-gas-prices", value)
 	if err != nil {

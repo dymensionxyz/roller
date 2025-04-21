@@ -1,4 +1,4 @@
-package weavevm
+package walrus
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
 
-func writeConfigToTOML(path string, w WeaveVM) error {
+func writeConfigToTOML(path string, w Walrus) error {
 	tomlBytes, err := toml.Marshal(w)
 	if err != nil {
 		return err
@@ -28,8 +28,8 @@ func writeConfigToTOML(path string, w WeaveVM) error {
 	return nil
 }
 
-func loadConfigFromTOML(path string) (WeaveVM, error) {
-	var config WeaveVM
+func loadConfigFromTOML(path string) (Walrus, error) {
+	var config Walrus
 	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
 		return config, err

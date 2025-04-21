@@ -45,7 +45,11 @@ func CreateDaOsKeyringPswFile(home string) error {
 	return config.WritePasswordToFile(daFp)
 }
 
-func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
+func GenerateSequencerKeys(
+	home, env string,
+	rollerData roller.RollappConfig,
+	shouldGenerateSequencerAddress bool,
+) ([]KeyInfo, error) {
 	var k []KeyInfo
 	var err error
 
@@ -55,7 +59,7 @@ func GenerateSequencerKeys(home, env string, rollerData roller.RollappConfig) ([
 			return nil, err
 		}
 	} else {
-		k, err = generateRaSequencerKeys(home, rollerData)
+		k, err = generateRaSequencerKeys(home, rollerData, shouldGenerateSequencerAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -86,10 +90,17 @@ func generateMockSequencerKeys(initConfig roller.RollappConfig) ([]KeyInfo, erro
 	return addresses, nil
 }
 
-func generateRaSequencerKeys(home string, rollerData roller.RollappConfig) ([]KeyInfo, error) {
-	useExistingSequencerWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-		"would you like to import an existing sequencer key?",
-	).Show()
+func generateRaSequencerKeys(
+	home string,
+	rollerData roller.RollappConfig,
+	shouldGenerateSequencerAddress bool,
+) ([]KeyInfo, error) {
+	var useExistingSequencerWallet bool
+	if !shouldGenerateSequencerAddress {
+		useExistingSequencerWallet, _ = pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to import an existing sequencer key?",
+		).Show()
+	}
 
 	var addr []KeyInfo
 	var err error

@@ -1,4 +1,4 @@
-package weavevm
+package loadnetwork
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	ConfigFileName               = "weavevm.toml"
+	ConfigFileName               = "load_network.toml"
 	mnemonicEntropySize          = 256
 	keyringNetworkID      uint16 = 42
 	requiredAVL                  = 1
@@ -45,36 +45,36 @@ type EthBalanceResponse struct {
 	Result  string `json:"result"`
 }
 
-type WeaveVM struct {
+type LoadNetwork struct {
 	Root        string
 	PrivateKey  string
 	RpcEndpoint string
 	ChainID     uint32
 }
 
-func (w *WeaveVM) GetPrivateKey() (string, error) {
+func (w *LoadNetwork) GetPrivateKey() (string, error) {
 	return w.PrivateKey, nil
 }
 
-func (w *WeaveVM) SetMetricsEndpoint(endpoint string) {
+func (w *LoadNetwork) SetMetricsEndpoint(endpoint string) {
 }
 
-func NewWeaveVM(root string) *WeaveVM {
+func NewLoadNetwork(root string) *LoadNetwork {
 	var daNetwork string
 
 	rollerData, err := roller.LoadConfig(root)
 	errorhandling.PrettifyErrorIfExists(err)
 
 	cfgPath := GetCfgFilePath(root)
-	weavevmConfig, err := loadConfigFromTOML(cfgPath)
+	loadNetworkConfig, err := loadConfigFromTOML(cfgPath)
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
-			daNetwork = string(consts.WeaveVMMainnet)
+			daNetwork = string(consts.LoadNetworkMainnet)
 		} else {
-			daNetwork = string(consts.WeaveVMTestnet)
+			daNetwork = string(consts.LoadNetworkTestnet)
 		}
 
-		weavevmConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+		loadNetworkConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 			"> Enter your PrivateKey without 0x",
 		).Show()
 
@@ -84,7 +84,7 @@ func NewWeaveVM(root string) *WeaveVM {
 			).Show()
 
 		if !proceed {
-			panic(fmt.Errorf("WeaveVM wallet need to be fund!"))
+			panic(fmt.Errorf("LoadNetwork wallet need to be fund!"))
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
@@ -92,7 +92,7 @@ func NewWeaveVM(root string) *WeaveVM {
 			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
 		}
 
-		balance, err := GetBalance(daData.ApiUrl, weavevmConfig.PrivateKey)
+		balance, err := GetBalance(daData.ApiUrl, loadNetworkConfig.PrivateKey)
 		if err != nil {
 			panic(err)
 		}
@@ -103,44 +103,44 @@ func NewWeaveVM(root string) *WeaveVM {
 		}
 
 		if balanceFloat == 0 {
-			panic(fmt.Errorf("WeaveVM wallet need to be fund!"))
+			panic(fmt.Errorf("LoadNetwork wallet need to be fund!"))
 		}
 
-		pterm.Println("WeaveVM Balance: ", balanceFloat)
+		pterm.Println("LoadNetwork Balance: ", balanceFloat)
 
-		weavevmConfig.RpcEndpoint = daData.ApiUrl
-		weavevmConfig.Root = root
-		weavevmConfig.ChainID = DefaultTestnetChainID
+		loadNetworkConfig.RpcEndpoint = daData.ApiUrl
+		loadNetworkConfig.Root = root
+		loadNetworkConfig.ChainID = DefaultTestnetChainID
 
-		err = writeConfigToTOML(cfgPath, weavevmConfig)
+		err = writeConfigToTOML(cfgPath, loadNetworkConfig)
 		if err != nil {
 			panic(err)
 		}
 	}
-	return &weavevmConfig
+	return &loadNetworkConfig
 }
 
-func (w *WeaveVM) InitializeLightNodeConfig() (string, error) {
+func (w *LoadNetwork) InitializeLightNodeConfig() (string, error) {
 	return "", nil
 }
 
-func (w *WeaveVM) GetDAAccountAddress() (*keys.KeyInfo, error) {
+func (w *LoadNetwork) GetDAAccountAddress() (*keys.KeyInfo, error) {
 	return nil, nil
 }
 
-func (w *WeaveVM) GetRootDirectory() string {
+func (w *LoadNetwork) GetRootDirectory() string {
 	return w.Root
 }
 
-func (w *WeaveVM) CheckDABalance() ([]keys.NotFundedAddressData, error) {
+func (w *LoadNetwork) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 	return nil, nil
 }
 
-func (w *WeaveVM) GetStartDACmd() *exec.Cmd {
+func (w *LoadNetwork) GetStartDACmd() *exec.Cmd {
 	return nil
 }
 
-func (w *WeaveVM) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
+func (w *LoadNetwork) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 	balance, err := GetBalance(cfg.DA.ApiUrl, w.PrivateKey)
 	if err != nil {
 		return nil, err
@@ -158,14 +158,14 @@ func (w *WeaveVM) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, er
 		{
 			Address: address.String(),
 			Balance: cosmossdktypes.Coin{
-				Denom:  consts.Denoms.WeaveVM,
+				Denom:  consts.Denoms.LoadNetwork,
 				Amount: balanceInt,
 			},
 		},
 	}, nil
 }
 
-func (w *WeaveVM) GetSequencerDAConfig(_ string) string {
+func (w *LoadNetwork) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
 		`{"endpoint": "%s", "chain_id": %d,"private_key_hex": "%s"}`,
 		w.RpcEndpoint,
@@ -174,31 +174,31 @@ func (w *WeaveVM) GetSequencerDAConfig(_ string) string {
 	)
 }
 
-func (w *WeaveVM) SetRPCEndpoint(rpc string) {
+func (w *LoadNetwork) SetRPCEndpoint(rpc string) {
 	w.RpcEndpoint = rpc
 }
 
-func (w *WeaveVM) GetLightNodeEndpoint() string {
+func (w *LoadNetwork) GetLightNodeEndpoint() string {
 	return ""
 }
 
-func (w *WeaveVM) GetNetworkName() string {
-	return "weavevm"
+func (w *LoadNetwork) GetNetworkName() string {
+	return "loadnetwork"
 }
 
-func (w *WeaveVM) GetStatus(c roller.RollappConfig) string {
+func (w *LoadNetwork) GetStatus(c roller.RollappConfig) string {
 	return "Active"
 }
 
-func (w *WeaveVM) GetKeyName() string {
-	return "weavevm"
+func (w *LoadNetwork) GetKeyName() string {
+	return "loadnetwork"
 }
 
-func (w *WeaveVM) GetNamespaceID() string {
+func (w *LoadNetwork) GetNamespaceID() string {
 	return ""
 }
 
-func (w *WeaveVM) GetAppID() uint32 {
+func (w *LoadNetwork) GetAppID() uint32 {
 	return 0
 }
 

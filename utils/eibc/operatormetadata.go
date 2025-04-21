@@ -197,7 +197,7 @@ func UpdateEibcOperatorMetadata(home, metadata string, hd consts.HubData) error 
 		return err
 	}
 
-	err = tx.MonitorTransaction(hd.RpcUrl, txHash)
+	err = tx.MonitorTransaction(hd.WsUrl, txHash)
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ func UpdateGroupSupportedRollapps(eibcConfigPath string, cfg Config, home string
 	return nil
 }
 
-// UpdateGroupSupportedRollapps function updates the supported rollapps list in the onchain metadata
+// UpdateGroupOperatorMinFee function updates the operator's fee share in the onchain metadata
 // of group and group-policy and returns an error if any
 func UpdateGroupOperatorMinFee(
 	eibcConfigPath string,

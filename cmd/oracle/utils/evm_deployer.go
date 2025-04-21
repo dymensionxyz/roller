@@ -41,9 +41,9 @@ import (
 
 // AssetInfo represents the asset information structure matching the contract's constructor
 type AssetInfo struct {
-	LocalNetworkName      common.Address
-	OracleNetworkName     string
-	LocalNetworkPrecision *big.Int
+	LocalNetworkName  common.Address
+	OracleNetworkName string
+	Precision         *big.Int
 }
 
 // EVMDeployer implements ContractDeployer for EVM chains
@@ -223,44 +223,40 @@ func (e *EVMDeployer) DeployContract(
 	}
 
 	var contractAddress *goethcommon.Address
+	assetInfos := []AssetInfo{
+		{
+			LocalNetworkName:  StringToAddress("oracle/WBTC"),
+			OracleNetworkName: "WBTC",
+			Precision:         big.NewInt(8),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/USDC"),
+			OracleNetworkName: "USDC",
+			Precision:         big.NewInt(6),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/USDT"),
+			OracleNetworkName: "USDT",
+			Precision:         big.NewInt(6),
+		},
+
+		{
+			LocalNetworkName:  StringToAddress("oracle/DYM"),
+			OracleNetworkName: "DYM",
+			Precision:         big.NewInt(18),
+		},
+	}
 
 	switch tContractName {
 	case "PriceOracle":
 		contractAddress, err = deployPriceOracleContract(
 			bytecode,
 			e.KeyData.PrivateKey,
-			big.NewInt(3),
-			[]AssetInfo{
-				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/WBTC",
-					),
-					OracleNetworkName:     "WBTC",
-					LocalNetworkPrecision: big.NewInt(8),
-				},
-				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/USDC",
-					),
-					OracleNetworkName:     "USDC",
-					LocalNetworkPrecision: big.NewInt(6),
-				},
-				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/USDT",
-					),
-					OracleNetworkName:     "USDT",
-					LocalNetworkPrecision: big.NewInt(6),
-				},
-				{
-					LocalNetworkName: common.HexToAddress(
-						"oracle/DYM",
-					),
-					OracleNetworkName:     "DYM",
-					LocalNetworkPrecision: big.NewInt(18),
-				},
-			},
-			big.NewInt(1000000000000000000), // 1 ETH bound threshold
+			big.NewInt(11),
+			assetInfos,
+			uint8(5), // percentage, 0-100
 			contractABI,
 		)
 		if err != nil {
@@ -356,9 +352,9 @@ func ensureBalance(raResp *rollapp.ShowRollappResponse, e *EVMDeployer) error {
 func deployPriceOracleContract(
 	bytecode string,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
-	expirationOffset *big.Int,
+	expirationOffsetSec *big.Int,
 	assetInfos []AssetInfo,
-	boundThreshold *big.Int,
+	boundThreshold uint8,
 	contractABI string,
 ) (*goethcommon.Address, error) {
 	pterm.Info.Println("deploying Oracle contract")
@@ -389,7 +385,15 @@ func deployPriceOracleContract(
 	}
 
 	// Encode constructor arguments
-	constructorInput := []interface{}{expirationOffset, assetInfos, boundThreshold}
+
+	scaleFactor := cosmossdkmath.NewIntWithDecimal(1, 18)
+
+	constructorInput := []interface{}{
+		expirationOffsetSec,
+		assetInfos,
+		boundThreshold,
+		scaleFactor.BigInt(),
+	}
 	constructorArgs, err := encodeConstructorArgs(constructorInput, contractABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode constructor arguments: %w", err)
@@ -689,4 +693,9 @@ func waitForEthTx(ethClient8545 *ethclient.Client, txHash common.Hash) *ethtypes
 	}
 
 	return nil
+}
+
+func StringToAddress(str string) common.Address {
+	hash := crypto.Keccak256Hash([]byte(str))
+	return common.BytesToAddress(hash.Bytes())
 }

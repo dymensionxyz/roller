@@ -48,9 +48,12 @@ func getSupportedKeys() []string {
 }
 
 var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{
-	"minimum-gas-price": SetMinimumGasPrice,
+	"minimum-gas-price": setMinimumGasPrice,
 	"hub-rpc-endpoint":  setHubRPC,
 	"block-time":        setBlockTime,
+	"da-rpc":            setDARPC,
+	"da-state-node":     setDAStateNode,
+	"da-api":            setDAAPI,
 }
 
 // var keyUpdateFuncs = map[string]func(cfg roller.RollappConfig, value string) error{

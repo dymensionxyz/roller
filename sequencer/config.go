@@ -1,6 +1,7 @@
 package sequencer
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,6 +19,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 )
+
+type ConfigEntry map[string]interface{}
 
 func SetDefaultDymintConfig(rlpCfg roller.RollappConfig) error {
 	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
@@ -89,6 +92,46 @@ func updateDaConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree) err
 		dymintCfg.Set("da_layer", "mock")
 	}
 
+	return nil
+}
+
+func UpdateDymintDANodeConfig(rlpCfg roller.RollappConfig, key string) error {
+	dymintTomlPath := sequencerutils.GetDymintFilePath(rlpCfg.Home)
+	dymintCfg, err := toml.LoadFile(dymintTomlPath)
+	if err != nil {
+		return err
+	}
+	if err := updateDANodeConfigInToml(rlpCfg, dymintCfg, key); err != nil {
+		return err
+	}
+	return tomlconfig.WriteTomlTreeToFile(dymintCfg, dymintTomlPath)
+}
+
+func updateDANodeConfigInToml(rlpCfg roller.RollappConfig, dymintCfg *toml.Tree, key string) error {
+	daConfigRaw := dymintCfg.Get("da_config")
+	daConfig, ok := daConfigRaw.([]interface{})
+	if !ok {
+		return fmt.Errorf("da_config is not an array")
+	}
+
+	for i, entry := range daConfig {
+		strEntry, ok := entry.(string)
+		if !ok {
+			continue
+		}
+
+		var obj ConfigEntry
+		if err := json.Unmarshal([]byte(strEntry), &obj); err == nil {
+			if _, exists := obj[key]; exists {
+				obj[key] = rlpCfg.DA.RpcUrl
+				updatedJSON, _ := json.Marshal(obj)
+				daConfig[i] = string(updatedJSON)
+				break
+			}
+		}
+	}
+
+	dymintCfg.Set("da_config", daConfig)
 	return nil
 }
 
