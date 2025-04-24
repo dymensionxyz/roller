@@ -34,6 +34,8 @@ func Cmd() *cobra.Command {
 			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
 			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
 			shouldGenerateSequencerAddress, _ := cmd.Flags().GetBool("generate-sequencer-address")
+			shouldUseDefaultWebsocketEndpoint, _ := cmd.Flags().
+				GetBool("use-default-websocket-endpoint")
 			forceOverwrite, _ := cmd.Flags().GetBool("overwrite")
 
 			envFromFlag, _ := cmd.Flags().GetString("env")
@@ -190,8 +192,12 @@ func Cmd() *cobra.Command {
 					GasPrice:      chd.GasPrice,
 				}
 
-				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
-					Show()
+				var hdws string
+				if !shouldUseDefaultWebsocketEndpoint {
+					hdws, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+						Show()
+				}
+
 				if hdws == "" {
 					hd.WsUrl = hd.RpcUrl
 				} else {
@@ -237,8 +243,13 @@ func Cmd() *cobra.Command {
 				return
 			case "mainnet":
 				hd = consts.Hubs[env]
-				hdws, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
-					Show()
+
+				var hdws string
+				if !shouldUseDefaultWebsocketEndpoint {
+					hdws, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+						Show()
+				}
+
 				if hdws == "" {
 					hd.WsUrl = hd.RpcUrl
 				} else {
@@ -361,6 +372,8 @@ func Cmd() *cobra.Command {
 
 	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
 	cmd.Flags().Bool("skip-binary-installation", false, "skips the binary installation")
+	cmd.Flags().
+		Bool("use-default-websocket-endpoint", false, "uses the default websocket endpoint at rpc endpoint (rpc.example.com/websocket)")
 	cmd.Flags().Bool("generate-sequencer-address", true, "generates a sequencer address")
 	cmd.Flags().String("env", "", "environment to initialize the rollapp for")
 	cmd.Flags().
