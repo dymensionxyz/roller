@@ -355,7 +355,7 @@ After=network.target
 
 [Service]
 Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart={{.ExecPath}} {{.Name}} start
+ExecStart={{.ExecPath}} {{.Name}} start --home {{.Home}}
 Restart=on-failure
 RestartSec=10
 MemoryHigh=15%
