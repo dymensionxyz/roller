@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -430,20 +431,27 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 }
 
 func LoadLinuxServices(services []string, rollerData roller.RollappConfig) error {
+	usr, err := user.Current()
+	if err != nil {
+		pterm.Error.Println("failed to get current user", err)
+		return err
+	}
+
 	for _, service := range services {
 		serviceData := ServiceTemplateData{
 			Name:     service,
 			ExecPath: consts.Executables.Roller,
-			UserName: os.Getenv("USER"),
+			UserName: usr.Username,
 			Home:     rollerData.Home,
 		}
+
 		tpl, err := generateSystemdServiceTemplate(serviceData)
 		errorhandling.PrettifyErrorIfExists(err)
 		err = writeSystemdServiceFile(tpl, service)
 		errorhandling.PrettifyErrorIfExists(err)
 	}
 
-	_, err := bash.ExecCommandWithStdout(
+	_, err = bash.ExecCommandWithStdout(
 		exec.Command("sudo", "systemctl", "daemon-reload"),
 	)
 	if err != nil {
