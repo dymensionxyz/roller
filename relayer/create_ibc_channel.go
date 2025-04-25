@@ -84,6 +84,12 @@ func (r *Relayer) CreateIBCChannel(
 		return ConnectionChannels{}, err
 	}
 
+	genesisBridgeCmd := r.getGenesisBridgeCmd()
+	pterm.Info.Println("💈 Sending genesis transfer (this may take a while)...")
+	if err := bash.ExecCmd(genesisBridgeCmd, logFileOption); err != nil {
+		return ConnectionChannels{}, err
+	}
+
 	return ConnectionChannels{
 		Src: r.SrcChannel,
 		Dst: r.DstChannel,
@@ -208,4 +214,10 @@ func (r *Relayer) getRelayerDefaultArgs() []string {
 		"--home",
 		filepath.Join(r.RollerHome, consts.ConfigDirName.Relayer),
 	}
+}
+
+func (r *Relayer) getGenesisBridgeCmd() *exec.Cmd {
+	args := []string{"tx", "rollapp-send-genesis-transfer"}
+	args = append(args, r.getRelayerDefaultArgs()...)
+	return exec.Command(consts.Executables.Relayer, args...)
 }
