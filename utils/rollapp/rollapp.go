@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	minEvmDRSNewDAConfig  = "6"
-	minWasmDRSNewDAConfig = "9"
+	minEvmDRSNewDAConfig  = 6
+	minWasmDRSNewDAConfig = 9
 )
 
 func GetHomeDir(home string) string {
@@ -310,25 +310,25 @@ func Show(raID string, hd consts.HubData) (*ShowRollappResponse, error) {
 	return &raResponse, nil
 }
 
-func IsDaConfigNewFormat(drsVersion string, evmType string) bool {
-	if drsVersion >= minEvmDRSNewDAConfig && "evm" == evmType ||
-		drsVersion >= minWasmDRSNewDAConfig && "wasm" == evmType {
+func IsDaConfigNewFormat(drsVersion int64, vmType string) bool {
+	if drsVersion >= minEvmDRSNewDAConfig && "evm" == vmType ||
+		drsVersion >= minWasmDRSNewDAConfig && "wasm" == vmType {
 		return true
 	}
 	return false
 }
 
-func IsDAConfigMigrationRequired(oldDRS string, newDRS string, evmType string) bool {
-	if oldDRS >= minEvmDRSNewDAConfig && "evm" == evmType {
+func IsDAConfigMigrationRequired(oldDRS int64, newDRS int64, vmType string) bool {
+	if oldDRS >= minEvmDRSNewDAConfig && "evm" == vmType {
 		return false
 	}
-	if oldDRS >= minWasmDRSNewDAConfig && "wasm" == evmType {
+	if oldDRS >= minWasmDRSNewDAConfig && "wasm" == vmType {
 		return false
 	}
-	if newDRS < minEvmDRSNewDAConfig && "evm" == evmType {
+	if newDRS < minEvmDRSNewDAConfig && "evm" == vmType {
 		return false
 	}
-	if newDRS < minWasmDRSNewDAConfig && "wasm" == evmType {
+	if newDRS < minWasmDRSNewDAConfig && "wasm" == vmType {
 		return false
 	}
 	return true

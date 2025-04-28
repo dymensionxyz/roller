@@ -1094,7 +1094,13 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 		return nil
 	}
 
-	if rollapp.IsDaConfigNewFormat(drsVersion, strings.ToLower(raResponse.Rollapp.VmType)) {
+	drsVersionInt, err := strconv.ParseInt(drsVersion, 10, 64)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return nil
+	}
+
+	if rollapp.IsDaConfigNewFormat(drsVersionInt, strings.ToLower(raResponse.Rollapp.VmType)) {
 		return []string{string(daType)}
 	} else {
 		return daType
@@ -1116,7 +1122,13 @@ func getDaConfig(
 		return nil
 	}
 
-	if rollapp.IsDaConfigNewFormat(drsVersion, strings.ToLower(raResponse.Rollapp.VmType)) {
+	drsVersionInt, err := strconv.ParseInt(drsVersion, 10, 64)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return nil
+	}
+
+	if rollapp.IsDaConfigNewFormat(drsVersionInt, strings.ToLower(raResponse.Rollapp.VmType)) {
 		return []string{daConfig}
 	} else {
 		return daConfig
