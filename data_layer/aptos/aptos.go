@@ -109,7 +109,7 @@ func NewAptos(root string) *Aptos {
 				pterm.Error.Println("APT addr needs to be funded")
 				continue
 			}
-      
+
 			balance, err := aptConfig.getBalance()
 			if err != nil {
 				pterm.Println("Error getting balance:", err)

@@ -108,7 +108,7 @@ func NewBnb(root string) *Bnb {
 				WithDefaultText(
 					"press 'y' when the wallet is funded",
 				).Show()
-      
+
 			if !proceed {
 				pterm.Error.Println("BNB addr needs to be funded")
 				continue
