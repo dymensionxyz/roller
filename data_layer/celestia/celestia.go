@@ -363,16 +363,18 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 
 	if nt == consts.NodeType.Sequencer {
 		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin, raCfg)
+		if err != nil {
+			pterm.Error.Println("failed to get auth token", err)
+		}
 	} else if nt == consts.NodeType.FullNode {
 		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read, raCfg)
+		if err != nil {
+			pterm.Error.Println("failed to get auth token", err)
+		}
 	} else {
-		// TODO: don't panic,return an err
 		err := errors.New("invalid node type")
-		panic(err)
-	}
-
-	if err != nil {
-		panic(err)
+		pterm.Error.Println("failed to get auth token", err)
+		return ""
 	}
 
 	var daGasPrices float64

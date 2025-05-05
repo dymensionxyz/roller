@@ -67,8 +67,12 @@ func NewAptos(root string) *Aptos {
 
 		daData, exists := consts.DaNetworks[aptConfig.Network]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", aptConfig.Network))
+			pterm.Error.Printf("DA network configuration not found for: %s", aptConfig.Network)
+			return &aptConfig
 		}
+
+		aptConfig.RpcEndpoint = daData.RpcUrl
+		aptConfig.Root = root
 
 		useExistingAPTWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to import an existing APT wallet?",
@@ -95,28 +99,30 @@ func NewAptos(root string) *Aptos {
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your APT wallet have privatekey below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(aptConfig.PrivateKey))
 
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallets are funded",
-			).Show()
+		for {
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallet is funded",
+				).Show()
 
-		if !proceed {
-			panic(fmt.Errorf("APT addr need to be fund"))
+			if !proceed {
+				pterm.Error.Println("APT addr needs to be funded")
+				continue
+			}
+      
+			balance, err := aptConfig.getBalance()
+			if err != nil {
+				pterm.Println("Error getting balance:", err)
+				continue
+			}
+
+			if balance > 0 {
+				pterm.Println("Wallet funded with balance:", balance)
+				break
+			}
+
+			pterm.Error.Println("APT wallet needs to be funded")
 		}
-
-		aptConfig.RpcEndpoint = daData.RpcUrl
-		aptConfig.Root = root
-
-		balance, err := aptConfig.getBalance()
-		if err != nil {
-			panic(err)
-		}
-
-		if balance == 0 {
-			panic(fmt.Errorf("APT wallet need to be fund"))
-		}
-
-		pterm.Println("APT Balance: ", balance)
 
 		pterm.Warning.Print("You will need to save Private Key to an environment variable named APT_PRIVATE_KEY")
 

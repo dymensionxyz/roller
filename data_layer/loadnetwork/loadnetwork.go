@@ -74,39 +74,65 @@ func NewLoadNetwork(root string) *LoadNetwork {
 			daNetwork = string(consts.LoadNetworkTestnet)
 		}
 
-		loadNetworkConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"> Enter your PrivateKey without 0x",
-		).Show()
-
-		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
-			WithDefaultText(
-				"press 'y' when the wallet are funded",
-			).Show()
-
-		if !proceed {
-			panic(fmt.Errorf("LoadNetwork wallet need to be fund!"))
-		}
-
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
+			pterm.Error.Printf("DA network configuration not found for: %s", daNetwork)
+			return &loadNetworkConfig
 		}
 
-		balance, err := GetBalance(daData.ApiUrl, loadNetworkConfig.PrivateKey)
-		if err != nil {
-			panic(err)
+		useExistingWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to import an existing LoadNetwork wallet?",
+		).Show()
+
+		if useExistingWallet {
+			loadNetworkConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"> Enter your PrivateKey without 0x",
+			).Show()
+		} else {
+			privateKey, err := crypto.GenerateKey()
+			if err != nil {
+				pterm.Error.Println("failed to generate private key", err)
+				return &loadNetworkConfig
+			}
+
+			privateKeyBytes := crypto.FromECDSA(privateKey)
+			loadNetworkConfig.PrivateKey = fmt.Sprintf("%x", string(privateKeyBytes))
+
+			fmt.Printf("\t%s\n", loadNetworkConfig.PrivateKey)
+			fmt.Println()
+			fmt.Println(pterm.LightYellow("💡 save this information and keep it safe"))
 		}
 
-		balanceFloat, err := strconv.ParseFloat(balance, 64)
-		if err != nil {
-			panic(err)
-		}
+		for {
+			proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+				WithDefaultText(
+					"press 'y' when the wallet is funded",
+				).Show()
 
-		if balanceFloat == 0 {
-			panic(fmt.Errorf("LoadNetwork wallet need to be fund!"))
-		}
+			if !proceed {
+				pterm.Error.Println("LoadNetwork wallet needs to be funded!")
+				continue
+			}
 
-		pterm.Println("LoadNetwork Balance: ", balanceFloat)
+			balance, err := GetBalance(daData.ApiUrl, loadNetworkConfig.PrivateKey)
+			if err != nil {
+				pterm.Error.Println("Error getting balance:", err)
+				continue
+			}
+
+			balanceFloat, err := strconv.ParseFloat(balance, 64)
+			if err != nil {
+				pterm.Error.Println("Error parsing balance:", err)
+				continue
+			}
+
+			if balanceFloat > 0 {
+				pterm.Println("Wallet funded with balance:", balance)
+				break
+			}
+
+			pterm.Error.Println("LoadNetwork wallet needs to be funded!")
+		}
 
 		loadNetworkConfig.RpcEndpoint = daData.ApiUrl
 		loadNetworkConfig.Root = root
