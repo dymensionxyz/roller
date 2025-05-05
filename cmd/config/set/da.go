@@ -108,6 +108,7 @@ func setDAStateNode(rlpCfg roller.RollappConfig, value string) error {
 	fmt.Printf("💈 RollApp DA StateNode has been successfully set to '%s'\n\n", value)
 	return nil
 }
+
 func updateDaConfig(rlpCfg roller.RollappConfig, newDa consts.DAType) error {
 	daCfgDirPath := filepath.Join(rlpCfg.Home, consts.ConfigDirName.DALightNode)
 	dirExist, err := filesystem.DirNotEmpty(daCfgDirPath)

@@ -25,7 +25,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
-	"github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -280,11 +279,6 @@ RollApp's IRO time: %v`,
 
 						desiredBond.Denom = consts.Denoms.Hub
 						desiredBond.Amount = cosmossdkmath.NewIntFromBigInt(i)
-
-						if err != nil {
-							pterm.Error.Println("failed to convert desired bond amount to base denom: ", err)
-							return
-						}
 					}
 
 					pterm.Info.Println("getting the existing sequencer address balance")
@@ -664,7 +658,7 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Mock:
 			default:
-				pterm.Error.Println("unsupported DA backend: %s", rollappConfig.DA.Backend)
+				pterm.Error.Printf("unsupported DA backend: %s", rollappConfig.DA.Backend)
 				return
 			}
 
@@ -747,7 +741,7 @@ RollApp's IRO time: %v`,
 						)
 
 						pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-						err = lightclient.UpdateConfig(
+						err = celestialightclient.UpdateConfig(
 							celestiaConfigFilePath,
 							blockIdHash,
 							heightInt,
@@ -767,7 +761,7 @@ RollApp's IRO time: %v`,
 					// nolint:errcheck,gosec
 					daSpinner.Stop()
 
-					var result lightclient.RollappStateResponse
+					var result celestialightclient.RollappStateResponse
 					if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
 						pterm.Error.Println("failed to unmarshal result: ", err)
 						return
@@ -804,7 +798,7 @@ RollApp's IRO time: %v`,
 						hash,
 					)
 					pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-					err = lightclient.UpdateConfig(celestiaConfigFilePath, hash, heightInt)
+					err = celestialightclient.UpdateConfig(celestiaConfigFilePath, hash, heightInt)
 					if err != nil {
 						pterm.Error.Println("failed to update celestia config: ", err)
 						return

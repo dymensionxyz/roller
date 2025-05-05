@@ -133,7 +133,7 @@ func WriteConfigToTOML(config interface{}, filePath string) error {
 	}
 
 	// Write the TOML data to a file
-	err = os.WriteFile(filePath, tomlData, 0644)
+	err = os.WriteFile(filePath, tomlData, 0o644)
 	if err != nil {
 		return err
 	}

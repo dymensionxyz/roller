@@ -58,7 +58,7 @@ func NewBnb(root string) *Bnb {
 
 		daData, exists := consts.DaNetworks[daNetwork]
 		if !exists {
-			panic(fmt.Errorf("DA network configuration not found for: %b", daNetwork))
+			panic(fmt.Errorf("DA network configuration not found for: %s", daNetwork))
 		}
 
 		useExistingbnbWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
@@ -85,10 +85,6 @@ func NewBnb(root string) *Bnb {
 
 			privateKeyBytes := crypto.FromECDSA(privateKey)
 			privateKeyHex := hex.EncodeToString(privateKeyBytes)
-			if err != nil {
-				panic(err)
-			}
-
 			bnbConfig.PrivateKey = privateKeyHex
 
 			fmt.Printf("\t%s\n", bnbConfig.PrivateKey)
@@ -109,7 +105,7 @@ func NewBnb(root string) *Bnb {
 			).Show()
 
 		if !proceed {
-			panic(fmt.Errorf("Bnb addr need to be fund!"))
+			panic(fmt.Errorf("Bnb addr need to be fund"))
 		}
 
 		bnbConfig.RpcEndpoint = daData.RpcUrl
@@ -120,7 +116,7 @@ func NewBnb(root string) *Bnb {
 		}
 
 		if balance.Cmp(big.NewInt(0)) <= 0 {
-			panic(fmt.Errorf("Bnb wallet need to be fund!"))
+			panic(fmt.Errorf("Bnb wallet need to be fund"))
 		}
 
 		err = writeConfigToTOML(cfgPath, bnbConfig)

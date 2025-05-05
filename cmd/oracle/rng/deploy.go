@@ -159,7 +159,6 @@ func DeployCmd() *cobra.Command {
 				pterm.Error.Printf("failed to initialize rng service client: %v\n", err)
 				return
 			}
-
 		},
 	}
 

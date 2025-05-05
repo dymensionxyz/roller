@@ -86,9 +86,6 @@ func NewAptos(root string) *Aptos {
 
 			privKeyHex := hex.EncodeToString(privKey.Seed())
 			aptConfig.PrivateKey = privKeyHex
-			if err != nil {
-				panic(err)
-			}
 
 			fmt.Printf("\t%s\n", aptConfig.PrivateKey)
 			fmt.Println()
@@ -104,7 +101,7 @@ func NewAptos(root string) *Aptos {
 			).Show()
 
 		if !proceed {
-			panic(fmt.Errorf("APT addr need to be fund!"))
+			panic(fmt.Errorf("APT addr need to be fund"))
 		}
 
 		aptConfig.RpcEndpoint = daData.RpcUrl
@@ -116,7 +113,7 @@ func NewAptos(root string) *Aptos {
 		}
 
 		if balance == 0 {
-			panic(fmt.Errorf("APT wallet need to be fund!"))
+			panic(fmt.Errorf("APT wallet need to be fund"))
 		}
 
 		pterm.Println("APT Balance: ", balance)
