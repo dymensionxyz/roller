@@ -48,6 +48,7 @@ func Cmd() *cobra.Command {
 				rollerData.DA.Backend,
 				rollerData.Home,
 				rollerData.KeyringBackend,
+				rollerData.NodeType,
 			)
 
 			if rollerData.NodeType == "sequencer" {

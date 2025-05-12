@@ -110,7 +110,7 @@ func NewBnb(root string) *Bnb {
 				).Show()
 
 			if !proceed {
-				pterm.Error.Println("BNB addr needs to be funded!")
+				pterm.Error.Println("BNB addr needs to be funded")
 				continue
 			}
 
@@ -124,7 +124,7 @@ func NewBnb(root string) *Bnb {
 				pterm.Println("Wallet funded with balance:", balance)
 				break
 			}
-			pterm.Error.Println("BNB wallet needs to be funded!")
+			pterm.Error.Println("BNB wallet needs to be funded")
 		}
 
 		err = writeConfigToTOML(cfgPath, bnbConfig)

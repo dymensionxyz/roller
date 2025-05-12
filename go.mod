@@ -31,6 +31,7 @@ require (
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241219133747-aedf494c2ee0
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gogo/protobuf v1.3.3
+	github.com/gorilla/websocket v1.5.3
 	github.com/ignite/cli v0.27.2
 	github.com/lib/pq v1.10.9
 	github.com/manifoldco/promptui v0.9.0
@@ -173,7 +174,6 @@ require (
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect

@@ -396,6 +396,7 @@ func LoadMacOsServices(services []string, rollerData roller.RollappConfig) error
 				rollerData.DA.Backend,
 				rollerData.Home,
 				rollerData.KeyringBackend,
+				rollerData.NodeType,
 			)
 			c := damanager.GetStartDACmd()
 

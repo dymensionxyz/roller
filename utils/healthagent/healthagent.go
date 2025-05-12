@@ -126,7 +126,6 @@ func IsAvailNodeHealthy(url string) (bool, error) {
 	}
 
 	return true, fmt.Errorf("healthy")
-
 }
 
 type availStatus struct {

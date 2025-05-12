@@ -106,7 +106,7 @@ func NewAptos(root string) *Aptos {
 				).Show()
 
 			if !proceed {
-				pterm.Error.Println("APT addr needs to be funded!")
+				pterm.Error.Println("APT addr needs to be funded")
 				continue
 			}
 
@@ -121,7 +121,7 @@ func NewAptos(root string) *Aptos {
 				break
 			}
 
-			pterm.Error.Println("APT wallet needs to be funded!")
+			pterm.Error.Println("APT wallet needs to be funded")
 		}
 
 		pterm.Warning.Print("You will need to save Private Key to an environment variable named APT_PRIVATE_KEY")

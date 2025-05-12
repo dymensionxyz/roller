@@ -13,7 +13,7 @@ func FormatAddresses(
 	raCfg roller.RollappConfig,
 	addresses []keys.KeyInfo,
 ) []keys.KeyInfo {
-	damanager := datalayer.NewDAManager(raCfg.DA.Backend, raCfg.Home, raCfg.KeyringBackend)
+	damanager := datalayer.NewDAManager(raCfg.DA.Backend, raCfg.Home, raCfg.KeyringBackend, raCfg.NodeType)
 	requireFundingKeys := map[string]string{
 		consts.KeysIds.HubSequencer: fmt.Sprintf("Sequencer, %s Hub", raCfg.HubData.ID),
 		consts.KeysIds.HubRelayer:   fmt.Sprintf("Relayer, %s Hub", raCfg.HubData.ID),

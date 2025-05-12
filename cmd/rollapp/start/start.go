@@ -257,7 +257,7 @@ func PrintOutput(
 
 	if isHealthy {
 		seqAddrData, err := sequencerutils.GetSequencerData(rlpCfg)
-		daManager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend)
+		daManager := datalayer.NewDAManager(rlpCfg.DA.Backend, rlpCfg.Home, rlpCfg.KeyringBackend, rlpCfg.NodeType)
 		daAddrData, errCel := daManager.GetDAAccData(rlpCfg)
 		if err != nil {
 			return
