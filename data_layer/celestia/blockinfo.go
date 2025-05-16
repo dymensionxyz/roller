@@ -113,3 +113,11 @@ func ExtractHeightfromDAPath(input string) (string, error) {
 	}
 	return parts[1], nil
 }
+
+func ExtractNamespaceIDfromDAPath(input string) (string, error) {
+	parts := strings.Split(input, "|")
+	if len(parts) < 6 {
+		return "", fmt.Errorf("input string does not have enough parts")
+	}
+	return parts[5], nil
+}

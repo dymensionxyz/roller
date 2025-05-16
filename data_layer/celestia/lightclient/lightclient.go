@@ -125,7 +125,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			} else {
 				pterm.Info.Println("state update found, extracting da height")
 
-				var result RollappStateResponse
+				var result celestia.RollappStateResponse
 				if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
 					pterm.Error.Println("failed to extract state update: ", err)
 					return nil, err

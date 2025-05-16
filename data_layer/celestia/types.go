@@ -1,4 +1,4 @@
-package lightclient
+package celestia
 
 type BD struct {
 	Height    string `yaml:"height"`
