@@ -14,6 +14,7 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
+	"gopkg.in/yaml.v2"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
@@ -348,13 +349,11 @@ func (c *Celestia) getAuthToken(t string, raCfg roller.RollappConfig) (string, e
 }
 
 func (c *Celestia) GetSequencerDAConfig(nt string) string {
-	if c.NamespaceID == "" {
-		c.NamespaceID = generateRandNamespaceID()
-	}
 	lcEndpoint := c.GetLightNodeEndpoint()
 
 	var authToken string
 	var err error
+	var namespace_id string
 
 	raCfg, err := roller.LoadConfig(c.Root)
 	if err != nil {
@@ -362,11 +361,51 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	}
 
 	if nt == consts.NodeType.Sequencer {
+		if c.NamespaceID == "" {
+			c.NamespaceID = generateRandNamespaceID()
+		}
 		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Admin, raCfg)
 		if err != nil {
 			pterm.Error.Println("failed to get auth token", err)
 		}
 	} else if nt == consts.NodeType.FullNode {
+		pterm.Info.Println("checking for state update")
+		cmd := exec.Command(
+			consts.Executables.Dymension,
+			"q",
+			"rollapp",
+			"state",
+			raCfg.RollappID,
+			"--index",
+			"1",
+			"--node",
+			raCfg.HubData.RpcUrl,
+			"--chain-id",
+			raCfg.HubData.ID,
+		)
+
+		out, err := bash.ExecCommandWithStdout(cmd)
+		if err != nil {
+			pterm.Error.Println(err)
+			return ""
+		} else {
+			pterm.Info.Println("state update found, extracting da height")
+
+			var result RollappStateResponse
+			if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+				pterm.Error.Println("failed to extract state update: ", err)
+				return ""
+			}
+
+			namespace_id, err = ExtractNamespaceIDfromDAPath(result.StateInfo.DAPath)
+			if err != nil {
+				pterm.Error.Println("failed to extract namespaceID from state update da path: ", err)
+				return ""
+			}
+		}
+		if c.NamespaceID == "" {
+			c.NamespaceID = namespace_id
+		}
 		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read, raCfg)
 		if err != nil {
 			pterm.Error.Println("failed to get auth token", err)
