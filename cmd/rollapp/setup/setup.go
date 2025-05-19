@@ -764,7 +764,7 @@ RollApp's IRO time: %v`,
 					// nolint:errcheck,gosec
 					daSpinner.Stop()
 
-					var result celestialightclient.RollappStateResponse
+					var result celestia.RollappStateResponse
 					if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
 						pterm.Error.Println("failed to unmarshal result: ", err)
 						return
@@ -1238,7 +1238,7 @@ func getDaConfig(
 	raResponse *rollapp.ShowRollappResponse,
 	rollappConfig *roller.RollappConfig,
 ) any {
-	daConfig := dataLayer.GetSequencerDAConfig(consts.NodeType.Sequencer)
+	daConfig := dataLayer.GetSequencerDAConfig(nodeType)
 
 	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
 	if err != nil {
