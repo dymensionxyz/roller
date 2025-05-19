@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.18.0-rc03](https://github.com/dymensionxyz/roller/compare/v1.17.1-rc03...v1.18.0-rc03) (2025-05-19)
+
+
+### Features
+
+* add a flag to use the default websocket endpoint ([7c57920](https://github.com/dymensionxyz/roller/commit/7c5792073a1fe1ee54274aa48205ceaed8e8f8cf))
+* improve DAs UX ([#1348](https://github.com/dymensionxyz/roller/issues/1348)) ([14368d4](https://github.com/dymensionxyz/roller/commit/14368d4a405c665737188f3687e56b1465520bc2))
+* new genesis bridge flow ([#1355](https://github.com/dymensionxyz/roller/issues/1355)) ([8b8854e](https://github.com/dymensionxyz/roller/commit/8b8854ee9069ede0052de24615f02bd36a2cbd50))
+
+
+### Bug Fixes
+
+* add flag to use default rpc endpoint ([585c99f](https://github.com/dymensionxyz/roller/commit/585c99f443fb1c6a3193b0c7e5d322bc51379f94))
+* add home flag to the default systemd service template ([ded2427](https://github.com/dymensionxyz/roller/commit/ded242786d1b0581179692576dc712c459354c2e))
+* don't use env var for retrieving the current user ([e68ebf8](https://github.com/dymensionxyz/roller/commit/e68ebf895b1455cedac8728780da37be3a1d4614))
+* mint_denom has moved to minter ([#1353](https://github.com/dymensionxyz/roller/issues/1353)) ([bab69d1](https://github.com/dymensionxyz/roller/commit/bab69d12c1533693de494a64ab9fe45bfe896de1))
+* refactor GetSequencerDAConfig for Celestia ([#1356](https://github.com/dymensionxyz/roller/issues/1356)) ([98d79c6](https://github.com/dymensionxyz/roller/commit/98d79c6e32aadec83a5d2f09e7992098d32221b6))
+* update setup flow based on node type ([#1332](https://github.com/dymensionxyz/roller/issues/1332)) ([6a202fc](https://github.com/dymensionxyz/roller/commit/6a202fc9feab9ec6c6cc40c05e43b83662294346))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
