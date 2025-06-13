@@ -11,6 +11,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
 	loadnetwork "github.com/dymensionxyz/roller/data_layer/loadnetwork"
+	"github.com/dymensionxyz/roller/data_layer/solana"
 	"github.com/dymensionxyz/roller/data_layer/sui"
 	"github.com/dymensionxyz/roller/data_layer/walrus"
 	"github.com/dymensionxyz/roller/utils/keys"
@@ -60,6 +61,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 		dalayer = bnb.NewBnb(home)
 	case consts.Walrus:
 		dalayer = walrus.NewWalrus(home)
+	case consts.Solana:
+		dalayer = solana.NewSolana(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
 	default:
@@ -92,6 +95,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbTestnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusTestnet)
+		case string(consts.Solana):
+			daNetwork = string(consts.SolanaTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -111,6 +116,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbMainnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusMainnet)
+		case string(consts.Solana):
+			daNetwork = string(consts.SolanaMainnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}
@@ -130,6 +137,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbTestnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusTestnet)
+		case string(consts.Solana):
+			daNetwork = string(consts.SolanaTestnet)
 		default:
 			return nil, fmt.Errorf("unsupported DA backend: %s", daBackend)
 		}

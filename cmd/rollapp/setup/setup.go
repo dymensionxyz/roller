@@ -651,7 +651,23 @@ RollApp's IRO time: %v`,
 					pterm.Error.Println("failed to get Walrus account address: %w", err)
 					return
 				}
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
+			case consts.Solana:
+				// Initialize DAManager for Solana
+				damanager := datalayer.NewDAManager(consts.Solana, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
 
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Solana account address: %w", err)
+					return
+				}
 				// Append DA account address if available
 				if daAddress != nil {
 					addresses = append(addresses, keys.KeyInfo{
