@@ -30,6 +30,7 @@ const (
 	Sui         DAType = "sui"
 	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
+	Ethereum    DAType = "ethereum"
 )
 
 type DaNetwork string
@@ -47,10 +48,12 @@ const (
 	SuiTestnet         DaNetwork = "sui-testnet"
 	SuiMainnet         DaNetwork = "sui-mainnet"
 	// https://aptos.dev/en/network/nodes/networks
-	AptosTestnet  DaNetwork = "2"
-	AptosMainnet  DaNetwork = "1"
-	WalrusTestnet DaNetwork = "walrus-testnet"
-	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
+	AptosTestnet    DaNetwork = "2"
+	AptosMainnet    DaNetwork = "1"
+	WalrusTestnet   DaNetwork = "walrus-testnet"
+	WalrusMainnet   DaNetwork = "walrus-mainnet" // change this with correct mainnet id
+	EthereumTestnet DaNetwork = "eth-testnet"
+	EthereumMainnet DaNetwork = "eth-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -199,5 +202,23 @@ var DaNetworks = map[string]DaData{
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
+	},
+	string(EthereumTestnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://goerli.infura.io/v3/",
+		ID:               EthereumTestnet,
+		RpcUrl:           "https://goerli.infura.io/v3/",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
+	},
+	string(EthereumMainnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://mainnet.infura.io/v3/",
+		ID:               EthereumMainnet,
+		RpcUrl:           "https://mainnet.infura.io/v3/",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
 	},
 }
