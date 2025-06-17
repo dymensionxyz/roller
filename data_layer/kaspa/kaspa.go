@@ -1,23 +1,18 @@
 package kaspa
 
 import (
-	"context"
-	"crypto/ecdsa"
-	"encoding/hex"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
-	"os"
+	"net/http"
 	"os/exec"
 
-	cosmossdkmath "cosmossdk.io/math"
-	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pterm/pterm"
 )
 
@@ -29,17 +24,15 @@ const (
 
 type Kaspa struct {
 	Root        string
-	PrivateKey  string
 	Address     string
-	RpcEndpoint string
-	ChainID     uint32
 	GrpcAddress string
 	Network     string
 	ApiUrl      string
+	Mnemonic    string
 }
 
 func (k *Kaspa) GetPrivateKey() (string, error) {
-	return k.PrivateKey, nil
+	return k.Address, nil
 }
 
 func (k *Kaspa) SetMetricsEndpoint(endpoint string) {
@@ -56,11 +49,9 @@ func NewKaspa(root string) *Kaspa {
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.KaspaMainnet)
-			kaspaConfig.ChainID = 1
 			kaspaConfig.Network = "mainnet"
 		} else {
 			daNetwork = string(consts.KaspaTestnet)
-			kaspaConfig.ChainID = 2
 			kaspaConfig.Network = "testnet"
 		}
 
@@ -70,54 +61,24 @@ func NewKaspa(root string) *Kaspa {
 			return &kaspaConfig
 		}
 
-		kaspaConfig.RpcEndpoint = daData.RpcUrl
 		kaspaConfig.ApiUrl = daData.ApiUrl
-		kaspaConfig.GrpcAddress = "localhost:16210"
 		kaspaConfig.Root = root
 
-		// Check for mnemonic in environment variable
-		mnemonic := os.Getenv("KASPA_MNEMONIC")
-		if mnemonic != "" {
-			// Use the provided mnemonic
-			kaspaConfig.PrivateKey = mnemonic
-			// For now, we'll use the provided address directly
-			kaspaConfig.Address = "kaspatest:qzwyrgapjnhtjqkxdrmp7fpm3yddw296v2ajv9nmgmw5k3z0r38guevxyk7j0"
-		} else {
-			useExistingKaspaWallet, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-				"would you like to import an existing Kaspa wallet?",
+		useExistingGrpcAddress, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to use your own gRPC endpoint??",
+		).Show()
+
+		if useExistingGrpcAddress {
+			kaspaConfig.GrpcAddress, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"> Enter your gRPC endpoint",
 			).Show()
-
-			if useExistingKaspaWallet {
-				kaspaConfig.PrivateKey, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-					"> Enter your hex private key",
-				).Show()
-				privateKey, err := crypto.HexToECDSA(kaspaConfig.PrivateKey)
-				if err != nil {
-					pterm.Error.Println("failed to parse private key from hex", err)
-				}
-				publicKey := privateKey.Public().(*ecdsa.PublicKey)
-				address := crypto.PubkeyToAddress(*publicKey).Hex()
-
-				kaspaConfig.Address = address
-			} else {
-				privateKey, err := crypto.GenerateKey()
-				if err != nil {
-					pterm.Error.Println("failed to generate new private key", err)
-				}
-
-				privateKeyBytes := crypto.FromECDSA(privateKey)
-				privateKeyHex := hex.EncodeToString(privateKeyBytes)
-				kaspaConfig.PrivateKey = privateKeyHex
-
-				fmt.Printf("\t%s\n", kaspaConfig.PrivateKey)
-				fmt.Println()
-				fmt.Println(pterm.LightYellow("💡 save this information and keep it safe"))
-
-				publicKey := privateKey.Public().(*ecdsa.PublicKey)
-				address := crypto.PubkeyToAddress(*publicKey).Hex()
-				kaspaConfig.Address = address
-			}
+		} else {
+			kaspaConfig.GrpcAddress = "localhost:16210"
 		}
+
+		kaspaConfig.Address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"> Enter your Kaspa Address",
+		).Show()
 
 		pterm.DefaultSection.WithIndentCharacter("🔔").Println("Please fund your Kaspa addresses below")
 		pterm.DefaultBasicText.Println(pterm.LightGreen(kaspaConfig.Address))
@@ -139,7 +100,8 @@ func NewKaspa(root string) *Kaspa {
 				continue
 			}
 
-			if balance.Cmp(big.NewInt(0)) > 0 {
+			balanceBig := new(big.Int).SetUint64(balance)
+			if balanceBig.Cmp(big.NewInt(0)) > 0 {
 				pterm.Println("Wallet funded with balance:", balance)
 				break
 			}
@@ -176,12 +138,13 @@ func (k *Kaspa) CheckDABalance() ([]keys.NotFundedAddressData, error) {
 
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(8), nil) // Kaspa has 8 decimals
 	required := new(big.Int).Mul(big.NewInt(requiredKAS), exp)
-	if required.Cmp(balance) > 0 {
+	balanceBig := new(big.Int).SetUint64(balance)
+	if required.Cmp(balanceBig) > 0 {
 		return []keys.NotFundedAddressData{
 			{
 				KeyName:         k.GetKeyName(),
 				Address:         k.Address,
-				CurrentBalance:  balance,
+				CurrentBalance:  balanceBig,
 				RequiredBalance: required,
 				Denom:           "KAS",
 				Network:         string(consts.Kaspa),
@@ -196,34 +159,20 @@ func (k *Kaspa) GetStartDACmd() *exec.Cmd {
 }
 
 func (k *Kaspa) GetDAAccData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
-	balance, err := k.getBalance()
-	if err != nil {
-		return nil, err
-	}
-
-	return []keys.AccountData{
-		{
-			Address: k.Address,
-			Balance: cosmossdktypes.Coin{
-				Denom:  "KAS",
-				Amount: cosmossdkmath.NewIntFromBigInt(balance),
-			},
-		},
-	}, nil
+	return nil, nil
 }
 
 func (k *Kaspa) GetSequencerDAConfig(_ string) string {
 	return fmt.Sprintf(
-		`{"address": "%s", "api_url": "%s", "grpc_address": "%s", "network": "%s"}`,
-		k.Address,
+		`{"api_url":"%s","grpc_address":"%s","network":"%s","address":"%s","mnemonic_env":"KASPA_MNEMONIC"}`,
 		k.ApiUrl,
 		k.GrpcAddress,
 		k.Network,
+		k.Address,
 	)
 }
 
 func (k *Kaspa) SetRPCEndpoint(rpc string) {
-	k.RpcEndpoint = rpc
 }
 
 func (k *Kaspa) GetLightNodeEndpoint() string {
@@ -250,15 +199,65 @@ func (k *Kaspa) GetAppID() uint32 {
 	return 0
 }
 
-func (k *Kaspa) getBalance() (*big.Int, error) {
-	client, err := ethclient.Dial(k.RpcEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(k.Address), nil)
-	if err != nil {
-		return nil, err
+type GetUtxosParams struct {
+	Address string `json:"address"`
+}
+
+type JsonRpcRequest struct {
+	Jsonrpc string         `json:"jsonrpc"`
+	Method  string         `json:"method"`
+	Params  GetUtxosParams `json:"params"`
+	ID      int            `json:"id"`
+}
+
+type UTXO struct {
+	Amount uint64 `json:"amount"`
+}
+
+type JsonRpcResponse struct {
+	Result struct {
+		Entries []UTXO `json:"entries"`
+	} `json:"result"`
+	Error interface{} `json:"error"`
+}
+
+func (k *Kaspa) getBalance() (uint64, error) {
+	reqBody := JsonRpcRequest{
+		Jsonrpc: "2.0",
+		Method:  "getUtxosByAddress",
+		Params:  GetUtxosParams{Address: k.Address},
+		ID:      1,
 	}
 
-	return balance, nil
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return 0, err
+	}
+
+	resp, err := http.Post(k.ApiUrl, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	var rpcResp JsonRpcResponse
+	if err := json.Unmarshal(respData, &rpcResp); err != nil {
+		return 0, err
+	}
+
+	if rpcResp.Error != nil {
+		return 0, fmt.Errorf("RPC error: %v", rpcResp.Error)
+	}
+
+	var total uint64 = 0
+	for _, utxo := range rpcResp.Result.Entries {
+		total += utxo.Amount
+	}
+
+	return total, nil
 }
