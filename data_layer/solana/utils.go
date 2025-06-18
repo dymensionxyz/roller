@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -24,25 +25,20 @@ func writeConfigToTOML(filePath string, config Solana) error {
 	return os.WriteFile(filePath, data, 0o644)
 }
 
-func loadConfigFromTOML(filePath string) Solana {
+func loadConfigFromTOML(path string) (Solana, error) {
 	var config Solana
-	data, err := os.ReadFile(filePath)
+	tomlBytes, err := os.ReadFile(path)
 	if err != nil {
-		return Solana{}
+		return config, err
+	}
+	err = toml.Unmarshal(tomlBytes, &config)
+	if err != nil {
+		return config, err
 	}
 
-	err = toml.Unmarshal(data, &config)
-	if err != nil {
-		return Solana{}
-	}
-
-	return config
+	return config, nil
 }
 
 func GetCfgFilePath(rollerHome string) string {
-	return filepath.Join(
-		rollerHome,
-		"da-light-client",
-		"config.toml",
-	)
+	return filepath.Join(rollerHome, consts.ConfigDirName.DALightNode, ConfigFileName)
 }

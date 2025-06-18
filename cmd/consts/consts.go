@@ -146,7 +146,7 @@ var Denoms = struct {
 	LoadNetwork:     "tLOAD",
 	Bnb:             "ubnb",
 	Walrus:          "wal",
-	Solana:          "sol",
+	Solana:          "lamports",
 }
 
 const (
