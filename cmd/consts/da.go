@@ -217,7 +217,7 @@ var DaNetworks = map[string]DaData{
     CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "0.00000002",
-  }
+  },
 	string(SolanaMainnet): {
 		Backend:          Solana,
 		ApiUrl:           "http://barcelona:8899",
