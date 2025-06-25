@@ -50,16 +50,16 @@ const (
 	SuiTestnet         DaNetwork = "sui-testnet"
 	SuiMainnet         DaNetwork = "sui-mainnet"
 	// https://aptos.dev/en/network/nodes/networks
-	AptosTestnet  DaNetwork = "2"
-	AptosMainnet  DaNetwork = "1"
-	WalrusTestnet DaNetwork = "walrus-testnet"
-	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
-	SolanaTestnet DaNetwork = "solana-testnet"
-	SolanaMainnet DaNetwork = "solana-mainnet"
+	AptosTestnet    DaNetwork = "2"
+	AptosMainnet    DaNetwork = "1"
+	WalrusTestnet   DaNetwork = "walrus-testnet"
+	WalrusMainnet   DaNetwork = "walrus-mainnet" // change this with correct mainnet id
+	SolanaTestnet   DaNetwork = "solana-testnet"
+	SolanaMainnet   DaNetwork = "solana-mainnet"
 	EthereumTestnet DaNetwork = "eth-testnet"
 	EthereumMainnet DaNetwork = "eth-mainnet"
-	KaspaTestnet  DaNetwork = "kaspa-testnet"
-	KaspaMainnet  DaNetwork = "kaspa-mainnet"
+	KaspaTestnet    DaNetwork = "kaspa-testnet"
+	KaspaMainnet    DaNetwork = "kaspa-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -214,10 +214,10 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "http://barcelona:8899",
 		ID:               SolanaTestnet,
 		RpcUrl:           "http://barcelona:8899",
-    CurrentStateNode: "",
+		CurrentStateNode: "",
 		StateNodes:       []string{},
-		GasPrice:         "0.00000002",
-  },
+		GasPrice:         "",
+	},
 	string(SolanaMainnet): {
 		Backend:          Solana,
 		ApiUrl:           "http://barcelona:8899",
@@ -244,6 +244,7 @@ var DaNetworks = map[string]DaData{
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "0.00000002",
+	},
 	string(KaspaTestnet): {
 		Backend:          Kaspa,
 		ApiUrl:           "https://api-tn10.kaspa.org",
