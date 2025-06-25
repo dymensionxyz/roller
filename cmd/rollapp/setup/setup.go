@@ -659,6 +659,24 @@ RollApp's IRO time: %v`,
 						Address: daAddress.Address,
 					})
 				}
+			case consts.Kaspa:
+				// Initialize DAManager for Kaspa
+				damanager := datalayer.NewDAManager(consts.Kaspa, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+
+				// Retrieve DA account address
+				daAddress, err := damanager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get Kaspa account address: %w", err)
+					return
+				}
+
+				// Append DA account address if available
+				if daAddress != nil {
+					addresses = append(addresses, keys.KeyInfo{
+						Name:    damanager.GetKeyName(),
+						Address: daAddress.Address,
+					})
+				}
 			case consts.Mock:
 			default:
 				pterm.Error.Printf("unsupported DA backend: %s", rollappConfig.DA.Backend)

@@ -30,6 +30,7 @@ const (
 	Sui         DAType = "sui"
 	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
+	Kaspa       DAType = "kaspa"
 )
 
 type DaNetwork string
@@ -51,6 +52,8 @@ const (
 	AptosMainnet  DaNetwork = "1"
 	WalrusTestnet DaNetwork = "walrus-testnet"
 	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
+	KaspaTestnet  DaNetwork = "kaspa-testnet"
+	KaspaMainnet  DaNetwork = "kaspa-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -196,6 +199,24 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "https://aggregator.walrus-mainnet.walrus.space",
 		ID:               WalrusMainnet,
 		RpcUrl:           "https://publisher.walrus-mainnet.walrus.space",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(KaspaTestnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api-tn10.kaspa.org",
+		ID:               KaspaTestnet,
+		RpcUrl:           "wss://testnet.kaspa.org/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(KaspaMainnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api.kaspa.org",
+		ID:               KaspaMainnet,
+		RpcUrl:           "wss://mainnet.kaspa.org/ws",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
