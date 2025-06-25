@@ -31,6 +31,7 @@ const (
 	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
 	Ethereum    DAType = "ethereum"
+	Kaspa       DAType = "kaspa"
 )
 
 type DaNetwork string
@@ -54,6 +55,8 @@ const (
 	WalrusMainnet   DaNetwork = "walrus-mainnet" // change this with correct mainnet id
 	EthereumTestnet DaNetwork = "eth-testnet"
 	EthereumMainnet DaNetwork = "eth-mainnet"
+	KaspaTestnet  DaNetwork = "kaspa-testnet"
+	KaspaMainnet  DaNetwork = "kaspa-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -220,5 +223,22 @@ var DaNetworks = map[string]DaData{
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "0.00000002",
+	string(KaspaTestnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api-tn10.kaspa.org",
+		ID:               KaspaTestnet,
+		RpcUrl:           "wss://testnet.kaspa.org/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(KaspaMainnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api.kaspa.org",
+		ID:               KaspaMainnet,
+		RpcUrl:           "wss://mainnet.kaspa.org/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
 	},
 }
