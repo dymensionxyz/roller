@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1-rc02](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc02...v1.18.1-rc02) (2025-06-25)
+
+
+### Bug Fixes
+
+* da consts ([5af8cc5](https://github.com/dymensionxyz/roller/commit/5af8cc5f3ca04a3032ac168589b8a1def47869d3))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
