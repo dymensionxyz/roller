@@ -31,6 +31,8 @@ const (
 	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
 	Solana      DAType = "solana"
+	Ethereum    DAType = "ethereum"
+	Kaspa       DAType = "kaspa"
 )
 
 type DaNetwork string
@@ -54,6 +56,10 @@ const (
 	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
 	SolanaTestnet DaNetwork = "solana-testnet"
 	SolanaMainnet DaNetwork = "solana-mainnet"
+	EthereumTestnet DaNetwork = "eth-testnet"
+	EthereumMainnet DaNetwork = "eth-mainnet"
+	KaspaTestnet  DaNetwork = "kaspa-testnet"
+	KaspaMainnet  DaNetwork = "kaspa-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -208,15 +214,50 @@ var DaNetworks = map[string]DaData{
 		ApiUrl:           "http://barcelona:8899",
 		ID:               SolanaTestnet,
 		RpcUrl:           "http://barcelona:8899",
-		CurrentStateNode: "",
+    CurrentStateNode: "",
 		StateNodes:       []string{},
-		GasPrice:         "",
-	},
+		GasPrice:         "0.00000002",
+  }
 	string(SolanaMainnet): {
 		Backend:          Solana,
 		ApiUrl:           "http://barcelona:8899",
 		ID:               SolanaMainnet,
 		RpcUrl:           "http://barcelona:8899",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(EthereumTestnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://ethereum-sepolia-beacon-api.publicnode.com",
+		ID:               EthereumTestnet,
+		RpcUrl:           "https://ethereum-sepolia-rpc.publicnode.com",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
+	},
+	string(EthereumMainnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://ethereum-beacon-api.publicnode.com",
+		ID:               EthereumMainnet,
+		RpcUrl:           "https://ethereum-rpc.publicnode.com",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
+	string(KaspaTestnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api-tn10.kaspa.org",
+		ID:               KaspaTestnet,
+		RpcUrl:           "wss://testnet.kaspa.org/ws",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(KaspaMainnet): {
+		Backend:          Kaspa,
+		ApiUrl:           "https://api.kaspa.org",
+		ID:               KaspaMainnet,
+		RpcUrl:           "wss://mainnet.kaspa.org/ws",
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",

@@ -136,6 +136,8 @@ var Denoms = struct {
 	Bnb             string
 	Walrus          string
 	Solana          string
+	Ethereum        string
+	Kaspa           string
 }{
 	Hub:             "adym",
 	HubIbcOnRollapp: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
@@ -147,6 +149,8 @@ var Denoms = struct {
 	Bnb:             "ubnb",
 	Walrus:          "wal",
 	Solana:          "lamports",
+	Ethereum:        "eth",
+	Kaspa:           "kas",
 }
 
 const (
