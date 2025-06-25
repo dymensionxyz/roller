@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/data_layer/bnb"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
 	"github.com/dymensionxyz/roller/data_layer/damock"
+	"github.com/dymensionxyz/roller/data_layer/ethereum"
 	"github.com/dymensionxyz/roller/data_layer/kaspa"
 	loadnetwork "github.com/dymensionxyz/roller/data_layer/loadnetwork"
 	"github.com/dymensionxyz/roller/data_layer/sui"
@@ -65,6 +66,8 @@ func NewDAManager(datype consts.DAType, home string, kb consts.SupportedKeyringB
 		dalayer = kaspa.NewKaspa(home)
 	case consts.Local:
 		dalayer = &damock.DAMock{}
+	case consts.Ethereum:
+		dalayer = ethereum.NewEthereum(home)
 	default:
 		panic("Unknown data layer type " + string(datype))
 	}
@@ -95,6 +98,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbTestnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusTestnet)
+		case string(consts.Ethereum):
+			daNetwork = string(consts.EthereumTestnet)
 		case string(consts.Kaspa):
 			daNetwork = string(consts.KaspaTestnet)
 		default:
@@ -116,6 +121,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbMainnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusMainnet)
+		case string(consts.Ethereum):
+			daNetwork = string(consts.EthereumMainnet)
 		case string(consts.Kaspa):
 			daNetwork = string(consts.KaspaMainnet)
 		default:
@@ -137,6 +144,8 @@ func GetDaInfo(env, daBackend string) (*consts.DaData, error) {
 			daNetwork = string(consts.BnbTestnet)
 		case string(consts.Walrus):
 			daNetwork = string(consts.WalrusTestnet)
+		case string(consts.Ethereum):
+			daNetwork = string(consts.EthereumTestnet)
 		case string(consts.Kaspa):
 			daNetwork = string(consts.KaspaTestnet)
 		default:
