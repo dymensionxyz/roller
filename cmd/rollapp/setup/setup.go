@@ -1129,10 +1129,10 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"rollapp rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+			"rollapp rpc endpoint that you will provide (example: https://rpc.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
-			rpc = "https://" + rpc
+			rpc = "http://" + rpc
 		}
 
 		isValid := config.IsValidURL(rpc)
@@ -1149,10 +1149,10 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rest, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"rest endpoint that you will provide (example: api.rollapp.dym.xyz)",
+			"rest endpoint that you will provide (example: https://api.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
-			rest = "https://" + rest
+			rest = "http://" + rest
 		}
 
 		isValid := config.IsValidURL(rest)
@@ -1170,10 +1170,10 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		for {
 			// Prompt the user for the RPC URL
 			evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-				"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
+				"evm rpc endpoint that you will provide (example: https://json-rpc.rollapp.dym.xyz:443)",
 			).Show()
 			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
-				evmRpc = "https://" + evmRpc
+				evmRpc = "http://" + evmRpc
 			}
 
 			isValid := config.IsValidURL(evmRpc)

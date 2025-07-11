@@ -16,12 +16,11 @@ import (
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
-	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
-	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
@@ -57,22 +56,18 @@ func Cmd() *cobra.Command {
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 			rly.SetLogger(relayerLogger)
 
-			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
-				home,
-				raData.ID,
-				*hd,
-			)
+			rlpCfg, err := roller.LoadConfig(home)
 			errorhandling.PrettifyErrorIfExists(err)
-			rollappChainData.KeyringBackend = consts.SupportedKeyringBackend(kb)
+			rlpCfg.KeyringBackend = consts.SupportedKeyringBackend(kb)
 
-			err = rollappChainData.ValidateConfig()
+			err = rlpCfg.ValidateConfig()
 			if err != nil {
 				pterm.Error.Println("rollapp data validation error: ", err)
 				return
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
+			err = installRelayerDependencies()
 			if err != nil {
 				pterm.Error.Println("failed to install relayer dependencies: ", err)
 				return
@@ -95,7 +90,7 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("populating relayer config with correct values...")
-			err = relayerutils.InitializeRelayer(home, *rollappChainData)
+			err = relayerutils.InitializeRelayer(home, rlpCfg)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
 				return
@@ -113,18 +108,18 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println(
 					"no existing path, roller will create a new IBC path and set it up",
 				)
-				if err := rlyCfg.CreatePath(*rollappChainData); err != nil {
+				if err := rlyCfg.CreatePath(rlpCfg); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
 			}
 
-			if err := rly.UpdateConfigWithDefaultValues(*rollappChainData); err != nil {
+			if err := rly.UpdateConfigWithDefaultValues(rlpCfg); err != nil {
 				pterm.Error.Printf("failed to update relayer config file: %v\n", err)
 				return
 			}
 
-			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, *rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, rlpCfg)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -146,7 +141,7 @@ func Cmd() *cobra.Command {
 							fmt.Sprintf(
 								"no channel found. would you like to create a new IBC channel for %s?",
 								pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-									Sprint(rollappChainData.RollappID),
+									Sprint(rlpCfg.RollappID),
 							),
 						).Show()
 
@@ -177,14 +172,14 @@ func Cmd() *cobra.Command {
 					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
-						rollappChainData,
+						&rlpCfg,
 					)
 					if err != nil {
 						pterm.Error.Println("failed to handle whitelisting: ", err)
 						return
 					}
 
-					err = rly.HandleIbcChannelCreation(home, *rollappChainData, logFileOption)
+					err = rly.HandleIbcChannelCreation(home, rlpCfg, logFileOption)
 					if err != nil {
 						pterm.Error.Println("failed to handle ibc channel creation: ", err)
 						return
@@ -238,13 +233,13 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 		return nil, nil, "", err
 	}
 
-	_, err = rollapputils.ValidateChainID(hd.ID)
+	_, err = rollapputils.ValidateHubID(hd.ID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid Hub ID: %v", raID, err)
 		return nil, nil, "", err
 	}
 
-	_, err = rollapputils.ValidateChainID(raID)
+	_, err = rollapputils.ValidateRollappID(raID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
 		return nil, nil, "", err
@@ -270,65 +265,14 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 
 	raData := consts.RollappData{
 		ID:     raID,
-		RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
+		RpcUrl: raRpc,
 	}
 	return &raData, hd, kb, nil
 }
 
-func installRelayerDependencies(
-	home string,
-	raID string,
-	hd consts.HubData,
-) error {
-	raResp, err := rollapp.GetMetadataFromChain(raID, hd)
-	if err != nil {
-		return err
-	}
-
-	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResp)
-	if err != nil {
-		pterm.Error.Println("failed to get drs version from genesis: ", err)
-		return err
-	}
-
-	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, hd.Environment)
-	if err != nil {
-		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
-		return err
-	}
-
-	var raCommit string
-	switch strings.ToLower(raResp.Rollapp.VmType) {
-	case "evm":
-		raCommit = drsInfo.EvmCommit
-	case "wasm":
-		raCommit = drsInfo.WasmCommit
-	}
-
-	if raCommit == "UNRELEASED" {
-		return fmt.Errorf("rollapp does not support drs version: %s", drsVersion)
-	}
-
-	rbi := dependencies.NewRollappBinaryInfo(
-		raResp.Rollapp.GenesisInfo.Bech32Prefix,
-		raCommit,
-		strings.ToLower(raResp.Rollapp.VmType),
-	)
-
-	raDep := dependencies.DefaultRollappDependency(rbi)
-	err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
-	if err != nil {
-		return err
-	}
-
+func installRelayerDependencies() error {
 	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
-	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
-	if err != nil {
-		return err
-	}
-
-	dymdDep := dependencies.DefaultDymdDependency()
-	err = dependencies.InstallBinaryFromRelease(dymdDep)
+	err := dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 	if err != nil {
 		return err
 	}
