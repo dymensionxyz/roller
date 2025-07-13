@@ -351,7 +351,7 @@ func (c *Config) RaDataFromRelayerConfig() *consts.RollappData {
 
 func (r *Relayer) UpdateConfigWithDefaultValues(rollerData roller.RollappConfig) error {
 	updates := map[string]interface{}{
-		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 1.5,
+		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 2.0,
 		fmt.Sprintf("chains.%s.value.gas-prices", rollerData.HubData.ID): fmt.Sprintf(
 			"2000000000000%s",
 			consts.Denoms.Hub,
