@@ -354,7 +354,7 @@ func (r *Relayer) UpdateConfigWithDefaultValues(rollerData roller.RollappConfig)
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 2.0,
 		fmt.Sprintf("chains.%s.value.coin-type", rollerData.HubData.ID):      60,
 		fmt.Sprintf("chains.%s.value.gas-prices", rollerData.HubData.ID): fmt.Sprintf(
-			"2000000000000%s",
+			"20000000000%s",
 			consts.Denoms.Hub,
 		),
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID):  1.3,
