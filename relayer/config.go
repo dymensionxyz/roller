@@ -359,7 +359,7 @@ func (r *Relayer) UpdateConfigWithDefaultValues(rollerData roller.RollappConfig)
 		),
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID):  1.3,
 		fmt.Sprintf("chains.%s.value.min-gas-amount", rollerData.HubData.ID): 0,
-		fmt.Sprintf("chains.%s.value.max-gas-amount", rollerData.HubData.ID): 10_000_000,
+		fmt.Sprintf("chains.%s.value.max-gas-amount", rollerData.HubData.ID): 100_000_000,
 		fmt.Sprintf("chains.%s.value.is-dym-hub", rollerData.HubData.ID):     true,
 		fmt.Sprintf(
 			"chains.%s.value.http-addr",
