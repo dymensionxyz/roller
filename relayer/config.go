@@ -353,7 +353,7 @@ func (r *Relayer) UpdateConfigWithDefaultValues(rollerData roller.RollappConfig)
 	updates := map[string]interface{}{
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.HubData.ID): 1.5,
 		fmt.Sprintf("chains.%s.value.gas-prices", rollerData.HubData.ID): fmt.Sprintf(
-			"20000000000%s",
+			"2000000000000%s",
 			consts.Denoms.Hub,
 		),
 		fmt.Sprintf("chains.%s.value.gas-adjustment", rollerData.RollappID): 1.3,
