@@ -13,9 +13,12 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/dependencies"
+	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
+	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
+	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -67,7 +70,7 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			err = installRelayerDependencies()
+			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to install relayer dependencies: ", err)
 				return
@@ -270,12 +273,76 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 	return &raData, hd, kb, nil
 }
 
-func installRelayerDependencies() error {
-	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
-	err := dependencies.InstallBinaryFromRelease(rlyDep["rly"])
+func installRelayerDependencies(
+	home string,
+	raID string,
+	hd consts.HubData,
+) error {
+	raResp, err := rollapp.GetMetadataFromChain(raID, hd)
 	if err != nil {
 		return err
 	}
 
+	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResp)
+	if err != nil {
+		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		return err
+	}
+
+	drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, hd.Environment)
+	if err != nil {
+		pterm.Error.Println("failed to retrieve latest DRS version: ", err)
+		return err
+	}
+
+	var raCommit string
+	switch strings.ToLower(raResp.Rollapp.VmType) {
+	case "evm":
+		raCommit = drsInfo.EvmCommit
+	case "wasm":
+		raCommit = drsInfo.WasmCommit
+	}
+
+	if raCommit == "UNRELEASED" {
+		return fmt.Errorf("rollapp does not support drs version: %s", drsVersion)
+	}
+
+	rbi := dependencies.NewRollappBinaryInfo(
+		raResp.Rollapp.GenesisInfo.Bech32Prefix,
+		raCommit,
+		strings.ToLower(raResp.Rollapp.VmType),
+	)
+
+	raDep := dependencies.DefaultRollappDependency(rbi)
+	if !binariesExist(raDep) {
+		err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+		if err != nil {
+			return err
+		}
+	}
+
+	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
+	if err != nil {
+		return err
+	}
+
+	dymdDep := dependencies.DefaultDymdDependency()
+	if !binariesExist(dymdDep) {
+		err = dependencies.InstallBinaryFromRelease(dymdDep)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func binariesExist(dep types.Dependency) bool {
+	for _, bin := range dep.Binaries {
+		if _, err := os.Stat(bin.BinaryDestination); err != nil {
+			return false
+		}
+	}
+	return true
 }
