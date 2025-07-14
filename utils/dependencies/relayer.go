@@ -8,8 +8,8 @@ import (
 	"github.com/dymensionxyz/roller/utils/firebase"
 )
 
-func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
-	bvi, err := firebase.GetDependencyVersions()
+func DefaultRelayerPrebuiltDependencies(env string) map[string]types.Dependency {
+	bvi, err := firebase.GetDependencyVersions(env)
 	if err != nil {
 		pterm.Error.Println("failed to fetch binary versions: ", err)
 		return nil
@@ -29,6 +29,6 @@ func DefaultRelayerPrebuiltDependencies() map[string]types.Dependency {
 				},
 			},
 		},
-		"dymd": DefaultDymdDependency(),
+		"dymd": DefaultDymdDependency(env),
 	}
 }

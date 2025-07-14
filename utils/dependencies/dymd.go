@@ -92,8 +92,8 @@ func InstallCustomDymdVersion(dymdCommit string) error {
 	return nil
 }
 
-func DefaultDymdDependency() types.Dependency {
-	bvi, err := firebase.GetDependencyVersions()
+func DefaultDymdDependency(env string) types.Dependency {
+	bvi, err := firebase.GetDependencyVersions(env)
 	if err != nil {
 		pterm.Error.Println("failed to fetch binary versions: ", err)
 		return types.Dependency{}
