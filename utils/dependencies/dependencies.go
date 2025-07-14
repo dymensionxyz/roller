@@ -106,7 +106,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raVmType,
 		)
 
-		buildableDeps = DefaultRollappBuildableDependencies(rbi, da)
+		buildableDeps = DefaultRollappBuildableDependencies(rbi, da, env)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}

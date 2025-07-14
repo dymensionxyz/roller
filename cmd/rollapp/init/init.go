@@ -140,7 +140,7 @@ func Cmd() *cobra.Command {
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
-				dymdBinaryOptions := dependencies.DefaultDymdDependency()
+				dymdBinaryOptions := dependencies.DefaultDymdDependency(env)
 				pterm.Info.Println("installing dependencies")
 				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
 				if err != nil {
@@ -216,11 +216,34 @@ func Cmd() *cobra.Command {
 					return
 				}
 				return
+			case "mainnet":
+				hd = consts.Hubs[env]
+
+				var hdws string
+				if !shouldUseDefaultWebsocketEndpoint {
+					hdws, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub websocket endpoint, only fill this in when RPC and WebSocket are separate (optional)").
+						Show()
+				}
+
+				if hdws == "" {
+					hd.WsUrl = hd.RpcUrl
+				} else {
+					hd.WsUrl = hdws
+				}
+
+				if shouldSkipBinaryInstallation {
+					dymdDep := dependencies.DefaultDymdDependency(env)
+					err = dependencies.InstallBinaryFromRelease(dymdDep)
+					if err != nil {
+						pterm.Error.Println("failed to install dymd: ", err)
+						return
+					}
+				}
 			default:
 				hd = consts.Hubs[env]
 
 				if shouldSkipBinaryInstallation {
-					dymdDep := dependencies.DefaultDymdDependency()
+					dymdDep := dependencies.DefaultDymdDependency(env)
 					err = dependencies.InstallBinaryFromRelease(dymdDep)
 					if err != nil {
 						pterm.Error.Println("failed to install dymd: ", err)
