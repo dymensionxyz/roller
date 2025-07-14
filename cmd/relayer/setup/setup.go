@@ -13,7 +13,6 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/relayer"
 	"github.com/dymensionxyz/roller/utils/dependencies"
-	"github.com/dymensionxyz/roller/utils/dependencies/types"
 	dymintutils "github.com/dymensionxyz/roller/utils/dymint"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -314,7 +313,7 @@ func installRelayerDependencies(
 	)
 
 	raDep := dependencies.DefaultRollappDependency(rbi)
-	if !binariesExist(raDep) {
+	if !filesystem.BinariesExist(raDep) {
 		err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
 		if err != nil {
 			return err
@@ -328,7 +327,7 @@ func installRelayerDependencies(
 	}
 
 	dymdDep := dependencies.DefaultDymdDependency()
-	if !binariesExist(dymdDep) {
+	if !filesystem.BinariesExist(dymdDep) {
 		err = dependencies.InstallBinaryFromRelease(dymdDep)
 		if err != nil {
 			return err
@@ -336,13 +335,4 @@ func installRelayerDependencies(
 	}
 
 	return nil
-}
-
-func binariesExist(dep types.Dependency) bool {
-	for _, bin := range dep.Binaries {
-		if _, err := os.Stat(bin.BinaryDestination); err != nil {
-			return false
-		}
-	}
-	return true
 }
