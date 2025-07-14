@@ -236,13 +236,13 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 		return nil, nil, "", err
 	}
 
-	_, err = rollapputils.ValidateHubID(hd.ID)
+	_, err = rollapputils.ValidateChainID(hd.ID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid Hub ID: %v", raID, err)
 		return nil, nil, "", err
 	}
 
-	_, err = rollapputils.ValidateRollappID(raID)
+	_, err = rollapputils.ValidateChainID(raID)
 	if err != nil {
 		pterm.Error.Printf("'%s' is not a valid RollApp ID: %v", raID, err)
 		return nil, nil, "", err

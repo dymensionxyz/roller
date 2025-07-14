@@ -334,7 +334,7 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 			raID, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("Please enter the RollApp ID to fulfill eibc orders for").
 				Show()
 
-			_, err := rollapp.ValidateRollappID(raID)
+			_, err := rollapp.ValidateChainID(raID)
 			if err != nil {
 				pterm.Error.Printf("'%s' is not a valid RollApp ID: %v\n", raID, err)
 				continue

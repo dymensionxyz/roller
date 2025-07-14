@@ -167,7 +167,7 @@ func Cmd() *cobra.Command {
 				).Show()
 			}
 			raID = strings.TrimSpace(raID)
-			_, err = rollapp.ValidateRollappID(raID)
+			_, err = rollapp.ValidateChainID(raID)
 			if err != nil {
 				pterm.Error.Println("failed to validate chain id: ", err)
 				return
