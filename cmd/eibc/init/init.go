@@ -99,7 +99,9 @@ func Cmd() *cobra.Command {
 
 			if !isEibcClientInitialized {
 				pterm.Info.Println("installing eibc client dependencies...")
-				deps := dependencies.DefaultEibcClientPrebuiltDependencies()
+				deps := dependencies.DefaultEibcClientPrebuiltDependencies(
+					rollerConfig.HubData.Environment,
+				)
 				for _, v := range deps {
 					err := dependencies.InstallBinaryFromRelease(v)
 					if err != nil {

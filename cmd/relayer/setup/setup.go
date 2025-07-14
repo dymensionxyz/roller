@@ -326,7 +326,7 @@ func installRelayerDependencies(
 		}
 	}
 
-	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies(hd.Environment)
 	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 	if err != nil {
 		return err
