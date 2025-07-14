@@ -150,7 +150,7 @@ func Cmd() *cobra.Command {
 			// TODO: move to consts
 			// TODO(v2):  move to roller config
 			if !shouldUseMockBackend && env != "custom" {
-				dymdBinaryOptions := dependencies.DefaultDymdDependency()
+				dymdBinaryOptions := dependencies.DefaultDymdDependency(env)
 				pterm.Info.Println("installing dependencies")
 				err = dependencies.InstallBinaryFromRelease(dymdBinaryOptions)
 				if err != nil {
@@ -257,7 +257,7 @@ func Cmd() *cobra.Command {
 				}
 
 				if shouldSkipBinaryInstallation {
-					dymdDep := dependencies.DefaultDymdDependency()
+					dymdDep := dependencies.DefaultDymdDependency(env)
 					err = dependencies.InstallBinaryFromRelease(dymdDep)
 					if err != nil {
 						pterm.Error.Println("failed to install dymd: ", err)
@@ -268,7 +268,7 @@ func Cmd() *cobra.Command {
 				hd = consts.Hubs[env]
 
 				if shouldSkipBinaryInstallation {
-					dymdDep := dependencies.DefaultDymdDependency()
+					dymdDep := dependencies.DefaultDymdDependency(env)
 					err = dependencies.InstallBinaryFromRelease(dymdDep)
 					if err != nil {
 						pterm.Error.Println("failed to install dymd: ", err)

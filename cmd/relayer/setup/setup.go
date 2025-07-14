@@ -332,7 +332,7 @@ func installRelayerDependencies(
 		return err
 	}
 
-	dymdDep := dependencies.DefaultDymdDependency()
+	dymdDep := dependencies.DefaultDymdDependency(hd.Environment)
 	for _, bin := range dymdDep.Binaries {
 		if !filesystem.IsAvailable(bin.BinaryDestination) {
 			err = dependencies.InstallBinaryFromRelease(dymdDep)
