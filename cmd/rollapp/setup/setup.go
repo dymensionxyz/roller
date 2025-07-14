@@ -1132,7 +1132,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			"rollapp rpc endpoint that you will provide (example: https://rpc.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
-			rpc = "http://" + rpc
+			rpc = "https://" + rpc
 		}
 
 		isValid := config.IsValidURL(rpc)
@@ -1152,7 +1152,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			"rest endpoint that you will provide (example: https://api.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
-			rest = "http://" + rest
+			rest = "https://" + rest
 		}
 
 		isValid := config.IsValidURL(rest)
@@ -1173,7 +1173,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 				"evm rpc endpoint that you will provide (example: https://json-rpc.rollapp.dym.xyz:443)",
 			).Show()
 			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
-				evmRpc = "http://" + evmRpc
+				evmRpc = "https://" + evmRpc
 			}
 
 			isValid := config.IsValidURL(evmRpc)
