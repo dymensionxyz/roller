@@ -19,8 +19,8 @@ type BinaryVersionInfo struct {
 
 // GetDependencyVersions
 // Fetch dependency binary versions using the nested collection path
-// Path format: tool-versions/latest/<doc>
-func GetDependencyVersions() (*BinaryVersionInfo, error) {
+// Path format: <env>/tool-versions/field
+func GetDependencyVersions(env string) (*BinaryVersionInfo, error) {
 	ctx := context.Background()
 	conf := &firebase.Config{ProjectID: "drs-metadata"}
 	app, err := firebase.NewApp(ctx, conf, option.WithoutAuthentication())
@@ -34,10 +34,18 @@ func GetDependencyVersions() (*BinaryVersionInfo, error) {
 	}
 	defer client.Close()
 
+	var collectionName string
+
+	if env == "mainnet" {
+		collectionName = "mainnet"
+	} else {
+		collectionName = "testnets"
+	}
+
 	// Fetch DRS version information using the nested collection path
 	// Path format: versions/{version}/revisions/{revision}
-	drsDoc := client.Collection("tool-versions").
-		Doc("latest")
+	drsDoc := client.Collection(collectionName).
+		Doc("tool-versions")
 
 	docSnapshot, err := drsDoc.Get(ctx)
 	if err != nil {
