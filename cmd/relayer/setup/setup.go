@@ -22,7 +22,6 @@ import (
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
 	rollapputils "github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/dymensionxyz/roller/utils/roller"
 	sequencerutils "github.com/dymensionxyz/roller/utils/sequencer"
 	servicemanager "github.com/dymensionxyz/roller/utils/service_manager"
 )
@@ -58,7 +57,12 @@ func Cmd() *cobra.Command {
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 			rly.SetLogger(relayerLogger)
 
-			rlpCfg, err := roller.LoadConfig(home)
+			rlpCfg, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+				home,
+				raData.ID,
+				*hd,
+			)
+
 			errorhandling.PrettifyErrorIfExists(err)
 			rlpCfg.KeyringBackend = consts.SupportedKeyringBackend(kb)
 
@@ -92,7 +96,7 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("populating relayer config with correct values...")
-			err = relayerutils.InitializeRelayer(home, rlpCfg)
+			err = relayerutils.InitializeRelayer(home, *rlpCfg)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
 				return
@@ -110,18 +114,18 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println(
 					"no existing path, roller will create a new IBC path and set it up",
 				)
-				if err := rlyCfg.CreatePath(rlpCfg); err != nil {
+				if err := rlyCfg.CreatePath(*rlpCfg); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
 			}
 
-			if err := rly.UpdateConfigWithDefaultValues(rlpCfg); err != nil {
+			if err := rly.UpdateConfigWithDefaultValues(*rlpCfg); err != nil {
 				pterm.Error.Printf("failed to update relayer config file: %v\n", err)
 				return
 			}
 
-			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, rlpCfg)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, *rlpCfg)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -174,14 +178,14 @@ func Cmd() *cobra.Command {
 					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
-						&rlpCfg,
+						rlpCfg,
 					)
 					if err != nil {
 						pterm.Error.Println("failed to handle whitelisting: ", err)
 						return
 					}
 
-					err = rly.HandleIbcChannelCreation(home, rlpCfg, logFileOption)
+					err = rly.HandleIbcChannelCreation(home, *rlpCfg, logFileOption)
 					if err != nil {
 						pterm.Error.Println("failed to handle ibc channel creation: ", err)
 						return
