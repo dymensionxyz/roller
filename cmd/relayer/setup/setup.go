@@ -321,13 +321,13 @@ func installRelayerDependencies(
 		return err
 	}
 
-	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies(hd.Environment)
 	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 	if err != nil {
 		return err
 	}
 
-	dymdDep := dependencies.DefaultDymdDependency()
+	dymdDep := dependencies.DefaultDymdDependency(hd.Environment)
 	err = dependencies.InstallBinaryFromRelease(dymdDep)
 	if err != nil {
 		return err
