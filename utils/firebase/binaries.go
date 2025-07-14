@@ -36,18 +36,21 @@ func GetDependencyVersions(env string) (*BinaryVersionInfo, error) {
 
 	var collectionName string
 
-	if env == "mainnet" {
+	switch env {
+	case "mainnet":
 		collectionName = "mainnet"
-	} else {
+	case "playground":
+		collectionName = "playground"
+	default:
 		collectionName = "testnets"
 	}
 
 	// Fetch DRS version information using the nested collection path
 	// Path format: versions/{version}/revisions/{revision}
-	drsDoc := client.Collection(collectionName).
+	toolVersionDoc := client.Collection(collectionName).
 		Doc("tool-versions")
 
-	docSnapshot, err := drsDoc.Get(ctx)
+	docSnapshot, err := toolVersionDoc.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get DRS version info: %v", err)
 	}
