@@ -317,10 +317,12 @@ func installRelayerDependencies(
 	)
 
 	raDep := dependencies.DefaultRollappDependency(rbi)
-	if !filesystem.BinariesExist(raDep) {
-		err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
-		if err != nil {
-			return err
+	for _, bin := range raDep.Binaries {
+		if !filesystem.IsAvailable(bin.BinaryDestination) {
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -331,10 +333,12 @@ func installRelayerDependencies(
 	}
 
 	dymdDep := dependencies.DefaultDymdDependency()
-	if !filesystem.BinariesExist(dymdDep) {
-		err = dependencies.InstallBinaryFromRelease(dymdDep)
-		if err != nil {
-			return err
+	for _, bin := range dymdDep.Binaries {
+		if !filesystem.IsAvailable(bin.BinaryDestination) {
+			err = dependencies.InstallBinaryFromRelease(dymdDep)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
