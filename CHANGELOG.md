@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.18.1-rc04](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc04...v1.18.1-rc04) (2025-07-14)
+
+
+### Bug Fixes
+
+* default celestia version ([471dd8a](https://github.com/dymensionxyz/roller/commit/471dd8a3b461985cc67af42ca265e42805252b30))
+* dependency installation function call ([437474d](https://github.com/dymensionxyz/roller/commit/437474dfabd67d03b56487b6b493b108c082c6f3))
+* gas ([7fc804b](https://github.com/dymensionxyz/roller/commit/7fc804bb51c7140541128cf474856a88c1af0bdb))
+* gas ([b209acf](https://github.com/dymensionxyz/roller/commit/b209acf29a55ebd712da3bbb3e67e47242fee92d))
+* gas ([065d3b4](https://github.com/dymensionxyz/roller/commit/065d3b45454ba6475fc068e5a7f5d8c5b02f3c03))
+* gas ([d34a472](https://github.com/dymensionxyz/roller/commit/d34a4728f6d9a591fe16184018ba669cd644d254))
+* gas ([f99e5f8](https://github.com/dymensionxyz/roller/commit/f99e5f83cd976e450d49354fd911f838dd1397ae))
+* gas ([e733fd1](https://github.com/dymensionxyz/roller/commit/e733fd1d91249341566e00d57458d38d46ab3bb9))
+* gas ([43068f0](https://github.com/dymensionxyz/roller/commit/43068f0738d86a465670abdcd4b6fc836de1a171))
+* gas ([a4dba7c](https://github.com/dymensionxyz/roller/commit/a4dba7c8dc07734855afef5a1cc787a306860a91))
+* gas ([6262b6e](https://github.com/dymensionxyz/roller/commit/6262b6e5e3955e941744895237ac3d7c78adbe55))
+* increase gas adjustment for hub ([e422dc6](https://github.com/dymensionxyz/roller/commit/e422dc6934d2b30f1aaeadd587ff59c82c983266))
+* make binary versions environment specific ([#1365](https://github.com/dymensionxyz/roller/issues/1365)) ([28c6adf](https://github.com/dymensionxyz/roller/commit/28c6adf40d5ace0186dfe43c83f8f6b5a7f516ad))
+* relayer config ([44873ee](https://github.com/dymensionxyz/roller/commit/44873ee818bf9e26a3db95407018c82e2932ffcc))
+* relayer config ([614d895](https://github.com/dymensionxyz/roller/commit/614d8956648e3366fc81baa5c8bf131ec0e11917))
+* relayer gas ([875ca52](https://github.com/dymensionxyz/roller/commit/875ca5284676278ccf4fb6a772968311c5e97f90))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
