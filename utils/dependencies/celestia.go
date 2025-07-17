@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	DefaultCelestiaNodeVersion = "v0.22.3"
-	DefaultCelestiaAppVersion  = "v3.8.2"
+	DefaultCelestiaNodeVersion = "v0.23.5"
+	DefaultCelestiaAppVersion  = "v4.0.10"
 )
 
 func DefaultCelestiaNodeDependency() types.Dependency {
