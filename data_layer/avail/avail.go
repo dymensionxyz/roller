@@ -114,6 +114,10 @@ func NewAvail(root string) *Avail {
 			break
 		}
 
+		availConfig.RpcEndpoint = daData.ApiUrl
+		availConfig.AccAddress = keyringPair.Address
+		availConfig.Root = root
+
 		insufficientBalances, err := availConfig.CheckDABalance()
 		if err != nil {
 			pterm.Error.Println("failed to check balance", err)
@@ -123,10 +127,6 @@ func NewAvail(root string) *Avail {
 		if err != nil {
 			pterm.Error.Println("failed to check insufficient balances", err)
 		}
-
-		availConfig.RpcEndpoint = daData.ApiUrl
-		availConfig.AccAddress = keyringPair.Address
-		availConfig.Root = root
 
 		availConfig.AppID, err = CreateAppID(rollerData.DA.ApiUrl, availConfig.Mnemonic, rollerData.RollappID)
 		if err != nil {
