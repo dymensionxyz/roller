@@ -33,6 +33,9 @@ func writeDaTemplateToFile(home string) error {
 	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.Da))
 	scriptFp := filepath.Join(home, string(consts.StartupScriptFilePaths.Da))
 
+	fmt.Println("pswFp", pswFp)
+	fmt.Println("scriptFp", scriptFp)
+
 	daD := StartupTemplateData{
 		PasswordFilePath: pswFp,
 		Component:        "da-light-client",
