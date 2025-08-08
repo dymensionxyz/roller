@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1-rc05](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc05...v1.18.1-rc05) (2025-08-08)
+
+
+### Bug Fixes
+
+* os keyring ([#1372](https://github.com/dymensionxyz/roller/issues/1372)) ([3b55cfd](https://github.com/dymensionxyz/roller/commit/3b55cfd4bdb935c30339e81ad9c5641bc900ca39))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
