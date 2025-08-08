@@ -391,6 +391,49 @@ func ExecuteCommandWithPrompts(
 	return bytes.NewBuffer(output), nil
 }
 
+// ExecuteCommandWithPromptsStdout executes a command with automatic prompt responses
+// and captures only stdout (not stderr).
+func ExecuteCommandWithPromptsStdout(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+	//nolint:errcheck
+	defer stdin.Close()
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start command: %v", err)
+	}
+
+	// Immediately write all expected responses
+	go handlePrompts(stdin, promptResponses)
+
+	// Read stdout
+	output, err := io.ReadAll(stdout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read stdout: %v", err)
+	}
+
+	// Wait for the command to complete
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("command execution failed: %v", err)
+	}
+
+	return bytes.NewBuffer(output), nil
+}
+
 // ExecuteCommandWithPromptHandler executes a command that can handle both automatic prompt responses
 // and manual interventions. For prompts that require manual intervention, provide the prompt text
 // in manualPrompts. For automatic responses, provide the prompt-response pairs in promptResponses.
@@ -458,7 +501,7 @@ func ExecuteCommandWithPromptHandler(
 				}
 
 				args = append(args, "-y")
-				out, err := ExecuteCommandWithPrompts(command, args, promptResponses)
+				out, err := ExecuteCommandWithPromptsStdout(command, args, promptResponses)
 				if err != nil {
 					return nil, err
 				}

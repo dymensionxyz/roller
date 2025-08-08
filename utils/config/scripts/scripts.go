@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -33,6 +34,11 @@ func writeDaTemplateToFile(home string) error {
 	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.Da))
 	scriptFp := filepath.Join(home, string(consts.StartupScriptFilePaths.Da))
 
+	dir := filepath.Dir(scriptFp)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create directory for DA script: %w", err)
+	}
+
 	daD := StartupTemplateData{
 		PasswordFilePath: pswFp,
 		Component:        "da-light-client",
@@ -55,6 +61,11 @@ func writeDaTemplateToFile(home string) error {
 func writeRaTemplateToFile(home string) error {
 	pswFp := filepath.Join(home, string(consts.OsKeyringPwdFileNames.RollApp))
 	scriptFp := filepath.Join(home, string(consts.StartupScriptFilePaths.RollApp))
+
+	dir := filepath.Dir(scriptFp)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create directory for DA script: %w", err)
+	}
 
 	raD := StartupTemplateData{
 		PasswordFilePath: pswFp,
