@@ -383,8 +383,8 @@ github.com/armon/go-metrics v0.4.1/go.mod h1:E6amYzXo6aW1tqzoZGT755KkbgrJsSdpwZ+
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a/go.mod h1:DAHtR1m6lCRdSC2Tm3DSWRPvIPr6xNKyeHdqDQSQT+A=
 github.com/atomicgo/cursor v0.0.1/go.mod h1:cBON2QmmrysudxNBFthvMtN32r3jxVRIvzkUiF/RuIk=
-github.com/availproject/avail-go-sdk v0.2.0 h1:rp9eFLKOlo7YIrWvv2HgGhpKmbXa6QTuobiPyO60KFg=
-github.com/availproject/avail-go-sdk v0.2.0/go.mod h1:zAcOaTWBNNJT0JyTceNHV0W0j5nBRt5PJzGzCJDcEZE=
+github.com/availproject/avail-go-sdk v0.2.7 h1:BlzrnMW8w2HCr9fYQ5BsqN3Nc5hMolvbQn6WNp4Vhh0=
+github.com/availproject/avail-go-sdk v0.2.7/go.mod h1:zAcOaTWBNNJT0JyTceNHV0W0j5nBRt5PJzGzCJDcEZE=
 github.com/availproject/go-substrate-rpc-client/v4 v4.1.0-avail-2.0.0.0.20240814180913-148a8629d01c h1:pl0rInaItlzChSdUv8Af40UX/iLCQMtvtqQjPQrAfew=
 github.com/availproject/go-substrate-rpc-client/v4 v4.1.0-avail-2.0.0.0.20240814180913-148a8629d01c/go.mod h1:MeGquF7RkixfmXKXqwFF0a1iPLQiJGVlHjSLnJD4SD4=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
