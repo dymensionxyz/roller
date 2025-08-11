@@ -28,6 +28,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/genesis"
@@ -304,14 +305,14 @@ RollApp's IRO time: %v`,
 						cosmossdkmath.NewInt(consts.DefaultTxFee),
 					)
 
-					blnc, _ := sequencer.BaseDenomToDenom(*balance, 18)
+					blnc, _ := denom.BaseDenomToDenom(*balance, 18)
 					oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 
 					nb := cosmossdktypes.Coin{
 						Denom:  consts.Denoms.Hub,
 						Amount: necessaryBalance.Add(oneDym),
 					}
-					necBlnc, _ := sequencer.BaseDenomToDenom(nb, 18)
+					necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
 					pterm.Info.Printf(
 						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
@@ -353,7 +354,7 @@ RollApp's IRO time: %v`,
 						pterm.Error.Println("failed to get address balance: ", err)
 						return
 					}
-					blnc, _ = sequencer.BaseDenomToDenom(*balance, 18)
+					blnc, _ = denom.BaseDenomToDenom(*balance, 18)
 
 					pterm.Info.Printf(
 						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",

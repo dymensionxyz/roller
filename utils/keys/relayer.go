@@ -8,10 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -134,14 +137,27 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 			Denom:  consts.Denoms.Hub,
 			RPC:    rollappConfig.HubData.RpcUrl,
 		}
+
 		balance, err := QueryBalance(cqc, rhki.Address)
 		if err != nil {
 			return err
 		}
+		balanceDenom, _ := denom.BaseDenomToDenom(*balance, 18)
+
+		oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+
+		nb := cosmossdktypes.Coin{
+			Denom:  consts.Denoms.Hub,
+			Amount: oneDym * 10,
+		}
+		necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
 		pterm.Info.Printf(
-			"current balance: %s\nnecessary balance: >0\n",
+			"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
 			balance.String(),
+			balanceDenom.String(),
+			fmt.Sprintf("%s%s", nb.String(), consts.Denoms.Hub),
+			necBlnc.String(),
 		)
 
 		if !balance.Amount.IsPositive() {
