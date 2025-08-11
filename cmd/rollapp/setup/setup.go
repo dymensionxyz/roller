@@ -16,7 +16,6 @@ import (
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -25,6 +24,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
+	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
@@ -540,7 +540,10 @@ RollApp's IRO time: %v`,
 			switch localRollerConfig.DA.Backend {
 			case consts.Celestia:
 				// Initialize Celestia light client
-				daKeyInfo, err := celestialightclient.Initialize(localRollerConfig.HubData.Environment, localRollerConfig)
+				daKeyInfo, err := celestialightclient.Initialize(
+					localRollerConfig.HubData.Environment,
+					localRollerConfig,
+				)
 				if err != nil {
 					pterm.Error.Println("failed to initialize Celestia light client: %w", err)
 					return
@@ -553,7 +556,12 @@ RollApp's IRO time: %v`,
 
 			case consts.Avail:
 				// Initialize DAManager for Avail
-				damanager := datalayer.NewDAManager(consts.Avail, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Avail,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -571,7 +579,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.LoadNetwork:
 				// Initialize DAManager for LoadNetwork
-				damanager := datalayer.NewDAManager(consts.LoadNetwork, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.LoadNetwork,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -589,7 +602,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Bnb:
 				// Initialize DAManager for Bnb
-				damanager := datalayer.NewDAManager(consts.Bnb, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Bnb,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -607,7 +625,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Sui:
 				// Initialize DAManager for Sui
-				damanager := datalayer.NewDAManager(consts.Sui, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Sui,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -625,7 +648,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Aptos:
 				// Initialize DAManager for Aptos
-				damanager := datalayer.NewDAManager(consts.Aptos, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Aptos,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -643,7 +671,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Walrus:
 				// Initialize DAManager for Walrus
-				damanager := datalayer.NewDAManager(consts.Walrus, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Walrus,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -660,7 +693,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Solana:
 				// Initialize DAManager for Solana
-				damanager := datalayer.NewDAManager(consts.Solana, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Solana,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -677,7 +715,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Ethereum:
 				// Initialize DAManager for Ethereum
-				damanager := datalayer.NewDAManager(consts.Ethereum, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Ethereum,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
 				if err != nil {
@@ -694,7 +737,12 @@ RollApp's IRO time: %v`,
 				}
 			case consts.Kaspa:
 				// Initialize DAManager for Kaspa
-				damanager := datalayer.NewDAManager(consts.Kaspa, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
+				damanager := datalayer.NewDAManager(
+					consts.Kaspa,
+					home,
+					localRollerConfig.KeyringBackend,
+					localRollerConfig.NodeType,
+				)
 
 				// Retrieve DA account address
 				daAddress, err := damanager.GetDAAccountAddress()
@@ -751,7 +799,8 @@ RollApp's IRO time: %v`,
 					return
 				}
 				daWalletInfo.Mnemonic = mnemonic
-				daWalletInfo.Print(keys.WithMnemonic(), keys.WithName())
+
+				defer daWalletInfo.Print(keys.WithMnemonic(), keys.WithName())
 
 				daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
 					Start("initializing da light client")
