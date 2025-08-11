@@ -10,6 +10,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
@@ -55,14 +56,14 @@ func CheckBalance(rollappConfig roller.RollappConfig) error {
 		cosmossdkmath.NewInt(consts.DefaultTxFee),
 	)
 
-	blnc, _ := BaseDenomToDenom(*balance, 18)
+	blnc, _ := denom.BaseDenomToDenom(*balance, 18)
 	oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 
 	nb := cosmossdktypes.Coin{
 		Denom:  consts.Denoms.Hub,
 		Amount: necessaryBalance.Add(oneDym),
 	}
-	necBlnc, _ := BaseDenomToDenom(nb, 18)
+	necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
 	pterm.Info.Printf(
 		"current balance: %s (%s)\nnecessary balance: %s (%s)\n",

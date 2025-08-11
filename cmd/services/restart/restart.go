@@ -43,7 +43,9 @@ func Cmd(services []string) *cobra.Command {
 				}
 
 				if rollappConfig.HubData.ID != consts.MockHubID {
-					raUpgrade, err := upgrades.NewRollappUpgrade(string(rollappConfig.RollappVMType))
+					raUpgrade, err := upgrades.NewRollappUpgrade(
+						string(rollappConfig.RollappVMType),
+					)
 					if err != nil {
 						pterm.Error.Println("failed to check rollapp version equality: ", err)
 					}
@@ -57,6 +59,11 @@ func Cmd(services []string) *cobra.Command {
 						pterm.Error.Println(err)
 						return
 					}
+				}
+
+				if slices.Contains(services, "rollapp") &&
+					rollappConfig.DA.Backend == consts.Celestia {
+					services = consts.RollappWithCelesSystemdServices
 				}
 			}
 
