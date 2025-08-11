@@ -148,7 +148,7 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 
 		nb := cosmossdktypes.Coin{
 			Denom:  consts.Denoms.Hub,
-			Amount: oneDym * 10,
+			Amount: oneDym.Mul(cosmossdkmath.NewInt(10)),
 		}
 		necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
