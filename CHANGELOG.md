@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.18.1-rc06](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc06...v1.18.1-rc06) (2025-08-11)
+
+
+### Bug Fixes
+
+* correctly report errors from IsRegistered to avoid &lt;nil&gt; ([#1371](https://github.com/dymensionxyz/roller/issues/1371)) ([b69208c](https://github.com/dymensionxyz/roller/commit/b69208ca13685a05494b7461d7e0078274180f47))
+* **readme:** curl command for roller installation ([#1373](https://github.com/dymensionxyz/roller/issues/1373)) ([c979dad](https://github.com/dymensionxyz/roller/commit/c979dad04e79908b763572008ff7a365af8d4bdc))
+* update get balance for Avail DA ([#1370](https://github.com/dymensionxyz/roller/issues/1370)) ([1f0e6b8](https://github.com/dymensionxyz/roller/commit/1f0e6b8d6c31ca615c0770dd3815e9569e3f5ff0))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
