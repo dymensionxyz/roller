@@ -156,7 +156,7 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 			"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
 			balance.String(),
 			balanceDenom.String(),
-			fmt.Sprintf("%s%s", nb.String(), consts.Denoms.Hub),
+			nb.String(),
 			necBlnc.String(),
 		)
 
