@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -271,6 +272,9 @@ func monitorViaRawWebSocket(ctx context.Context, wsURL, txHash string, resultCha
 
 func monitorViaAPI(ctx context.Context, rpcURL, txHash string, resultChan chan<- TxResult) error {
 	txHash = strings.ToUpper(txHash)
+	if !strings.HasPrefix(txHash, "0X") {
+		txHash = "0X" + txHash
+	}
 
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
@@ -304,8 +308,30 @@ func monitorViaAPI(ctx context.Context, rpcURL, txHash string, resultChan chan<-
 				} `json:"result"`
 			}
 
-			if err := json.NewDecoder(resp.Body).Decode(&txResponse); err != nil {
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
 				continue
+			}
+
+			if err := json.Unmarshal(body, &txResponse); err != nil {
+				// Try alternative response format if standard format fails
+				var altResponse struct {
+					Result struct {
+						Code      uint32 `json:"code"`
+						Log       string `json:"log"`
+						GasWanted string `json:"gas_wanted"`
+						GasUsed   string `json:"gas_used"`
+					} `json:"result"`
+				}
+				if err2 := json.Unmarshal(body, &altResponse); err2 == nil {
+					// Use alternative format
+					txResponse.Result.TxResult.Code = altResponse.Result.Code
+					txResponse.Result.TxResult.Log = altResponse.Result.Log
+					txResponse.Result.TxResult.GasWanted = altResponse.Result.GasWanted
+					txResponse.Result.TxResult.GasUsed = altResponse.Result.GasUsed
+				} else {
+					continue
+				}
 			}
 
 			gasWanted := int64(0)
@@ -316,16 +342,18 @@ func monitorViaAPI(ctx context.Context, rpcURL, txHash string, resultChan chan<-
 			if gu, err := fmt.Sscanf(txResponse.Result.TxResult.GasUsed, "%d", &gasUsed); err == nil && gu == 1 {
 			}
 
-			result := TxResult{
-				Success:   txResponse.Result.TxResult.Code == 0,
-				Code:      txResponse.Result.TxResult.Code,
-				Log:       txResponse.Result.TxResult.Log,
-				GasWanted: gasWanted,
-				GasUsed:   gasUsed,
-				Source:    "api",
+			if txResponse.Result.TxResult.GasWanted != "" || txResponse.Result.TxResult.GasUsed != "" {
+				result := TxResult{
+					Success:   txResponse.Result.TxResult.Code == 0,
+					Code:      txResponse.Result.TxResult.Code,
+					Log:       txResponse.Result.TxResult.Log,
+					GasWanted: gasWanted,
+					GasUsed:   gasUsed,
+					Source:    "api",
+				}
+				resultChan <- result
+				return nil
 			}
-			resultChan <- result
-			return nil
 		}
 	}
 }
