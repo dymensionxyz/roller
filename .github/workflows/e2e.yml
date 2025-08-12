@@ -10,7 +10,7 @@ jobs:
       ROLLER_CONFIG_PATH: "${{ github.workspace }}/tmp/e2e_roller_config" # Setting the environment variable
       ROLLAPP_ID: "endtoend_1-${{ github.run_number }}"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
