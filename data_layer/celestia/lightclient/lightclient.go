@@ -108,7 +108,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			)
 
 			pterm.Info.Println("checking for state update")
-			out, err := bash.ExecCommandWithStdout(cmd)
+			out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 			if err != nil {
 				if strings.Contains(out.String(), "NotFound") {
 					pterm.Info.Printf(

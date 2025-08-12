@@ -85,7 +85,7 @@ func Cmd() *cobra.Command {
 					"signatures": "this transaction is going to update the sequencer metadata. do you want to continue?",
 				}
 
-				txOutput, err := bash.ExecuteCommandWithPromptHandler(
+				txOutput, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 					consts.Executables.Dymension,
 					bondArgs,
 					automaticPrompts,

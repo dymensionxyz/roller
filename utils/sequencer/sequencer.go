@@ -118,7 +118,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		),
 	}
 
-	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+	txOutput, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 		consts.Executables.Dymension,
 		args,
 		automaticPrompts,
@@ -619,7 +619,7 @@ func UpdateWhitelistedRelayers(
 		"signatures": "this transaction is going to update the whitelisted relayers. do you want to continue?",
 	}
 
-	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+	txOutput, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 		consts.Executables.Dymension,
 		args,
 		automaticPrompts,

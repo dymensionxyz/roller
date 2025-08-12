@@ -222,7 +222,7 @@ func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 		"-o", "json",
 	)
 
-	output, err := bash.ExecCommandWithStdout(cmd)
+	output, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +384,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 			raCfg.HubData.ID,
 		)
 
-		out, err := bash.ExecCommandWithStdout(cmd)
+		out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 		if err != nil {
 			pterm.Error.Println(err)
 			return ""
