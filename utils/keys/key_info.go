@@ -9,6 +9,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -100,6 +101,16 @@ func All(rollappConfig roller.RollappConfig, hd consts.HubData) ([]KeyInfo, erro
 		aki = append(aki, *eibcKi)
 	} else {
 		pterm.Error.Println("failed to get eibc key", err)
+	}
+
+	if rollappConfig.DA.Backend != "" && rollappConfig.DA.Backend != consts.Mock {
+		daManager := datalayer.NewDAManager(rollappConfig.DA.Backend, rollappConfig.Home, rollappConfig.KeyringBackend, rollappConfig.NodeType)
+		daKi, err := daManager.GetDAAccountAddress()
+		if err != nil {
+			pterm.Error.Println("failed to get DA key", err)
+		} else if daKi != nil {
+			aki = append(aki, *daKi)
+		}
 	}
 
 	return aki, nil
