@@ -9,6 +9,17 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
+// AddHttpsPortIfNeeded appends :443 to HTTPS URLs that don't already have a port specified
+func AddHttpsPortIfNeeded(url string) string {
+	if strings.HasPrefix(url, "https://") {
+		// Check if URL already has a port
+		if !strings.Contains(url[8:], ":") {
+			return url + ":443"
+		}
+	}
+	return url
+}
+
 func PromptVmType() string {
 	vmtypes := []string{"evm", "wasm"}
 	vmtype, _ := pterm.DefaultInteractiveSelect.
@@ -49,6 +60,9 @@ func PromptCustomHubEndpoint(rollerConfig roller.RollappConfig) roller.RollappCo
 		for {
 			rpcEndpoint, _ = pterm.DefaultInteractiveTextInput.WithDefaultText("We recommend using a private RPC endpoint for the hub. Please provide the hub rpc endpoint to use. You can obtain one here: https://blastapi.io/chains/dymension").
 				Show()
+
+			// Add :443 to HTTPS URLs if no port is specified
+			rpcEndpoint = AddHttpsPortIfNeeded(rpcEndpoint)
 
 			isValidUrl := IsValidURL(rpcEndpoint)
 			if isValidUrl {
