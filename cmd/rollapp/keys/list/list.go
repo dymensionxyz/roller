@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
+	"github.com/dymensionxyz/roller/cmd/consts"
+	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -26,6 +28,16 @@ func Cmd() *cobra.Command {
 			if err != nil {
 				pterm.Error.Println("failed to get all keys", err)
 				return
+			}
+
+			if rollerData.DA.Backend != "" && rollerData.DA.Backend != consts.Mock {
+				daManager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, rollerData.KeyringBackend, rollerData.NodeType)
+				daKi, err := daManager.GetDAAccountAddress()
+				if err != nil {
+					pterm.Error.Println("failed to get DA key", err)
+				} else if daKi != nil {
+					aki = append(aki, *daKi)
+				}
 			}
 
 			for _, addrData := range aki {
