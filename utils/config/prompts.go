@@ -1,6 +1,7 @@
 package config
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -10,14 +11,15 @@ import (
 )
 
 // AddHttpsPortIfNeeded appends :443 to HTTPS URLs that don't already have a port specified
-func AddHttpsPortIfNeeded(url string) string {
-	if strings.HasPrefix(url, "https://") {
-		// Check if URL already has a port
-		if !strings.Contains(url[8:], ":") {
-			return url + ":443"
-		}
+func AddHttpsPortIfNeeded(rawurl string) string {
+	u, err := url.Parse(rawurl)
+	if err != nil || u.Scheme != "https" {
+		return rawurl
 	}
-	return url
+	if !strings.Contains(u.Host, ":") {
+		u.Host = u.Host + ":443"
+	}
+	return u.String()
 }
 
 func PromptVmType() string {
