@@ -13,6 +13,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/rollapp/snapshot"
 	"github.com/dymensionxyz/roller/cmd/rollapp/start"
 	"github.com/dymensionxyz/roller/cmd/rollapp/status"
+	teefullnode "github.com/dymensionxyz/roller/cmd/rollapp/tee-fullnode"
 	"github.com/dymensionxyz/roller/cmd/services"
 	loadservices "github.com/dymensionxyz/roller/cmd/services/load"
 	restartservices "github.com/dymensionxyz/roller/cmd/services/restart"
@@ -36,6 +37,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(migrate.Cmd())
 	cmd.AddCommand(drs.Cmd())
 	cmd.AddCommand(snapshot.Cmd())
+	cmd.AddCommand(teefullnode.Cmd())
 
 	sl := []string{"rollapp"}
 	cmd.AddCommand(
