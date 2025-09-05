@@ -1,0 +1,10 @@
+# TEE Full Node Configuration
+
+# RollApp ID to validate
+rollapp_id = "rollapp_1234-1"
+
+# Hub RPC endpoint for fetching rollapp metadata
+hub_rpc_endpoint = "https://rpc-dymension-playground35.mzonder.com:443"
+
+# Home directory for node data (optional, defaults to /root/.roller)
+# home = "/root/.roller"
