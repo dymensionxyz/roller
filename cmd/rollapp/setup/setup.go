@@ -52,7 +52,7 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			nodeTypes := []string{"sequencer", "fullnode"}
-			fullNodeTypes := []string{"rpc", "archive"}
+			fullNodeTypes := []string{"rpc", "archive", "tee"}
 
 			nodeTypeFromFlag, _ := cmd.Flags().GetString("node-type")
 			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
@@ -961,6 +961,8 @@ RollApp's IRO time: %v`,
 				var fnVtu map[string]any
 
 				switch fullNodeType {
+				case "tee":
+					fallthrough // TODO: can update if needed to prune more aggressively
 				case "rpc":
 					fnVtu = map[string]any{
 						"pruning":             "custom",
@@ -1033,7 +1035,7 @@ RollApp's IRO time: %v`,
 	}
 
 	cmd.Flags().String("node-type", "", "node type ( supported values: [sequencer, fullnode] )")
-	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive] )")
+	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive, tee] )")
 	cmd.Flags().
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
 
