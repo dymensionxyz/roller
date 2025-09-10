@@ -30,8 +30,6 @@ type RollappConfig struct {
 	HubData     consts.HubData    `toml:"HubData"`
 	DA          consts.DaData     `toml:"DA"`
 	HealthAgent HealthAgentConfig `toml:"HealthAgent"`
-
-	ExternalDAEndpoint string `toml:"external_da_endpoint,omitempty"`
 }
 
 type HealthAgentConfig struct {

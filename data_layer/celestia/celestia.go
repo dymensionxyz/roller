@@ -106,10 +106,6 @@ func (c *Celestia) getRPCPort() string {
 }
 
 func (c *Celestia) GetLightNodeEndpoint() string {
-	raCfg, err := roller.LoadConfig(c.Root)
-	if err == nil && raCfg.ExternalDAEndpoint != "" {
-		return raCfg.ExternalDAEndpoint
-	}
 	return fmt.Sprintf("http://localhost:%s", c.getRPCPort())
 }
 
@@ -372,7 +368,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 		if err != nil {
 			pterm.Error.Println("failed to get auth token", err)
 		}
-	} else if nt == consts.NodeType.FullNode || nt == "tee" {
+	} else if nt == consts.NodeType.FullNode {
 		pterm.Info.Println("checking for state update")
 		cmd := exec.Command(
 			consts.Executables.Dymension,
@@ -410,14 +406,9 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 		if c.NamespaceID == "" {
 			c.NamespaceID = namespace_id
 		}
-		// TEE nodes use external DA endpoint, no auth token needed
-		if nt == "tee" {
-			authToken = ""
-		} else {
-			authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read, raCfg)
-			if err != nil {
-				pterm.Error.Println("failed to get auth token", err)
-			}
+		authToken, err = c.getAuthToken(consts.DaAuthTokenType.Read, raCfg)
+		if err != nil {
+			pterm.Error.Println("failed to get auth token", err)
 		}
 	} else {
 		err := errors.New("invalid node type")

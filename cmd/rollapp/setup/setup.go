@@ -52,11 +52,10 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			nodeTypes := []string{"sequencer", "fullnode"}
-			fullNodeTypes := []string{"rpc", "archive", "tee"}
+			fullNodeTypes := []string{"rpc", "archive"}
 
 			nodeTypeFromFlag, _ := cmd.Flags().GetString("node-type")
 			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
-			externalDAEndpoint, _ := cmd.Flags().GetString("external-da-endpoint")
 			shouldUseDefaultRpcEndpoint, _ := cmd.Flags().GetBool("use-default-rpc-endpoint")
 
 			err := initconfig.AddFlags(cmd)
@@ -91,16 +90,6 @@ func Cmd() *cobra.Command {
 
 			if !shouldUseDefaultRpcEndpoint {
 				localRollerConfig = config.PromptCustomHubEndpoint(localRollerConfig)
-			}
-
-			// Save external DA endpoint if provided
-			if externalDAEndpoint != "" {
-				localRollerConfig.ExternalDAEndpoint = externalDAEndpoint
-				err = roller.WriteConfig(localRollerConfig)
-				if err != nil {
-					pterm.Error.Println("failed to update roller config with external DA endpoint", err)
-					return
-				}
 			}
 
 			rollappConfig, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
@@ -551,24 +540,19 @@ RollApp's IRO time: %v`,
 			// Generalize DA initialization logic
 			switch localRollerConfig.DA.Backend {
 			case consts.Celestia:
-				// Skip Celestia light client initialization for TEE nodes using external DA
-				if localRollerConfig.ExternalDAEndpoint == "" {
-					// Initialize Celestia light client
-					daKeyInfo, err := celestialightclient.Initialize(
-						localRollerConfig.HubData.Environment,
-						localRollerConfig,
-					)
-					if err != nil {
-						pterm.Error.Println("failed to initialize Celestia light client: %w", err)
-						return
-					}
+				// Initialize Celestia light client
+				daKeyInfo, err := celestialightclient.Initialize(
+					localRollerConfig.HubData.Environment,
+					localRollerConfig,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to initialize Celestia light client: %w", err)
+					return
+				}
 
-					// Append DA account address if available
-					if daKeyInfo != nil {
-						addresses = append(addresses, *daKeyInfo)
-					}
-				} else {
-					pterm.Info.Println("skipping Celestia light client initialization (using external DA endpoint)")
+				// Append DA account address if available
+				if daKeyInfo != nil {
+					addresses = append(addresses, *daKeyInfo)
 				}
 
 			case consts.Avail:
@@ -974,12 +958,6 @@ RollApp's IRO time: %v`,
 						Show()
 				}
 
-				// Validate external DA endpoint for TEE nodes
-				if fullNodeType == "tee" && externalDAEndpoint == "" {
-					pterm.Error.Println("--external-da-endpoint is required for TEE node type")
-					return
-				}
-
 				var fnVtu map[string]any
 
 				switch fullNodeType {
@@ -994,13 +972,6 @@ RollApp's IRO time: %v`,
 					fnVtu = map[string]any{
 						"pruning":           "nothing",
 						"min-retain-blocks": "0",
-					}
-				case "tee":
-					fnVtu = map[string]any{
-						"pruning":             "custom",
-						"pruning-keep-recent": "100",
-						"pruning-interval":    "10",
-						"min-retain-blocks":   "100",
 					}
 				}
 
@@ -1022,16 +993,10 @@ RollApp's IRO time: %v`,
 				getDaLayer(home, raResponse, damanager.DaType),
 			)
 
-			// Determine actual node type for DA config
-			daNodeType := nodeType
-			if nodeType == "fullnode" && localRollerConfig.ExternalDAEndpoint != "" {
-				daNodeType = "tee"
-			}
-
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_config",
-				getDaConfig(damanager.DataLayer, daNodeType, home, raResponse, rollappConfig),
+				getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
 			)
 
 			_ = tomlconfig.UpdateFieldInFile(
@@ -1068,8 +1033,7 @@ RollApp's IRO time: %v`,
 	}
 
 	cmd.Flags().String("node-type", "", "node type ( supported values: [sequencer, fullnode] )")
-	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive, tee] )")
-	cmd.Flags().String("external-da-endpoint", "", "external DA endpoint URL for TEE nodes (required for TEE node type)")
+	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive] )")
 	cmd.Flags().
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
 
