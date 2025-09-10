@@ -79,6 +79,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raCommit = drsInfo.WasmCommit
 		}
 
+		if os.Getenv("ROLLER_RA_COMMIT") != "" {
+			raCommit = os.Getenv("ROLLER_RA_COMMIT")
+		}
+
 		if raCommit == "UNRELEASED" {
 			return nil, nil, errors.New("rollapp does not support drs version: " + drsVersion)
 		}
