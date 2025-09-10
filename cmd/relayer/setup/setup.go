@@ -306,8 +306,8 @@ func installRelayerDependencies(
 		raCommit = drsInfo.WasmCommit
 	}
 
-	if raCommit == "UNRELEASED" {
-		return fmt.Errorf("rollapp does not support drs version: %s", drsVersion)
+	if os.Getenv("ROLLER_DA_COMMIT") != "" {
+		raCommit = os.Getenv("ROLLER_DA_COMMIT")
 	}
 
 	rbi := dependencies.NewRollappBinaryInfo(
