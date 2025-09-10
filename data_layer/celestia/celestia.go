@@ -105,7 +105,12 @@ func (c *Celestia) getRPCPort() string {
 	return port
 }
 
-func (c *Celestia) GetLightNodeEndpoint(cfg consts.DaData) string {
+func (c *Celestia) GetLightNodeEndpoint() string {
+	cfgFull, err := roller.LoadConfig(c.Root)
+	if err != nil {
+		return ""
+	}
+	cfg := cfgFull.DA
 	if cfg.Remote != "" {
 		return cfg.Remote
 	}
@@ -361,7 +366,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 		return ""
 	}
 
-	lcEndpoint := c.GetLightNodeEndpoint(raCfg.DA)
+	lcEndpoint := c.GetLightNodeEndpoint()
 
 	if nt == consts.NodeType.Sequencer {
 		if c.NamespaceID == "" {
