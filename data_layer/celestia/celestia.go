@@ -105,7 +105,10 @@ func (c *Celestia) getRPCPort() string {
 	return port
 }
 
-func (c *Celestia) GetLightNodeEndpoint() string {
+func (c *Celestia) GetLightNodeEndpoint(cfg consts.DaData) string {
+	if cfg.Remote != "" {
+		return cfg.Remote
+	}
 	return fmt.Sprintf("http://localhost:%s", c.getRPCPort())
 }
 
@@ -349,8 +352,6 @@ func (c *Celestia) getAuthToken(t string, raCfg roller.RollappConfig) (string, e
 }
 
 func (c *Celestia) GetSequencerDAConfig(nt string) string {
-	lcEndpoint := c.GetLightNodeEndpoint()
-
 	var authToken string
 	var err error
 	var namespace_id string
@@ -359,6 +360,8 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 	if err != nil {
 		return ""
 	}
+
+	lcEndpoint := c.GetLightNodeEndpoint(raCfg.DA)
 
 	if nt == consts.NodeType.Sequencer {
 		if c.NamespaceID == "" {
