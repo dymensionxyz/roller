@@ -35,7 +35,7 @@ func DefaultRollappBuildableDependencies(
 	if da == "celestia" {
 		bvi, err := firebase.GetDependencyVersions(env)
 		if err != nil {
-			pterm.Error.Printfln("failed to retrieve binary version for celestia light client", err)
+			pterm.Error.Printfln("failed to retrieve binary version for celestia light client: %v", err)
 			return nil
 		}
 
