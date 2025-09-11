@@ -1043,6 +1043,7 @@ RollApp's IRO time: %v`,
 	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive, tee] )")
 	cmd.Flags().
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
+	cmd.Flags().Bool("skip-da", false, "skip data availability layer setup")
 
 	return cmd
 }
