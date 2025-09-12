@@ -186,7 +186,7 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				if !raResponse.Rollapp.GenesisInfo.Sealed {
+				if !skipGenesisValidation && !raResponse.Rollapp.GenesisInfo.Sealed {
 					gvSpinner, err := pterm.DefaultSpinner.Start(
 						"validating genesis (this can take several minutes for large genesis files)",
 					)
