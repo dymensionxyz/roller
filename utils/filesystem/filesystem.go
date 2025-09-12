@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strings"
 
 	"github.com/nxadm/tail"
 	"github.com/pterm/pterm"
@@ -156,6 +157,44 @@ func DownloadFile(url, fp string) error {
 		return err
 	}
 	return nil
+}
+
+func DownloadGenesisFile(genesisUrl, destinationPath string) error {
+	if genesisUrl == "" {
+		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
+	}
+
+	// Check for override via environment variable
+	if override := os.Getenv("ROLLER_GENESIS_OVERRIDE"); override != "" {
+		genesisUrl = override
+		pterm.Warning.Printf("Using genesis override from ROLLER_GENESIS_OVERRIDE: %s\n", override)
+	}
+
+	// Support local files
+	if strings.HasPrefix(genesisUrl, "file://") || strings.HasPrefix(genesisUrl, "/") {
+		localPath := strings.TrimPrefix(genesisUrl, "file://")
+
+		input, err := os.ReadFile(localPath)
+		if err != nil {
+			return fmt.Errorf("failed to read local genesis file: %w", err)
+		}
+
+		err = os.MkdirAll(filepath.Dir(destinationPath), 0o755)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(destinationPath, input, 0o644)
+		if err != nil {
+			return fmt.Errorf("failed to write genesis file: %w", err)
+		}
+
+		pterm.Success.Printf("Copied local genesis file from %s\n", localPath)
+		return nil
+	}
+
+	// Original HTTP download
+	return DownloadFile(genesisUrl, destinationPath)
 }
 
 func RemoveFileIfExists(filePath string) error {

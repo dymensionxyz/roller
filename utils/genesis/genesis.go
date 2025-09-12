@@ -82,16 +82,7 @@ type Denom struct {
 
 func DownloadGenesis(home, genesisUrl string) error {
 	genesisPath := GetGenesisFilePath(home)
-	if genesisUrl == "" {
-		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
-	}
-
-	err := filesystem.DownloadFile(genesisUrl, genesisPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return filesystem.DownloadGenesisFile(genesisUrl, genesisPath)
 }
 
 // GetGenesisAppState function retrieves the genesis file content using comet's

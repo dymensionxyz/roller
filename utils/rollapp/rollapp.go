@@ -245,7 +245,8 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	// nolint: errcheck
 	defer os.RemoveAll(genesisTmpDir)
 
-	err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
+	genesisPath := filepath.Join(RollappConfigDir(genesisTmpDir), "genesis.json")
+	err = filesystem.DownloadGenesisFile(raResponse.Rollapp.Metadata.GenesisUrl, genesisPath)
 	if err != nil {
 		pterm.Error.Println("failed to download genesis file: ", err)
 		return nil, err
@@ -368,21 +369,6 @@ func GetRollappParams(hd consts.HubData) (*RaParams, error) {
 	}
 
 	return &resp, nil
-}
-
-// this is a duplicate of the one in genesisutils, a quick fix to make things work
-func downloadGenesis(home, genesisUrl string) error {
-	genesisPath := getGenesisFilePath(home)
-	if genesisUrl == "" {
-		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
-	}
-
-	err := filesystem.DownloadFile(genesisUrl, genesisPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func getGenesisFilePath(root string) string {
