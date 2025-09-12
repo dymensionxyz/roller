@@ -58,6 +58,7 @@ func Cmd() *cobra.Command {
 			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
 			shouldUseDefaultRpcEndpoint, _ := cmd.Flags().GetBool("use-default-rpc-endpoint")
 			skipDA, _ := cmd.Flags().GetBool("skip-da")
+			skipGenesisValidation, _ := cmd.Flags().GetBool("skip-genesis-validation")
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -1046,6 +1047,7 @@ RollApp's IRO time: %v`,
 	cmd.Flags().
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
 	cmd.Flags().Bool("skip-da", false, "skip data availability layer setup")
+	cmd.Flags().Bool("skip-genesis-validation", false, "skip genesis validation")
 
 	return cmd
 }
