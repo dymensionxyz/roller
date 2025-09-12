@@ -1103,15 +1103,11 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		return err
 	}
 
-	if len(as.RollappParams.Params.MinGasPrices) == 0 {
-		return errors.New("rollappparams should contain at least one gas token")
-	}
-
 	var denom string
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
 		dgpAmount = as.RollappParams.Params.MinGasPrices[0].String()
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
-	} else {
+	} else if len(as.RollappParams.Params.MinGasPrices) > 1 {
 		pterm.Info.Println("more then 1 gas token option found")
 		var options []string
 		for _, token := range as.RollappParams.Params.MinGasPrices {
@@ -1125,53 +1121,38 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].String()
 	}
 
-	sgt, err := SupportedGasDenoms(raCfg)
-	if err != nil {
-		return err
-	}
-
-	if _, ok = sgt[denom]; !ok {
-		return errors.New("unsupported gas denom")
-	}
-
-	fd := sgt[denom]
-	fd.Display = strings.ToUpper(fd.Display)
-
 	// TODO: add support for other denoms
-	var sm dymensionseqtypes.SequencerMetadata
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
+	sm := dymensionseqtypes.SequencerMetadata{
+		Moniker:        "",
+		Details:        "",
+		P2PSeeds:       []string{},
+		Rpcs:           []string{},
+		EvmRpcs:        []string{},
+		RestApiUrls:    []string{},
+		ExplorerUrl:    "",
+		GenesisUrls:    []string{},
+		ContactDetails: &cd,
+		ExtraData:      []byte{},
+		Snapshots:      defaultSnapshots,
+		GasPrice:       dgpAmount,
+		FeeDenom:       nil,
+	}
 
-	if fd.Base != "adym" {
-		sm = dymensionseqtypes.SequencerMetadata{
-			Moniker:        "",
-			Details:        "",
-			P2PSeeds:       []string{},
-			Rpcs:           []string{},
-			EvmRpcs:        []string{},
-			RestApiUrls:    []string{},
-			ExplorerUrl:    "",
-			GenesisUrls:    []string{},
-			ContactDetails: &cd,
-			ExtraData:      []byte{},
-			Snapshots:      defaultSnapshots,
-			GasPrice:       dgpAmount,
-			FeeDenom:       nil,
+	if denom != "" {
+		sgt, err := SupportedGasDenoms(raCfg)
+		if err != nil {
+			return err
 		}
-	} else {
-		sm = dymensionseqtypes.SequencerMetadata{
-			Moniker:        "",
-			Details:        "",
-			P2PSeeds:       []string{},
-			Rpcs:           []string{},
-			EvmRpcs:        []string{},
-			RestApiUrls:    []string{},
-			ExplorerUrl:    "",
-			GenesisUrls:    []string{},
-			ContactDetails: &cd,
-			ExtraData:      []byte{},
-			Snapshots:      defaultSnapshots,
-			GasPrice:       dgpAmount,
-			FeeDenom:       &fd,
+
+		if _, ok = sgt[denom]; !ok {
+			return errors.New("unsupported gas denom")
+		}
+
+		fd := sgt[denom]
+		fd.Display = strings.ToUpper(fd.Display)
+		if fd.Base == "adym" {
+			sm.FeeDenom = &fd
 		}
 	}
 
