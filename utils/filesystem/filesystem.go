@@ -160,14 +160,14 @@ func DownloadFile(url, fp string) error {
 }
 
 func DownloadGenesisFile(genesisUrl, destinationPath string) error {
-	if genesisUrl == "" {
-		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
+	// Check for override via environment variable
+	if override := os.Getenv("ROLLER_RA_GENESIS"); override != "" {
+		genesisUrl = override
+		pterm.Warning.Printf("Using genesis override from ROLLER_RA_GENESIS: %s\n", override)
 	}
 
-	// Check for override via environment variable
-	if override := os.Getenv("ROLLER_GENESIS_OVERRIDE"); override != "" {
-		genesisUrl = override
-		pterm.Warning.Printf("Using genesis override from ROLLER_GENESIS_OVERRIDE: %s\n", override)
+	if genesisUrl == "" {
+		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
 	}
 
 	// Support local files
