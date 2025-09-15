@@ -34,7 +34,9 @@ func RequireRollerMigrateIfNeeded(rlpCfg roller.RollappConfig) {
 }
 
 func RequireRollappMigrateIfNeeded(current, last, vmType string) error {
-	if config.Config.RollappForce {
+	skip := config.Config.RollappForce
+	pterm.Info.Println("skipping rollapp migrate", skip)
+	if skip {
 		return nil
 	}
 	if current == last {
