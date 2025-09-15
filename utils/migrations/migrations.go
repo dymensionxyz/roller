@@ -106,9 +106,7 @@ func RequireRollappMigrateIfNeeded(current, last, vmType string) error {
 
 	if lastVersionTimestamp.Before(currentVersionTimestamp) {
 		msg := pterm.Sprintf(
-			"The last used rollapp version commit (%s)"+
-				" is older than the currently installed version commit (%s)"+
-				" please run %s to migrate the binary and configuration vefore being able to start the RollApp\n",
+			"the last used rollapp version commit is older than the currently installed version commit, please run roller rollapp migrate to migrate the binary and configuration before being able to start the rollapp. last: %s, current: %s, migrate_cmd: %s\n",
 			last,
 			currentVersionCommit,
 			pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
