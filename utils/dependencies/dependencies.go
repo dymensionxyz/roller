@@ -18,6 +18,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -79,8 +80,8 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raCommit = drsInfo.WasmCommit
 		}
 
-		if os.Getenv("ROLLER_RA_COMMIT") != "" {
-			raCommit = os.Getenv("ROLLER_RA_COMMIT")
+		if com := config.Config.RollappCommit; com != "" {
+			raCommit = com
 		}
 
 		if raCommit == "UNRELEASED" {

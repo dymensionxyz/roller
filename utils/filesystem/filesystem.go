@@ -16,6 +16,7 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 )
 
 func DirNotEmpty(path string) (bool, error) {
@@ -161,7 +162,7 @@ func DownloadFile(url, fp string) error {
 
 func DownloadGenesisFile(genesisUrl, destinationPath string) error {
 	// Check for override via environment variable
-	if override := os.Getenv("ROLLER_RA_GENESIS"); override != "" {
+	if override := config.Config.RollappGenesis; override != "" {
 		genesisUrl = override
 		pterm.Warning.Printf("Using genesis override from ROLLER_RA_GENESIS: %s\n", override)
 	}

@@ -646,14 +646,14 @@ func ExecuteCommandWithPromptHandlerFiltered(
 func filterDuplicateProtoWarnings(input string) string {
 	lines := strings.Split(input, "\n")
 	var filtered []string
-	
+
 	for _, line := range lines {
 		// Skip lines containing the duplicate proto warning
 		if !strings.Contains(line, "duplicate proto type registered") {
 			filtered = append(filtered, line)
 		}
 	}
-	
+
 	// Join the filtered lines back together
 	result := strings.Join(filtered, "\n")
 	// Remove any trailing newlines that might have been left
