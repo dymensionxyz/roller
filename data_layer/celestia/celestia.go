@@ -313,8 +313,6 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.port", "9090",
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
 		"--gateway",
-		"--gateway.addr", "0.0.0.0",
-		"--gateway.port", "26658",
 		// "--gateway.deprecated-endpoints",
 		"--p2p.network", string(raCfg.DA.ID),
 	}
