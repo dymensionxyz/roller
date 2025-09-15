@@ -104,6 +104,13 @@ func SetCmd() *cobra.Command {
 			case "da_node_address":
 				fmt.Printf("Setting DA node address to: %s\n", v)
 				panic("not implemented") // TODO: support
+			case "rollapp_batch_submit_time":
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, "batch_submit_time", v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
 			case kvDaConfig:
 				cfg := dymintConfigPath
 				err := tomlconfig.UpdateFieldInFile(cfg, kvDaConfig, []string{v}) // TODO: support multiple
