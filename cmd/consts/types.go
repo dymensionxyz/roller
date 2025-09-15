@@ -29,6 +29,4 @@ type DaData = struct {
 	CurrentStateNode string   `toml:"current_state_node"`
 	StateNodes       []string `toml:"state_nodes"`
 	GasPrice         string   `toml:"gas_price"`
-	// BindAll controls whether the DA light client binds to 0.0.0.0 (all interfaces) or localhost
-	BindAll bool `toml:"bind_all"`
 }

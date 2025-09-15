@@ -175,18 +175,6 @@ func (c *Celestia) InitializeLightNodeConfig() (string, error) {
 
 	mnemonic := extractMnemonic(out.String())
 
-	// If BindAll is enabled, modify config.toml to bind RPC to 0.0.0.0 instead of localhost
-	if raCfg.DA.BindAll {
-		configPath := filepath.Join(c.Root, consts.ConfigDirName.DALightNode, "config.toml")
-		err = tomlconfig.UpdateFieldInFile(configPath, "RPC.Address", "0.0.0.0")
-		if err != nil {
-			pterm.Warning.Printf("Failed to update RPC.Address to 0.0.0.0: %v\n", err)
-			// Don't fail initialization, just warn
-		} else {
-			pterm.Info.Println("DA light client configured to bind to all interfaces (0.0.0.0)")
-		}
-	}
-
 	return mnemonic, nil
 }
 
@@ -328,12 +316,6 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		// "--gateway.deprecated-endpoints",
 		"--p2p.network", string(raCfg.DA.ID),
 	}
-
-	// If BindAll is enabled, explicitly bind gateway to all interfaces
-	if raCfg.DA.BindAll {
-		args = append(args, "--gateway.addr", "0.0.0.0", "--gateway.port", "26658")
-	}
-
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
 	}

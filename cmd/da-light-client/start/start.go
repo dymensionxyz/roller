@@ -23,7 +23,6 @@ import (
 const (
 	rpcEndpointFlag     = "rpc-endpoint"
 	metricsEndpointFlag = "metrics-endpoint"
-	bindAllFlag         = "bind-all"
 )
 
 func Cmd() *cobra.Command {
@@ -38,20 +37,6 @@ func Cmd() *cobra.Command {
 
 			// TODO: refactor the version comparison for migrations
 			// errorhandling.RequireMigrateIfNeeded(rollerData)
-
-			// Handle bind-all flag
-			bindAll, _ := cmd.Flags().GetBool(bindAllFlag)
-			if bindAll && rollerData.DA.Backend == consts.Celestia {
-				// Update the config if flag is provided
-				rollerData.DA.BindAll = true
-				// Save the updated config
-				err = roller.WriteConfig(rollerData)
-				if err != nil {
-					pterm.Warning.Printf("Failed to save bind-all configuration: %v\n", err)
-				} else {
-					pterm.Info.Println("DA light client will bind to all interfaces (0.0.0.0)")
-				}
-			}
 
 			metricsEndpoint := cmd.Flag(metricsEndpointFlag).Value.String()
 			if metricsEndpoint != "" && rollerData.DA.Backend != consts.Celestia {
@@ -175,6 +160,4 @@ func addFlags(cmd *cobra.Command) {
 		StringP(rpcEndpointFlag, "", "rpc-mocha.pops.one", "The DA rpc endpoint to connect to.")
 	cmd.Flags().
 		StringP(metricsEndpointFlag, "", "", "The OTEL collector metrics endpoint to connect to.")
-	cmd.Flags().
-		BoolP(bindAllFlag, "", false, "Bind DA light client to all network interfaces (0.0.0.0) instead of localhost")
 }
