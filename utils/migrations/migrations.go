@@ -11,7 +11,6 @@ import (
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/utils/dependencies"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/version"
@@ -34,11 +33,6 @@ func RequireRollerMigrateIfNeeded(rlpCfg roller.RollappConfig) {
 }
 
 func RequireRollappMigrateIfNeeded(current, last, vmType string) error {
-	skip := config.Config.RollappForce
-	pterm.Info.Println("skipping rollapp migrate", skip)
-	if skip { // TODO: doesnt work holistically since roller calls itself with different env vars sometimes (Where??)
-		return nil
-	}
 	if current == last {
 		pterm.Info.Println("versions match")
 
