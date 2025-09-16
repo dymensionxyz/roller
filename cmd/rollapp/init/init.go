@@ -392,5 +392,9 @@ const (
 	flagSkipBinaryInstallation      = "skip-binary-installation"
 	flagUseDefaultWebsocketEndpoint = "use-default-websocket-endpoint"
 	flagEnv                         = "env"
-	flagOverwrite                   = "overwrite"
+	flagEnvCustomFilepath           = "env-custom-filepath"
+	/*
+		TODO: support keychain and supplied path in arg
+	*/
+	flagOverwrite = "overwrite"
 )
