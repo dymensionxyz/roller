@@ -91,7 +91,7 @@ func promptForRaAndHd() (string, *consts.HubData, string, error) {
 	if env == "playground" || env == "blumbus" || env == "mainnet" {
 		hd = consts.Hubs[env]
 	} else {
-		chd, err := config.CreateCustomHubData()
+		chd, err := config.CreateCustomHubData("")
 
 		hd = consts.HubData{
 			Environment:   env,

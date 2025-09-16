@@ -39,6 +39,7 @@ func Cmd() *cobra.Command {
 			forceOverwrite, _ := cmd.Flags().GetBool(flagOverwrite)
 
 			envFromFlag, _ := cmd.Flags().GetString(flagEnv)
+			envCustomFilepath, _ := cmd.Flags().GetString(flagEnvCustomFilepath)
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -177,7 +178,7 @@ func Cmd() *cobra.Command {
 			kb := keys.KeyringBackendFromEnv(env)
 			switch env {
 			case "custom":
-				chd, err := config.CreateCustomHubData()
+				chd, err := config.CreateCustomHubData(envCustomFilepath)
 				if err != nil {
 					pterm.Error.Println("failed to create custom hub data: ", err)
 					return
@@ -380,6 +381,7 @@ func Cmd() *cobra.Command {
 		Bool(flagUseDefaultWebsocketEndpoint, false, "uses the default websocket endpoint at rpc endpoint (rpc.example.com/websocket)")
 	cmd.Flags().Bool(flagGenerateSequencerAddress, true, "generates a sequencer address")
 	cmd.Flags().String(flagEnv, "", "environment to initialize the rollapp for")
+	cmd.Flags().String(flagEnvCustomFilepath, "", "custom environment file path")
 	cmd.Flags().
 		Bool(flagOverwrite, false, "DANGER! overwrites the existing roller home directory without prompting")
 
