@@ -174,8 +174,12 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// env handling
-			kb := keys.KeyringBackendFromEnv(env)
+			var kb consts.SupportedKeyringBackend
+
+			if env != "custom" {
+				kb = keys.KeyringBackendFromEnv(env)
+			}
+
 			switch env {
 			case "custom":
 				chd, err := config.CreateCustomHubData(envCustomFilepath)
@@ -183,6 +187,7 @@ func Cmd() *cobra.Command {
 					pterm.Error.Println("failed to create custom hub data: ", err)
 					return
 				}
+				kb = consts.SupportedKeyringBackend(chd.KeyringBackend)
 
 				hd = consts.HubData{
 					Environment:   env,

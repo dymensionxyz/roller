@@ -24,12 +24,14 @@ const (
 )
 
 type CustomHubData struct {
-	ID            string `json:"id"`
-	RpcUrl        string `json:"rpcUrl"`
-	ApiUrl        string `json:"apiUrl"`
-	WsUrl         string `json:"wsUrl"`
-	GasPrice      string `json:"gasPrice"`
-	DymensionHash string `json:"commit"`
+	// hub chain id
+	ID             string `json:"id"`
+	RpcUrl         string `json:"rpcUrl"`
+	ApiUrl         string `json:"apiUrl"`
+	WsUrl          string `json:"wsUrl,omitempty"`
+	GasPrice       string `json:"gasPrice"`
+	DymensionHash  string `json:"commit"`
+	KeyringBackend string `json:"keyringBackend,omitempty"`
 }
 
 func CreateCustomHubData(filePath string) (*CustomHubData, error) {
