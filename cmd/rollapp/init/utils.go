@@ -21,7 +21,7 @@ func runInit(
 	raID := raResp.Rollapp.RollappId
 
 	// TODO: should set keyring as well
-	ic, err := prepareConfig(env, home, raID, hubData, raResp)
+	ic, err := prepareConfig(env, home, raID, hubData, raResp, kb)
 	if err != nil {
 		return err
 	}
@@ -99,6 +99,7 @@ func prepareConfig(
 	raID string,
 	hd consts.HubData,
 	raResp rollapp.ShowRollappResponse,
+	kb consts.SupportedKeyringBackend,
 ) (roller.RollappConfig, error) {
 	var (
 		ic  *roller.RollappConfig
@@ -117,6 +118,7 @@ func prepareConfig(
 			home,
 			raID,
 			hd,
+			kb,
 		)
 	}
 	if err != nil {
