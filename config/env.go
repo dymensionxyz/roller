@@ -7,7 +7,6 @@ import (
 type EnvConfig struct {
 	RollappCommit  string `env:"ROLLER_RA_COMMIT"`
 	RollappGenesis string `env:"ROLLER_RA_GENESIS"`
-	RollappForce   bool   `env:"ROLLER_RA_FORCE"`
 }
 
 var Config EnvConfig
