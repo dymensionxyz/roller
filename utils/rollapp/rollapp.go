@@ -199,6 +199,7 @@ func GetMetadataFromChain(
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
+	kb consts.SupportedKeyringBackend,
 ) (*roller.RollappConfig, error) {
 	var cfg roller.RollappConfig
 	raResponse, err := GetMetadataFromChain(raID, hd)
@@ -207,7 +208,6 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	}
 
 	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
-	var kb consts.SupportedKeyringBackend
 
 	rollerConfigExists, err := filesystem.DoesFileExist(roller.GetConfigPath(home))
 	if err != nil {
@@ -225,15 +225,17 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 			return nil, err
 		}
 		if rollerData.KeyringBackend == "" {
-			pterm.Info.Println(
-				"keyring backend not set in roller config, retrieving it from environment",
-			)
-			kb = keys.KeyringBackendFromEnv(hd.Environment)
+			if kb.Zero() {
+				pterm.Info.Println(
+					"keyring backend not set in roller config, retrieving it from environment",
+				)
+				kb = keys.KeyringBackendFromEnv(hd.Environment)
+			}
 		} else {
 			kb = rollerData.KeyringBackend
 		}
 		cfg = rollerData
-	} else {
+	} else if kb.Zero() {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
 	}
