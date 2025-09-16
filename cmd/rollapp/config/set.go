@@ -111,6 +111,13 @@ func SetCmd() *cobra.Command {
 					pterm.Error.Printf("failed to update %s: %s", k, err)
 					return
 				}
+			case "rollapp_max_idle_time":
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, "max_idle_time", v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
 			case kvDaConfig:
 				cfg := dymintConfigPath
 				err := tomlconfig.UpdateFieldInFile(cfg, kvDaConfig, []string{v}) // TODO: support multiple
