@@ -116,7 +116,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 
 	goreleaserDeps := map[string]types.Dependency{}
 
-	if !withMockDA && da == "celestia" && !config.Config.SkipCelestiaBinary {
+	if !withMockDA && da == "celestia" {
 		goreleaserDeps = DefaultCelestiaPrebuiltDependencies()
 	}
 
@@ -210,6 +210,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
+	if config.Config.SkipCelestiaBinary && dep.DependencyName == "celestia" {
+		return nil
+	}
+
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
