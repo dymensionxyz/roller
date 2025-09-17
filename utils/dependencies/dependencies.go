@@ -192,7 +192,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("failed to build binary from release %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
 
@@ -201,7 +201,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 	for k, dep := range buildableDeps {
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("failed to build binary from repo %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
 	}
