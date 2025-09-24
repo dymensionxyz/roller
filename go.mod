@@ -17,6 +17,10 @@ require (
 	cosmossdk.io/math v1.3.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BurntSushi/toml v1.4.0
+	github.com/Masterminds/semver/v3 v3.2.0
+	github.com/aptos-labs/aptos-go-sdk v1.5.0
+	github.com/blang/semver/v4 v4.0.0
+	github.com/block-vision/sui-go-sdk v1.0.6
 	github.com/briandowns/spinner v1.23.0
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
