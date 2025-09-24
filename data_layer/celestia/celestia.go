@@ -304,10 +304,11 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.ip", raCfg.DA.CurrentStateNode,
 		"--core.port", "9090",
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--gateway",
+		// "--gateway", // removed in celestia v0.26.2+
 		// "--gateway.deprecated-endpoints",
 		"--p2p.network", string(raCfg.DA.ID),
 	}
+
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
 	}
