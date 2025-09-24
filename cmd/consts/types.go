@@ -19,8 +19,6 @@ type RollappData = struct {
 }
 
 type DaData = struct {
-	// Optional full URL to a Light node or remote gateway. If present, does not run locally.
-	Remote  string    `toml:"remote"`
 	Backend DAType    `toml:"backend"`
 	ID      DaNetwork `toml:"id"`
 	ApiUrl  string    `toml:"api_url"`

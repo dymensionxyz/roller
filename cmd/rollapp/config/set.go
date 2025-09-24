@@ -157,7 +157,6 @@ func SetCmd() *cobra.Command {
 				pterm.Error.Printf("unknown configuration key: %s\n", k)
 				return
 
-				// TODO: set da_config and da_layer, also the tee values
 			}
 
 			defer func() {

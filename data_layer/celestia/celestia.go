@@ -106,14 +106,6 @@ func (c *Celestia) getRPCPort() string {
 }
 
 func (c *Celestia) GetLightNodeEndpoint() string {
-	cfgFull, err := roller.LoadConfig(c.Root)
-	if err != nil {
-		return ""
-	}
-	cfg := cfgFull.DA
-	if cfg.Remote != "" {
-		return cfg.Remote
-	}
 	return fmt.Sprintf("http://localhost:%s", c.getRPCPort())
 }
 
