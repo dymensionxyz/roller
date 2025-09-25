@@ -26,10 +26,10 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if err != nil {
-				pterm.Error.Println("failed to expand home directory")
-				return
-			}
+			// if err != nil {
+			// 	pterm.Error.Println("failed to expand home directory")
+			// 	return
+			// }
 
 			eibcHome := filepath.Join(home, consts.ConfigDirName.Eibc)
 			eibcConfigPath := filepath.Join(eibcHome, "config.yaml")
