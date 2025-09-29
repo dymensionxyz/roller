@@ -111,6 +111,9 @@ func Cmd() *cobra.Command {
 			ok := iro.IsTokenGraduates(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
 			if !ok {
 				pterm.Error.Println("the token has not yet graduated")
+				pterm.Error.Println(
+					"token must fully raise the amount set in the launchpad to become ready for graduation",
+				)
 				return
 			}
 
