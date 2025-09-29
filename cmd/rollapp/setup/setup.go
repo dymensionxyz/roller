@@ -11,7 +11,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -34,6 +33,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/rollapp/iro"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
@@ -108,27 +108,9 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if raResponse.Rollapp.PreLaunchTime != "" {
-				timeLayout := time.RFC3339Nano
-				expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
-				if err != nil {
-					pterm.Error.Println("failed to parse launch time", err)
-					return
-				}
-
-				if expectedLaunchTime.After(time.Now()) {
-					pterm.Error.Printf(
-						`Nodes can be set up only after the minimum IRO duration has passed
-Current time: %v
-RollApp's IRO time: %v`,
-						time.Now().UTC().Format(timeLayout),
-						expectedLaunchTime.Format(timeLayout),
-					)
-
-					return
-				}
-			} else {
-				pterm.Info.Printf("no IRO set up for %s\n", raResponse.Rollapp.RollappId)
+			ok := iro.IsTokenGraduates(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
+			if !ok {
+				pterm.Error.Println("the token has not yet graduated")
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
