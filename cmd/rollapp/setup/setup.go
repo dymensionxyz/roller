@@ -111,6 +111,7 @@ func Cmd() *cobra.Command {
 			ok := iro.IsTokenGraduates(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
 			if !ok {
 				pterm.Error.Println("the token has not yet graduated")
+				return
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
