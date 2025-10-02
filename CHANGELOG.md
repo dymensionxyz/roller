@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.19.0-rc09](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc09...v1.19.0-rc09) (2025-10-02)
+
+
+### Features
+
+* add iro graduation check ([#1391](https://github.com/dymensionxyz/roller/issues/1391)) ([6ef477e](https://github.com/dymensionxyz/roller/commit/6ef477ef3332bc2cd5eca590f5537bcf53f2b456))
+* allow setting up TEE full node type ([#1387](https://github.com/dymensionxyz/roller/issues/1387)) ([127c5f2](https://github.com/dymensionxyz/roller/commit/127c5f22c730053dfad91acdb9ef9af93ea7be52))
+
+
+### Bug Fixes
+
+* remove the deprecated `--gateway` flag ([#1390](https://github.com/dymensionxyz/roller/issues/1390)) ([c48c4b8](https://github.com/dymensionxyz/roller/commit/c48c4b812829c438cba36fafb2e7d2f0f3027c04))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
