@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1-rc11](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc11...v1.18.1-rc11) (2025-10-02)
+
+
+### Bug Fixes
+
+* iro graduation ([#1392](https://github.com/dymensionxyz/roller/issues/1392)) ([e2c607b](https://github.com/dymensionxyz/roller/commit/e2c607b4ef8ea789e277f0d19cc51cd03a69582c))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
