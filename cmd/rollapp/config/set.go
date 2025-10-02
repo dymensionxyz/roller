@@ -12,6 +12,14 @@ import (
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
 )
 
+const (
+	kvDaConfig      = "da_config"
+	kvDaLayer       = "da_layer"
+	kvTeeEnabled    = "tee_enabled"
+	kvTeeSidecarURL = "tee_sidecar_url"
+	kvTeeInterval   = "tee_interval"
+)
+
 func SetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "set <key> <new-value>",
@@ -94,12 +102,61 @@ func SetCmd() *cobra.Command {
 					return
 				}
 			case "da_node_address":
-				// Handle da_node_address
 				fmt.Printf("Setting DA node address to: %s\n", v)
-				// Add your logic here
+				panic("not implemented") // TODO: support
+			case "rollapp_batch_submit_time":
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, "batch_submit_time", v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case "rollapp_max_idle_time":
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, "max_idle_time", v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case kvDaConfig:
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, kvDaConfig, []string{v}) // TODO: support multiple
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case kvDaLayer:
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, kvDaLayer, []string{v}) // TODO: support multiple
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case kvTeeEnabled:
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, kvTeeEnabled, v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case kvTeeSidecarURL:
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, kvTeeSidecarURL, v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
+			case kvTeeInterval:
+				cfg := dymintConfigPath
+				err := tomlconfig.UpdateFieldInFile(cfg, kvTeeInterval, v)
+				if err != nil {
+					pterm.Error.Printf("failed to update %s: %s", k, err)
+					return
+				}
 			default:
 				pterm.Error.Printf("unknown configuration key: %s\n", k)
 				return
+
 			}
 
 			defer func() {

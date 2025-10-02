@@ -2,6 +2,10 @@ package consts
 
 type SupportedKeyringBackend string
 
+func (s SupportedKeyringBackend) Zero() bool {
+	return s == ""
+}
+
 func (s SupportedKeyringBackend) String() string {
 	return string(s)
 }

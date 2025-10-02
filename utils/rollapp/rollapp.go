@@ -199,6 +199,7 @@ func GetMetadataFromChain(
 func PopulateRollerConfigWithRaMetadataFromChain(
 	home, raID string,
 	hd consts.HubData,
+	kb consts.SupportedKeyringBackend,
 ) (*roller.RollappConfig, error) {
 	var cfg roller.RollappConfig
 	raResponse, err := GetMetadataFromChain(raID, hd)
@@ -207,7 +208,6 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	}
 
 	vmt, _ := consts.ToVMType(strings.ToLower(raResponse.Rollapp.VmType))
-	var kb consts.SupportedKeyringBackend
 
 	rollerConfigExists, err := filesystem.DoesFileExist(roller.GetConfigPath(home))
 	if err != nil {
@@ -225,15 +225,17 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 			return nil, err
 		}
 		if rollerData.KeyringBackend == "" {
-			pterm.Info.Println(
-				"keyring backend not set in roller config, retrieving it from environment",
-			)
-			kb = keys.KeyringBackendFromEnv(hd.Environment)
+			if kb.Zero() {
+				pterm.Info.Println(
+					"keyring backend not set in roller config, retrieving it from environment",
+				)
+				kb = keys.KeyringBackendFromEnv(hd.Environment)
+			}
 		} else {
 			kb = rollerData.KeyringBackend
 		}
 		cfg = rollerData
-	} else {
+	} else if kb.Zero() {
 		pterm.Info.Println("no existing roller configuration found, retrieving keyring backend from environment")
 		kb = keys.KeyringBackendFromEnv(hd.Environment)
 	}
@@ -245,7 +247,8 @@ func PopulateRollerConfigWithRaMetadataFromChain(
 	// nolint: errcheck
 	defer os.RemoveAll(genesisTmpDir)
 
-	err = downloadGenesis(genesisTmpDir, raResponse.Rollapp.Metadata.GenesisUrl)
+	genesisPath := filepath.Join(RollappConfigDir(genesisTmpDir), "genesis.json")
+	err = filesystem.DownloadGenesisFile(raResponse.Rollapp.Metadata.GenesisUrl, genesisPath)
 	if err != nil {
 		pterm.Error.Println("failed to download genesis file: ", err)
 		return nil, err
@@ -368,21 +371,6 @@ func GetRollappParams(hd consts.HubData) (*RaParams, error) {
 	}
 
 	return &resp, nil
-}
-
-// this is a duplicate of the one in genesisutils, a quick fix to make things work
-func downloadGenesis(home, genesisUrl string) error {
-	genesisPath := getGenesisFilePath(home)
-	if genesisUrl == "" {
-		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
-	}
-
-	err := filesystem.DownloadFile(genesisUrl, genesisPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func getGenesisFilePath(root string) string {

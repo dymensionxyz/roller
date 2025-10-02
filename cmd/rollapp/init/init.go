@@ -31,14 +31,15 @@ func Cmd() *cobra.Command {
 		Long:  ``,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			shouldUseMockBackend, _ := cmd.Flags().GetBool("mock")
-			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool("skip-binary-installation")
-			shouldGenerateSequencerAddress, _ := cmd.Flags().GetBool("generate-sequencer-address")
+			shouldUseMockBackend, _ := cmd.Flags().GetBool(flagMock)
+			shouldSkipBinaryInstallation, _ := cmd.Flags().GetBool(flagSkipBinaryInstallation)
+			shouldGenerateSequencerAddress, _ := cmd.Flags().GetBool(flagGenerateSequencerAddress)
 			shouldUseDefaultWebsocketEndpoint, _ := cmd.Flags().
-				GetBool("use-default-websocket-endpoint")
-			forceOverwrite, _ := cmd.Flags().GetBool("overwrite")
+				GetBool(flagUseDefaultWebsocketEndpoint)
+			forceOverwrite, _ := cmd.Flags().GetBool(flagOverwrite)
 
-			envFromFlag, _ := cmd.Flags().GetString("env")
+			envFromFlag, _ := cmd.Flags().GetString(flagEnv)
+			envCustomFilepath, _ := cmd.Flags().GetString(flagEnvCustomFilepath)
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -173,15 +174,20 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			// env handling
-			kb := keys.KeyringBackendFromEnv(env)
+			var kb consts.SupportedKeyringBackend
+
+			if env != "custom" {
+				kb = keys.KeyringBackendFromEnv(env)
+			}
+
 			switch env {
 			case "custom":
-				chd, err := config.CreateCustomHubData()
+				chd, err := config.CreateCustomHubData(envCustomFilepath)
 				if err != nil {
 					pterm.Error.Println("failed to create custom hub data: ", err)
 					return
 				}
+				kb = consts.SupportedKeyringBackend(chd.KeyringBackend)
 
 				hd = consts.HubData{
 					Environment:   env,
@@ -374,14 +380,28 @@ func Cmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("mock", false, "initialize the rollapp with mock backend")
-	cmd.Flags().Bool("skip-binary-installation", false, "skips the binary installation")
+	cmd.Flags().Bool(flagMock, false, "initialize the rollapp with mock backend")
+	cmd.Flags().Bool(flagSkipBinaryInstallation, false, "skips the binary installation")
 	cmd.Flags().
-		Bool("use-default-websocket-endpoint", false, "uses the default websocket endpoint at rpc endpoint (rpc.example.com/websocket)")
-	cmd.Flags().Bool("generate-sequencer-address", true, "generates a sequencer address")
-	cmd.Flags().String("env", "", "environment to initialize the rollapp for")
+		Bool(flagUseDefaultWebsocketEndpoint, false, "uses the default websocket endpoint at rpc endpoint (rpc.example.com/websocket)")
+	cmd.Flags().Bool(flagGenerateSequencerAddress, true, "generates a sequencer address")
+	cmd.Flags().String(flagEnv, "", "environment to initialize the rollapp for")
+	cmd.Flags().String(flagEnvCustomFilepath, "", "custom environment file path")
 	cmd.Flags().
-		Bool("overwrite", false, "DANGER! overwrites the existing roller home directory without prompting")
+		Bool(flagOverwrite, false, "DANGER! overwrites the existing roller home directory without prompting")
 
 	return cmd
 }
+
+const (
+	flagMock                        = "mock"
+	flagGenerateSequencerAddress    = "generate-sequencer-address"
+	flagSkipBinaryInstallation      = "skip-binary-installation"
+	flagUseDefaultWebsocketEndpoint = "use-default-websocket-endpoint"
+	flagEnv                         = "env"
+	flagEnvCustomFilepath           = "env-custom-filepath"
+	/*
+		TODO: support keychain and supplied path in arg
+	*/
+	flagOverwrite = "overwrite"
+)
