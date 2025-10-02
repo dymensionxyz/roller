@@ -37,7 +37,7 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 	j, _ := json.Marshal(resp)
 	fmt.Println(string(j))
 
-	isGraduated, err := strconv.Atoi(resp.GraduatedPoolID)
+	isGraduated, err := strconv.Atoi(resp.plan.GraduatedPoolID)
 	if err != nil {
 		return false
 	}
