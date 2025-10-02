@@ -20,6 +20,8 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 		hd.ID,
 	)
 
+	fmt.Println(cmd.String())
+
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return false
