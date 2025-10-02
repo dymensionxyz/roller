@@ -2,6 +2,7 @@ package iro
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strconv"
 
@@ -28,6 +29,9 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
 		return false
 	}
+
+	j, _ := json.Marshal(resp)
+	fmt.Println(string(j))
 
 	isGraduated, err := strconv.Atoi(resp.GraduatedPoolID)
 	if err != nil {
