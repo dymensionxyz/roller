@@ -37,7 +37,7 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 	j, _ := json.Marshal(resp)
 	fmt.Println(string(j))
 
-	isGraduated, err := strconv.Atoi(resp.plan.GraduatedPoolID)
+	isGraduated, err := strconv.Atoi(resp.Plan.GraduatedPoolID)
 	if err != nil {
 		return false
 	}
@@ -49,7 +49,7 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 }
 
 type PlanResponse struct {
-	plan Plan `json:"plan"`
+	Plan Plan `json:"plan"`
 }
 
 type Plan struct {
