@@ -29,7 +29,7 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 
 	fmt.Println(out.String())
 
-	var resp Plan
+	var resp PlanResponse
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
 		return false
 	}
