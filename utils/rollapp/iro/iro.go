@@ -2,6 +2,7 @@ package iro
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strconv"
 
@@ -19,17 +20,19 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 		hd.ID,
 	)
 
+	fmt.Println(cmd.String())
+
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return false
 	}
 
-	var resp Plan
+	var resp PlanResponse
 	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
 		return false
 	}
 
-	isGraduated, err := strconv.Atoi(resp.GraduatedPoolID)
+	isGraduated, err := strconv.Atoi(resp.Plan.GraduatedPoolID)
 	if err != nil {
 		return false
 	}
@@ -38,6 +41,10 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 	}
 
 	return false
+}
+
+type PlanResponse struct {
+	Plan Plan `json:"plan"`
 }
 
 type Plan struct {
