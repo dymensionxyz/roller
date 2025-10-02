@@ -35,7 +35,7 @@ jobs:
             ]
           # token must have repo write permissions ( https://github.com/googleapis/release-please/blob/main/docs/cli.md#create-a-manifest-pull-request-deprecated )
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.release-please.outputs.release_created
         with:
           fetch-depth: '0'
