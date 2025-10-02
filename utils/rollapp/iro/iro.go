@@ -48,6 +48,10 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 	return false
 }
 
+type PlanResponse struct {
+	plan Plan `json:"plan"`
+}
+
 type Plan struct {
 	ID              string `json:"id"`
 	RollappID       string `json:"rollapp_id"`
