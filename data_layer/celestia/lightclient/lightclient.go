@@ -197,12 +197,14 @@ func UpdateConfig(file, hash string, height int) error {
 
 	// Update DASer.SampleFrom
 	if daser, ok := config["DASer"].(map[string]interface{}); ok {
-		daser["SampleFrom"] = height
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["SyncFromHeight"] = height
+		}
 	}
-
-	// Update Header.TrustedHash
-	if header, ok := config["Header"].(map[string]interface{}); ok {
-		header["TrustedHash"] = hash
+	if daser, ok := config["DASer"].(map[string]interface{}); ok {
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["SyncFromHash"] = hash
+		}
 	}
 
 	// Write updated config
