@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func IsTokenGraduates(raID string, hd consts.HubData) bool {
+func IsTokenGraduated(raID string, hd consts.HubData) bool {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "iro", "plan-by-rollapp", raID,
 		"--output",
 		"json",

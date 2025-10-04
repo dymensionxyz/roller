@@ -181,6 +181,8 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 		return "", err
 	}
 
+	pterm.Info.Println("onchain rollapp genesis hash: ", raResponse.Rollapp.GenesisInfo.GenesisChecksum)
+
 	return raResponse.Rollapp.GenesisInfo.GenesisChecksum, nil
 }
 
@@ -191,6 +193,8 @@ func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) 
 		pterm.Error.Println("failed to calculate hash of genesis file: ", err)
 		return false, err
 	}
+
+	pterm.Info.Println("downloaded rollapp genesis hash: ", downloadedGenesisHash)
 
 	raGenesisHash, _ := getRollappGenesisHash(raID, hd)
 	if downloadedGenesisHash != raGenesisHash {
