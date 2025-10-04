@@ -196,7 +196,12 @@ func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) 
 
 	pterm.Info.Println("downloaded rollapp genesis hash: ", downloadedGenesisHash)
 
-	raGenesisHash, _ := getRollappGenesisHash(raID, hd)
+	raGenesisHash, err := getRollappGenesisHash(raID, hd)
+	if err != nil {
+		pterm.Error.Println("failed to get rollapp genesis hash: ", err)
+		return false, err
+	}
+
 	if downloadedGenesisHash != raGenesisHash {
 		err = fmt.Errorf(
 			"the hash of the downloaded file (%s) does not match the one registered with the rollapp (%s)",
