@@ -2,7 +2,6 @@ package iro
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"strconv"
 
@@ -19,8 +18,6 @@ func IsTokenGraduated(raID string, hd consts.HubData) bool {
 		"--chain-id",
 		hd.ID,
 	)
-
-	fmt.Println(cmd.String())
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
