@@ -30,7 +30,12 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		kb := rollerData.KeyringBackend
 
 		pterm.Info.Println("initializing da light node configuration")
-		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb, rollerData.NodeType)
+		damanager := datalayer.NewDAManager(
+			rollerData.DA.Backend,
+			rollerData.Home,
+			kb,
+			rollerData.NodeType,
+		)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return nil, err
@@ -204,6 +209,11 @@ func UpdateConfig(file, hash string, height int) error {
 	if daser, ok := config["DASer"].(map[string]interface{}); ok {
 		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
 			header["SyncFromHash"] = hash
+		}
+	}
+	if daser, ok := config["DASer"].(map[string]interface{}); ok {
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["PruningWindow"] = "168h0m0s"
 		}
 	}
 
