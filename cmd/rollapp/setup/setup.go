@@ -111,7 +111,7 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			ok := iro.IsTokenGraduates(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
+			ok := iro.IsTokenGraduated(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
 			if !ok {
 				pterm.Error.Println("the token has not yet graduated")
 				pterm.Error.Println(

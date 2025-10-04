@@ -2,7 +2,6 @@ package iro
 
 import (
 	"encoding/json"
-	"fmt"
 	"os/exec"
 	"strconv"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/bash"
 )
 
-func IsTokenGraduates(raID string, hd consts.HubData) bool {
+func IsTokenGraduated(raID string, hd consts.HubData) bool {
 	cmd := exec.Command(consts.Executables.Dymension, "q", "iro", "plan-by-rollapp", raID,
 		"--output",
 		"json",
@@ -19,8 +18,6 @@ func IsTokenGraduates(raID string, hd consts.HubData) bool {
 		"--chain-id",
 		hd.ID,
 	)
-
-	fmt.Println(cmd.String())
 
 	out, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {

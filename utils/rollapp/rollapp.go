@@ -116,6 +116,7 @@ func GetShowRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 
 func GetRollappCmd(raID string, hd consts.HubData) *exec.Cmd {
 	cmd := exec.Command(
+		"sudo",
 		consts.Executables.Dymension,
 		"q", "rollapp", "show",
 		raID, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
