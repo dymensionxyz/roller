@@ -11,7 +11,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
-// GetLatestDABlock returns the latest DA (Data Availability) block information.
+// GetLatestBlock returns the latest DA (Data Availability) block information.
 // It executes the CelestiaApp command "q block --node" to retrieve the block data.
 // It then extracts the block height and block ID hash from the JSON response.
 // Returns the block height, block ID hash, and any error encountered during the process.
@@ -57,7 +57,7 @@ func GetLatestBlock(raCfg roller.RollappConfig) (string, string, error) {
 	return height, blockIdHash, nil
 }
 
-// GetDABlockByHeight returns the DA (Data Availability) block information for the given height.
+// GetBlockByHeight returns the DA (Data Availability) block information for the given height.
 // It executes the CelestiaApp command "q block <height> --node" to retrieve the block data,
 // where <height> is the input parameter.
 // It then extracts the block height and block ID hash from the JSON response.
