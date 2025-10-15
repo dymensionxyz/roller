@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.19.0-rc13](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc13...v1.19.0-rc13) (2025-10-15)
+
+
+### Features
+
+* auto-append :443 port to HTTPS endpoints ([#1384](https://github.com/dymensionxyz/roller/issues/1384)) ([e3deff3](https://github.com/dymensionxyz/roller/commit/e3deff3663d5375e06454048b4d5c4414589f653))
+
+
+### Bug Fixes
+
+* resolve relayer key restoration panic and JSON parsing issues ([#1386](https://github.com/dymensionxyz/roller/issues/1386)) ([f0bed7b](https://github.com/dymensionxyz/roller/commit/f0bed7b9b3c1f9658a982037d910cdf7077a3d20))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
