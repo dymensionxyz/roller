@@ -209,7 +209,7 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 				if err != nil {
 					return nil, err
 				}
-				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+				createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
 			} else {
 				ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
 				if err != nil {
@@ -246,6 +246,7 @@ func createRelayerKeyIfNotPresent(
 		key, err := AddRlyKey(kc, chainID)
 		if err != nil {
 			pterm.Error.Printf("failed to add key: %v\n", err)
+			return nil, err
 		}
 
 		ki = *key
@@ -279,6 +280,7 @@ func restoreRelayerKeyIfNotPresent(
 		key, err := RestoreRlyKey(kc, chainID, mnemonic)
 		if err != nil {
 			pterm.Error.Printf("failed to restore key: %v\n", err)
+			return nil, err
 		}
 
 		ki = *key
@@ -325,11 +327,12 @@ func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
 		return nil, err
 	}
 
-	ki, err := ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
+	// Relayer add command returns address as plain text, not JSON
+	address := strings.TrimSpace(out.String())
+	ki := &KeyInfo{
+		Address: address,
+		Name:    kc.ID,
 	}
-	ki.Name = kc.ID
 
 	return ki, nil
 }
@@ -365,11 +368,12 @@ func RestoreRlyKey(kc KeyConfig, chainID, mnemonic string) (*KeyInfo, error) {
 		return nil, err
 	}
 
-	ki, err := ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
+	// Relayer restore command returns address as plain text, not JSON
+	address := strings.TrimSpace(out.String())
+	ki := &KeyInfo{
+		Address: address,
+		Name:    kc.ID,
 	}
-	ki.Name = kc.ID
 
 	return ki, nil
 }
