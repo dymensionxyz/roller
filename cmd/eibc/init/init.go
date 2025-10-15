@@ -371,6 +371,8 @@ func setupEibcClient(hd consts.HubData, eibcHome string, ki *keys.KeyInfo) error
 
 		rpc = strings.TrimSuffix(rpc, "/")
 
+		// Add :443 to HTTPS URLs if no port is specified
+		rpc = config.AddHttpsPortIfNeeded(rpc)
 		isValid := config.IsValidURL(rpc)
 
 		if !isValid {
@@ -430,11 +432,11 @@ func initializeEibcForEnvironment() (consts.HubData, error) {
 		var rollerConfig roller.RollappConfig
 		hdid, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub chain id").
 			Show()
-		hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint").
+		hdrpc, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("provide hub rpc endpoint (example: https://hub.dym.xyz:443)").
 			Show()
 
 		rollerConfig.HubData.ID = hdid
-		rollerConfig.HubData.RpcUrl = hdrpc
+		rollerConfig.HubData.RpcUrl = config.AddHttpsPortIfNeeded(hdrpc)
 
 		hd = rollerConfig.HubData
 

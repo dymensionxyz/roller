@@ -931,6 +931,9 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			rpc = "https://" + rpc
 		}
 
+		// Add :443 to HTTPS URLs if no port is specified
+		rpc = config.AddHttpsPortIfNeeded(rpc)
+
 		isValid := config.IsValidURL(rpc)
 
 		// Validate the URL
@@ -950,6 +953,9 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
 			rest = "https://" + rest
 		}
+
+		// Add :443 to HTTPS URLs if no port is specified
+		rest = config.AddHttpsPortIfNeeded(rest)
 
 		isValid := config.IsValidURL(rest)
 
@@ -971,6 +977,9 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
 				evmRpc = "https://" + evmRpc
 			}
+
+			// Add :443 to HTTPS URLs if no port is specified
+			evmRpc = config.AddHttpsPortIfNeeded(evmRpc)
 
 			isValid := config.IsValidURL(evmRpc)
 
