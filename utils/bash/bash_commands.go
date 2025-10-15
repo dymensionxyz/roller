@@ -377,8 +377,8 @@ func ExtractTxHash(output string) (string, error) {
 	lines := strings.Split(output, "\n")
 
 	for _, line := range lines {
-		if strings.HasPrefix(line, "txhash:") {
-			return strings.TrimSpace(strings.TrimPrefix(line, "txhash:")), nil
+		if after, ok := strings.CutPrefix(line, "txhash:"); ok {
+			return strings.TrimSpace(after), nil
 		}
 	}
 
