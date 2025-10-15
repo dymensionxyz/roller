@@ -119,6 +119,22 @@ func ExecCommandWithStdout(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	return &stdout, nil
 }
 
+// ExecCommandWithStdoutFiltered executes a command and returns stdout,
+// filtering out "duplicate proto type registered" warnings from stderr
+func ExecCommandWithStdoutFiltered(cmd *exec.Cmd) (*bytes.Buffer, error) {
+	var stderr bytes.Buffer
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	if err != nil {
+		// Filter out the duplicate proto warnings from stderr
+		filteredStderr := filterDuplicateProtoWarnings(stderr.String())
+		return &stderr, fmt.Errorf("command execution failed: %w, stderr: %s", err, filteredStderr)
+	}
+	return &stdout, nil
+}
+
 func ExecCommandWithStdErr(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
@@ -129,6 +145,23 @@ func ExecCommandWithStdErr(cmd *exec.Cmd) (*bytes.Buffer, error) {
 		return &stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, stderr.String())
 	}
 	return &stderr, nil
+}
+
+// ExecCommandWithStdErrFiltered executes a command and returns stderr,
+// filtering out "duplicate proto type registered" warnings
+func ExecCommandWithStdErrFiltered(cmd *exec.Cmd) (*bytes.Buffer, error) {
+	var stderr bytes.Buffer
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	if err != nil {
+		filteredStderr := filterDuplicateProtoWarnings(stderr.String())
+		return &stdout, fmt.Errorf("command execution failed: %w, stderr: %s", err, filteredStderr)
+	}
+	// Filter the stderr output before returning
+	filteredStderr := filterDuplicateProtoWarnings(stderr.String())
+	return bytes.NewBufferString(filteredStderr), nil
 }
 
 func ExecCmd(cmd *exec.Cmd, options ...CommandOption) error {
@@ -391,6 +424,49 @@ func ExecuteCommandWithPrompts(
 	return bytes.NewBuffer(output), nil
 }
 
+// ExecuteCommandWithPromptsStdout executes a command with automatic prompt responses
+// and captures only stdout (not stderr).
+func ExecuteCommandWithPromptsStdout(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+	//nolint:errcheck
+	defer stdin.Close()
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start command: %v", err)
+	}
+
+	// Immediately write all expected responses
+	go handlePrompts(stdin, promptResponses)
+
+	// Read stdout
+	output, err := io.ReadAll(stdout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read stdout: %v", err)
+	}
+
+	// Wait for the command to complete
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("command execution failed: %v", err)
+	}
+
+	return bytes.NewBuffer(output), nil
+}
+
 // ExecuteCommandWithPromptHandler executes a command that can handle both automatic prompt responses
 // and manual interventions. For prompts that require manual intervention, provide the prompt text
 // in manualPrompts. For automatic responses, provide the prompt-response pairs in promptResponses.
@@ -458,7 +534,7 @@ func ExecuteCommandWithPromptHandler(
 				}
 
 				args = append(args, "-y")
-				out, err := ExecuteCommandWithPrompts(command, args, promptResponses)
+				out, err := ExecuteCommandWithPromptsStdout(command, args, promptResponses)
 				if err != nil {
 					return nil, err
 				}
@@ -476,4 +552,110 @@ func ExecuteCommandWithPromptHandler(
 	}
 
 	return bytes.NewBuffer([]byte(output.String())), nil
+}
+
+// ExecuteCommandWithPromptHandlerFiltered executes a command with prompt handling,
+// filtering out "duplicate proto type registered" warnings from output
+func ExecuteCommandWithPromptHandlerFiltered(
+	command string,
+	args []string,
+	promptResponses map[string]string,
+	manualPrompts map[string]string,
+) (*bytes.Buffer, error) {
+	cmd := exec.Command(command, args...)
+
+	// Create pipes
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %v", err)
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stderr pipe: %v", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("error starting command: %v", err)
+	}
+
+	// Handle automatic prompts
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		for _, response := range promptResponses {
+			//nolint:errcheck, gosec
+			stdin.Write([]byte(response + "\n"))
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
+	// Capture output
+	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
+	var output strings.Builder
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		// Filter out duplicate proto warnings
+		if !strings.Contains(line, "duplicate proto type registered") {
+			fmt.Println(line)
+			output.WriteString(line + "\n")
+		}
+
+		// Check for manual prompts
+		for promptText, question := range manualPrompts {
+			if strings.Contains(line, promptText) {
+				shouldContinue, err := pterm.DefaultInteractiveConfirm.
+					WithDefaultText(question).
+					WithDefaultValue(false).
+					Show()
+				if err != nil {
+					return nil, err
+				}
+
+				if !shouldContinue {
+					return nil, errors.New("cancelled by user")
+				}
+
+				args = append(args, "-y")
+				out, err := ExecuteCommandWithPromptsStdout(command, args, promptResponses)
+				if err != nil {
+					return nil, err
+				}
+				return out, nil
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading output: %v", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return nil, fmt.Errorf("command finished with error: %w", err)
+	}
+
+	return bytes.NewBuffer([]byte(output.String())), nil
+}
+
+// filterDuplicateProtoWarnings removes lines containing "duplicate proto type registered" from the input string
+func filterDuplicateProtoWarnings(input string) string {
+	lines := strings.Split(input, "\n")
+	var filtered []string
+
+	for _, line := range lines {
+		// Skip lines containing the duplicate proto warning
+		if !strings.Contains(line, "duplicate proto type registered") {
+			filtered = append(filtered, line)
+		}
+	}
+
+	// Join the filtered lines back together
+	result := strings.Join(filtered, "\n")
+	// Remove any trailing newlines that might have been left
+	return strings.TrimRight(result, "\n")
 }

@@ -222,7 +222,7 @@ func (c *Celestia) getDAAccData(home string) (*keys.AccountData, error) {
 		"-o", "json",
 	)
 
-	output, err := bash.ExecCommandWithStdout(cmd)
+	output, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -304,10 +304,11 @@ func (c *Celestia) GetStartDACmd() *exec.Cmd {
 		"--core.ip", raCfg.DA.CurrentStateNode,
 		"--core.port", "9090",
 		"--node.store", filepath.Join(c.Root, consts.ConfigDirName.DALightNode),
-		"--gateway",
+		// "--gateway", // removed in celestia v0.26.2+
 		// "--gateway.deprecated-endpoints",
 		"--p2p.network", string(raCfg.DA.ID),
 	}
+
 	if c.metricsEndpoint != "" {
 		args = append(args, "--metrics", "--metrics.endpoint", c.metricsEndpoint)
 	}
@@ -384,7 +385,7 @@ func (c *Celestia) GetSequencerDAConfig(nt string) string {
 			raCfg.HubData.ID,
 		)
 
-		out, err := bash.ExecCommandWithStdout(cmd)
+		out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 		if err != nil {
 			pterm.Error.Println(err)
 			return ""

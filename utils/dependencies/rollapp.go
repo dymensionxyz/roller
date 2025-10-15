@@ -8,6 +8,7 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
+	"github.com/dymensionxyz/roller/utils/firebase"
 )
 
 type RollappBinaryInfo struct {
@@ -24,11 +25,21 @@ func NewRollappBinaryInfo(bech32Prefix, commit, vmType string) RollappBinaryInfo
 	}
 }
 
-func DefaultRollappBuildableDependencies(raBinInfo RollappBinaryInfo, da string) map[string]types.Dependency {
+func DefaultRollappBuildableDependencies(
+	raBinInfo RollappBinaryInfo,
+	da string,
+	env string,
+) map[string]types.Dependency {
 	deps := map[string]types.Dependency{}
 
 	if da == "celestia" {
-		deps["celestia"] = DefaultCelestiaNodeDependency()
+		bvi, err := firebase.GetDependencyVersions(env)
+		if err != nil {
+			pterm.Error.Printfln("failed to retrieve binary version for celestia light client: %v", err)
+			return nil
+		}
+
+		deps["celestia"] = CelestiaNodeDependency(*bvi)
 	}
 	deps["rollapp"] = DefaultRollappDependency(raBinInfo)
 

@@ -42,11 +42,11 @@ var MockHubData = HubData{
 
 var PlaygroundHubData = HubData{
 	Environment:   "playground",
-	ApiUrl:        "https://api-dym-migration-test-2.mzonder.com:443",
+	ApiUrl:        "https://api-dymension-playground35.mzonder.com:443",
 	ID:            PlaygroundHubID,
-	RpcUrl:        "https://rpc-dym-migration-test-2.mzonder.com:443",
-	WsUrl:         "https://rpc-dym-migration-test-2.mzonder.com:443",
-	ArchiveRpcUrl: "https://rpc-dym-migration-test-2.mzonder.com:443",
+	RpcUrl:        "https://rpc-dymension-playground35.mzonder.com:443",
+	WsUrl:         "https://rpc-dymension-playground35.mzonder.com:443",
+	ArchiveRpcUrl: "https://rpc-dymension-playground35.mzonder.com:443",
 	GasPrice:      "2000000000",
 }
 
@@ -70,7 +70,7 @@ const (
 const (
 	MockHubID       = "mock"
 	LocalHubID      = "dymension_100-1"
-	PlaygroundHubID = "dymension_1405-1"
+	PlaygroundHubID = "dymension_3405-1"
 	BlumbusHubID    = "blumbus_111-1"
 	MainnetHubID    = "dymension_1100-1"
 )

@@ -135,6 +135,8 @@ var Denoms = struct {
 	LoadNetwork     string
 	Bnb             string
 	Walrus          string
+	Solana          string
+	Ethereum        string
 	Kaspa           string
 }{
 	Hub:             "adym",
@@ -146,6 +148,8 @@ var Denoms = struct {
 	LoadNetwork:     "tLOAD",
 	Bnb:             "ubnb",
 	Walrus:          "wal",
+	Solana:          "lamports",
+	Ethereum:        "eth",
 	Kaspa:           "kas",
 }
 

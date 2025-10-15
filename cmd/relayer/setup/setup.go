@@ -57,15 +57,17 @@ func Cmd() *cobra.Command {
 			relayerLogger := logging.GetLogger(relayerLogFilePath)
 			rly.SetLogger(relayerLogger)
 
-			rollappChainData, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
+			rlpCfg, err := rollapp.PopulateRollerConfigWithRaMetadataFromChain(
 				home,
 				raData.ID,
 				*hd,
+				"",
 			)
-			errorhandling.PrettifyErrorIfExists(err)
-			rollappChainData.KeyringBackend = consts.SupportedKeyringBackend(kb)
 
-			err = rollappChainData.ValidateConfig()
+			errorhandling.PrettifyErrorIfExists(err)
+			rlpCfg.KeyringBackend = consts.SupportedKeyringBackend(kb)
+
+			err = rlpCfg.ValidateConfig()
 			if err != nil {
 				pterm.Error.Println("rollapp data validation error: ", err)
 				return
@@ -95,7 +97,7 @@ func Cmd() *cobra.Command {
 			}
 
 			pterm.Info.Println("populating relayer config with correct values...")
-			err = relayerutils.InitializeRelayer(home, *rollappChainData)
+			err = relayerutils.InitializeRelayer(home, *rlpCfg)
 			if err != nil {
 				pterm.Error.Printf("failed to initialize relayer config: %v\n", err)
 				return
@@ -113,18 +115,18 @@ func Cmd() *cobra.Command {
 				pterm.Info.Println(
 					"no existing path, roller will create a new IBC path and set it up",
 				)
-				if err := rlyCfg.CreatePath(*rollappChainData); err != nil {
+				if err := rlyCfg.CreatePath(*rlpCfg); err != nil {
 					pterm.Error.Printf("failed to create relayer IBC path: %v\n", err)
 					return
 				}
 			}
 
-			if err := rly.UpdateConfigWithDefaultValues(*rollappChainData); err != nil {
+			if err := rly.UpdateConfigWithDefaultValues(*rlpCfg); err != nil {
 				pterm.Error.Printf("failed to update relayer config file: %v\n", err)
 				return
 			}
 
-			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, *rollappChainData)
+			relKeys, err := relayerutils.EnsureKeysArePresentAndFunded(home, *rlpCfg)
 			if err != nil {
 				pterm.Error.Println(
 					"failed to ensure relayer keys are created/funded:",
@@ -146,7 +148,7 @@ func Cmd() *cobra.Command {
 							fmt.Sprintf(
 								"no channel found. would you like to create a new IBC channel for %s?",
 								pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
-									Sprint(rollappChainData.RollappID),
+									Sprint(rlpCfg.RollappID),
 							),
 						).Show()
 
@@ -177,14 +179,14 @@ func Cmd() *cobra.Command {
 					dymintutils.WaitForHealthyRollApp("http://localhost:26657/health")
 					err = rly.HandleWhitelisting(
 						relKeys[consts.KeysIds.RollappRelayer].Address,
-						rollappChainData,
+						rlpCfg,
 					)
 					if err != nil {
 						pterm.Error.Println("failed to handle whitelisting: ", err)
 						return
 					}
 
-					err = rly.HandleIbcChannelCreation(home, *rollappChainData, logFileOption)
+					err = rly.HandleIbcChannelCreation(home, *rlpCfg, logFileOption)
 					if err != nil {
 						pterm.Error.Println("failed to handle ibc channel creation: ", err)
 						return
@@ -270,7 +272,7 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 
 	raData := consts.RollappData{
 		ID:     raID,
-		RpcUrl: fmt.Sprintf("%s:%d", raRpc, 443),
+		RpcUrl: raRpc,
 	}
 	return &raData, hd, kb, nil
 }
@@ -316,21 +318,29 @@ func installRelayerDependencies(
 	)
 
 	raDep := dependencies.DefaultRollappDependency(rbi)
-	err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
-	if err != nil {
-		return err
+	for _, bin := range raDep.Binaries {
+		if !filesystem.IsAvailable(bin.BinaryDestination) {
+			err = dependencies.InstallBinaryFromRepo(raDep, raDep.DependencyName)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies()
+	rlyDep := dependencies.DefaultRelayerPrebuiltDependencies(hd.Environment)
 	err = dependencies.InstallBinaryFromRelease(rlyDep["rly"])
 	if err != nil {
 		return err
 	}
 
-	dymdDep := dependencies.DefaultDymdDependency()
-	err = dependencies.InstallBinaryFromRelease(dymdDep)
-	if err != nil {
-		return err
+	dymdDep := dependencies.DefaultDymdDependency(hd.Environment)
+	for _, bin := range dymdDep.Binaries {
+		if !filesystem.IsAvailable(bin.BinaryDestination) {
+			err = dependencies.InstallBinaryFromRelease(dymdDep)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

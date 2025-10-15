@@ -87,7 +87,12 @@ func ValidateChainID(id string) (ChainID, error) {
 		)
 	}
 
-	pterm.Success.Printf("'%s' is a valid RollApp ID\n", id)
+	if strings.HasPrefix(chainID, "dymension") {
+		pterm.Info.Printf("'%s' is a valid Hub ID\n", id)
+	} else {
+		pterm.Success.Printf("'%s' is a valid RollApp ID\n", id)
+	}
+
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: chainIDInt,

@@ -82,16 +82,7 @@ type Denom struct {
 
 func DownloadGenesis(home, genesisUrl string) error {
 	genesisPath := GetGenesisFilePath(home)
-	if genesisUrl == "" {
-		return fmt.Errorf("RollApp's genesis url field is empty, contact the rollapp owner")
-	}
-
-	err := filesystem.DownloadFile(genesisUrl, genesisPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return filesystem.DownloadGenesisFile(genesisUrl, genesisPath)
 }
 
 // GetGenesisAppState function retrieves the genesis file content using comet's
@@ -190,6 +181,8 @@ func getRollappGenesisHash(raID string, hd consts.HubData) (string, error) {
 		return "", err
 	}
 
+	pterm.Info.Println("onchain rollapp genesis hash: ", raResponse.Rollapp.GenesisInfo.GenesisChecksum)
+
 	return raResponse.Rollapp.GenesisInfo.GenesisChecksum, nil
 }
 
@@ -201,7 +194,14 @@ func CompareGenesisChecksum(root, raID string, hd consts.HubData) (bool, error) 
 		return false, err
 	}
 
-	raGenesisHash, _ := getRollappGenesisHash(raID, hd)
+	pterm.Info.Println("downloaded rollapp genesis hash: ", downloadedGenesisHash)
+
+	raGenesisHash, err := getRollappGenesisHash(raID, hd)
+	if err != nil {
+		pterm.Error.Println("failed to get rollapp genesis hash: ", err)
+		return false, err
+	}
+
 	if downloadedGenesisHash != raGenesisHash {
 		err = fmt.Errorf(
 			"the hash of the downloaded file (%s) does not match the one registered with the rollapp (%s)",

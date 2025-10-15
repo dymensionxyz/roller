@@ -18,6 +18,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
+	"github.com/dymensionxyz/roller/config"
 	"github.com/dymensionxyz/roller/utils/archives"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/dependencies/types"
@@ -79,6 +80,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raCommit = drsInfo.WasmCommit
 		}
 
+		if com := config.Config.RollappCommit; com != "" {
+			raCommit = com
+		}
+
 		if raCommit == "UNRELEASED" {
 			return nil, nil, errors.New("rollapp does not support drs version: " + drsVersion)
 		}
@@ -106,7 +111,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 			raVmType,
 		)
 
-		buildableDeps = DefaultRollappBuildableDependencies(rbi, da)
+		buildableDeps = DefaultRollappBuildableDependencies(rbi, da, env)
 	}
 
 	goreleaserDeps := map[string]types.Dependency{}
@@ -187,7 +192,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 	for k, dep := range goreleaserDeps {
 		err := InstallBinaryFromRelease(dep)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("failed to build binary from release %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
 
@@ -196,7 +201,7 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 	for k, dep := range buildableDeps {
 		err := InstallBinaryFromRepo(dep, k)
 		if err != nil {
-			errMsg := fmt.Sprintf("failed to build binary %s: %v", k, err)
+			errMsg := fmt.Sprintf("failed to build binary from repo %s: %v", k, err)
 			return nil, nil, errors.New(errMsg)
 		}
 	}
@@ -205,6 +210,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
+	if config.Config.SkipCelestiaBinary && dep.DependencyName == "celestia" {
+		return nil
+	}
+
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)

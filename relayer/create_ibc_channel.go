@@ -159,7 +159,7 @@ func getHubStakingParams(hd consts.HubData) (*StakingParamsResponse, error) {
 		"json",
 	)
 
-	out, err := bash.ExecCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return nil, err
 	}

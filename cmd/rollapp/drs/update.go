@@ -124,7 +124,7 @@ func UpdateCmd() *cobra.Command {
 				return
 			}
 
-			dymdDep := dependencies.DefaultDymdDependency()
+			dymdDep := dependencies.DefaultDymdDependency(rollerData.HubData.Environment)
 			pterm.Info.Println("installing dependencies")
 			err = dependencies.InstallBinaryFromRelease(dymdDep)
 			if err != nil {

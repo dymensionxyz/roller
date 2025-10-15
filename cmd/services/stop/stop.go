@@ -46,12 +46,13 @@ func Cmd(services []string) *cobra.Command {
 				rollappConfig, err := roller.LoadConfig(home)
 				errorhandling.PrettifyErrorIfExists(err)
 
-				if rollappConfig.DA.Backend == consts.Celestia {
+				if slices.Contains(services, "rollapp") && rollappConfig.DA.Backend == consts.Celestia {
 					servicesToStop = consts.RollappWithCelesSystemdServices
 				} else {
 					servicesToStop = services
 				}
 			}
+			fmt.Println("services to stop", servicesToStop)
 			err = stopSystemdServices(servicesToStop)
 			if err != nil {
 				pterm.Error.Println("failed to stop systemd services:", err)

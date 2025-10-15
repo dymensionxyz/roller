@@ -42,6 +42,7 @@ func Cmd() *cobra.Command {
 				home,
 				localRollerConfig.RollappID,
 				localRollerConfig.HubData,
+				"",
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 

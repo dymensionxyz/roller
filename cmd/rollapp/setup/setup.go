@@ -11,12 +11,10 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymensionseqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -25,14 +23,17 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/data_layer/celestia"
+	celestialightclient "github.com/dymensionxyz/roller/data_layer/celestia/lightclient"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/config/tomlconfig"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
+	"github.com/dymensionxyz/roller/utils/rollapp/iro"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
@@ -51,11 +52,13 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			nodeTypes := []string{"sequencer", "fullnode"}
-			fullNodeTypes := []string{"rpc", "archive"}
+			fullNodeTypes := []string{"rpc", "archive", "tee"}
 
 			nodeTypeFromFlag, _ := cmd.Flags().GetString("node-type")
 			fullNodeTypeFromFlag, _ := cmd.Flags().GetString("full-node-type")
 			shouldUseDefaultRpcEndpoint, _ := cmd.Flags().GetBool("use-default-rpc-endpoint")
+			skipDA, _ := cmd.Flags().GetBool("skip-da")
+			skipGenesisValidation, _ := cmd.Flags().GetBool("skip-genesis-validation")
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -95,6 +98,7 @@ func Cmd() *cobra.Command {
 				home,
 				localRollerConfig.RollappID,
 				localRollerConfig.HubData,
+				"",
 			)
 			errorhandling.PrettifyErrorIfExists(err)
 
@@ -107,27 +111,13 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			if raResponse.Rollapp.PreLaunchTime != "" {
-				timeLayout := time.RFC3339Nano
-				expectedLaunchTime, err := time.Parse(timeLayout, raResponse.Rollapp.PreLaunchTime)
-				if err != nil {
-					pterm.Error.Println("failed to parse launch time", err)
-					return
-				}
-
-				if expectedLaunchTime.After(time.Now()) {
-					pterm.Error.Printf(
-						`Nodes can be set up only after the minimum IRO duration has passed
-Current time: %v
-RollApp's IRO time: %v`,
-						time.Now().UTC().Format(timeLayout),
-						expectedLaunchTime.Format(timeLayout),
-					)
-
-					return
-				}
-			} else {
-				pterm.Info.Printf("no IRO set up for %s\n", raResponse.Rollapp.RollappId)
+			ok := iro.IsTokenGraduated(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
+			if !ok {
+				pterm.Error.Println("the token has not yet graduated")
+				pterm.Error.Println(
+					"token must fully raise the amount set in the launchpad to become ready for graduation",
+				)
+				return
 			}
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
@@ -183,7 +173,7 @@ RollApp's IRO time: %v`,
 					return
 				}
 
-				if !raResponse.Rollapp.GenesisInfo.Sealed {
+				if !skipGenesisValidation && !raResponse.Rollapp.GenesisInfo.Sealed {
 					gvSpinner, err := pterm.DefaultSpinner.Start(
 						"validating genesis (this can take several minutes for large genesis files)",
 					)
@@ -304,14 +294,14 @@ RollApp's IRO time: %v`,
 						cosmossdkmath.NewInt(consts.DefaultTxFee),
 					)
 
-					blnc, _ := sequencer.BaseDenomToDenom(*balance, 18)
+					blnc, _ := denom.BaseDenomToDenom(*balance, 18)
 					oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
 
 					nb := cosmossdktypes.Coin{
 						Denom:  consts.Denoms.Hub,
 						Amount: necessaryBalance.Add(oneDym),
 					}
-					necBlnc, _ := sequencer.BaseDenomToDenom(nb, 18)
+					necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
 					pterm.Info.Printf(
 						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
@@ -353,7 +343,7 @@ RollApp's IRO time: %v`,
 						pterm.Error.Println("failed to get address balance: ", err)
 						return
 					}
-					blnc, _ = sequencer.BaseDenomToDenom(*balance, 18)
+					blnc, _ = denom.BaseDenomToDenom(*balance, 18)
 
 					pterm.Info.Printf(
 						"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
@@ -536,151 +526,234 @@ RollApp's IRO time: %v`,
 			/* ------------------------ Initialize DA ------------------------ */
 
 			var addresses []keys.KeyInfo
-			// Generalize DA initialization logic
-			switch localRollerConfig.DA.Backend {
-			case consts.Celestia:
-				// Initialize Celestia light client
-				daKeyInfo, err := celestialightclient.Initialize(localRollerConfig.HubData.Environment, localRollerConfig)
-				if err != nil {
-					pterm.Error.Println("failed to initialize Celestia light client: %w", err)
+			if !skipDA {
+				// Generalize DA initialization logic
+				switch localRollerConfig.DA.Backend {
+				case consts.Celestia:
+					// Initialize Celestia light client
+					daKeyInfo, err := celestialightclient.Initialize(
+						localRollerConfig.HubData.Environment,
+						localRollerConfig,
+					)
+					if err != nil {
+						pterm.Error.Println("failed to initialize Celestia light client: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daKeyInfo != nil {
+						addresses = append(addresses, *daKeyInfo)
+					}
+
+				case consts.Avail:
+					// Initialize DAManager for Avail
+					damanager := datalayer.NewDAManager(
+						consts.Avail,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Avail account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.LoadNetwork:
+					// Initialize DAManager for LoadNetwork
+					damanager := datalayer.NewDAManager(
+						consts.LoadNetwork,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get LoadNetwork account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Bnb:
+					// Initialize DAManager for Bnb
+					damanager := datalayer.NewDAManager(
+						consts.Bnb,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Bnb account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Sui:
+					// Initialize DAManager for Sui
+					damanager := datalayer.NewDAManager(
+						consts.Sui,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Sui account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Aptos:
+					// Initialize DAManager for Aptos
+					damanager := datalayer.NewDAManager(
+						consts.Aptos,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Aptos account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Walrus:
+					// Initialize DAManager for Walrus
+					damanager := datalayer.NewDAManager(
+						consts.Walrus,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Walrus account address: %w", err)
+						return
+					}
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Solana:
+					// Initialize DAManager for Solana
+					damanager := datalayer.NewDAManager(
+						consts.Solana,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Solana account address: %w", err)
+						return
+					}
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Ethereum:
+					// Initialize DAManager for Ethereum
+					damanager := datalayer.NewDAManager(
+						consts.Ethereum,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Ethereum account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Kaspa:
+					// Initialize DAManager for Kaspa
+					damanager := datalayer.NewDAManager(
+						consts.Kaspa,
+						home,
+						localRollerConfig.KeyringBackend,
+						localRollerConfig.NodeType,
+					)
+
+					// Retrieve DA account address
+					daAddress, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to get Kaspa account address: %w", err)
+						return
+					}
+
+					// Append DA account address if available
+					if daAddress != nil {
+						addresses = append(addresses, keys.KeyInfo{
+							Name:    damanager.GetKeyName(),
+							Address: daAddress.Address,
+						})
+					}
+				case consts.Mock:
+				default:
+					pterm.Error.Printf("unsupported DA backend: %s", rollappConfig.DA.Backend)
 					return
 				}
-
-				// Append DA account address if available
-				if daKeyInfo != nil {
-					addresses = append(addresses, *daKeyInfo)
-				}
-
-			case consts.Avail:
-				// Initialize DAManager for Avail
-				damanager := datalayer.NewDAManager(consts.Avail, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Avail account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.LoadNetwork:
-				// Initialize DAManager for LoadNetwork
-				damanager := datalayer.NewDAManager(consts.LoadNetwork, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get LoadNetwork account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Bnb:
-				// Initialize DAManager for Bnb
-				damanager := datalayer.NewDAManager(consts.Bnb, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Bnb account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Sui:
-				// Initialize DAManager for Sui
-				damanager := datalayer.NewDAManager(consts.Sui, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Sui account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Aptos:
-				// Initialize DAManager for Aptos
-				damanager := datalayer.NewDAManager(consts.Aptos, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Aptos account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Walrus:
-				// Initialize DAManager for Walrus
-				damanager := datalayer.NewDAManager(consts.Walrus, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Walrus account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Kaspa:
-				// Initialize DAManager for Kaspa
-				damanager := datalayer.NewDAManager(consts.Kaspa, home, localRollerConfig.KeyringBackend, localRollerConfig.NodeType)
-
-				// Retrieve DA account address
-				daAddress, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to get Kaspa account address: %w", err)
-					return
-				}
-
-				// Append DA account address if available
-				if daAddress != nil {
-					addresses = append(addresses, keys.KeyInfo{
-						Name:    damanager.GetKeyName(),
-						Address: daAddress.Address,
-					})
-				}
-			case consts.Mock:
-			default:
-				pterm.Error.Printf("unsupported DA backend: %s", rollappConfig.DA.Backend)
-				return
 			}
 
 			damanager := datalayer.NewDAManager(
@@ -689,63 +762,116 @@ RollApp's IRO time: %v`,
 				rollappConfig.KeyringBackend,
 				nodeType,
 			)
+			if !skipDA {
 
-			daHome := filepath.Join(
-				damanager.GetRootDirectory(),
-				consts.ConfigDirName.DALightNode,
-			)
-
-			isDaInitialized, err := filesystem.DirNotEmpty(daHome)
-			if err != nil {
-				return
-			}
-
-			var shouldOverwrite bool
-			if isDaInitialized {
-				pterm.Warning.Println("DA client is already initialized")
-			}
-
-			if !isDaInitialized || shouldOverwrite {
-				mnemonic, err := damanager.InitializeLightNodeConfig()
-				if err != nil {
-					pterm.Error.Println("failed to initialize da light client: ", err)
-					return
-				}
-
-				daWalletInfo, err := damanager.GetDAAccountAddress()
-				if err != nil {
-					pterm.Error.Println("failed to retrieve da wallet address: ", err)
-					return
-				}
-				daWalletInfo.Mnemonic = mnemonic
-				daWalletInfo.Print(keys.WithMnemonic(), keys.WithName())
-
-				daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
-					Start("initializing da light client")
-				daSpinner.UpdateText("checking for state update ")
-				cmd := exec.Command(
-					consts.Executables.Dymension,
-					"q",
-					"rollapp",
-					"state",
-					rollappConfig.RollappID,
-					"--index",
-					"1",
-					"--node",
-					rollappConfig.HubData.RpcUrl,
-					"--chain-id", rollappConfig.HubData.ID,
+				daHome := filepath.Join(
+					damanager.GetRootDirectory(),
+					consts.ConfigDirName.DALightNode,
 				)
 
-				out, err := bash.ExecCommandWithStdout(cmd)
+				isDaInitialized, err := filesystem.DirNotEmpty(daHome)
 				if err != nil {
-					if strings.Contains(out.String(), "key not found") {
-						pterm.Info.Printf(
-							"no state found for %s, da light client will be initialized with latest height",
-							rollappConfig.RollappID,
-						)
+					return
+				}
 
-						height, blockIdHash, err := celestia.GetLatestBlock(localRollerConfig)
+				var shouldOverwrite bool
+				if isDaInitialized {
+					pterm.Warning.Println("DA client is already initialized")
+				}
+
+				if !isDaInitialized || shouldOverwrite {
+					mnemonic, err := damanager.InitializeLightNodeConfig()
+					if err != nil {
+						pterm.Error.Println("failed to initialize da light client: ", err)
+						return
+					}
+
+					daWalletInfo, err := damanager.GetDAAccountAddress()
+					if err != nil {
+						pterm.Error.Println("failed to retrieve da wallet address: ", err)
+						return
+					}
+					daWalletInfo.Mnemonic = mnemonic
+
+					defer daWalletInfo.Print(keys.WithMnemonic(), keys.WithName())
+
+					daSpinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+						Start("initializing da light client")
+					daSpinner.UpdateText("checking for state update ")
+					cmd := exec.Command(
+						consts.Executables.Dymension,
+						"q",
+						"rollapp",
+						"state",
+						rollappConfig.RollappID,
+						"--index",
+						"1",
+						"--node",
+						rollappConfig.HubData.RpcUrl,
+						"--chain-id", rollappConfig.HubData.ID,
+					)
+
+					out, err := bash.ExecCommandWithStdout(cmd)
+					if err != nil {
+						if strings.Contains(out.String(), "key not found") {
+							pterm.Info.Printf(
+								"no state found for %s, da light client will be initialized with latest height",
+								rollappConfig.RollappID,
+							)
+
+							height, blockIdHash, err := celestia.GetLatestBlock(localRollerConfig)
+							if err != nil {
+								return
+							}
+
+							heightInt, err := strconv.Atoi(height)
+							if err != nil {
+								pterm.Error.Println("failed to convert height to int: ", err)
+								return
+							}
+
+							celestiaConfigFilePath := filepath.Join(
+								home,
+								consts.ConfigDirName.DALightNode,
+								"config.toml",
+							)
+
+							pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+							err = celestialightclient.UpdateConfig(
+								celestiaConfigFilePath,
+								blockIdHash,
+								heightInt,
+							)
+							if err != nil {
+								pterm.Error.Println("failed to update celestia config: ", err)
+								return
+							}
+						} else {
+							pterm.Error.Println("failed to retrieve rollapp state update: ", err)
+							return
+						}
+						// nolint:errcheck,gosec
+						daSpinner.Stop()
+					} else {
+						daSpinner.UpdateText("state update found, extracting da height")
+						// nolint:errcheck,gosec
+						daSpinner.Stop()
+
+						var result celestia.RollappStateResponse
+						if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
+							pterm.Error.Println("failed to unmarshal result: ", err)
+							return
+						}
+
+						h, err := celestia.ExtractHeightfromDAPath(result.StateInfo.DAPath)
 						if err != nil {
+							pterm.Error.Println("failed to extract height: ", err)
+							return
+						}
+
+						height, hash, err := celestia.GetBlockByHeight(h, localRollerConfig)
+						if err != nil {
+							pterm.Error.Println("failed to retrieve block: ", err)
 							return
 						}
 
@@ -761,68 +887,18 @@ RollApp's IRO time: %v`,
 							"config.toml",
 						)
 
-						pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-						err = celestialightclient.UpdateConfig(
-							celestiaConfigFilePath,
-							blockIdHash,
-							heightInt,
+						pterm.Info.Printf(
+							"the first %s state update has DA height of %s with hash %s\n",
+							rollappConfig.RollappID,
+							height,
+							hash,
 						)
+						pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
+						err = celestialightclient.UpdateConfig(celestiaConfigFilePath, hash, heightInt)
 						if err != nil {
 							pterm.Error.Println("failed to update celestia config: ", err)
 							return
 						}
-					} else {
-						pterm.Error.Println("failed to retrieve rollapp state update: ", err)
-						return
-					}
-					// nolint:errcheck,gosec
-					daSpinner.Stop()
-				} else {
-					daSpinner.UpdateText("state update found, extracting da height")
-					// nolint:errcheck,gosec
-					daSpinner.Stop()
-
-					var result celestia.RollappStateResponse
-					if err := yaml.Unmarshal(out.Bytes(), &result); err != nil {
-						pterm.Error.Println("failed to unmarshal result: ", err)
-						return
-					}
-
-					h, err := celestia.ExtractHeightfromDAPath(result.StateInfo.DAPath)
-					if err != nil {
-						pterm.Error.Println("failed to extract height: ", err)
-						return
-					}
-
-					height, hash, err := celestia.GetBlockByHeight(h, localRollerConfig)
-					if err != nil {
-						pterm.Error.Println("failed to retrieve block: ", err)
-						return
-					}
-
-					heightInt, err := strconv.Atoi(height)
-					if err != nil {
-						pterm.Error.Println("failed to convert height to int: ", err)
-						return
-					}
-
-					celestiaConfigFilePath := filepath.Join(
-						home,
-						consts.ConfigDirName.DALightNode,
-						"config.toml",
-					)
-
-					pterm.Info.Printf(
-						"the first %s state update has DA height of %s with hash %s\n",
-						rollappConfig.RollappID,
-						height,
-						hash,
-					)
-					pterm.Info.Printf("updating %s \n", celestiaConfigFilePath)
-					err = celestialightclient.UpdateConfig(celestiaConfigFilePath, hash, heightInt)
-					if err != nil {
-						pterm.Error.Println("failed to update celestia config: ", err)
-						return
 					}
 				}
 			}
@@ -878,6 +954,8 @@ RollApp's IRO time: %v`,
 				var fnVtu map[string]any
 
 				switch fullNodeType {
+				case "tee":
+					fallthrough
 				case "rpc":
 					fnVtu = map[string]any{
 						"pruning":             "custom",
@@ -910,11 +988,13 @@ RollApp's IRO time: %v`,
 				getDaLayer(home, raResponse, damanager.DaType),
 			)
 
-			_ = tomlconfig.UpdateFieldInFile(
-				dymintConfigPath,
-				"da_config",
-				getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
-			)
+			if !skipDA {
+				_ = tomlconfig.UpdateFieldInFile(
+					dymintConfigPath,
+					"da_config",
+					getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
+				)
+			}
 
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
@@ -950,9 +1030,11 @@ RollApp's IRO time: %v`,
 	}
 
 	cmd.Flags().String("node-type", "", "node type ( supported values: [sequencer, fullnode] )")
-	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive] )")
+	cmd.Flags().String("full-node-type", "", "full node type ( supported values: [rpc, archive, tee] )")
 	cmd.Flags().
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
+	cmd.Flags().Bool("skip-da", false, "skip data availability layer setup")
+	cmd.Flags().Bool("skip-genesis-validation", false, "skip genesis validation")
 
 	return cmd
 }
@@ -1008,15 +1090,11 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		return err
 	}
 
-	if len(as.RollappParams.Params.MinGasPrices) == 0 {
-		return errors.New("rollappparams should contain at least one gas token")
-	}
-
 	var denom string
 	if len(as.RollappParams.Params.MinGasPrices) == 1 {
 		dgpAmount = as.RollappParams.Params.MinGasPrices[0].String()
 		denom = as.RollappParams.Params.MinGasPrices[0].Denom
-	} else {
+	} else if len(as.RollappParams.Params.MinGasPrices) > 1 {
 		pterm.Info.Println("more then 1 gas token option found")
 		var options []string
 		for _, token := range as.RollappParams.Params.MinGasPrices {
@@ -1030,53 +1108,38 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		dgpAmount = as.RollappParams.Params.MinGasPrices[selectedIndex].String()
 	}
 
-	sgt, err := SupportedGasDenoms(raCfg)
-	if err != nil {
-		return err
-	}
-
-	if _, ok = sgt[denom]; !ok {
-		return errors.New("unsupported gas denom")
-	}
-
-	fd := sgt[denom]
-	fd.Display = strings.ToUpper(fd.Display)
-
 	// TODO: add support for other denoms
-	var sm dymensionseqtypes.SequencerMetadata
 	var defaultSnapshots []*dymensionseqtypes.SnapshotInfo
+	sm := dymensionseqtypes.SequencerMetadata{
+		Moniker:        "",
+		Details:        "",
+		P2PSeeds:       []string{},
+		Rpcs:           []string{},
+		EvmRpcs:        []string{},
+		RestApiUrls:    []string{},
+		ExplorerUrl:    "",
+		GenesisUrls:    []string{},
+		ContactDetails: &cd,
+		ExtraData:      []byte{},
+		Snapshots:      defaultSnapshots,
+		GasPrice:       dgpAmount,
+		FeeDenom:       nil,
+	}
 
-	if fd.Base != "adym" {
-		sm = dymensionseqtypes.SequencerMetadata{
-			Moniker:        "",
-			Details:        "",
-			P2PSeeds:       []string{},
-			Rpcs:           []string{},
-			EvmRpcs:        []string{},
-			RestApiUrls:    []string{},
-			ExplorerUrl:    "",
-			GenesisUrls:    []string{},
-			ContactDetails: &cd,
-			ExtraData:      []byte{},
-			Snapshots:      defaultSnapshots,
-			GasPrice:       dgpAmount,
-			FeeDenom:       nil,
+	if denom != "" {
+		sgt, err := SupportedGasDenoms(raCfg)
+		if err != nil {
+			return err
 		}
-	} else {
-		sm = dymensionseqtypes.SequencerMetadata{
-			Moniker:        "",
-			Details:        "",
-			P2PSeeds:       []string{},
-			Rpcs:           []string{},
-			EvmRpcs:        []string{},
-			RestApiUrls:    []string{},
-			ExplorerUrl:    "",
-			GenesisUrls:    []string{},
-			ContactDetails: &cd,
-			ExtraData:      []byte{},
-			Snapshots:      defaultSnapshots,
-			GasPrice:       dgpAmount,
-			FeeDenom:       &fd,
+
+		if _, ok = sgt[denom]; !ok {
+			return errors.New("unsupported gas denom")
+		}
+
+		fd := sgt[denom]
+		fd.Display = strings.ToUpper(fd.Display)
+		if fd.Base == "adym" {
+			sm.FeeDenom = &fd
 		}
 	}
 
@@ -1096,11 +1159,14 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"rollapp rpc endpoint that you will provide (example: rpc.rollapp.dym.xyz)",
+			"rollapp rpc endpoint that you will provide (example: https://rpc.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
 			rpc = "https://" + rpc
 		}
+
+		// Add :443 to HTTPS URLs if no port is specified
+		rpc = config.AddHttpsPortIfNeeded(rpc)
 
 		isValid := config.IsValidURL(rpc)
 
@@ -1116,11 +1182,14 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 	for {
 		// Prompt the user for the RPC URL
 		rest, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"rest endpoint that you will provide (example: api.rollapp.dym.xyz)",
+			"rest endpoint that you will provide (example: https://api.rollapp.dym.xyz:443)",
 		).Show()
 		if !strings.HasPrefix(rest, "http://") && !strings.HasPrefix(rest, "https://") {
 			rest = "https://" + rest
 		}
+
+		// Add :443 to HTTPS URLs if no port is specified
+		rest = config.AddHttpsPortIfNeeded(rest)
 
 		isValid := config.IsValidURL(rest)
 
@@ -1137,11 +1206,14 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		for {
 			// Prompt the user for the RPC URL
 			evmRpc, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-				"evm rpc endpoint that you will provide (example: json-rpc.rollapp.dym.xyz)",
+				"evm rpc endpoint that you will provide (example: https://json-rpc.rollapp.dym.xyz:443)",
 			).Show()
 			if !strings.HasPrefix(evmRpc, "http://") && !strings.HasPrefix(evmRpc, "https://") {
 				evmRpc = "https://" + evmRpc
 			}
+
+			// Add :443 to HTTPS URLs if no port is specified
+			evmRpc = config.AddHttpsPortIfNeeded(evmRpc)
 
 			isValid := config.IsValidURL(evmRpc)
 

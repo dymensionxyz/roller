@@ -146,6 +146,7 @@ func UpgradeCmd() *cobra.Command {
 				home,
 				rollerData.RollappID,
 				rollerData.HubData,
+				"",
 			)
 			if err != nil {
 				pterm.Error.Println("failed to populate rollapp config: ", err)

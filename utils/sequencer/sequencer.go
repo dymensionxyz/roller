@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	cosmossdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymrollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/pterm/pterm"
@@ -20,6 +19,7 @@ import (
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/cmd/tx/tx_utils"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -74,7 +74,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		args = append(args, cArgs...)
 	}
 
-	displayBond, err := BaseDenomToDenom(desiredBond, 18)
+	displayBond, err := denom.BaseDenomToDenom(desiredBond, 18)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error
 		),
 	}
 
-	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+	txOutput, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 		consts.Executables.Dymension,
 		args,
 		automaticPrompts,
@@ -280,29 +280,6 @@ func GetMinSequencerBondInBaseDenom(raID string, hd consts.HubData) (*cosmossdkt
 	}
 
 	return &c, nil
-}
-
-func BaseDenomToDenom(
-	coin cosmossdktypes.Coin,
-	exponent int,
-) (cosmossdktypes.Coin, error) {
-	exp := cosmossdkmath.NewIntWithDecimal(1, exponent)
-
-	coin.Amount = coin.Amount.Quo(exp)
-	coin.Denom = coin.Denom[1:]
-
-	return coin, nil
-}
-
-func DenomToBaseDenom(
-	coin cosmossdktypes.Coin,
-	exponent int,
-) (cosmossdktypes.Coin, error) {
-	exp := cosmossdkmath.NewIntWithDecimal(1, exponent)
-
-	coin.Amount = coin.Amount.Mul(exp)
-
-	return coin, nil
 }
 
 // TODO: dymd q sequencer show-sequencer could be used instead
@@ -642,7 +619,7 @@ func UpdateWhitelistedRelayers(
 		"signatures": "this transaction is going to update the whitelisted relayers. do you want to continue?",
 	}
 
-	txOutput, err := bash.ExecuteCommandWithPromptHandler(
+	txOutput, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 		consts.Executables.Dymension,
 		args,
 		automaticPrompts,

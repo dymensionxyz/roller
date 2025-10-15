@@ -24,25 +24,30 @@ const (
 )
 
 type CustomHubData struct {
-	ID            string `json:"id"`
-	RpcUrl        string `json:"rpcUrl"`
-	ApiUrl        string `json:"apiUrl"`
-	WsUrl         string `json:"wsUrl"`
-	GasPrice      string `json:"gasPrice"`
-	DymensionHash string `json:"commit"`
+	// hub chain id
+	ID             string `json:"id"`
+	RpcUrl         string `json:"rpcUrl"`
+	ApiUrl         string `json:"apiUrl"`
+	WsUrl          string `json:"wsUrl,omitempty"`
+	GasPrice       string `json:"gasPrice"`
+	DymensionHash  string `json:"commit"`
+	KeyringBackend string `json:"keyringBackend,omitempty"`
 }
 
-func CreateCustomHubData() (*CustomHubData, error) {
-	opts := []string{"from-file", "manual"}
-	opt, _ := pterm.DefaultInteractiveSelect.WithDefaultText(
-		"select how you want to provide the hub data",
-	).WithOptions(opts).Show()
+func CreateCustomHubData(filePath string) (*CustomHubData, error) {
+	opt := "from-file"
+	if filePath == "" {
+		opts := []string{"from-file", "manual"}
+		opt, _ = pterm.DefaultInteractiveSelect.WithDefaultText(
+			"select how you want to provide the hub data",
+		).WithOptions(opts).Show()
+	}
 
 	var hd CustomHubData
 
 	switch opt {
 	case "from-file":
-		return createCustomHubDataFromFile()
+		return createCustomHubDataFromFile(filePath)
 	case "manual":
 		hd = createCustomHubDataManually()
 	}
@@ -82,7 +87,17 @@ func createCustomHubDataManually() CustomHubData {
 	return hd
 }
 
-func createCustomHubDataFromFile() (*CustomHubData, error) {
+func promptPath() (string, error) {
+	path, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("").Show()
+	for len(path) == 0 {
+		path, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"provide a path to a json file that has the following structure",
+		).Show()
+	}
+	return path, nil
+}
+
+func createCustomHubDataFromFile(path string) (*CustomHubData, error) {
 	pterm.Info.Printf("provide a path to a json file that has the following structure")
 	fmt.Println(`
 {
@@ -92,11 +107,13 @@ func createCustomHubDataFromFile() (*CustomHubData, error) {
   "gasPrice": "<gas-price>",
   "commit": "<dymension-commit-to-build>"
 }`)
-	path, _ := pterm.DefaultInteractiveTextInput.WithDefaultText("").Show()
-	for len(path) == 0 {
-		path, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
-			"provide a path to a json file that has the following structure",
-		).Show()
+
+	var err error
+	if path == "" {
+		path, err = promptPath()
+		if err != nil {
+			return nil, err
+		}
 	}
 	ep, err := filesystem.ExpandHomePath(path)
 	if err != nil {
@@ -157,7 +174,7 @@ func WritePasswordToFile(path string) error {
 }
 
 func IsValidURL(url string) bool {
-	regex := `^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,})(:\d+)?([\/\w \.-]*)*\/?$`
+	regex := `^(https?:\/\/)?((localhost|\d{1,3}(\.\d{1,3}){3}|[\da-z\.-]+\.[a-z\.]{2,}))(:\d+)?(\/[\w\/\.-]*)*\/?$`
 	re := regexp.MustCompile(regex)
 	return re.MatchString(url)
 }

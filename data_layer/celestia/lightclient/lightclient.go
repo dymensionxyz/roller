@@ -30,7 +30,12 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 		kb := rollerData.KeyringBackend
 
 		pterm.Info.Println("initializing da light node configuration")
-		damanager := datalayer.NewDAManager(rollerData.DA.Backend, rollerData.Home, kb, rollerData.NodeType)
+		damanager := datalayer.NewDAManager(
+			rollerData.DA.Backend,
+			rollerData.Home,
+			kb,
+			rollerData.NodeType,
+		)
 		mnemonic, err := damanager.InitializeLightNodeConfig()
 		if err != nil {
 			return nil, err
@@ -108,7 +113,7 @@ func Initialize(env string, rollerData roller.RollappConfig) (*keys.KeyInfo, err
 			)
 
 			pterm.Info.Println("checking for state update")
-			out, err := bash.ExecCommandWithStdout(cmd)
+			out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 			if err != nil {
 				if strings.Contains(out.String(), "NotFound") {
 					pterm.Info.Printf(
@@ -197,12 +202,19 @@ func UpdateConfig(file, hash string, height int) error {
 
 	// Update DASer.SampleFrom
 	if daser, ok := config["DASer"].(map[string]interface{}); ok {
-		daser["SampleFrom"] = height
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["SyncFromHeight"] = height
+		}
 	}
-
-	// Update Header.TrustedHash
-	if header, ok := config["Header"].(map[string]interface{}); ok {
-		header["TrustedHash"] = hash
+	if daser, ok := config["DASer"].(map[string]interface{}); ok {
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["SyncFromHash"] = hash
+		}
+	}
+	if daser, ok := config["DASer"].(map[string]interface{}); ok {
+		if header, ok := daser["Header.Syncer"].(map[string]interface{}); ok {
+			header["PruningWindow"] = "168h0m0s"
+		}
 	}
 
 	// Write updated config

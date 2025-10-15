@@ -8,10 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	cosmossdkmath "cosmossdk.io/math"
+	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pterm/pterm"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/denom"
 	"github.com/dymensionxyz/roller/utils/roller"
 )
 
@@ -134,14 +137,27 @@ func GetRelayerKeysToFund(rollappConfig roller.RollappConfig) error {
 			Denom:  consts.Denoms.Hub,
 			RPC:    rollappConfig.HubData.RpcUrl,
 		}
+
 		balance, err := QueryBalance(cqc, rhki.Address)
 		if err != nil {
 			return err
 		}
+		balanceDenom, _ := denom.BaseDenomToDenom(*balance, 18)
+
+		oneDym, _ := cosmossdkmath.NewIntFromString("1000000000000000000")
+
+		nb := cosmossdktypes.Coin{
+			Denom:  consts.Denoms.Hub,
+			Amount: oneDym.Mul(cosmossdkmath.NewInt(10)),
+		}
+		necBlnc, _ := denom.BaseDenomToDenom(nb, 18)
 
 		pterm.Info.Printf(
-			"current balance: %s\nnecessary balance: >0\n",
+			"current balance: %s (%s)\nnecessary balance: %s (%s)\n",
 			balance.String(),
+			balanceDenom.String(),
+			nb.String(),
+			necBlnc.String(),
 		)
 
 		if !balance.Amount.IsPositive() {
@@ -209,7 +225,7 @@ func GenerateRelayerKeys(rollerData roller.RollappConfig) (map[string]KeyInfo, e
 				if err != nil {
 					return nil, err
 				}
-				createdRlyKeys[consts.KeysIds.RollappRelayer] = *ki
+				createdRlyKeys[consts.KeysIds.HubRelayer] = *ki
 			} else {
 				ki, err := createRelayerKeyIfNotPresent(k, chainId, v)
 				if err != nil {
@@ -246,6 +262,7 @@ func createRelayerKeyIfNotPresent(
 		key, err := AddRlyKey(kc, chainID)
 		if err != nil {
 			pterm.Error.Printf("failed to add key: %v\n", err)
+			return nil, err
 		}
 
 		ki = *key
@@ -279,6 +296,7 @@ func restoreRelayerKeyIfNotPresent(
 		key, err := RestoreRlyKey(kc, chainID, mnemonic)
 		if err != nil {
 			pterm.Error.Printf("failed to restore key: %v\n", err)
+			return nil, err
 		}
 
 		ki = *key
@@ -325,11 +343,12 @@ func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
 		return nil, err
 	}
 
-	ki, err := ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
+	// Relayer add command returns address as plain text, not JSON
+	address := strings.TrimSpace(out.String())
+	ki := &KeyInfo{
+		Address: address,
+		Name:    kc.ID,
 	}
-	ki.Name = kc.ID
 
 	return ki, nil
 }
@@ -365,11 +384,12 @@ func RestoreRlyKey(kc KeyConfig, chainID, mnemonic string) (*KeyInfo, error) {
 		return nil, err
 	}
 
-	ki, err := ParseAddressFromOutput(out)
-	if err != nil {
-		return nil, err
+	// Relayer restore command returns address as plain text, not JSON
+	address := strings.TrimSpace(out.String())
+	ki := &KeyInfo{
+		Address: address,
+		Name:    kc.ID,
 	}
-	ki.Name = kc.ID
 
 	return ki, nil
 }

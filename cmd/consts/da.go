@@ -30,6 +30,8 @@ const (
 	Sui         DAType = "sui"
 	Walrus      DAType = "walrus"
 	Mock        DAType = "mock"
+	Solana      DAType = "solana"
+	Ethereum    DAType = "ethereum"
 	Kaspa       DAType = "kaspa"
 )
 
@@ -48,12 +50,16 @@ const (
 	SuiTestnet         DaNetwork = "sui-testnet"
 	SuiMainnet         DaNetwork = "sui-mainnet"
 	// https://aptos.dev/en/network/nodes/networks
-	AptosTestnet  DaNetwork = "2"
-	AptosMainnet  DaNetwork = "1"
-	WalrusTestnet DaNetwork = "walrus-testnet"
-	WalrusMainnet DaNetwork = "walrus-mainnet" // change this with correct mainnet id
-	KaspaTestnet  DaNetwork = "kaspa-testnet"
-	KaspaMainnet  DaNetwork = "kaspa-mainnet"
+	AptosTestnet    DaNetwork = "2"
+	AptosMainnet    DaNetwork = "1"
+	WalrusTestnet   DaNetwork = "walrus-testnet"
+	WalrusMainnet   DaNetwork = "walrus-mainnet" // change this with correct mainnet id
+	SolanaTestnet   DaNetwork = "solana-testnet"
+	SolanaMainnet   DaNetwork = "solana-mainnet"
+	EthereumTestnet DaNetwork = "eth-testnet"
+	EthereumMainnet DaNetwork = "eth-mainnet"
+	KaspaTestnet    DaNetwork = "kaspa-testnet"
+	KaspaMainnet    DaNetwork = "kaspa-mainnet"
 )
 
 var DaNetworks = map[string]DaData{
@@ -202,6 +208,42 @@ var DaNetworks = map[string]DaData{
 		CurrentStateNode: "",
 		StateNodes:       []string{},
 		GasPrice:         "",
+	},
+	string(SolanaTestnet): {
+		Backend:          Solana,
+		ApiUrl:           "http://barcelona:8899",
+		ID:               SolanaTestnet,
+		RpcUrl:           "http://barcelona:8899",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(SolanaMainnet): {
+		Backend:          Solana,
+		ApiUrl:           "http://barcelona:8899",
+		ID:               SolanaMainnet,
+		RpcUrl:           "http://barcelona:8899",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "",
+	},
+	string(EthereumTestnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://ethereum-sepolia-beacon-api.publicnode.com",
+		ID:               EthereumTestnet,
+		RpcUrl:           "https://ethereum-sepolia-rpc.publicnode.com",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
+	},
+	string(EthereumMainnet): {
+		Backend:          Ethereum,
+		ApiUrl:           "https://ethereum-beacon-api.publicnode.com",
+		ID:               EthereumMainnet,
+		RpcUrl:           "https://ethereum-rpc.publicnode.com",
+		CurrentStateNode: "",
+		StateNodes:       []string{},
+		GasPrice:         "0.00000002",
 	},
 	string(KaspaTestnet): {
 		Backend:          Kaspa,

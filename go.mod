@@ -5,7 +5,7 @@ go 1.23.4
 toolchain go1.23.6
 
 require (
-	github.com/availproject/avail-go-sdk v0.2.0
+	github.com/availproject/avail-go-sdk v0.2.7
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -17,7 +17,9 @@ require (
 	cosmossdk.io/math v1.3.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BurntSushi/toml v1.4.0
+	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aptos-labs/aptos-go-sdk v1.5.0
+	github.com/blang/semver/v4 v4.0.0
 	github.com/block-vision/sui-go-sdk v1.0.6
 	github.com/briandowns/spinner v1.23.0
 	github.com/btcsuite/btcd v0.23.4
@@ -91,6 +93,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
+	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -306,5 +309,4 @@ replace (
 
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20240515191416-fc5f0ca64291
-
 )

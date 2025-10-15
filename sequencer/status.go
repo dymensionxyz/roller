@@ -94,7 +94,7 @@ func GetFirstStateUpdateHeight(raID, hubRpcEndpoint, hubChainID string) (int, er
 		hubChainID,
 	)
 
-	out, err := bash.ExecCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return 0, err
 	}
@@ -126,7 +126,7 @@ func (seq *Sequencer) GetHubHeight() (string, error) {
 		seq.RlpCfg.HubData.ID,
 	)
 
-	out, err := bash.ExecCommandWithStdout(cmd)
+	out, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return "", err
 	}

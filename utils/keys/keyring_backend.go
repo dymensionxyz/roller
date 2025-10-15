@@ -71,7 +71,7 @@ func RunCmdBasedOnKeyringBackend(
 			"Enter keyring passphrase":    psw,
 			"Re-enter keyring passphrase": psw,
 		}
-		out, err = bash.ExecuteCommandWithPrompts(
+		out, err = bash.ExecuteCommandWithPromptsStdout(
 			command, args, pr,
 		)
 		if err != nil {
