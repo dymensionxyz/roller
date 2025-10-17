@@ -66,10 +66,6 @@ func DownloadAndSaveArchive(url string, destPath string) (string, error) {
 }
 
 func ExtractTarGz(sourcePath, destDir string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
-	// nolint:errcheck
-	defer spinner.Stop()
-
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
@@ -77,7 +73,36 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer file.Close()
 
-	const maxSize = 200 * 1024 * 1024 * 1024 // 200GB
+	const promptThreshold = 200 * 1024 * 1024 * 1024 // 200GB
+	maxSize := int64(promptThreshold)
+
+	// Check file size and prompt user if it exceeds threshold
+	fileInfo, err := os.Stat(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to stat archive: %v", err)
+	}
+
+	if fileInfo.Size() > promptThreshold {
+		humanSize := formatBytes(fileInfo.Size())
+		pterm.Warning.Printf(
+			"Archive size is %s, which exceeds the default %s limit\n",
+			humanSize,
+			formatBytes(promptThreshold),
+		)
+		pterm.Info.Println("Extraction may take significant time and disk space")
+
+		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+			WithDefaultText("Do you want to proceed with extraction?").Show()
+		if !proceed {
+			return fmt.Errorf("extraction cancelled by user")
+		}
+
+		maxSize = -1 // Disable limit if user approves
+	}
+
+	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
+	// nolint:errcheck
+	defer spinner.Stop()
 
 	cfg := extract.NewConfig(
 		extract.WithDenySymlinkExtraction(true),
@@ -92,6 +117,19 @@ func ExtractTarGz(sourcePath, destDir string) error {
 
 	spinner.Success("Archive extracted successfully")
 	return nil
+}
+
+func formatBytes(bytes int64) string {
+	const unit = 1024
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	div, exp := int64(unit), 0
+	for n := bytes / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
 func CompressTarGz(sourceDir, destDir, fileName string) error {
