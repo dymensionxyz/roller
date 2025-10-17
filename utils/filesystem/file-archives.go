@@ -68,6 +68,11 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer spinner.Stop()
 
+	destDir, err := filepath.Abs(destDir)
+	if err != nil {
+		return fmt.Errorf("failed to resolve destination directory: %v", err)
+	}
+
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
@@ -84,6 +89,9 @@ func ExtractTarGz(sourcePath, destDir string) error {
 
 	tr := tar.NewReader(gzr)
 
+	const maxSize = 100 * 1024 * 1024 * 1024
+	var totalSize int64
+
 	for {
 		header, err := tr.Next()
 		if err == io.EOF {
@@ -93,32 +101,62 @@ func ExtractTarGz(sourcePath, destDir string) error {
 			return fmt.Errorf("tar reading error: %v", err)
 		}
 
-		// Ensure we only extract the 'data' directory
 		if header.Name != "data" && !filepath.HasPrefix(header.Name, "data/") {
 			continue
 		}
 
-		// nolint:gosec
-		target := filepath.Join(destDir, header.Name)
+		cleanName := filepath.Clean(header.Name)
+		if filepath.IsAbs(cleanName) {
+			return fmt.Errorf("invalid path in archive (absolute path): %s", header.Name)
+		}
+
+		target := filepath.Join(destDir, cleanName)
+
+		absTarget, err := filepath.Abs(target)
+		if err != nil {
+			return fmt.Errorf("failed to resolve target path: %v", err)
+		}
+
+		if !filepath.HasPrefix(absTarget, destDir) {
+			return fmt.Errorf("invalid path in archive (escapes destination): %s", header.Name)
+		}
+
+		totalSize += header.Size
+		if totalSize > maxSize {
+			return fmt.Errorf("archive too large (exceeds %d bytes)", maxSize)
+		}
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err := os.MkdirAll(target, 0o755); err != nil {
-				return fmt.Errorf("failed to create directory %s: %v", target, err)
+			if err := os.MkdirAll(absTarget, 0o755); err != nil {
+				return fmt.Errorf("failed to create directory %s: %v", absTarget, err)
 			}
 		case tar.TypeReg:
-			// nolint: gosec
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, 0o755)
-			if err != nil {
-				return fmt.Errorf("failed to create file %s: %v", target, err)
+			if err := os.MkdirAll(filepath.Dir(absTarget), 0o755); err != nil {
+				return fmt.Errorf("failed to create parent directory: %v", err)
 			}
-			// nolint:errcheck
-			defer f.Close()
 
-			// nolint:gosec
-			if _, err := io.Copy(f, tr); err != nil {
-				return fmt.Errorf("failed to write to file %s: %v", target, err)
+			f, err := os.OpenFile(absTarget, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
+			if err != nil {
+				return fmt.Errorf("failed to create file %s: %v", absTarget, err)
 			}
+
+			written, err := io.CopyN(f, tr, header.Size)
+			closeErr := f.Close()
+
+			if err != nil && err != io.EOF {
+				return fmt.Errorf("failed to write to file %s: %v", absTarget, err)
+			}
+			if closeErr != nil {
+				return fmt.Errorf("failed to close file %s: %v", absTarget, closeErr)
+			}
+			if written != header.Size {
+				return fmt.Errorf("file size mismatch for %s: expected %d, got %d", absTarget, header.Size, written)
+			}
+		case tar.TypeSymlink, tar.TypeLink:
+			return fmt.Errorf("symlinks and hardlinks not allowed in archive: %s", header.Name)
+		default:
+			continue
 		}
 	}
 
