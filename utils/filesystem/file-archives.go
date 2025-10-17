@@ -3,6 +3,7 @@ package filesystem
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hashicorp/go-extract"
 	"github.com/pterm/pterm"
 )
 
@@ -68,11 +70,6 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer spinner.Stop()
 
-	destDir, err := filepath.Abs(destDir)
-	if err != nil {
-		return fmt.Errorf("failed to resolve destination directory: %v", err)
-	}
-
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
@@ -80,84 +77,17 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer file.Close()
 
-	gzr, err := gzip.NewReader(file)
-	if err != nil {
-		return fmt.Errorf("failed to create gzip reader: %v", err)
-	}
-	// nolint:errcheck
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
 	const maxSize = 100 * 1024 * 1024 * 1024
-	var totalSize int64
 
-	for {
-		header, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("tar reading error: %v", err)
-		}
+	cfg := extract.NewConfig(
+		extract.WithDenySymlinkExtraction(true),
+		extract.WithMaxExtractionSize(maxSize),
+		extract.WithMaxInputSize(maxSize),
+	)
 
-		if header.Name != "data" && !filepath.HasPrefix(header.Name, "data/") {
-			continue
-		}
-
-		cleanName := filepath.Clean(header.Name)
-		if filepath.IsAbs(cleanName) {
-			return fmt.Errorf("invalid path in archive (absolute path): %s", header.Name)
-		}
-
-		target := filepath.Join(destDir, cleanName)
-
-		absTarget, err := filepath.Abs(target)
-		if err != nil {
-			return fmt.Errorf("failed to resolve target path: %v", err)
-		}
-
-		if !filepath.HasPrefix(absTarget, destDir) {
-			return fmt.Errorf("invalid path in archive (escapes destination): %s", header.Name)
-		}
-
-		totalSize += header.Size
-		if totalSize > maxSize {
-			return fmt.Errorf("archive too large (exceeds %d bytes)", maxSize)
-		}
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.MkdirAll(absTarget, 0o755); err != nil {
-				return fmt.Errorf("failed to create directory %s: %v", absTarget, err)
-			}
-		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(absTarget), 0o755); err != nil {
-				return fmt.Errorf("failed to create parent directory: %v", err)
-			}
-
-			f, err := os.OpenFile(absTarget, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o644)
-			if err != nil {
-				return fmt.Errorf("failed to create file %s: %v", absTarget, err)
-			}
-
-			written, err := io.CopyN(f, tr, header.Size)
-			closeErr := f.Close()
-
-			if err != nil && err != io.EOF {
-				return fmt.Errorf("failed to write to file %s: %v", absTarget, err)
-			}
-			if closeErr != nil {
-				return fmt.Errorf("failed to close file %s: %v", absTarget, closeErr)
-			}
-			if written != header.Size {
-				return fmt.Errorf("file size mismatch for %s: expected %d, got %d", absTarget, header.Size, written)
-			}
-		case tar.TypeSymlink, tar.TypeLink:
-			return fmt.Errorf("symlinks and hardlinks not allowed in archive: %s", header.Name)
-		default:
-			continue
-		}
+	ctx := context.Background()
+	if err := extract.Unpack(ctx, destDir, file, cfg); err != nil {
+		return fmt.Errorf("extraction failed: %v", err)
 	}
 
 	spinner.Success("Archive extracted successfully")
