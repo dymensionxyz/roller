@@ -77,7 +77,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer file.Close()
 
-	const maxSize = 100 * 1024 * 1024 * 1024
+	const maxSize = 200 * 1024 * 1024 * 1024 // 200GB
 
 	cfg := extract.NewConfig(
 		extract.WithDenySymlinkExtraction(true),
