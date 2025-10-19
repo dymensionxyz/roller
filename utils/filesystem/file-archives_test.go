@@ -16,13 +16,13 @@ func createTestTarGz(t *testing.T, entries map[string]string) string {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer tmpFile.Close()
+	defer tmpFile.Close() // nolint:errcheck
 
 	gzw := gzip.NewWriter(tmpFile)
-	defer gzw.Close()
+	defer gzw.Close() // nolint:errcheck
 
 	tw := tar.NewWriter(gzw)
-	defer tw.Close()
+	defer tw.Close() // nolint:errcheck
 
 	for name, content := range entries {
 		hdr := &tar.Header{
@@ -128,11 +128,11 @@ func TestExtractTarGz_PathTraversal(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create temp dir: %v", err)
 			}
-			defer os.RemoveAll(tmpDir)
+			defer os.RemoveAll(tmpDir) // nolint:errcheck
 
 			// Create test tar.gz file
 			tarPath := createTestTarGz(t, tt.entries)
-			defer os.Remove(tarPath)
+			defer os.Remove(tarPath) // nolint:errcheck
 
 			// Attempt extraction
 			err = ExtractTarGz(tarPath, tmpDir)
@@ -192,7 +192,7 @@ func TestExtractTarGz_NonExistentFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) // nolint:errcheck
 
 	err = ExtractTarGz("/non/existent/file.tar.gz", tmpDir)
 	if err == nil {
@@ -205,11 +205,11 @@ func TestExtractTarGz_InvalidGzip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer os.Remove(tmpFile.Name()) // nolint:errcheck
 
 	// Write invalid gzip content
 	_, err = tmpFile.Write([]byte("not a gzip file"))
-	tmpFile.Close()
+	tmpFile.Close() // nolint:errcheck
 	if err != nil {
 		t.Fatalf("Failed to write invalid content: %v", err)
 	}
@@ -218,7 +218,7 @@ func TestExtractTarGz_InvalidGzip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) // nolint:errcheck
 
 	err = ExtractTarGz(tmpFile.Name(), tmpDir)
 	if err == nil {
