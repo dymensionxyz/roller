@@ -17,23 +17,24 @@ require (
 	cosmossdk.io/math v1.3.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BurntSushi/toml v1.4.0
-	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/aptos-labs/aptos-go-sdk v1.5.0
-	github.com/blang/semver/v4 v4.0.0
 	github.com/block-vision/sui-go-sdk v1.0.6
 	github.com/briandowns/spinner v1.23.0
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.2.1
 	github.com/cometbft/cometbft v0.37.5
 	github.com/cosmos/cosmos-sdk v0.47.13
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/docker/docker v27.0.3+incompatible
 	github.com/docker/go-connections v0.5.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241219133747-aedf494c2ee0
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gogo/protobuf v1.3.3
 	github.com/gorilla/websocket v1.5.3
+	github.com/hashicorp/go-extract v1.0.1
 	github.com/ignite/cli v0.27.2
 	github.com/lib/pq v1.10.9
 	github.com/manifoldco/promptui v0.9.0
@@ -97,7 +98,6 @@ require (
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
-	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -145,7 +145,6 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/dymensionxyz/gerr-cosmos v1.1.0 // indirect
 	github.com/dymensionxyz/sdk-utils v0.2.12 // indirect
@@ -188,7 +187,6 @@ require (
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-extract v1.0.1 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect

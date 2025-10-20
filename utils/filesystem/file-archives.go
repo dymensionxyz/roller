@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dustin/go-humanize"
 	"github.com/hashicorp/go-extract"
 	"github.com/pterm/pterm"
 )
@@ -83,11 +84,10 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	}
 
 	if fileInfo.Size() > promptThreshold {
-		humanSize := formatBytes(fileInfo.Size())
 		pterm.Warning.Printf(
 			"Archive size is %s, which exceeds the default %s limit\n",
-			humanSize,
-			formatBytes(promptThreshold),
+			humanize.Bytes(uint64(fileInfo.Size())),
+			humanize.Bytes(uint64(promptThreshold)),
 		)
 		pterm.Info.Println("Extraction may take significant time and disk space")
 
@@ -119,18 +119,6 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	return nil
 }
 
-func formatBytes(bytes int64) string {
-	const unit = 1024
-	if bytes < unit {
-		return fmt.Sprintf("%d B", bytes)
-	}
-	div, exp := int64(unit), 0
-	for n := bytes / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
-}
 
 func CompressTarGz(sourceDir, destDir, fileName string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Creating archive from...")
