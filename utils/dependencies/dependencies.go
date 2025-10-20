@@ -214,6 +214,11 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return nil
 	}
 
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
@@ -223,6 +228,14 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	}
 	// nolint: errcheck
 	defer os.RemoveAll(targetDir)
+	defer func() {
+		if originalDir == "" {
+			return
+		}
+		if chdirErr := os.Chdir(originalDir); chdirErr != nil {
+			pterm.Warning.Println("failed to restore working directory:", chdirErr)
+		}
+	}()
 	// Clone the repository
 	err = os.Chdir(targetDir)
 	if err != nil {
