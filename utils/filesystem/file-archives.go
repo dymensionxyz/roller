@@ -119,7 +119,6 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	return nil
 }
 
-
 func CompressTarGz(sourceDir, destDir, fileName string) error {
 	spinner, _ := pterm.DefaultSpinner.Start("Creating archive from...")
 	// nolint:errcheck
