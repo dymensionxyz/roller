@@ -209,7 +209,7 @@ func TestExtractTarGz_InvalidGzip(t *testing.T) {
 
 	// Write invalid gzip content
 	_, err = tmpFile.Write([]byte("not a gzip file"))
-	tmpFile.Close() // nolint:errcheck
+	tmpFile.Close() // nolint:errcheck,gosec
 	if err != nil {
 		t.Fatalf("Failed to write invalid content: %v", err)
 	}
