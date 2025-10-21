@@ -3,6 +3,7 @@ package filesystem
 import (
 	"archive/tar"
 	"compress/gzip"
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -10,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dustin/go-humanize"
+	"github.com/hashicorp/go-extract"
 	"github.com/pterm/pterm"
 )
 
@@ -64,10 +67,6 @@ func DownloadAndSaveArchive(url string, destPath string) (string, error) {
 }
 
 func ExtractTarGz(sourcePath, destDir string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
-	// nolint:errcheck
-	defer spinner.Stop()
-
 	file, err := os.Open(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %v", err)
@@ -75,51 +74,45 @@ func ExtractTarGz(sourcePath, destDir string) error {
 	// nolint:errcheck
 	defer file.Close()
 
-	gzr, err := gzip.NewReader(file)
+	const promptThreshold = 200 * 1024 * 1024 * 1024 // 200GB
+	maxSize := int64(promptThreshold)
+
+	// Check file size and prompt user if it exceeds threshold
+	fileInfo, err := os.Stat(sourcePath)
 	if err != nil {
-		return fmt.Errorf("failed to create gzip reader: %v", err)
+		return fmt.Errorf("failed to stat archive: %v", err)
 	}
+
+	if fileInfo.Size() > promptThreshold {
+		pterm.Warning.Printf(
+			"Archive size is %s, which exceeds the default %s limit\n",
+			humanize.Bytes(uint64(fileInfo.Size())),
+			humanize.Bytes(uint64(promptThreshold)),
+		)
+		pterm.Info.Println("Extraction may take significant time and disk space")
+
+		proceed, _ := pterm.DefaultInteractiveConfirm.WithDefaultValue(false).
+			WithDefaultText("Do you want to proceed with extraction?").Show()
+		if !proceed {
+			return fmt.Errorf("extraction cancelled by user")
+		}
+
+		maxSize = -1 // Disable limit if user approves
+	}
+
+	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
 	// nolint:errcheck
-	defer gzr.Close()
+	defer spinner.Stop()
 
-	tr := tar.NewReader(gzr)
+	cfg := extract.NewConfig(
+		extract.WithDenySymlinkExtraction(true),
+		extract.WithMaxExtractionSize(maxSize),
+		extract.WithMaxInputSize(maxSize),
+	)
 
-	for {
-		header, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("tar reading error: %v", err)
-		}
-
-		// Ensure we only extract the 'data' directory
-		if header.Name != "data" && !filepath.HasPrefix(header.Name, "data/") {
-			continue
-		}
-
-		// nolint:gosec
-		target := filepath.Join(destDir, header.Name)
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.MkdirAll(target, 0o755); err != nil {
-				return fmt.Errorf("failed to create directory %s: %v", target, err)
-			}
-		case tar.TypeReg:
-			// nolint: gosec
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, 0o755)
-			if err != nil {
-				return fmt.Errorf("failed to create file %s: %v", target, err)
-			}
-			// nolint:errcheck
-			defer f.Close()
-
-			// nolint:gosec
-			if _, err := io.Copy(f, tr); err != nil {
-				return fmt.Errorf("failed to write to file %s: %v", target, err)
-			}
-		}
+	ctx := context.Background()
+	if err := extract.Unpack(ctx, destDir, file, cfg); err != nil {
+		return fmt.Errorf("extraction failed: %v", err)
 	}
 
 	spinner.Success("Archive extracted successfully")
