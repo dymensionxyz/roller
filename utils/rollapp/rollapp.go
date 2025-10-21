@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	minEvmDRSNewDAConfig  = "6"
-	minWasmDRSNewDAConfig = "9"
+	minEvmDRSNewDAConfig  = "5"
+	minWasmDRSNewDAConfig = "7"
 )
 
 func GetHomeDir(home string) string {
