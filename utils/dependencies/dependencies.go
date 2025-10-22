@@ -205,6 +205,10 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 }
 
 func InstallBinaryFromRepo(dep types.Dependency, td string) error {
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	spinner, _ := pterm.DefaultSpinner.Start(
 		fmt.Sprintf("[%s] installing", dep.DependencyName),
 	)
