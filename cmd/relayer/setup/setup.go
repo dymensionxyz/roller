@@ -211,10 +211,10 @@ func Cmd() *cobra.Command {
 				}
 
 				pterm.Info.Println("IBC connection information:")
-				pterm.Info.Println("Hub chanel: ", rly.SrcChannel)
+				pterm.Info.Println("Hub channel: ", rly.SrcChannel)
 				pterm.Info.Println("Hub connection: ", rly.SrcConnectionID)
 				pterm.Info.Println("Hub client: ", rly.SrcClientID)
-				pterm.Info.Println("RollApp chanel: ", rly.DstChannel)
+				pterm.Info.Println("RollApp channel: ", rly.DstChannel)
 				pterm.Info.Println("RollApp connection: ", rly.DstConnectionID)
 				pterm.Info.Println("RollApp client: ", rly.DstClientID)
 			}
