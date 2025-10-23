@@ -38,18 +38,23 @@ func UpgradeCmd() *cobra.Command {
 				return
 			}
 
+			autoAccept, _ := cmd.Flags().GetBool("yes")
+
 			pterm.Warning.Printf(
 				"Do not try to upgrade DRS unless an upgrade has been approved in a governance proposal and your node has been halted, requiring the upgrade. In case you are running the rollapp in background, please stop services using %s\n",
 				pterm.DefaultBasicText.WithStyle(pterm.FgYellow.ToStyle()).
 					Sprintf("roller rollapp services stop"),
 			)
-			ok, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
-				"Would you like to continue?",
-			).Show()
 
-			if !ok {
-				pterm.Error.Println("upgrade cancelled")
-				return
+			if !autoAccept {
+				ok, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+					"Would you like to continue?",
+				).Show()
+
+				if !ok {
+					pterm.Error.Println("upgrade cancelled")
+					return
+				}
 			}
 			rollerData, err := roller.LoadConfig(home)
 			if err != nil {
@@ -186,6 +191,8 @@ func UpgradeCmd() *cobra.Command {
 			)
 		},
 	}
+
+	cmd.Flags().BoolP("yes", "y", false, "automatically accept prompts")
 
 	return cmd
 }
