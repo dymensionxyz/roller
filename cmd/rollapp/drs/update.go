@@ -139,7 +139,7 @@ func UpdateCmd() *cobra.Command {
 				return
 			}
 
-			// repalce the current binary with the new one
+			// replace the current binary with the new one
 			err = archives.MoveBinaryIntoPlaceAndMakeExecutable(
 				tmpBinLocation,
 				consts.Executables.RollappEVM,
