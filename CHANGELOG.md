@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.19.0-rc15](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc15...v1.19.0-rc15) (2025-10-24)
+
+
+### Features
+
+* support new celestia old drs ([#1400](https://github.com/dymensionxyz/roller/issues/1400)) ([0ba16d8](https://github.com/dymensionxyz/roller/commit/0ba16d886347cce54996668cb762894249090a3e))
+* upgrade drs command  auto accept ([#1405](https://github.com/dymensionxyz/roller/issues/1405)) ([4cccf4d](https://github.com/dymensionxyz/roller/commit/4cccf4db63fc5cc5f228500cb346ca5795634bcf))
+
+
+### Bug Fixes
+
+* secure tar.gz extraction ([#1398](https://github.com/dymensionxyz/roller/issues/1398)) ([eb2e28f](https://github.com/dymensionxyz/roller/commit/eb2e28fb7003cb71966b979cbe7bdb736dcecccc))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
