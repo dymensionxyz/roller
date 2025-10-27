@@ -2,11 +2,11 @@ package consts
 
 var MainnetHubData = HubData{
 	Environment:   "mainnet",
-	ApiUrl:        "https://dymension-mainnet-rest.public.blastapi.io:443",
+	ApiUrl:        "https://dymension.api.onfinality.io:443/public",
 	ID:            MainnetHubID,
-	RpcUrl:        "https://dymension-mainnet-tendermint.public.blastapi.io:443",
-	WsUrl:         "",
-	ArchiveRpcUrl: "https://dymension-mainnet-tendermint.public.blastapi.io:443",
+	RpcUrl:        "https://dymension.api.onfinality.io:443/tendermint/public",
+	WsUrl:         "https://dymension.api.onfinality.io:443/public-ws",
+	ArchiveRpcUrl: "https://dymension.api.onfinality.io:443/tendermint/public",
 	GasPrice:      "7000000000",
 }
 
