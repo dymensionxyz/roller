@@ -2,7 +2,6 @@ package setup
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -1072,6 +1071,14 @@ func SupportedGasDenoms(
 		}
 	}
 
+	if raResponse.Rollapp.Metadata != nil && raResponse.Rollapp.Metadata.FeeDenom != nil {
+		sd[raResponse.Rollapp.Metadata.FeeDenom.Base] = dymensionseqtypes.DenomMetadata{
+			Display:  raResponse.Rollapp.Metadata.FeeDenom.Display,
+			Base:     raResponse.Rollapp.Metadata.FeeDenom.Base,
+			Exponent: raResponse.Rollapp.Metadata.FeeDenom.Exponent,
+		}
+	}
+
 	return sd, nil
 }
 
@@ -1133,7 +1140,7 @@ func populateSequencerMetadata(raCfg roller.RollappConfig) error {
 		}
 
 		if _, ok = sgt[denom]; !ok {
-			return errors.New("unsupported gas denom")
+			return fmt.Errorf("unsupported gas denom: %s", denom)
 		}
 
 		fd := sgt[denom]
