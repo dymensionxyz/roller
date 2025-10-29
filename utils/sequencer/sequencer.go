@@ -665,7 +665,7 @@ func GetSequencerOperatorAddress(home string, kb string) (string, error) {
 		"Enter keyring passphrase": psw,
 	}
 
-	addr, err := bash.ExecuteCommandWithPromptHandler(
+	addr, err := bash.ExecuteCommandWithPromptHandlerFiltered(
 		consts.Executables.RollappEVM,
 		args,
 		automaticPrompts,
@@ -695,7 +695,7 @@ func GetWhitelistedRelayersOnRa(raOpAddr string) ([]string, error) {
 		"json",
 	)
 
-	o, err := bash.ExecCommandWithStdout(cmd)
+	o, err := bash.ExecCommandWithStdoutFiltered(cmd)
 	if err != nil {
 		return nil, err
 	}
