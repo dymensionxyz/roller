@@ -101,3 +101,11 @@ type CheckExistingSequencerResponse struct {
 	IsSequencerKeyPresent        bool
 	IsSequencerProposer          bool
 }
+
+type SequencerParamsResponse struct {
+	Params SequencerParams `json:"params"`
+}
+
+type SequencerParams struct {
+	LivenessSlashMinAbsolute cosmossdktypes.Coin `json:"liveness_slash_min_absolute"`
+}
