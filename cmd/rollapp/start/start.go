@@ -271,7 +271,35 @@ func PrintOutput(
 		pterm.DefaultSection.WithIndentCharacter("💈").
 			Println("Wallet Info:")
 		if withBalance && rlpCfg.NodeType == "sequencer" {
-			fmt.Println("Sequencer Balance:", seqAddrData[0].Balance.String())
+			seqBalance := seqAddrData[0].Balance
+			fmt.Printf(
+				"Sequencer Balance: %s %s\n",
+				seqBalance.Amount.String(),
+				seqBalance.Denom,
+			)
+
+			if rlpCfg.HubData.ID != consts.MockHubID && rlpCfg.HubData.RpcUrl != "" {
+				params, paramsErr := sequencerutils.GetSequencerParams(rlpCfg.HubData)
+				if paramsErr != nil {
+					pterm.Warning.Println("failed to retrieve sequencer params:", paramsErr)
+				} else if params != nil {
+					minBalance := params.Params.LivenessSlashMinAbsolute
+					fmt.Printf(
+						"Liveness Slash Minimum: %s %s\n",
+						minBalance.Amount.String(),
+						minBalance.Denom,
+					)
+
+					if seqBalance.Amount.LT(minBalance.Amount) {
+						warnMsg := fmt.Sprintf(
+							"Sequencer balance %s is below the liveness slash minimum %s.",
+							seqBalance.String(),
+							minBalance.String(),
+						)
+						pterm.Warning.Println(warnMsg, "Please top up to avoid slashing.")
+					}
+				}
+			}
 		}
 
 		if withBalance && rlpCfg.NodeType == "sequencer" && rlpCfg.HubData.ID != "mock" {
