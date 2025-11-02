@@ -16,9 +16,11 @@ import (
 )
 
 const (
-	ConfigFileName      = "kaspa.toml"
-	MnemonicEntropySize = 256
-	requiredKAS         = 1
+	ConfigFileName          = "kaspa.toml"
+	MnemonicEntropySize     = 256
+	requiredKAS             = 1
+	defaultKaspaTestnetGRPC = "185.69.54.99:16210"
+	defaultKaspaMainnetGRPC = "91.84.65.9:16210"
 )
 
 type Kaspa struct {
@@ -49,9 +51,11 @@ func NewKaspa(root string) *Kaspa {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.KaspaMainnet)
 			kaspaConfig.Network = "kaspa-mainnet"
+			kaspaConfig.GrpcAddress = defaultKaspaMainnetGRPC
 		} else {
 			daNetwork = string(consts.KaspaTestnet)
 			kaspaConfig.Network = "kaspa-testnet-10"
+			kaspaConfig.GrpcAddress = defaultKaspaTestnetGRPC
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
@@ -71,8 +75,6 @@ func NewKaspa(root string) *Kaspa {
 			kaspaConfig.GrpcAddress, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"> Enter your gRPC endpoint",
 			).Show()
-		} else {
-			kaspaConfig.GrpcAddress = "185.69.54.99:16210"
 		}
 
 		kaspaConfig.Address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
