@@ -31,6 +31,38 @@ func GetSequencerConfigDir(rollerHome string) string {
 	return filepath.Join(rollerHome, consts.ConfigDirName.Rollapp, "config")
 }
 
+func GetSequencerParams(hd consts.HubData) (*SequencerParamsResponse, error) {
+	if hd.RpcUrl == "" {
+		return nil, fmt.Errorf("hub rpc url is empty")
+	}
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q",
+		"sequencer",
+		"params",
+		"--node",
+		hd.RpcUrl,
+		"--chain-id",
+		hd.ID,
+		"-o",
+		"json",
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp SequencerParamsResponse
+	err = json.Unmarshal(out.Bytes(), &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 func Register(raCfg roller.RollappConfig, desiredBond cosmossdktypes.Coin) error {
 	seqPubKey, err := keys.GetSequencerPubKey(raCfg)
 	if err != nil {
