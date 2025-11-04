@@ -1,7 +1,6 @@
 package kaspa
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,9 +16,11 @@ import (
 )
 
 const (
-	ConfigFileName      = "kaspa.toml"
-	MnemonicEntropySize = 256
-	requiredKAS         = 1
+	ConfigFileName          = "kaspa.toml"
+	MnemonicEntropySize     = 256
+	requiredKAS             = 1
+	defaultKaspaTestnetGRPC = "185.69.54.99:16210"
+	defaultKaspaMainnetGRPC = "91.84.65.9:16210"
 )
 
 type Kaspa struct {
@@ -49,10 +50,12 @@ func NewKaspa(root string) *Kaspa {
 	if err != nil {
 		if rollerData.HubData.Environment == "mainnet" {
 			daNetwork = string(consts.KaspaMainnet)
-			kaspaConfig.Network = "mainnet"
+			kaspaConfig.Network = "kaspa-mainnet"
+			kaspaConfig.GrpcAddress = defaultKaspaMainnetGRPC
 		} else {
 			daNetwork = string(consts.KaspaTestnet)
-			kaspaConfig.Network = "testnet"
+			kaspaConfig.Network = "kaspa-testnet-10"
+			kaspaConfig.GrpcAddress = defaultKaspaTestnetGRPC
 		}
 
 		daData, exists := consts.DaNetworks[daNetwork]
@@ -72,8 +75,6 @@ func NewKaspa(root string) *Kaspa {
 			kaspaConfig.GrpcAddress, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"> Enter your gRPC endpoint",
 			).Show()
-		} else {
-			kaspaConfig.GrpcAddress = "localhost:16210"
 		}
 
 		kaspaConfig.Address, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
@@ -199,65 +200,34 @@ func (k *Kaspa) GetAppID() uint32 {
 	return 0
 }
 
-type GetUtxosParams struct {
+type KaspaBalanceResponse struct {
 	Address string `json:"address"`
-}
-
-type JsonRpcRequest struct {
-	Jsonrpc string         `json:"jsonrpc"`
-	Method  string         `json:"method"`
-	Params  GetUtxosParams `json:"params"`
-	ID      int            `json:"id"`
-}
-
-type UTXO struct {
-	Amount uint64 `json:"amount"`
-}
-
-type JsonRpcResponse struct {
-	Result struct {
-		Entries []UTXO `json:"entries"`
-	} `json:"result"`
-	Error interface{} `json:"error"`
+	Balance uint64 `json:"balance"` // Đơn vị: sompi
 }
 
 func (k *Kaspa) getBalance() (uint64, error) {
-	reqBody := JsonRpcRequest{
-		Jsonrpc: "2.0",
-		Method:  "getUtxosByAddress",
-		Params:  GetUtxosParams{Address: k.Address},
-		ID:      1,
-	}
+	url := fmt.Sprintf("%s/addresses/%s/balance", k.ApiUrl, k.Address)
 
-	body, err := json.Marshal(reqBody)
+	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
-	}
-
-	resp, err := http.Post(k.ApiUrl, "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to call Kaspa API: %w", err)
 	}
 	defer resp.Body.Close()
 
-	respData, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		return 0, fmt.Errorf("Kaspa API returned status: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var rpcResp JsonRpcResponse
-	if err := json.Unmarshal(respData, &rpcResp); err != nil {
-		return 0, err
+	var data KaspaBalanceResponse
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
-	if rpcResp.Error != nil {
-		return 0, fmt.Errorf("RPC error: %v", rpcResp.Error)
-	}
-
-	var total uint64 = 0
-	for _, utxo := range rpcResp.Result.Entries {
-		total += utxo.Amount
-	}
-
-	return total, nil
+	return data.Balance, nil
 }
