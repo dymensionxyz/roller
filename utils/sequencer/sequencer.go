@@ -697,6 +697,8 @@ func GetWhitelistedRelayersOnRa(raOpAddr string) ([]string, error) {
 		"json",
 	)
 
+	fmt.Println("cmd: ", cmd.String())
+
 	o, err := bash.ExecCommandWithStdout(cmd)
 	if err != nil {
 		return nil, err
