@@ -64,7 +64,7 @@ func (r *Relayer) HandleWhitelisting(
 	for {
 		wra, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
 		if err != nil {
-			pterm.Error.Println("failed to get whitelisted relayers:", err)
+			pterm.Error.Println("failed to get whitelisted relayers for ", raOpAddr, "err: ", err)
 			return err
 		}
 

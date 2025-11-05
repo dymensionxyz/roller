@@ -676,6 +676,8 @@ func GetSequencerOperatorAddress(home string, kb string) (string, error) {
 		return "", err
 	}
 
+	fmt.Println("addr: ", addr.String(), "args: ", args)
+
 	a := strings.TrimSpace(addr.String())
 	return a, nil
 }
