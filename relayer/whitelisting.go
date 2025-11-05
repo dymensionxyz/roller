@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"slices"
-	"time"
 
 	"github.com/pterm/pterm"
 
@@ -49,38 +48,38 @@ func (r *Relayer) HandleWhitelisting(
 		}
 	}
 
-	raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(
-		r.RollerHome,
-		string(kb),
-	)
-	if err != nil {
-		pterm.Error.Println("failed to get RollApp's operator address:", err)
-		return err
-	}
+	// raOpAddr, err := sequencerutils.GetSequencerOperatorAddress(
+	// 	r.RollerHome,
+	// 	string(kb),
+	// )
+	// if err != nil {
+	// 	pterm.Error.Println("failed to get RollApp's operator address:", err)
+	// 	return err
+	// }
 
-	wrSpinner, _ := pterm.DefaultSpinner.Start(
-		"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
-	)
-	for {
-		wra, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
-		if err != nil {
-			pterm.Error.Println("failed to get whitelisted relayers for ", raOpAddr, "err: ", err)
-			return err
-		}
+	// wrSpinner, _ := pterm.DefaultSpinner.Start(
+	// 	"waiting for the whitelisted relayer to propagate to RollApp (this might take a while)",
+	// )
+	// for {
+	// 	wra, err := sequencerutils.GetWhitelistedRelayersOnRa(raOpAddr)
+	// 	if err != nil {
+	// 		pterm.Error.Println("failed to get whitelisted relayers for ", raOpAddr, "err: ", err)
+	// 		return err
+	// 	}
 
-		if len(wra) == 0 &&
-			slices.Contains(wra, addr) {
-			wrSpinner.UpdateText(
-				"waiting for the whitelisted relayer to propagate to RollApp...",
-			)
-			time.Sleep(time.Second * 5)
-			continue
-		} else {
-			// nolint: errcheck
-			wrSpinner.Success("relayer whitelisted and propagated to rollapp")
-			break
-		}
-	}
+	// 	if len(wra) == 0 &&
+	// 		slices.Contains(wra, addr) {
+	// 		wrSpinner.UpdateText(
+	// 			"waiting for the whitelisted relayer to propagate to RollApp...",
+	// 		)
+	// 		time.Sleep(time.Second * 5)
+	// 		continue
+	// 	} else {
+	// 		// nolint: errcheck
+	// 		wrSpinner.Success("relayer whitelisted and propagated to rollapp")
+	// 		break
+	// 	}
+	// }
 
 	return nil
 }
