@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.1-rc17](https://github.com/dymensionxyz/roller/compare/v1.18.0-rc17...v1.18.1-rc17) (2025-11-07)
+
+
+### Bug Fixes
+
+* **ci:** migrate self hosted runners ([a05315c](https://github.com/dymensionxyz/roller/commit/a05315c4c9d98736383111fd4cfcfad860051d91))
+* **rly:** fix a bug where wrong structure was used upon rly key creation ([#1410](https://github.com/dymensionxyz/roller/issues/1410)) ([a4ee089](https://github.com/dymensionxyz/roller/commit/a4ee089ebcede288ec4bfcdbdf03ec8d68bd45c0))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
