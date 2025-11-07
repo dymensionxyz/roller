@@ -343,11 +343,9 @@ func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
 		return nil, err
 	}
 
-	// Relayer add command returns address as plain text, not JSON
-	address := strings.TrimSpace(out.String())
-	ki := &KeyInfo{
-		Address: address,
-		Name:    kc.ID,
+	ki, err := ParseAddressFromOutput(out)
+	if err != nil {
+		return nil, err
 	}
 
 	return ki, nil
