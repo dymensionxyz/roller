@@ -348,6 +348,8 @@ func AddRlyKey(kc KeyConfig, chainID string) (*KeyInfo, error) {
 		return nil, err
 	}
 
+	ki.Name = kc.ID
+
 	return ki, nil
 }
 
