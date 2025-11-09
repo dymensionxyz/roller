@@ -268,11 +268,16 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 		pterm.Error.Println("failed to retrieve rollapp rpc endpoint: ", err)
 		return nil, nil, "", err
 	}
-	raRpc = strings.TrimSuffix(raRpc, "/")
+	pterm.Info.Printf("validating rollapp rpc endpoint: %s\n", raRpc)
+	validatedRpc, err := sequencerutils.ValidateRollappRPCEndpoint(raID, raRpc)
+	if err != nil {
+		pterm.Error.Println("rollapp rpc endpoint validation failed:", err)
+		return nil, nil, "", err
+	}
 
 	raData := consts.RollappData{
 		ID:     raID,
-		RpcUrl: raRpc,
+		RpcUrl: validatedRpc,
 	}
 	return &raData, hd, kb, nil
 }
