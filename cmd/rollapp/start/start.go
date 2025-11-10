@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
@@ -284,19 +285,45 @@ func PrintOutput(
 					pterm.Warning.Println("failed to retrieve sequencer params:", paramsErr)
 				} else if params != nil {
 					minBalance := params.Params.LivenessSlashMinAbsolute
-					fmt.Printf(
-						"Liveness Slash Minimum: %s %s\n",
-						minBalance.Amount.String(),
-						minBalance.Denom,
-					)
+					seqAmt := seqBalance.Amount
+					minAmt := minBalance.Amount
 
-					if seqBalance.Amount.LT(minBalance.Amount) {
-						warnMsg := fmt.Sprintf(
+					shouldHighlight := false
+					var warnDetail string
+					if seqAmt.LT(minAmt) {
+						shouldHighlight = true
+						warnDetail = fmt.Sprintf(
 							"Sequencer balance %s is below the liveness slash minimum %s.",
 							seqBalance.String(),
 							minBalance.String(),
 						)
-						pterm.Warning.Println(warnMsg, "Please top up to avoid slashing.")
+					} else if minAmt.GT(sdkmath.ZeroInt()) {
+						diff := seqAmt.Sub(minAmt).Abs()
+						tolerance := minAmt.QuoRaw(10) // 10% band
+						if tolerance.IsZero() {
+							tolerance = sdkmath.NewInt(1)
+						}
+						if diff.LTE(tolerance) {
+							shouldHighlight = true
+							warnDetail = fmt.Sprintf(
+								"Sequencer balance %s is close to the liveness slash minimum %s.",
+								seqBalance.String(),
+								minBalance.String(),
+							)
+						}
+					}
+
+					if shouldHighlight {
+						fmt.Printf(
+							"Liveness Slash Minimum: %s %s\n",
+							minBalance.Amount.String(),
+							minBalance.Denom,
+						)
+						pterm.Warning.Println(
+							"The liveness slash minimum is the balance required to avoid downtime slashing.",
+							warnDetail,
+							"Consider topping up to maintain a safety buffer.",
+						)
 					}
 				}
 			}
