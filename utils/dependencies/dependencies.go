@@ -270,7 +270,7 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		if err := cmd.Run(); err != nil {
 			spinner.Fail(
 				fmt.Sprintf("[%s] failed to checkout %s. Error: %v", dep.DependencyName, dep.Release, err),
-				fmt.Sprintf("command: %s, dir: %s", cmd.String(), cmd.Dir),
+				fmt.Sprintf("command: %s, dir: %s, path: %s", cmd.String(), cmd.Dir, cmd.Path),
 				fmt.Sprintf("dependency: %+v", dep),
 				fmt.Sprintf("original directory: %s", originalDir),
 				fmt.Sprintf("target directory: %s", targetDir),
