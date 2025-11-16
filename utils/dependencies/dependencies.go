@@ -268,15 +268,17 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			return err
 		}
 
-		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
+		release := strings.TrimSpace(dep.Release)
+
+		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, release))
 		cwd, _ := os.Getwd()
-		cmd := exec.Command("git", "checkout", dep.Release)
+		cmd := exec.Command("git", "checkout", release)
 		cmd.Dir = targetDir
 
 		if err := cmd.Run(); err != nil {
 			spinner.Fail(
 				fmt.Sprintf("cwd before checkout: %s", cwd),
-				fmt.Sprintf("[%s] failed to checkout %s. Error: %v", dep.DependencyName, dep.Release, err),
+				fmt.Sprintf("[%s] failed to checkout %s. Error: %v", dep.DependencyName, release, err),
 				fmt.Sprintf("command: %s, dir: %s, path: %s", cmd.String(), cmd.Dir, cmd.Path),
 				fmt.Sprintf("dependency: %+v", dep),
 				fmt.Sprintf("original directory: %s", originalDir),
