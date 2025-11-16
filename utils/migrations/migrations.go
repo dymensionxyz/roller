@@ -122,6 +122,7 @@ func RequireRollappMigrateIfNeeded(current, last, vmType string) error {
 func GetCommitTimestamp(owner, repo, sha string) (time.Time, error) {
 	sha = strings.ToLower(sha)
 	sha = strings.TrimSuffix(sha, "\n")
+	sha = strings.TrimSpace(sha)
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits/%s", owner, repo, sha)
 	// nolint: gosec
 	resp, err := http.Get(url)
