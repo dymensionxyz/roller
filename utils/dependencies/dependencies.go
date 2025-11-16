@@ -265,8 +265,25 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	}
 
 	if dep.Release != "main" {
+		// ls target directory
+		cmd := exec.Command("ls", "-la", targetDir)
+		out, err := cmd.Output()
+		if err != nil {
+			spinner.Fail(fmt.Sprintf("failed to list target directory: %v", err))
+			return err
+		}
+		fmt.Println(string(out))
+
+		// Change directory to the cloned repo
+		if err := os.Chdir(targetDir); err != nil {
+			spinner.Fail(
+				fmt.Sprintf("[%s] failed to create a temp directory", dep.DependencyName),
+			)
+			return err
+		}
+
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
-		cmd := exec.Command("git", "checkout", dep.Release)
+		cmd = exec.Command("git", "checkout", dep.Release)
 		if err := cmd.Run(); err != nil {
 			spinner.Fail(
 				fmt.Sprintf("[%s] failed to checkout %s. Error: %v", dep.DependencyName, dep.Release, err),
