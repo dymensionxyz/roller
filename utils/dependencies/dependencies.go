@@ -236,12 +236,6 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 			pterm.Warning.Println("failed to restore working directory:", chdirErr)
 		}
 	}()
-	// Clone the repository
-	err = os.Chdir(targetDir)
-	if err != nil {
-		spinner.Fail("failed to create a temp directory")
-		return err
-	}
 
 	spinner.UpdateText(
 		fmt.Sprintf("[%s] cloning the repository", dep.DependencyName),
@@ -283,9 +277,13 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		}
 
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
+		cwd, _ := os.Getwd()
 		cmd = exec.Command("git", "checkout", dep.Release)
+		c.Dir = targetDir // or originalDir, see note below
+
 		if err := cmd.Run(); err != nil {
 			spinner.Fail(
+				fmt.Sprintf("cwd before checkout: %s", cwd),
 				fmt.Sprintf("[%s] failed to checkout %s. Error: %v", dep.DependencyName, dep.Release, err),
 				fmt.Sprintf("command: %s, dir: %s, path: %s", cmd.String(), cmd.Dir, cmd.Path),
 				fmt.Sprintf("dependency: %+v", dep),
