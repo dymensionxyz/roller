@@ -240,8 +240,8 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 	spinner.UpdateText(
 		fmt.Sprintf("[%s] cloning the repository", dep.DependencyName),
 	)
-	c := exec.Command("git", "clone", dep.RepositoryUrl, targetDir)
-	_, err = bash.ExecCommandWithStdout(c)
+
+	_, err = bash.ExecCommandWithStdout(exec.Command("git", "clone", dep.RepositoryUrl, targetDir))
 	if err != nil {
 		spinner.Fail(
 			fmt.Sprintf("[%s] failed to clone", dep.DependencyName),
@@ -250,23 +250,15 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 		return err
 	}
 
-	// Change directory to the cloned repo
-	if err := os.Chdir(targetDir); err != nil {
-		spinner.Fail(
-			fmt.Sprintf("[%s] failed to create a temp directory", dep.DependencyName),
-		)
-		return err
-	}
-
 	if dep.Release != "main" {
-		// ls target directory
-		cmd := exec.Command("ls", "-la", targetDir)
-		out, err := cmd.Output()
-		if err != nil {
-			spinner.Fail(fmt.Sprintf("failed to list target directory: %v", err))
-			return err
-		}
-		fmt.Println(string(out))
+		// // ls target directory
+		// cmd := exec.Command("ls", "-la", targetDir)
+		// out, err := cmd.Output()
+		// if err != nil {
+		// 	spinner.Fail(fmt.Sprintf("failed to list target directory: %v", err))
+		// 	return err
+		// }
+		// fmt.Println(string(out))
 
 		// Change directory to the cloned repo
 		if err := os.Chdir(targetDir); err != nil {
@@ -278,8 +270,8 @@ func InstallBinaryFromRepo(dep types.Dependency, td string) error {
 
 		spinner.UpdateText(fmt.Sprintf("[%s] checking out %s", dep.DependencyName, dep.Release))
 		cwd, _ := os.Getwd()
-		cmd = exec.Command("git", "checkout", dep.Release)
-		c.Dir = targetDir // or originalDir, see note below
+		cmd := exec.Command("git", "checkout", dep.Release)
+		cmd.Dir = targetDir
 
 		if err := cmd.Run(); err != nil {
 			spinner.Fail(
