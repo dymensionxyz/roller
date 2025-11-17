@@ -1,6 +1,7 @@
 package kaspa
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -8,6 +9,8 @@ import (
 
 	"github.com/dymensionxyz/roller/cmd/consts"
 )
+
+const mnemonicEnvFileName = "kaspa_mnemonic.env"
 
 func writeConfigToTOML(path string, c Kaspa) error {
 	tomlBytes, err := toml.Marshal(c)
@@ -44,4 +47,26 @@ func loadConfigFromTOML(path string) (Kaspa, error) {
 
 func GetCfgFilePath(rollerHome string) string {
 	return filepath.Join(rollerHome, consts.ConfigDirName.DALightNode, ConfigFileName)
+}
+
+func GetMnemonicEnvFilePath(rollerHome string) string {
+	return filepath.Join(rollerHome, consts.ConfigDirName.DALightNode, mnemonicEnvFileName)
+}
+
+func EnsureMnemonicEnvFile(rollerHome string) (string, error) {
+	envPath := GetMnemonicEnvFilePath(rollerHome)
+	if err := os.MkdirAll(filepath.Dir(envPath), 0o755); err != nil {
+		return "", err
+	}
+	_, err := os.Stat(envPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if err := os.WriteFile(envPath, []byte{}, 0o600); err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
+	}
+	return envPath, nil
 }
