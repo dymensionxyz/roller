@@ -1,6 +1,7 @@
 package start
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -13,6 +14,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	"github.com/dymensionxyz/roller/data_layer/aptos"
+	"github.com/dymensionxyz/roller/data_layer/kaspa"
 	"github.com/dymensionxyz/roller/data_layer/sui"
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
@@ -65,6 +67,14 @@ func RollappCmd() *cobra.Command {
 				err = os.Setenv("APT_PRIVATE_KEY", aptConfig.PrivateKey)
 				if err != nil {
 					pterm.Error.Println("failed to set env", err)
+					return
+				}
+			}
+
+			if rollappConfig.DA.Backend == consts.Kaspa {
+				err := ensureKaspaMnemonicCached(rollappConfig.Home)
+				if err != nil {
+					pterm.Error.Println("failed to prepare kaspa mnemonic:", err)
 					return
 				}
 			}
@@ -328,4 +338,68 @@ func startLaunchctlServices(services []string) error {
 		strings.Join(services, ", "),
 	)
 	return nil
+}
+
+func ensureKaspaMnemonicCached(home string) error {
+	cached, err := readKaspaMnemonicFromCache(home)
+	if err != nil {
+		return err
+	}
+	if cached != "" {
+		return nil
+	}
+
+	mnemonic := strings.TrimSpace(os.Getenv(kaspa.MnemonicEnvVar))
+	if mnemonic == "" {
+		var promptErr error
+		mnemonic, promptErr = pterm.DefaultInteractiveTextInput.WithDefaultText(
+			"> Enter your Kaspa mnemonic",
+		).Show()
+		if promptErr != nil {
+			return promptErr
+		}
+		mnemonic = strings.TrimSpace(mnemonic)
+		if mnemonic == "" {
+			return errors.New("kaspa mnemonic cannot be empty")
+		}
+	}
+
+	if err := cacheKaspaMnemonic(home, mnemonic); err != nil {
+		return err
+	}
+	if setErr := os.Setenv(kaspa.MnemonicEnvVar, mnemonic); setErr != nil {
+		return setErr
+	}
+	return nil
+}
+
+func readKaspaMnemonicFromCache(home string) (string, error) {
+	path := kaspa.GetMnemonicEnvFilePath(home)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", nil
+		}
+		return "", err
+	}
+	prefix := kaspa.MnemonicEnvVar + "="
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, prefix) {
+			return strings.TrimSpace(strings.TrimPrefix(line, prefix)), nil
+		}
+	}
+	return "", nil
+}
+
+func cacheKaspaMnemonic(home, mnemonic string) error {
+	if mnemonic == "" {
+		return errors.New("kaspa mnemonic cannot be empty")
+	}
+	envPath, err := kaspa.EnsureMnemonicEnvFile(home)
+	if err != nil {
+		return err
+	}
+	content := fmt.Sprintf("%s=%s\n", kaspa.MnemonicEnvVar, mnemonic)
+	return os.WriteFile(envPath, []byte(content), 0o600)
 }
