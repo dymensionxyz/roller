@@ -367,9 +367,6 @@ func ensureKaspaMnemonicCached(home string) error {
 	if err := cacheKaspaMnemonic(home, mnemonic); err != nil {
 		return err
 	}
-	if setErr := os.Setenv(kaspa.MnemonicEnvVar, mnemonic); setErr != nil {
-		return setErr
-	}
 	return nil
 }
 
