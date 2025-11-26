@@ -460,7 +460,7 @@ func LoadLinuxServices(services []string, rollerData roller.RollappConfig) error
 		if service == "rollapp" && rollerData.DA.Backend == consts.Kaspa {
 			envPath, err := kaspa.EnsureMnemonicEnvFile(rollerData.Home)
 			if err != nil {
-				pterm.Error.Println("failed to prepare kaspa mnemonic cache file", err)
+				pterm.Error.Println("failed to prepare kaspa mnemonic cache file:", err)
 				return err
 			}
 			serviceData.EnvironmentFiles = append(serviceData.EnvironmentFiles, envPath)
