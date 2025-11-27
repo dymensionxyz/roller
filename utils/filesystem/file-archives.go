@@ -100,7 +100,7 @@ func ExtractTarGz(sourcePath, destDir string) error {
 		maxSize = -1 // Disable limit if user approves
 	}
 
-	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive...")
+	spinner, _ := pterm.DefaultSpinner.Start("Extracting archive into " + destDir)
 	// nolint:errcheck
 	defer spinner.Stop()
 
