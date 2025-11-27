@@ -58,6 +58,7 @@ func Cmd() *cobra.Command {
 			shouldUseDefaultRpcEndpoint, _ := cmd.Flags().GetBool("use-default-rpc-endpoint")
 			skipDA, _ := cmd.Flags().GetBool("skip-da")
 			skipGenesisValidation, _ := cmd.Flags().GetBool("skip-genesis-validation")
+			skipDataDirCheck, _ := cmd.Flags().GetBool("skip-data-dir-check")
 
 			err := initconfig.AddFlags(cmd)
 			if err != nil {
@@ -424,14 +425,18 @@ func Cmd() *cobra.Command {
 
 						var replaceExistingData bool
 						if dataDirNotEmpty {
-							pterm.Warning.Println("the ~/.roller/rollapp/data directory is not empty.")
-							replaceExistingData, _ = pterm.DefaultInteractiveConfirm.Show(
-								"Do you want to replace its contents?",
-							)
-							if !replaceExistingData {
-								pterm.Info.Println(
-									"operation cancelled, node will be synced from genesis block ",
+							if skipDataDirCheck {
+								replaceExistingData = true
+							} else {
+								pterm.Warning.Println("the ~/.roller/rollapp/data directory is not empty.")
+								replaceExistingData, _ = pterm.DefaultInteractiveConfirm.Show(
+									"Do you want to replace its contents?",
 								)
+								if !replaceExistingData {
+									pterm.Info.Println(
+										"operation cancelled, node will be synced from genesis block ",
+									)
+								}
 							}
 						}
 
