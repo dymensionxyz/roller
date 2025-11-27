@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.5](https://github.com/dymensionxyz/roller/compare/v1.18.4...v1.18.5) (2025-11-27)
+
+
+### Bug Fixes
+
+* snapsshot extraction ([#1420](https://github.com/dymensionxyz/roller/issues/1420)) ([84dcca7](https://github.com/dymensionxyz/roller/commit/84dcca7d02d8c7a9a625aedd1715c871f0d80ad0))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
