@@ -17,6 +17,7 @@ import (
 	initconfig "github.com/dymensionxyz/roller/cmd/config/init"
 	"github.com/dymensionxyz/roller/cmd/consts"
 	datalayer "github.com/dymensionxyz/roller/data_layer"
+	"github.com/dymensionxyz/roller/data_layer/kaspa"
 	"github.com/dymensionxyz/roller/utils/bash"
 	"github.com/dymensionxyz/roller/utils/config/cronjobs"
 	"github.com/dymensionxyz/roller/utils/config/scripts"
@@ -31,11 +32,12 @@ type Service struct {
 }
 
 type ServiceTemplateData struct {
-	Name         string
-	ExecPath     string
-	UserName     string
-	CustomRunCmd []string
-	Home         string
+	Name             string
+	ExecPath         string
+	UserName         string
+	CustomRunCmd     []string
+	Home             string
+	EnvironmentFiles []string
 }
 
 func Cmd(services []string, module string) *cobra.Command {
@@ -319,6 +321,9 @@ After=network.target
 
 [Service]
 Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+{{- range .EnvironmentFiles}}
+EnvironmentFile={{printf "%q" .}}
+{{- end}}
 ExecStart={{.ExecPath}} oracle {{.Name}} start --home {{.Home}}
 Restart=on-failure
 RestartSec=10
@@ -337,6 +342,9 @@ After=network.target
 
 [Service]
 Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+{{- range .EnvironmentFiles}}
+EnvironmentFile={{printf "%q" .}}
+{{- end}}
 ExecStart={{.ExecPath}} {{.Name}} start  --home {{.Home}}
 Restart=on-failure
 RestartSec=10
@@ -355,6 +363,9 @@ After=network.target
 
 [Service]
 Environment="PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+{{- range .EnvironmentFiles}}
+EnvironmentFile={{printf "%q" .}}
+{{- end}}
 ExecStart={{.ExecPath}} {{.Name}} start --home {{.Home}}
 Restart=on-failure
 RestartSec=10
@@ -444,6 +455,15 @@ func LoadLinuxServices(services []string, rollerData roller.RollappConfig) error
 			ExecPath: consts.Executables.Roller,
 			UserName: usr.Username,
 			Home:     rollerData.Home,
+		}
+
+		if service == "rollapp" && rollerData.DA.Backend == consts.Kaspa {
+			envPath, err := kaspa.EnsureMnemonicEnvFile(rollerData.Home)
+			if err != nil {
+				pterm.Error.Println("failed to prepare kaspa mnemonic cache file:", err)
+				return err
+			}
+			serviceData.EnvironmentFiles = append(serviceData.EnvironmentFiles, envPath)
 		}
 
 		tpl, err := generateSystemdServiceTemplate(serviceData)

@@ -21,6 +21,7 @@ const (
 	requiredKAS             = 1
 	defaultKaspaTestnetGRPC = "185.69.54.99:16210"
 	defaultKaspaMainnetGRPC = "91.84.65.9:16210"
+	MnemonicEnvVar          = "KASPA_MNEMONIC"
 )
 
 type Kaspa struct {
