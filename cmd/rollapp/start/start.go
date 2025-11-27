@@ -117,7 +117,7 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 			rollerLogger := logging.GetRollerLogger(rollappConfig.Home)
 
 			if rollappConfig.HubData.ID != "mock" && rollappConfig.HealthAgent.Enabled {
-				go healthagent.Start(home, rollerLogger)
+				go healthagent.Start(home, rollappConfig.HealthAgent, rollerLogger)
 			}
 
 			done := make(chan error, 1)

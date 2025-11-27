@@ -33,5 +33,7 @@ type RollappConfig struct {
 }
 
 type HealthAgentConfig struct {
-	Enabled bool `toml:"enabled"`
+	Enabled             bool   `toml:"enabled"`
+	WaitBeforeUnhealthy string `toml:"wait_before_unhealthy"`
+	HealthCheckInterval string `toml:"health_check_interval"`
 }

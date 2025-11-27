@@ -21,9 +21,30 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func Start(home string, l *log.Logger) {
+const (
+	DefaultWaitBeforeUnhealthy = 2 * time.Minute
+	DefaultHealthCheckInterval = 15 * time.Second
+)
+
+func Start(home string, cfg roller.HealthAgentConfig, l *log.Logger) {
+	waitDuration := DefaultWaitBeforeUnhealthy
+	if cfg.WaitBeforeUnhealthy != "" {
+		if parsed, err := time.ParseDuration(cfg.WaitBeforeUnhealthy); err == nil {
+			waitDuration = parsed
+		}
+	}
+
+	checkInterval := DefaultHealthCheckInterval
+	if cfg.HealthCheckInterval != "" {
+		if parsed, err := time.ParseDuration(cfg.HealthCheckInterval); err == nil {
+			checkInterval = parsed
+		}
+	}
+
+	var unhealthySince time.Time
+
 	for {
-		time.Sleep(15 * time.Second)
+		time.Sleep(checkInterval)
 		var healthy bool
 		localEndpoint := "localhost"
 		defaultRaMetricPort := "2112"
@@ -45,52 +66,63 @@ func Start(home string, l *log.Logger) {
 			healthy = false
 		}
 
-		// TODO: improve the node swapping, add health checks before swapping etc.
 		if !healthy {
-			rollerData, err := roller.LoadConfig(home)
-			errorhandling.PrettifyErrorIfExists(err)
-			rollerConfigPath := roller.GetConfigPath(home)
-
-			i := slices.Index(rollerData.DA.StateNodes, rollerData.DA.CurrentStateNode)
-			var newStateNode string
-			var nodeIndex int
-			if i >= 0 && i+1 < len(rollerData.DA.StateNodes) {
-				nodeIndex = i + 1
-			} else {
-				nodeIndex = 0
+			if unhealthySince.IsZero() {
+				unhealthySince = time.Now()
+				l.Printf("Service became unhealthy, waiting %v before restart", waitDuration)
 			}
 
-			pterm.Warning.Printf(
-				"detected problems with DA, hotswapping node to %s\n",
-				rollerData.DA.StateNodes[nodeIndex],
-			)
-			nsn := rollerData.DA.StateNodes[nodeIndex]
-			newStateNode = nsn
-			err = tomlconfig.UpdateFieldInFile(
-				rollerConfigPath,
-				"DA.current_state_node",
-				newStateNode,
-			)
-			if err != nil {
-				pterm.Error.Println("failed to update state node: ", err)
-			}
+			if time.Since(unhealthySince) >= waitDuration {
+				rollerData, err := roller.LoadConfig(home)
+				errorhandling.PrettifyErrorIfExists(err)
+				rollerConfigPath := roller.GetConfigPath(home)
 
-			servicesToRestart := []string{
-				"da-light-client",
-			}
+				i := slices.Index(rollerData.DA.StateNodes, rollerData.DA.CurrentStateNode)
+				var newStateNode string
+				var nodeIndex int
+				if i >= 0 && i+1 < len(rollerData.DA.StateNodes) {
+					nodeIndex = i + 1
+				} else {
+					nodeIndex = 0
+				}
 
-			err = load.LoadServices(servicesToRestart, rollerData)
-			if err != nil {
-				pterm.Error.Println("failed to update services")
-			}
+				pterm.Warning.Printf(
+					"detected problems with DA, hotswapping node to %s\n",
+					rollerData.DA.StateNodes[nodeIndex],
+				)
+				nsn := rollerData.DA.StateNodes[nodeIndex]
+				newStateNode = nsn
+				err = tomlconfig.UpdateFieldInFile(
+					rollerConfigPath,
+					"DA.current_state_node",
+					newStateNode,
+				)
+				if err != nil {
+					pterm.Error.Println("failed to update state node: ", err)
+				}
 
-			err = servicemanager.RestartSystemServices(servicesToRestart, home)
-			if err != nil {
-				pterm.Error.Println("failed to restart services")
+				servicesToRestart := []string{
+					"da-light-client",
+				}
+
+				err = load.LoadServices(servicesToRestart, rollerData)
+				if err != nil {
+					pterm.Error.Println("failed to update services")
+				}
+
+				err = servicemanager.RestartSystemServices(servicesToRestart, home)
+				if err != nil {
+					pterm.Error.Println("failed to restart services")
+				}
+
+				unhealthySince = time.Time{}
 			}
+		} else {
+			if !unhealthySince.IsZero() {
+				l.Println("Service recovered, resetting unhealthy timer")
+			}
+			unhealthySince = time.Time{}
 		}
-
-		healthy = true
 	}
 }
 
