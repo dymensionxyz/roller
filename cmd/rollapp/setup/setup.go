@@ -1039,6 +1039,8 @@ func Cmd() *cobra.Command {
 		Bool("use-default-rpc-endpoint", false, "uses the default dymension hub rpc endpoint")
 	cmd.Flags().Bool("skip-da", false, "skip data availability layer setup")
 	cmd.Flags().Bool("skip-genesis-validation", false, "skip genesis validation")
+	cmd.Flags().
+		Bool("skip-data-dir-check", false, "skip data directory check and automatically clean it if not empty")
 
 	return cmd
 }
