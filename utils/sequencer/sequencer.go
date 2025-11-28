@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
 	dymrollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/pterm/pterm"
@@ -485,6 +486,76 @@ func GetSequencerData(cfg roller.RollappConfig) ([]keys.AccountData, error) {
 			Balance: *sequencerBalance,
 		},
 	}, nil
+}
+
+func WarnIfSequencerBelowLivenessSlashMin(cfg roller.RollappConfig) error {
+	if cfg.NodeType != "sequencer" ||
+		cfg.HubData.ID == consts.MockHubID ||
+		cfg.HubData.RpcUrl == "" {
+		return nil
+	}
+
+	seqAccounts, err := GetSequencerData(cfg)
+	if err != nil {
+		return err
+	}
+	if len(seqAccounts) == 0 {
+		return fmt.Errorf("no sequencer account data found")
+	}
+
+	params, err := GetSequencerParams(cfg.HubData)
+	if err != nil {
+		return err
+	}
+	if params == nil {
+		return nil
+	}
+
+	seqBalance := seqAccounts[0].Balance
+	minBalance := params.Params.LivenessSlashMinAbsolute
+	seqAmt := seqBalance.Amount
+	minAmt := minBalance.Amount
+
+	shouldHighlight := false
+	var warnDetail string
+	if seqAmt.LT(minAmt) {
+		shouldHighlight = true
+		warnDetail = fmt.Sprintf(
+			"Sequencer balance %s is below the liveness slash minimum %s.",
+			seqBalance.String(),
+			minBalance.String(),
+		)
+	} else if minAmt.GT(sdkmath.ZeroInt()) {
+		diff := seqAmt.Sub(minAmt).Abs()
+		tolerance := minAmt.QuoRaw(10)
+		if tolerance.IsZero() {
+			tolerance = sdkmath.NewInt(1)
+		}
+
+		if diff.LTE(tolerance) {
+			shouldHighlight = true
+			warnDetail = fmt.Sprintf(
+				"Sequencer balance %s is close to the liveness slash minimum %s.",
+				seqBalance.String(),
+				minBalance.String(),
+			)
+		}
+	}
+
+	if shouldHighlight {
+		fmt.Printf(
+			"Liveness Slash Minimum: %s %s\n",
+			minBalance.Amount.String(),
+			minBalance.Denom,
+		)
+		pterm.Warning.Println(
+			"The liveness slash minimum is the balance required to avoid downtime slashing.",
+			warnDetail,
+			"Consider topping up to maintain a safety buffer.",
+		)
+	}
+
+	return nil
 }
 
 func GetSequencerBond(address string, hd consts.HubData) (*cosmossdktypes.Coins, error) {

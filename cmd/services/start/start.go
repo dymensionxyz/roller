@@ -75,6 +75,11 @@ func RollappCmd() *cobra.Command {
 					pterm.Error.Println("failed to check sequencer balance: ", err)
 					return
 				}
+
+				warnErr := sequencerutils.WarnIfSequencerBelowLivenessSlashMin(rollappConfig)
+				if warnErr != nil {
+					pterm.Warning.Println("failed to evaluate liveness slash minimum:", warnErr)
+				}
 			}
 
 			if rollappConfig.HubData.ID != consts.MockHubID {
