@@ -416,11 +416,22 @@ func Cmd() *cobra.Command {
 					rollappDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
 
 					dataDir := filepath.Join(rollappDirPath, "data")
+					wasmDir := filepath.Join(rollappDirPath, "wasm")
 					if fi, err := os.Stat(dataDir); err == nil && fi.IsDir() {
 						dataDirNotEmpty, err := filesystem.DirNotEmpty(dataDir)
 						if err != nil {
 							pterm.Error.Printf("failed to check if data directory is empty: %v\n", err)
 							os.Exit(1)
+						}
+
+						// Check if wasm directory exists and is not empty
+						wasmDirNotEmpty := false
+						if wasmFi, wasmErr := os.Stat(wasmDir); wasmErr == nil && wasmFi.IsDir() {
+							wasmDirNotEmpty, err = filesystem.DirNotEmpty(wasmDir)
+							if err != nil {
+								pterm.Error.Printf("failed to check if wasm directory is empty: %v\n", err)
+								os.Exit(1)
+							}
 						}
 
 						var replaceExistingData bool
@@ -440,6 +451,23 @@ func Cmd() *cobra.Command {
 							}
 						}
 
+						var replaceExistingWasm bool
+						if wasmDirNotEmpty {
+							if skipDataDirCheck {
+								replaceExistingWasm = true
+							} else {
+								pterm.Warning.Println("the ~/.roller/rollapp/wasm directory is not empty.")
+								replaceExistingWasm, _ = pterm.DefaultInteractiveConfirm.Show(
+									"Do you want to replace its contents?",
+								)
+								if !replaceExistingWasm {
+									pterm.Info.Println(
+										"wasm directory will not be replaced",
+									)
+								}
+							}
+						}
+
 						if !dataDirNotEmpty || replaceExistingData {
 							// TODO: this should be a util "RecreateDir"
 							err = os.RemoveAll(dataDir)
@@ -452,6 +480,18 @@ func Cmd() *cobra.Command {
 							if err != nil {
 								pterm.Error.Printf("failed to create %s: %v\n", dataDir, err)
 								return
+							}
+
+							// Remove wasm directory if user confirmed or if it's empty
+							if !wasmDirNotEmpty || replaceExistingWasm {
+								if wasmFi, wasmErr := os.Stat(wasmDir); wasmErr == nil && wasmFi.IsDir() {
+									pterm.Info.Println("removing wasm directory")
+									err = os.RemoveAll(wasmDir)
+									if err != nil {
+										pterm.Error.Printf("failed to remove %s dir: %v", wasmDir, err)
+										return
+									}
+								}
 							}
 
 							tmpDir, err := os.MkdirTemp("", "download-*")

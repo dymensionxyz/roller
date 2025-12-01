@@ -123,7 +123,13 @@ func ExtractTarGz(sourcePath, destDir string) error {
 }
 
 func CompressTarGz(sourceDir, destDir, fileName string) error {
-	spinner, _ := pterm.DefaultSpinner.Start("Creating archive from...")
+	return CompressTarGzMultiple([]string{sourceDir}, destDir, fileName)
+}
+
+// CompressTarGzMultiple compresses multiple source directories into a single tar.gz archive
+// Each directory is added to the archive with its base name as the root
+func CompressTarGzMultiple(sourceDirs []string, destDir, fileName string) error {
+	spinner, _ := pterm.DefaultSpinner.Start("Creating archive...")
 	// nolint:errcheck
 	defer spinner.Stop()
 
@@ -143,41 +149,56 @@ func CompressTarGz(sourceDir, destDir, fileName string) error {
 	tarWriter := tar.NewWriter(gzipWriter)
 	defer tarWriter.Close()
 
-	err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	// Iterate through each source directory
+	for _, sourceDir := range sourceDirs {
+		// Check if source directory exists
+		if _, err := os.Stat(sourceDir); os.IsNotExist(err) {
+			pterm.Warning.Printf("Skipping non-existent directory: %s\n", sourceDir)
+			continue
 		}
 
-		header, err := tar.FileInfoHeader(info, info.Name())
-		if err != nil {
-			return err
-		}
+		// Get the base name to use as the root in the archive
+		baseName := filepath.Base(sourceDir)
 
-		header.Name, _ = filepath.Rel(sourceDir, path)
-
-		if err := tarWriter.WriteHeader(header); err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			file, err := os.Open(path)
+		err = filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			defer file.Close()
 
-			if _, err := io.Copy(tarWriter, file); err != nil {
+			header, err := tar.FileInfoHeader(info, info.Name())
+			if err != nil {
 				return err
 			}
-		}
-		return nil
-	})
 
-	if err != nil {
-		spinner.Fail("Archive compressed failed")
-	} else {
-		spinner.Success("Archive compressed successfully")
+			// Create relative path from source directory
+			relPath, _ := filepath.Rel(sourceDir, path)
+			// Prepend base name to maintain directory structure in archive
+			header.Name = filepath.Join(baseName, relPath)
+
+			if err := tarWriter.WriteHeader(header); err != nil {
+				return err
+			}
+
+			if !info.IsDir() {
+				file, err := os.Open(path)
+				if err != nil {
+					return err
+				}
+				defer file.Close()
+
+				if _, err := io.Copy(tarWriter, file); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
+		if err != nil {
+			spinner.Fail(fmt.Sprintf("Archive compression failed for directory %s", sourceDir))
+			return err
+		}
 	}
 
+	spinner.Success("Archive compressed successfully")
 	return nil
 }
