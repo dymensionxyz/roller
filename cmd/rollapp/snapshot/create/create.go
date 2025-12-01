@@ -73,6 +73,7 @@ func Cmd() *cobra.Command {
 			rollappDirPath := filepath.Join(home, consts.ConfigDirName.Rollapp)
 
 			dataDir := filepath.Join(rollappDirPath, "data")
+			wasmDir := filepath.Join(rollappDirPath, "wasm")
 			snapshotDir := filepath.Join(home, consts.ConfigDirName.Snapshots)
 
 			if err := os.MkdirAll(snapshotDir, os.ModePerm); err != nil {
@@ -99,7 +100,15 @@ func Cmd() *cobra.Command {
 				timestamp := time.Now().Format("2006-01-02-15-04-06")
 				snapshotFileName := filepath.Join(snapshotDir, fmt.Sprintf("%s-%s-%s.tar.gz", rollappConfig.RollappID, height, timestamp))
 
-				err = filesystem.CompressTarGz(dataDir, snapshotDir, snapshotFileName)
+				// Check if wasm directory exists and include it in snapshot for WASM rollapps
+				dirsToCompress := []string{dataDir}
+				if wasmFi, wasmErr := os.Stat(wasmDir); wasmErr == nil && wasmFi.IsDir() {
+					pterm.Info.Println("wasm directory detected, including it in the snapshot")
+					dirsToCompress = append(dirsToCompress, wasmDir)
+				}
+
+				// Compress all directories into the snapshot
+				err = filesystem.CompressTarGzMultiple(dirsToCompress, snapshotDir, snapshotFileName)
 				if err != nil {
 					pterm.Error.Println("failed to compress snapshot: ", err)
 					return
