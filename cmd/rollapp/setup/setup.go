@@ -529,7 +529,7 @@ func Cmd() *cobra.Command {
 								return
 							}
 
-							err = filesystem.ExtractTarGz(archivePath, dataDir)
+							err = filesystem.ExtractTarGz(archivePath, rollappDirPath)
 							if err != nil {
 								pterm.Error.Println("failed to extract snapshot: ", err)
 								return
