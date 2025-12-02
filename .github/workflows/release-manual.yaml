@@ -22,6 +22,9 @@ jobs:
           check-latest: true
           go-version-file: go.mod
 
+      - name: Free disk space
+        run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+
       - name: Setup release environment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
