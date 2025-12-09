@@ -32,7 +32,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/rollapp"
-	"github.com/dymensionxyz/roller/utils/rollapp/iro"
 	"github.com/dymensionxyz/roller/utils/roller"
 	"github.com/dymensionxyz/roller/utils/sequencer"
 )
