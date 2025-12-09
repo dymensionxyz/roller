@@ -111,14 +111,14 @@ func Cmd() *cobra.Command {
 				return
 			}
 
-			ok := iro.IsTokenGraduated(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
-			if !ok {
-				pterm.Error.Println("the token has not yet graduated")
-				pterm.Error.Println(
-					"token must fully raise the amount set in the launchpad to become ready for graduation",
-				)
-				return
-			}
+			// ok := iro.IsTokenGraduated(raResponse.Rollapp.RollappId, localRollerConfig.HubData)
+			// if !ok {
+			// 	pterm.Error.Println("the token has not yet graduated")
+			// 	pterm.Error.Println(
+			// 		"token must fully raise the amount set in the launchpad to become ready for graduation",
+			// 	)
+			// 	return
+			// }
 
 			bp, err := rollapp.ExtractBech32PrefixFromBinary(
 				strings.ToLower(raResponse.Rollapp.VmType),
