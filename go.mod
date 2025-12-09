@@ -1,8 +1,6 @@
 module github.com/dymensionxyz/roller
 
-go 1.23.4
-
-toolchain go1.23.6
+go 1.23.9
 
 require (
 	github.com/availproject/avail-go-sdk v0.2.7
