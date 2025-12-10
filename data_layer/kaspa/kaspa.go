@@ -19,7 +19,7 @@ const (
 	ConfigFileName          = "kaspa.toml"
 	MnemonicEntropySize     = 256
 	requiredKAS             = 1
-	defaultKaspaTestnetGRPC = "185.69.54.99:16210"
+	defaultKaspaTestnetGRPC = "api-kaspa.mzonder.com:16210"
 	defaultKaspaMainnetGRPC = "91.84.65.9:16210"
 	MnemonicEnvVar          = "KASPA_MNEMONIC"
 )
@@ -67,6 +67,16 @@ func NewKaspa(root string) *Kaspa {
 
 		kaspaConfig.ApiUrl = daData.ApiUrl
 		kaspaConfig.Root = root
+
+		useExistingApiEndpoint, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+			"would you like to use your own API endpoint?",
+		).Show()
+
+		if useExistingApiEndpoint {
+			kaspaConfig.ApiUrl, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
+				"> Enter your API endpoint",
+			).Show()
+		}
 
 		useExistingGrpcAddress, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to use your own gRPC endpoint??",
