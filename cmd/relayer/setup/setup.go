@@ -17,7 +17,6 @@ import (
 	"github.com/dymensionxyz/roller/utils/errorhandling"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	firebaseutils "github.com/dymensionxyz/roller/utils/firebase"
-	"github.com/dymensionxyz/roller/utils/genesis"
 	"github.com/dymensionxyz/roller/utils/logging"
 	relayerutils "github.com/dymensionxyz/roller/utils/relayer"
 	"github.com/dymensionxyz/roller/utils/rollapp"
@@ -74,7 +73,7 @@ func Cmd() *cobra.Command {
 			}
 			pterm.Info.Println("rollapp chain data validation passed")
 
-			err = installRelayerDependencies(home, rly.Rollapp.ID, *hd)
+			err = installRelayerDependencies(rly.Rollapp.ID, *hd)
 			if err != nil {
 				pterm.Error.Println("failed to install relayer dependencies: ", err)
 				return
@@ -278,7 +277,6 @@ func getPreRunInfo(home string) (*consts.RollappData, *consts.HubData, string, e
 }
 
 func installRelayerDependencies(
-	home string,
 	raID string,
 	hd consts.HubData,
 ) error {
@@ -287,9 +285,9 @@ func installRelayerDependencies(
 		return err
 	}
 
-	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResp)
+	drsVersion, err := rollapp.GetDrsVersionFromChain(raID, hd)
 	if err != nil {
-		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		pterm.Error.Println("failed to get drs version from rollapp: ", err)
 		return err
 	}
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	cosmossdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +18,7 @@ import (
 	datalayer "github.com/dymensionxyz/roller/data_layer"
 	"github.com/dymensionxyz/roller/utils/bash"
 	bashutils "github.com/dymensionxyz/roller/utils/bash"
+	"github.com/dymensionxyz/roller/utils/config"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 	"github.com/dymensionxyz/roller/utils/keys"
 	"github.com/dymensionxyz/roller/utils/roller"
@@ -372,6 +374,100 @@ func GetRollappParams(hd consts.HubData) (*RaParams, error) {
 	}
 
 	return &resp, nil
+}
+
+func GetDrsVersionFromChain(rollappID string, hd consts.HubData) (string, error) {
+	rpc, err := fetchRollappRpcFromChain(rollappID, hd)
+	if err != nil {
+		return "", err
+	}
+
+	params, err := getRollappParamsFromNode(rpc, rollappID)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("params", params)
+	if params == nil {
+		return "", errors.New("rollapp params response is nil")
+	}
+	return strconv.Itoa(params.DrsVersion), nil
+}
+
+type RollappDaemonParams struct {
+	Da           string                  `json:"da"`
+	DrsVersion   int                     `json:"drs_version"`
+	MinGasPrices cosmossdktypes.DecCoins `json:"min_gas_prices"`
+}
+
+func getRollappParamsFromNode(rpcEndpoint, chainID string) (*RollappDaemonParams, error) {
+	rpc := strings.TrimSpace(rpcEndpoint)
+	if rpc == "" {
+		rpc = consts.DefaultRollappRPC
+	}
+	args := []string{"q", "rollappparams", "params", "--node", rpc, "-o", "json"}
+	if chainID != "" {
+		args = append(args, "--chain-id", chainID)
+	}
+
+	cmd := exec.Command(consts.Executables.RollappEVM, args...)
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return nil, err
+	}
+	var resp RollappDaemonParams
+	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func fetchRollappRpcFromChain(raID string, hd consts.HubData) (string, error) {
+	proposer, err := GetCurrentProposer(raID, hd)
+	if err != nil {
+		return "", err
+	}
+	if proposer == "" {
+		return "", errors.New("no proposer found for rollapp")
+	}
+
+	cmd := exec.Command(
+		consts.Executables.Dymension,
+		"q", "sequencer", "show-sequencer",
+		proposer, "-o", "json", "--node", hd.RpcUrl, "--chain-id", hd.ID,
+	)
+
+	out, err := bash.ExecCommandWithStdout(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	var resp struct {
+		Sequencer struct {
+			Metadata struct {
+				Rpcs []string `json:"rpcs"`
+			} `json:"metadata"`
+		} `json:"sequencer"`
+	}
+
+	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
+		return "", err
+	}
+
+	if len(resp.Sequencer.Metadata.Rpcs) == 0 {
+		return "", errors.New("no rpc endpoints found in sequencer metadata")
+	}
+
+	rpc := strings.TrimSpace(resp.Sequencer.Metadata.Rpcs[0])
+	if rpc == "" {
+		return "", errors.New("empty rpc endpoint in sequencer metadata")
+	}
+
+	if !strings.HasPrefix(rpc, "http://") && !strings.HasPrefix(rpc, "https://") {
+		rpc = "https://" + rpc
+	}
+	rpc = config.AddHttpsPortIfNeeded(rpc)
+
+	return rpc, nil
 }
 
 func getGenesisFilePath(root string) string {
