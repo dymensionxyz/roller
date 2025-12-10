@@ -386,7 +386,6 @@ func GetDrsVersionFromChain(rollappID string, hd consts.HubData) (string, error)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("params", params)
 	if params == nil {
 		return "", errors.New("rollapp params response is nil")
 	}
