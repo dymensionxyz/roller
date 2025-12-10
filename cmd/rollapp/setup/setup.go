@@ -1029,14 +1029,14 @@ func Cmd() *cobra.Command {
 			_ = tomlconfig.UpdateFieldInFile(
 				dymintConfigPath,
 				"da_layer",
-				getDaLayer(home, raResponse, damanager.DaType),
+				getDaLayer(rollappConfig.RollappID, rollappConfig.HubData, raResponse, damanager.DaType),
 			)
 
 			if !skipDA {
 				_ = tomlconfig.UpdateFieldInFile(
 					dymintConfigPath,
 					"da_config",
-					getDaConfig(damanager.DataLayer, nodeType, home, raResponse, rollappConfig),
+					getDaConfig(damanager.DataLayer, nodeType, raResponse, rollappConfig),
 				)
 			}
 
@@ -1361,10 +1361,10 @@ func displayRegularDenom(coin cosmossdktypes.Coin, decimals int) string {
 	return formattedAmount
 }
 
-func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType consts.DAType) any {
-	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
+func getDaLayer(raID string, hd consts.HubData, raResponse *rollapp.ShowRollappResponse, daType consts.DAType) any {
+	drsVersion, err := rollapp.GetDrsVersionFromChain(raID, hd)
 	if err != nil {
-		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		pterm.Error.Println("failed to get drs version from rollapp: ", err)
 		return nil
 	}
 
@@ -1378,15 +1378,14 @@ func getDaLayer(home string, raResponse *rollapp.ShowRollappResponse, daType con
 func getDaConfig(
 	dataLayer datalayer.DataLayer,
 	nodeType string,
-	home string,
 	raResponse *rollapp.ShowRollappResponse,
 	rollappConfig *roller.RollappConfig,
 ) any {
 	daConfig := dataLayer.GetSequencerDAConfig(nodeType)
 
-	drsVersion, err := genesis.GetDrsVersionFromGenesis(home, raResponse)
+	drsVersion, err := rollapp.GetDrsVersionFromChain(rollappConfig.RollappID, rollappConfig.HubData)
 	if err != nil {
-		pterm.Error.Println("failed to get drs version from genesis: ", err)
+		pterm.Error.Println("failed to get drs version from rollapp: ", err)
 		return nil
 	}
 

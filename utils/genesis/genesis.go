@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	comettypes "github.com/cometbft/cometbft/types"
@@ -461,24 +460,4 @@ func ValidateGenesis(raCfg roller.RollappConfig, raID string, hd consts.HubData)
 	}
 
 	return nil
-}
-
-func GetDrsVersionFromGenesis(
-	home string,
-	raResp *rollapp.ShowRollappResponse,
-) (string, error) {
-	err := DownloadGenesis(home, raResp.Rollapp.Metadata.GenesisUrl)
-	if err != nil {
-		return "", err
-	}
-
-	as, err := GetAppStateFromGenesisFile(home)
-	if err != nil {
-		pterm.Error.Println("failed to get genesis app state: ", err)
-		return "", err
-	}
-	drsVersion := strconv.Itoa(as.RollappParams.Params.DrsVersion)
-
-	pterm.Info.Println("DRS version: ", drsVersion)
-	return drsVersion, nil
 }
