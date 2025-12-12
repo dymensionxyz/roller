@@ -29,6 +29,10 @@ jobs:
         with:
           go-version-file: go.mod
       - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
+      - name: Install make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make
       - name: Build
         run: make build
 #      - name: Test & Coverage
