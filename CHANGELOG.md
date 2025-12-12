@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.8](https://github.com/dymensionxyz/roller/compare/v1.18.7...v1.18.8) (2025-12-12)
+
+
+### Bug Fixes
+
+* **ci:** add make to testing ([6a6b65a](https://github.com/dymensionxyz/roller/commit/6a6b65a1d232e1276814ddd24421cfec23870e69))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
