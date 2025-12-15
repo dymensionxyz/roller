@@ -225,7 +225,7 @@ func Cmd() *cobra.Command {
 				}
 
 				if !shouldSkipBinaryInstallation {
-					_, _, err = dependencies.InstallBinaries(true, raRespMock, env)
+					_, _, err = dependencies.InstallBinaries(true, raRespMock, hd, env)
 					if err != nil {
 						pterm.Error.Println("failed to install binaries: ", err)
 						return
@@ -308,7 +308,7 @@ func Cmd() *cobra.Command {
 			}
 
 			start := time.Now()
-			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse, env)
+			builtDeps, _, err := dependencies.InstallBinaries(false, *raResponse, hd, env)
 			if err != nil {
 				pterm.Error.Println("failed to install binaries: ", err)
 				return

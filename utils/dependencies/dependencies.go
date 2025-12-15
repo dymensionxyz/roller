@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -27,7 +26,7 @@ import (
 	"github.com/dymensionxyz/roller/utils/rollapp"
 )
 
-func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env string) (
+func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, hd consts.HubData, env string) (
 	map[string]types.Dependency,
 	map[string]types.Dependency,
 	error,
@@ -66,8 +65,13 @@ func InstallBinaries(withMockDA bool, raResp rollapp.ShowRollappResponse, env st
 		}
 
 		da = as.RollappParams.Params.Da
-		drsVersion = strconv.Itoa(as.RollappParams.Params.DrsVersion)
-		pterm.Info.Println("RollApp drs version from the genesis file : ", drsVersion)
+
+		drsVersion, err = rollapp.GetDrsVersionFromChain(raResp.Rollapp.RollappId, hd)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to retrieve rollapp drs version from chain: %w", err)
+		}
+		pterm.Info.Println("RollApp drs version fetched from chain: ", drsVersion)
+
 		drsInfo, err := firebaseutils.GetLatestDrsVersionCommit(drsVersion, env)
 		if err != nil {
 			return nil, nil, err
