@@ -120,8 +120,10 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				go healthagent.Start(home, rollappConfig.HealthAgent, rollerLogger)
 			}
 
-			done := make(chan error, 1)
+			signalChan := make(chan error, 1)
+			execDone := make(chan error, 1)
 			// nolint: errcheck
+			var promptResponses map[string]string
 			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
 				pswFileName, err := filesystem.GetOsKeyringPswFileName(
 					consts.Executables.RollappEVM,
@@ -138,51 +140,41 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 					return
 				}
 
-				pr := map[string]string{
+				promptResponses = map[string]string{
 					"Enter keyring passphrase":    psw,
 					"Re-enter keyring passphrase": psw,
 				}
-
-				ctx, cancel := context.WithCancel(cmd.Context())
-				defer cancel()
-				go func() {
-					err := bash.ExecCmdFollow(
-						done,
-						ctx,
-						startRollappCmd,
-						pr,
-					)
-
-					done <- err
-				}()
-			} else {
-				ctx, cancel := context.WithCancel(cmd.Context())
-				defer cancel()
-
-				go func() {
-					err := bash.ExecCmdFollow(
-						done,
-						ctx,
-						startRollappCmd,
-						nil, // No need for printOutput since we configured output above
-					)
-
-					done <- err
-				}()
-				select {
-				case err := <-done:
-					if err != nil {
-						pterm.Error.Println("rollapp's process returned an error: ", err)
-						os.Exit(1)
-					}
-				case <-ctx.Done():
-					pterm.Error.Println("context cancelled, terminating command")
-					return
-				}
-
 			}
 
-			select {}
+			ctx, cancel := context.WithCancel(cmd.Context())
+			defer cancel()
+
+			go func() {
+				err := bash.ExecCmdFollow(
+					signalChan,
+					ctx,
+					startRollappCmd,
+					promptResponses,
+				)
+
+				execDone <- err
+			}()
+
+			select {
+			case err := <-signalChan:
+				if err != nil {
+					pterm.Error.Println("rollapp process received signal: ", err)
+					os.Exit(1)
+				}
+			case err := <-execDone:
+				if err != nil {
+					pterm.Error.Println("rollapp's process returned an error: ", err)
+					os.Exit(1)
+				}
+			case <-ctx.Done():
+				pterm.Error.Println("context cancelled, terminating command")
+				return
+			}
 		},
 	}
 	cmd.Flags().String("log-level", "debug", "pass the log level to the rollapp")
