@@ -915,8 +915,19 @@ func Cmd() *cobra.Command {
 
 						height, hash, err := celestia.GetBlockByHeight(h, localRollerConfig)
 						if err != nil {
-							pterm.Error.Println("failed to retrieve block: ", err)
-							return
+							if strings.Contains(err.Error(), "below Tail") {
+								pterm.Warning.Println(
+									"state update height is below Celestia tail, using latest DA block instead",
+								)
+								height, hash, err = celestia.GetLatestBlock(localRollerConfig)
+								if err != nil {
+									pterm.Error.Println("failed to retrieve latest block: ", err)
+									return
+								}
+							} else {
+								pterm.Error.Println("failed to retrieve block: ", err)
+								return
+							}
 						}
 
 						heightInt, err := strconv.Atoi(height)
