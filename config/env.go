@@ -5,9 +5,9 @@ import (
 )
 
 type EnvConfig struct {
-	RollappCommit       string `env:"ROLLER_RA_COMMIT"`
-	RollappGenesis      string `env:"ROLLER_RA_GENESIS"`
-	SkipCelestiaBinary  bool   `env:"ROLLER_SKIP_CELESTIA_BINARY"`
+	RollappCommit      string `env:"ROLLER_RA_COMMIT"`
+	RollappGenesis     string `env:"ROLLER_RA_GENESIS"`
+	SkipCelestiaBinary bool   `env:"ROLLER_SKIP_CELESTIA_BINARY"`
 }
 
 var Config EnvConfig
