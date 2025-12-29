@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.18.8](https://github.com/dymensionxyz/roller/compare/v1.18.7...v1.18.8) (2025-12-29)
+
+
+### Bug Fixes
+
+* **ci:** add make to testing ([6a6b65a](https://github.com/dymensionxyz/roller/commit/6a6b65a1d232e1276814ddd24421cfec23870e69))
+* get drs from param on-chain instead of genesis ([#1428](https://github.com/dymensionxyz/roller/issues/1428)) ([0c2d1cd](https://github.com/dymensionxyz/roller/commit/0c2d1cdacf34046902ffac09dd3aca43941ef2b3))
+* use correct websocket URL scheme (wss://) in hub configurations ([#1432](https://github.com/dymensionxyz/roller/issues/1432)) ([39b987e](https://github.com/dymensionxyz/roller/commit/39b987e778f56009bd8197771f2a7cde018fef7c))
+
 ## [1.6.4-alpha-rc02](https://github.com/dymensionxyz/roller/compare/v1.6.4-alpha-rc01...v1.6.4-alpha-rc02) (2024-09-20)
 
 
