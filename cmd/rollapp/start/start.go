@@ -33,6 +33,8 @@ import (
 var (
 	DaLcEndpoint string
 	DaLogPath    string
+
+	execCmdFollowFunc = bash.ExecCmdFollow
 )
 
 func Cmd() *cobra.Command {
@@ -120,8 +122,6 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 				go healthagent.Start(home, rollappConfig.HealthAgent, rollerLogger)
 			}
 
-			signalChan := make(chan error, 1)
-			execDone := make(chan error, 1)
 			// nolint: errcheck
 			var promptResponses map[string]string
 			if rollappConfig.KeyringBackend == consts.SupportedKeyringBackends.OS {
@@ -149,37 +149,42 @@ Consider using 'services' if you want to run a 'systemd'(unix) or 'launchd'(mac)
 			ctx, cancel := context.WithCancel(cmd.Context())
 			defer cancel()
 
-			go func() {
-				err := bash.ExecCmdFollow(
-					signalChan,
-					ctx,
-					startRollappCmd,
-					promptResponses,
-				)
-
-				execDone <- err
-			}()
-
-			select {
-			case err := <-signalChan:
-				if err != nil {
-					pterm.Error.Println("rollapp process received signal: ", err)
-					os.Exit(1)
-				}
-			case err := <-execDone:
-				if err != nil {
-					pterm.Error.Println("rollapp's process returned an error: ", err)
-					os.Exit(1)
-				}
-			case <-ctx.Done():
-				pterm.Error.Println("context cancelled, terminating command")
-				return
+			err = runRollappCommand(ctx, startRollappCmd, promptResponses)
+			if err != nil {
+				pterm.Error.Println(err)
+				os.Exit(1)
 			}
 		},
 	}
 	cmd.Flags().String("log-level", "debug", "pass the log level to the rollapp")
 
 	return cmd
+}
+
+func runRollappCommand(
+	ctx context.Context,
+	cmd *exec.Cmd,
+	promptResponses map[string]string,
+) error {
+	signalChan := make(chan error, 1)
+	execDone := make(chan error, 1)
+
+	go func() {
+		err := execCmdFollowFunc(signalChan, ctx, cmd, promptResponses)
+		execDone <- err
+	}()
+
+	select {
+	case err := <-signalChan:
+		if err != nil {
+			return fmt.Errorf("rollapp process received signal: %w", err)
+		}
+		return nil
+	case err := <-execDone:
+		return err
+	case <-ctx.Done():
+		return fmt.Errorf("context cancelled: %w", ctx.Err())
+	}
 }
 
 func PrintOutput(
