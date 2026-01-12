@@ -68,11 +68,11 @@ func NewKaspa(root string) *Kaspa {
 		kaspaConfig.ApiUrl = daData.ApiUrl
 		kaspaConfig.Root = root
 
-		useExistingApiEndpoint, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
+		overrideApiEndpoint, _ := pterm.DefaultInteractiveConfirm.WithDefaultText(
 			"would you like to use your own API endpoint?",
 		).Show()
 
-		if useExistingApiEndpoint {
+		if overrideApiEndpoint {
 			kaspaConfig.ApiUrl, _ = pterm.DefaultInteractiveTextInput.WithDefaultText(
 				"> Enter your API endpoint",
 			).Show()
