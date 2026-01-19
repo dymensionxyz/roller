@@ -77,23 +77,32 @@ func MonitorTransaction(endpoint, txHash string) error {
 		close(errChan)
 	}()
 
-	// Process results
+	// Fix race condition: previously we checked error count prematurely and could
+	// exit before API polling discovered the tx. Now we wait for both goroutines
+	// to complete before deciding success/failure.
 	var errors []error
+	resultChanClosed := false
+	errChanClosed := false
+
 	for {
 		select {
 		case result, ok := <-resultChan:
-			if ok && result.Success {
+			if !ok {
+				resultChanClosed = true
+			} else if result.Success {
 				spinner.Success(fmt.Sprintf("Transaction succeeded via %s!", result.Source))
 				pterm.Info.Printf("Gas wanted: %d, Gas used: %d\n", result.GasWanted, result.GasUsed)
 				cancel()
 				return nil
-			} else if ok && !result.Success {
+			} else {
 				spinner.Fail(fmt.Sprintf("Transaction failed via %s", result.Source))
 				cancel()
 				return fmt.Errorf("transaction failed with code %d: %s", result.Code, result.Log)
 			}
-		case err := <-errChan:
-			if err != nil {
+		case err, ok := <-errChan:
+			if !ok {
+				errChanClosed = true
+			} else if err != nil {
 				errors = append(errors, err)
 			}
 		case <-ctx.Done():
@@ -101,14 +110,16 @@ func MonitorTransaction(endpoint, txHash string) error {
 			return fmt.Errorf("timeout waiting for transaction")
 		}
 
-		if len(errors) == 2 || (strings.HasPrefix(endpoint, "ws") && len(errors) == 1) {
-			spinner.Fail("All monitoring methods failed")
-			return fmt.Errorf("all monitoring methods failed: %v", errors)
-		}
-
-		if resultChan == nil && errChan == nil {
+		// Only exit after both goroutines have completed
+		if resultChanClosed && errChanClosed {
 			break
 		}
+	}
+
+	// Only report failure after both methods have finished
+	if len(errors) > 0 {
+		spinner.Fail("All monitoring methods failed")
+		return fmt.Errorf("all monitoring methods failed: %v", errors)
 	}
 
 	spinner.Fail("Transaction monitoring completed without result")
@@ -291,9 +302,9 @@ func monitorViaAPI(ctx context.Context, rpcURL, txHash string, resultChan chan<-
 			if err != nil {
 				continue
 			}
-			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
+				resp.Body.Close()
 				continue
 			}
 
@@ -309,6 +320,7 @@ func monitorViaAPI(ctx context.Context, rpcURL, txHash string, resultChan chan<-
 			}
 
 			body, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
 			if err != nil {
 				continue
 			}
