@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/eibc"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
@@ -57,7 +56,7 @@ instance.
 			fNodes := strings.Split(fullNodes, ",")
 
 			lspn, _ := pterm.DefaultSpinner.Start("adding rollapp to eibc config")
-			err = eibc.AddRollappToEibcConfig(rollAppID, eibcHome, fNodes)
+			err = eibcutils.AddRollappToEibcConfig(rollAppID, eibcHome, fNodes)
 			if err != nil {
 				return
 			}

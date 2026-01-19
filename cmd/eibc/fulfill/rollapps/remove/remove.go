@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/dymensionxyz/roller/cmd/consts"
-	"github.com/dymensionxyz/roller/utils/eibc"
 	eibcutils "github.com/dymensionxyz/roller/utils/eibc"
 	"github.com/dymensionxyz/roller/utils/filesystem"
 )
@@ -46,7 +45,7 @@ func Cmd() *cobra.Command {
 			}
 
 			// Parse the YAML
-			var config eibc.Config
+			var config eibcutils.Config
 
 			rollAppID := args[0]
 			err = yaml.Unmarshal(data, &config)
